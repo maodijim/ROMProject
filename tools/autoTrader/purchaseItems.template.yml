@@ -1,0 +1,33 @@
+minZenyKeep: 2000000          # 账户保留最低zeny数
+buyInterval: 900              # 每次购买的间隔 (秒)
+authPass:                     # 如果账号有交易密码
+enterMap: false               # 如果要人物进入游戏地图改成 true  注: 慎用 每次交易前都会重新登录游戏角色
+items:
+  - itemName: 魔力石板
+    purchaseCount: 30           # 每次购买的数量 / 每次出售的数量
+    maxPurchasePrice: 50000     # 每次购买的最高价格 / 开始出售的最低价格
+    maxPossession:              # 身上最大所有量停止购买 / 身上最少拥有量停止出售
+    action: 买                  # 买/卖 默认是买
+    maxExchangeCount: 9000000   # 交易所库存超过这个数量也会卖出  注意: 价格或者数量其中一个达到都会上架卖出
+    minSellPrice: 0             # 最低出售金额
+#  - itemName: 铠甲碎片
+#    purchaseCount: 100
+#    maxPurchasePrice: 1100
+#  - itemName: 天空之石
+#    purchaseCount: 10
+#    maxPurchasePrice: 14000
+#  - itemName: 残骸
+#    purchaseCount: 50
+#    maxPurchasePrice: 50000
+  - itemName: 紫宝石
+    purchaseCount: 20
+    maxPurchasePrice: 6500
+  - itemName: 蜂蜜
+    purchaseCount: 50
+    maxPurchasePrice: 2000
+  - itemName: 2021.2月限定特典
+    purchaseCount: 2
+    maxPurchasePrice: 7000000
+  - itemName: 2021.3月限定特典
+    purchaseCount: 1
+    maxPurchasePrice: 7000000

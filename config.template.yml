@@ -1,0 +1,32 @@
+zoneId: 10001
+version: "1.0.99"
+authServer: "https://auth-m-ro-gf.xd.com:5003/login"
+region: 3
+# character 1 - 3
+char: 1
+serverId: 3
+langZone: 40
+resourceVer: "761958"
+domain: "gw-m-ro-gf.xd.com"
+accessToken: "" # 必填
+ip: "182.92.34.64"
+device: "android"
+phone: ""  # 必填
+lang: 40
+clientVer: "56"
+model: "HUAWEI OXF-AN10"
+phVer: "Android OS 7.1.2 / API-25 ((N2G47H/G955FXXU1AQJ5))"
+platV: "1"
+appPreVer: 35
+gameServer: "182.92.34.64"
+authParams:
+  access_token: AccessToken
+  plat: PlatformVer
+  version: Version
+  clientCode: ClientVer
+  lang: Lang
+  appPreVersion: AppPreVer
+
+elasticsearch:
+  urls:
+    - http://localhost:9200

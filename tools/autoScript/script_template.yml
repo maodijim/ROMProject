@@ -1,0 +1,12 @@
+---
+# 自动寻怪使用苍蝇翅膀
+useFlyWing: false
+
+# 自动完成每日3次委托任务
+auto_submit_wanted_quest: true
+
+# 自动打生态研究所副本
+auto_team_exp_fuben: false
+
+
+actions:
