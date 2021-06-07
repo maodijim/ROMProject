@@ -422,14 +422,18 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 			case Cmd.ErrCmdParam_value["REG_ERR_USER_CMD"]:
 				param = &Cmd.RegErrUserCmd{}
 				err = utils.ParseCmd(o, param)
-				if param.(*Cmd.RegErrUserCmd).GetRet() == Cmd.RegErrRet_REG_ERR_DUPLICATE_LOGIN {
+				returnCode := param.(*Cmd.RegErrUserCmd).GetRet()
+				if returnCode == Cmd.RegErrRet_REG_ERR_DUPLICATE_LOGIN {
 					log.Warnf("%s Account has been logged in on another device: %v", g.Role.GetRoleName(), param)
-					g.quit <- true
+					g.Close()
+				} else if returnCode == Cmd.RegErrRet_REG_ERR_ACC_FORBID {
+					log.Errorf("%s Account forbidden", g.Role.GetRoleName())
+					g.Close()
 				} else {
 					log.Errorf("Server return err: %v", param)
 					g.Close()
-					return
 				}
+				return
 
 			case Cmd.ErrCmdParam_value["MAINTAIN_USER_CMD"]:
 				param = &Cmd.MaintainUserCmd{}
