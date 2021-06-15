@@ -634,13 +634,16 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				err = utils.ParseCmd(o, param)
 				applyList := param.(*Cmd.TeamApplyUpdate)
 				g.Mutex.Lock()
-			applyLoop:
 				for _, apply := range applyList.GetUpdates() {
 					for _, cur := range g.Role.TeamApply {
 						if apply.GetGuid() == cur.GetGuid() {
 							cur = apply
 							g.AcceptTeamApply(apply.GetGuid())
-							continue applyLoop
+						} else if g.Role.AcceptAllTeamInvite {
+							go func() {
+								time.Sleep(time.Second * 5)
+								g.AcceptTeamApply(apply.GetGuid())
+							}()
 						}
 					}
 					g.Role.TeamApply = append(g.Role.TeamApply, apply)

@@ -102,10 +102,10 @@ func worker(wg *sync.WaitGroup, cPath string, skills map[uint32]utils.SkillItem,
 func main() {
 	log.Infof("ROM team tower version %s", teamTowerVer)
 	confFile := flag.String("configPath", "config.yml", "Game Server Configuration Yaml Path")
-	exchangeItemFile := flag.String("exchangeItemPath", "exchangeItems.json", "Exchange Item Json Path")
-	itemFile := flag.String("itemPath", "items.json", "All Item Json Path")
-	buffFile := flag.String("buffPath", "buff.json", "Buff Json Path")
-	skillJson := flag.String("skillJson", "skills.yml", "json file of skills")
+	exchangeItemFile := flag.String("exchangeItemPath", "", "Exchange Item Json Path")
+	itemFile := flag.String("itemPath", "", "All Item Json Path")
+	buffFile := flag.String("buffPath", "", "Buff Json Path")
+	skillJson := flag.String("skillJson", "", "json file of skills")
 	enableDebug := flag.Bool("debug", false, "Enable Debugging")
 	flag.Parse()
 

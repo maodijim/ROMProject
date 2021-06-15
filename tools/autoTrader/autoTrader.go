@@ -34,7 +34,7 @@ func init() {
 func main() {
 	log.Infof("ROM auto trader Version: %s", traderVer)
 	confFile := flag.String("configPath", "config.yml", "Game Server Configuration Yaml Path")
-	itemFile := flag.String("itemPath", "exchangeItems.json", "Exchange Item Json Path")
+	itemFile := flag.String("itemPath", "", "Exchange Item Json Path")
 	buffFile := flag.String("buffPath", "", "Buff Json Path")
 	purchaseItemYml := flag.String("purchaseItems", "purchaseItems.yml", "yaml file of the list of items to purchase")
 	enableDebug := flag.Bool("debug", false, "Enable Debugging")

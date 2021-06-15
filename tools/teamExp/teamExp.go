@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	maxExpFubenTime = time.Minute * 35
+	maxExpFubenTime = time.Minute * 40
 )
 
 func init() {
@@ -116,10 +116,10 @@ func worker(wg *sync.WaitGroup, completeFuben chan bool, cPath string, skills ma
 func main() {
 	log.Infof("ROM auto script version %s", autoScriptVer)
 	confFile := flag.String("configPath", "config.yml", "Game Server Configuration Yaml Path")
-	itemFile := flag.String("itemPath", "exchangeItems.json", "Exchange Item Json Path")
+	itemFile := flag.String("itemPath", "", "Exchange Item Json Path")
 	scriptYml := flag.String("script", "script.yml", "yaml file of the script actions")
-	buffFile := flag.String("buffPath", "buff.json", "Buff Json Path")
-	skillJson := flag.String("skillJson", "skills.yml", "json file of skills")
+	buffFile := flag.String("buffPath", "", "Buff Json Path")
+	skillJson := flag.String("skillJson", "", "json file of skills")
 	enableDebug := flag.Bool("debug", false, "Enable Debugging")
 	flag.Parse()
 

@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"ROMProject/data"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -69,21 +70,25 @@ type SkillItem struct {
 }
 
 func readSkillItem(skillJson string) map[uint32]SkillItem {
-	fName := "skills.json"
+	var b []byte
+	var err error
 	if skillJson != "" {
-		fName = skillJson
+		fName := skillJson
+		jsonFile, err := os.Open(skillJson)
+		if err != nil {
+			log.Errorf("failed to open %s: %s", fName, err)
+		}
+		b, _ = ioutil.ReadAll(jsonFile)
+	} else {
+		b = data.SkillsJson
 	}
-	jsonFile, err := os.Open(skillJson)
-	if err != nil {
-		log.Errorf("failed to open %s: %s", fName, err)
-	}
-	b, _ := ioutil.ReadAll(jsonFile)
+
 	var jLoader map[uint32]SkillItem
 	err = json.Unmarshal(b, &jLoader)
 	if err != nil {
 		log.Errorf("loading exchange items with error: %s", err)
 	}
-	log.Infof("loaded %d items from %s", len(jLoader), fName)
+	log.Infof("loaded %d skill items", len(jLoader))
 	return jLoader
 }
 

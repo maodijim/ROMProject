@@ -13,34 +13,35 @@ type MatchDetail struct {
 }
 
 type RoleInfo struct {
-	RoleId           *uint64
-	RoleName         *string
-	MapId            *uint32
-	MapName          *string
-	Pos              *Cmd.ScenePos
-	AuthConfirm      *bool
-	Authed           *bool
-	RoleSelected     *bool
-	LoginResult      *uint32
-	InGame           *bool
-	Silver           *uint64
-	PackItems        map[Cmd.EPackType]map[string]*Cmd.ItemData
-	SkillItems       map[uint32]*Cmd.SkillItem
-	AutoSkills       map[uint32]*Cmd.SkillItem
-	TeamExpFubenInfo *Cmd.TeamExpQueryInfoFubenCmd
-	MatchInfos       map[Cmd.EPvpType]*MatchDetail
-	UserAttrs        []*Cmd.UserAttr
-	UserDatas        []*Cmd.UserData
-	Buffs            map[uint32]*Cmd.BufferData
-	TeamData         *Cmd.TeamData
-	TeamApply        []*Cmd.TeamApply
-	TeamMemberPos    map[uint64]*Cmd.MemberPosUpdate
-	CDs              map[uint32]time.Time
-	UserVars         map[Cmd.EVarType]*Cmd.Var
-	AccVars          map[Cmd.EAccVarType]*Cmd.AccVar
-	QuestList        *Cmd.QuestList
-	UserTowerInfo    *Cmd.UserTowerInfo
-	FollowUserId     uint64
+	AcceptAllTeamInvite bool
+	RoleId              *uint64
+	RoleName            *string
+	MapId               *uint32
+	MapName             *string
+	Pos                 *Cmd.ScenePos
+	AuthConfirm         *bool
+	Authed              *bool
+	RoleSelected        *bool
+	LoginResult         *uint32
+	InGame              *bool
+	Silver              *uint64
+	PackItems           map[Cmd.EPackType]map[string]*Cmd.ItemData
+	SkillItems          map[uint32]*Cmd.SkillItem
+	AutoSkills          map[uint32]*Cmd.SkillItem
+	TeamExpFubenInfo    *Cmd.TeamExpQueryInfoFubenCmd
+	MatchInfos          map[Cmd.EPvpType]*MatchDetail
+	UserAttrs           []*Cmd.UserAttr
+	UserDatas           []*Cmd.UserData
+	Buffs               map[uint32]*Cmd.BufferData
+	TeamData            *Cmd.TeamData
+	TeamApply           []*Cmd.TeamApply
+	TeamMemberPos       map[uint64]*Cmd.MemberPosUpdate
+	CDs                 map[uint32]time.Time
+	UserVars            map[Cmd.EVarType]*Cmd.Var
+	AccVars             map[Cmd.EAccVarType]*Cmd.AccVar
+	QuestList           *Cmd.QuestList
+	UserTowerInfo       *Cmd.UserTowerInfo
+	FollowUserId        uint64
 }
 
 func (r *RoleInfo) GetPackItems() map[Cmd.EPackType]map[string]*Cmd.ItemData {

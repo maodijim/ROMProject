@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"ROMProject/data"
 	"encoding/json"
 	log "github.com/sirupsen/logrus"
 	"io/ioutil"
@@ -124,19 +125,26 @@ func (i *ItemsLoader) GetBuffNameById(buffId uint32) string {
 }
 
 func loadBuff(buffJsonPath string) (map[uint32]BuffItem, map[string]BuffItemByName) {
-	fName := "buff.json"
+	var b []byte
+	var err error
 	if buffJsonPath != "" {
-		fName = buffJsonPath
+		fName := buffJsonPath
+		jFile, err := os.Open(fName)
+		if err != nil {
+			log.Errorf("failed to open %s: %s", fName, err)
+		}
+		b, _ = ioutil.ReadAll(jFile)
+	} else {
+		b = data.BuffJson
 	}
-	jFile, err := os.Open(fName)
-	if err != nil {
-		log.Errorf("failed to open %s: %s", fName, err)
-	}
-	b, _ := ioutil.ReadAll(jFile)
+
 	var jLoader map[uint32]BuffItem
 	jNameLoader := map[string]BuffItemByName{}
 	err = json.Unmarshal(b, &jLoader)
-	log.Infof("loaded %d items from %s", len(jLoader), fName)
+	if err != nil {
+		log.Errorf("failed load buff json: %s", err)
+	}
+	log.Infof("loaded %d buff items", len(jLoader))
 	for _, val := range jLoader {
 		if jNameLoader[val.BuffName].Items != nil {
 			item := jNameLoader[val.BuffName].Items
@@ -152,38 +160,50 @@ func loadBuff(buffJsonPath string) (map[uint32]BuffItem, map[string]BuffItemByNa
 }
 
 func loadExchangeItems(itemJsonPath string) map[uint32]ExchangeItem {
-	fName := "exchangeItems.json"
+	var b []byte
+	var err error
 	if itemJsonPath != "" {
-		fName = itemJsonPath
+		fName := itemJsonPath
+		jsonFile, err := os.Open(fName)
+		if err != nil {
+			log.Errorf("failed to open %s: %s", fName, err)
+		}
+		b, _ = ioutil.ReadAll(jsonFile)
+	} else {
+		b = data.ExchangeJson
 	}
-	jsonFile, err := os.Open(fName)
-	if err != nil {
-		log.Errorf("failed to open %s: %s", fName, err)
-	}
-	b, _ := ioutil.ReadAll(jsonFile)
+
 	var jLoader map[uint32]ExchangeItem
 	err = json.Unmarshal(b, &jLoader)
 	if err != nil {
 		log.Errorf("loading exchange items with error: %s", err)
 	}
-	log.Infof("loaded %d items from %s", len(jLoader), fName)
+	log.Infof("loaded %d exchange items", len(jLoader))
 	return jLoader
 }
 
 func loadItems(itemJsonPath string) (map[uint32]Items, map[string]ItemsByName) {
-	fName := "items.json"
+	var b []byte
+	var err error
 	if itemJsonPath != "" {
+		fName := "items.json"
 		fName = itemJsonPath
+		jFile, err := os.Open(fName)
+		if err != nil {
+			log.Errorf("failed to open %s: %s", fName, err)
+		}
+		b, _ = ioutil.ReadAll(jFile)
+	} else {
+		b = data.ItemsJson
 	}
-	jFile, err := os.Open(fName)
-	if err != nil {
-		log.Errorf("failed to open %s: %s", fName, err)
-	}
-	b, _ := ioutil.ReadAll(jFile)
+
 	var jLoader map[uint32]Items
 	jNameLoader := map[string]ItemsByName{}
 	err = json.Unmarshal(b, &jLoader)
-	log.Infof("loaded %d items from %s", len(jLoader), fName)
+	if err != nil {
+		log.Errorf("failed to load items json: %s", err)
+	}
+	log.Infof("loaded %d items", len(jLoader))
 	for _, val := range jLoader {
 		if jNameLoader[val.NameZh].Items != nil {
 			item := jNameLoader[val.NameZh].Items

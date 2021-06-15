@@ -106,6 +106,7 @@ func (g *GameConnection) JoinMatchRoom(roomId uint64, roomType Cmd.EPvpType, isQ
 func (g *GameConnection) InviteTeamExpFuben() {
 	go func() {
 		waitForFullMemberCount := 0
+		g.Role.AcceptAllTeamInvite = true
 		for {
 			select {
 			case <-g.quit:
@@ -133,12 +134,17 @@ func (g *GameConnection) InviteTeamExpFuben() {
 						log.Warnf("%s 不是队长 跳过申请生态研究所副本", g.Role.GetRoleName())
 						return
 					}
-					if len(g.Role.TeamData.GetMembers()) < 6 && waitForFullMemberCount <= 3 {
-						log.Infof("队里只有%d人等待队员加入 %d/%d次",
+					if len(g.Role.TeamData.GetMembers()) < 6 && waitForFullMemberCount <= 5 {
+						log.Infof("队伍%s只有%d人等待队员加入 %d/%d次",
+							g.Role.TeamData.GetName(),
 							len(g.Role.TeamData.GetMembers()),
 							waitForFullMemberCount,
-							3,
+							5,
 						)
+						for _, apply := range g.Role.TeamApply {
+							log.Infof("同意 %s 进队申请", apply.GetName())
+							g.AcceptTeamApply(apply.GetGuid())
+						}
 						time.Sleep(15 * time.Second)
 						waitForFullMemberCount += 1
 						continue
