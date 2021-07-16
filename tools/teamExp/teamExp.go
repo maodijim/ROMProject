@@ -5,7 +5,10 @@ import (
 	"ROMProject/gameConnection"
 	"ROMProject/utils"
 	"flag"
+	"fmt"
+	rotatelogs "github.com/lestrrat/go-file-rotatelogs"
 	log "github.com/sirupsen/logrus"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -15,7 +18,7 @@ import (
 )
 
 const (
-	autoScriptVer = "0.0.1"
+	autoScriptVer = "0.0.2"
 )
 
 var (
@@ -28,6 +31,19 @@ func init() {
 		ForceColors:   true,
 		FullTimestamp: true,
 	})
+	logPath := "./teamExp.log"
+	f, err := rotatelogs.New(
+		fmt.Sprintf("%s.%s", logPath, "%Y-%m-%d"),
+		rotatelogs.WithRotationCount(10),
+		rotatelogs.WithMaxAge(time.Hour*24),
+	)
+	if err != nil {
+		log.Errorf("failed to open teamExp.log: %s", err)
+	} else {
+		log.Infof("saving log to %s", f.CurrentFileName())
+		mw := io.MultiWriter(os.Stdout, f)
+		log.SetOutput(mw)
+	}
 }
 
 func worker(wg *sync.WaitGroup, completeFuben chan bool, cPath string, skills map[uint32]utils.SkillItem, items *utils.ItemsLoader, enableDebug bool) {
@@ -128,7 +144,15 @@ func main() {
 	skills := utils.NewSkillParser(*skillJson)
 	log.Infof("%v", scriptActions)
 
-	fi, _ := os.Stat(*confFile)
+	fi, err := os.Stat(*confFile)
+	if err != nil {
+		if os.IsNotExist(err) {
+			log.Errorf("failed to find configuration file")
+		} else {
+			log.Error(err)
+		}
+		log.Exit(1)
+	}
 	var wg sync.WaitGroup
 	switch mode := fi.Mode(); {
 	case mode.IsDir():
