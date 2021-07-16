@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -31,7 +32,11 @@ func init() {
 		ForceColors:   true,
 		FullTimestamp: true,
 	})
-	logPath := "./teamExp.log"
+	ex, err := os.Executable()
+	if err != nil {
+		panic(err)
+	}
+	logPath := path.Join(filepath.Dir(ex), "teamExp.log")
 	f, err := rotatelogs.New(
 		fmt.Sprintf("%s.%s", logPath, "%Y-%m-%d"),
 		rotatelogs.WithRotationCount(10),
@@ -40,7 +45,7 @@ func init() {
 	if err != nil {
 		log.Errorf("failed to open teamExp.log: %s", err)
 	} else {
-		log.Infof("saving log to %s", f.CurrentFileName())
+		log.Infof("saving log to %s", logPath)
 		mw := io.MultiWriter(os.Stdout, f)
 		log.SetOutput(mw)
 	}
