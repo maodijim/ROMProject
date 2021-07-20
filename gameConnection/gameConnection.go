@@ -76,7 +76,7 @@ type GameConnection struct {
 const (
 	queryTimeout              = 15 * time.Second
 	printHeartBeatLogInterval = 60 * time.Second
-	maxRetry                  = 1
+	maxRetry                  = 0
 )
 
 var (
