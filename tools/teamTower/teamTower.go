@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	teamTowerVer = "0.0.1"
+	teamTowerVer = "0.0.2"
 	maxTowerTime = time.Minute * 75
 )
 

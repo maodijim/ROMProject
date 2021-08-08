@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	autoScriptVer = "0.0.2"
+	autoScriptVer = "0.0.3"
 )
 
 var (
