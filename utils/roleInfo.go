@@ -42,6 +42,7 @@ type RoleInfo struct {
 	QuestList           *Cmd.QuestList
 	UserTowerInfo       *Cmd.UserTowerInfo
 	FollowUserId        uint64
+	DailySignIn         *Cmd.SignInNtfUserCmd
 }
 
 func (r *RoleInfo) GetPackItems() map[Cmd.EPackType]map[string]*Cmd.ItemData {

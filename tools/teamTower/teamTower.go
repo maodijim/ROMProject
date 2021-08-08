@@ -44,6 +44,7 @@ func worker(wg *sync.WaitGroup, cPath string, skills map[uint32]utils.SkillItem,
 	time.Sleep(5 * time.Second)
 	_ = gameConnect.GetMainPackItems()
 	_ = gameConnect.GetTempMainPackItems()
+	gameConnect.DailySignIn()
 	startTime := time.Now()
 	for time.Since(startTime) < maxTowerTime {
 		if gameConnect.Role.GetInGame() {

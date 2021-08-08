@@ -117,6 +117,9 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER2_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.User2Param_value["USER2PARAM_SIGNIN"]:
+				param = &Cmd.SignInUserCmd{}
+
 			case Cmd.User2Param_value["USER2PARAM_SERVANT_RECEIVE"]:
 				param = &Cmd.ReceiveServantUserCmd{}
 

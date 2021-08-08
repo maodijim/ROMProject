@@ -82,6 +82,7 @@ func worker(wg *sync.WaitGroup, completeFuben chan bool, cPath string, skills ma
 		} else {
 			gameConnect.GetCookWorkSpaceReward()
 		}
+		gameConnect.DailySignIn()
 	}()
 
 	startTime := time.Now()
