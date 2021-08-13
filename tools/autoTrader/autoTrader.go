@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	traderVer     = "0.1.5"
+	traderVer     = "0.1.6"
 	pointDiscount = 0.75
 	MaxSellItems  = 8
 )
@@ -89,6 +89,7 @@ func main() {
 				itemName := pItem.ItemName
 				itemId := items.GetItemIdByName(itemName)
 				possessionCount, itemData := findPackItemCountById(gameConnect, itemId)
+				// 买
 				if pItem.IsBuyAction() {
 					if gameConnect.Role.GetSilver() != 0 && gameConnect.Role.GetSilver() < purchaseConfig.MinZenyKeep {
 						log.Warnf("角色身上zeny %d 低于 设定最低可交易zeny %d 跳过购买", gameConnect.Role.GetSilver(), purchaseConfig.MinZenyKeep)
@@ -106,6 +107,7 @@ func main() {
 						}
 					}
 				} else if pItem.IsSellAction() {
+					// 卖
 					pendingSells := gameConnect.QueryPendingSells()
 					time.Sleep(2 * time.Second)
 					if len(pendingSells.GetLists()) >= MaxSellItems {
@@ -150,6 +152,7 @@ func main() {
 	}
 }
 
+// buy item from exchange
 func buyItem(pItem *PurchaseItem, tradeHistory *Cmd.MyTradeLogRecordTradeCmd, itemId uint32, gameConnect *gameConnection.GameConnection) (err error) {
 	priceList := gameConnect.QueryItemPrice(itemId, 0)
 	if len(priceList) == 0 {
@@ -226,6 +229,12 @@ func tradeItem(gameConnect *gameConnection.GameConnection, tradeHistory *Cmd.MyT
 	purchaseCount := pItem.PurchaseCount
 	itemCurPrice := itemInfo.GetPrice()
 	itemCounts := itemInfo.GetCount()
+	leaveCount := pItem.GetLeaveMinCount()
+	if leaveCount > 0 && leaveCount <= itemCounts {
+		log.Infof("交易所 %s 最低保有量 %d", itemName, leaveCount)
+		purchaseCount -= leaveCount
+		itemCounts -= leaveCount
+	}
 	time.Sleep(2 * time.Second)
 	if itemInfo.GetUpRate() != 0 {
 		itemCurPrice = uint64(math.Round(float64(itemCurPrice) * float64(1+itemInfo.GetUpRate()) / 1000 * pointDiscount))
@@ -235,16 +244,16 @@ func tradeItem(gameConnect *gameConnection.GameConnection, tradeHistory *Cmd.MyT
 	}
 
 	// 计算可以买入多少
-	buyNum := math.Min(float64(purchaseCount), float64(itemInfo.GetCount()))
+	buyNum := math.Min(float64(purchaseCount), float64(itemCounts))
 	if itemInfo.GetPublicityId() > 0 {
 		// Check whether we have pending purchase
 		pendingCount := hasPendingPurchase(tradeHistory, itemInfo.GetItemid(), itemCurPrice)
 		log.Infof("已抢购 %d个 %s 中", pendingCount, itemName)
-		buyNum = math.Min(float64(pItem.PurchaseCount), float64(itemInfo.GetCount()-pendingCount))
+		buyNum = math.Min(float64(purchaseCount), float64(itemCounts-pendingCount))
 	}
 
 	if itemCurPrice < pItem.MaxPurchasePrice && buyNum > 0 {
-		log.Infof("购买 %d个%s 交易所有%d个", uint32(buyNum), itemName, itemCounts)
+		log.Infof("购买 %d个%s 交易所有%d个", uint32(buyNum), itemName, itemInfo.GetCount())
 		result, _ := gameConnect.BuyItem(uint32(buyNum), itemInfo)
 		log.Infof("购买结果: %v", result)
 		if result.Ret != nil && result.GetRet() == Cmd.ETRADE_RET_CODE_ETRADE_RET_CODE_SUCCESS {

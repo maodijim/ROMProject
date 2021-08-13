@@ -34,6 +34,11 @@ type PurchaseItem struct {
 	Action           string `yaml:"action"`
 	MaxExchangeCount uint32 `yaml:"maxExchangeCount"`
 	MinSellPrice     uint64 `yaml:"minSellPrice"`
+	LeaveMinCount    uint32 `yaml:"leaveMinCount"`
+}
+
+func (p *PurchaseItem) GetLeaveMinCount() uint32 {
+	return p.LeaveMinCount
 }
 
 func (p *PurchaseItem) IsBuyAction() bool {

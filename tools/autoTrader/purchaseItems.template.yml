@@ -7,9 +7,10 @@ items:
     purchaseCount: 30           # 每次购买的数量 / 每次出售的数量
     maxPurchasePrice: 50000     # 每次购买的最高价格 / 开始出售的最低价格
     maxPossession:              # 身上最大所有量停止购买 / 身上最少拥有量停止出售
-    action: 买                  # 买/卖 默认是买
+    action: 买                  # 买/卖/buy/sell 默认是买
     maxExchangeCount: 9000000   # 交易所库存超过这个数量也会卖出  注意: 价格或者数量其中一个达到都会上架卖出
     minSellPrice: 0             # 最低出售金额
+    leaveMinCount:              # 最低保有量 只在买有效 （防止公示）
 #  - itemName: 铠甲碎片
 #    purchaseCount: 100
 #    maxPurchasePrice: 1100
