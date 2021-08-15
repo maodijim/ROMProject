@@ -234,6 +234,9 @@ func tradeItem(gameConnect *gameConnection.GameConnection, tradeHistory *Cmd.MyT
 		log.Infof("交易所 %s 最低保有量 %d", itemName, leaveCount)
 		purchaseCount -= leaveCount
 		itemCounts -= leaveCount
+	} else if leaveCount > itemCounts {
+		log.Infof("交易所%s最低保有量%d大于出售量%d 跳过购买", itemName, leaveCount, itemCounts)
+		return
 	}
 	time.Sleep(2 * time.Second)
 	if itemInfo.GetUpRate() != 0 {
