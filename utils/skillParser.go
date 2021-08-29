@@ -77,8 +77,10 @@ func readSkillItem(skillJson string) map[uint32]SkillItem {
 		jsonFile, err := os.Open(skillJson)
 		if err != nil {
 			log.Errorf("failed to open %s: %s", fName, err)
+			b = data.SkillsJson
+		} else {
+			b, _ = ioutil.ReadAll(jsonFile)
 		}
-		b, _ = ioutil.ReadAll(jsonFile)
 	} else {
 		b = data.SkillsJson
 	}

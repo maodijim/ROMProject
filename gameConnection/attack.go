@@ -15,6 +15,13 @@ var (
 	CampsFriend        = "Friend"
 	CampsEnemy         = "Enemy"
 	DefaultTargetRange = float64(9999)
+	attackLogic        = map[string]string{
+		"SkillLockedTarget": "SkillLockedTarget",
+		"SkillPointRange":   "SkillPointRange",
+		"SkillSelfRange":    "SkillSelfRange",
+		"SkillNone":         "SkillNone",
+		"SkillForwardRect":  "SkillForwardRect",
+	}
 )
 
 func (g *GameConnection) SkillCmd(skillId uint32, data *Cmd.PhaseData, random1 bool) {
@@ -44,6 +51,7 @@ func (g *GameConnection) CalDmgTargets() []*Cmd.HitedTarget {
 }
 
 func (g *GameConnection) AttackTarget(skillId uint32, target *Cmd.MapNpc) {
+	skillItem := g.SkillItems[skillId]
 	if g.MapNpcs[target.GetId()] != nil {
 		hitType := int32(2)
 		damage := int32(1)
@@ -54,8 +62,8 @@ func (g *GameConnection) AttackTarget(skillId uint32, target *Cmd.MapNpc) {
 				Damage: &damage,
 			},
 		}
-		if g.SkillItems[skillId].Range != "" {
-			DmgRange, _ := strconv.ParseFloat(g.SkillItems[skillId].Range, 64)
+		if skillItem.Range != "" && skillItem.Logic == attackLogic["SkillLockedTarget"] {
+			DmgRange, _ := strconv.ParseFloat(skillItem.Range, 64)
 			targetDict, targetRange := g.GetTargetByRange([]string{"all"}, target.GetPos(), DmgRange)
 			for _, t := range targetRange {
 				newTarget := targetDict[t]
@@ -70,24 +78,31 @@ func (g *GameConnection) AttackTarget(skillId uint32, target *Cmd.MapNpc) {
 		num := int32(1)
 		dir := int32(utils.CalcDir(utils.GetAngleByAxisY(g.Role.Pos, target.GetPos())))
 		pData := &Cmd.PhaseData{
-			Number:       &num,
-			Pos:          target.GetPos(),
-			HitedTargets: hitTargets,
-			Dir:          &dir,
+			Number: &num,
+			Pos:    target.GetPos(),
+			Dir:    &dir,
 		}
+		if skillItem.Logic == attackLogic["SkillLockedTarget"] {
+			pData.HitedTargets = hitTargets
+		} else if skillItem.Logic == attackLogic["SkillPointRange"] {
+			num = int32(0)
+			pData.Number = &num
+		}
+
+		// Calculate Skill Delay & CD
 		var delay float64
-		if g.SkillItems[skillId].NameZh == "普通攻击" {
+		if skillItem.NameZh == "普通攻击" {
 			delay = 1 / (float64(g.GetAtkSpd()) / 1000)
 			//delay = 1
 		} else {
-			delay, _ = strconv.ParseFloat(g.SkillItems[skillId].DelayCd, 64)
+			delay, _ = strconv.ParseFloat(skillItem.DelayCd, 64)
 		}
-		cd, _ := strconv.ParseFloat(g.SkillItems[skillId].CD, 64)
+		cd, _ := strconv.ParseFloat(skillItem.CD, 64)
 		if cd > delay {
 			g.Role.CDs[skillId] = time.Now().Add(time.Duration(cd) * time.Second)
 		}
 		g.SkillCmd(skillId, pData, false)
-		maxDelay := math.Max(delay, 0.25)
+		maxDelay := math.Max(delay, 0.1)
 		time.Sleep(time.Duration(maxDelay*1000) * time.Millisecond)
 	}
 }
@@ -101,7 +116,7 @@ func (g *GameConnection) GetTargetByRange(monsterName []string, srcPos *Cmd.Scen
 		}
 		if (utils.StrSliceContain(monsterName, "all") || utils.StrSliceContain(monsterName, npc.GetName())) && len(npc.GetAttrs()) != 1 {
 			distance := utils.GetDistanceXZ(srcPos, npc.GetPos())
-			if distance <= targetRange*utils.Scale {
+			if distance <= targetRange*utils.AtkRangeScale {
 				distanceList = append(distanceList, distance)
 				distDict[distance] = npc.GetId()
 			}
@@ -136,8 +151,8 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 		distance := distanceList[0]
 		closestId := distDict[distanceList[0]]
 		target := g.copyTarget(g.MapNpcs[closestId])
-		skillRange, _ := strconv.ParseFloat(g.SkillItems[skillId].LaunchRange, 64)
-		launchSkillDis := skillRange * utils.Scale
+		skillRange := g.GetAttackRange(skillId)
+		launchSkillDis := skillRange * utils.AtkRangeScale
 		launchSkillPos := utils.GetPosAwayFromTarget(g.Role.Pos, target.GetPos(), launchSkillDis)
 		targetDis := utils.GetDistanceXZ(g.Role.Pos, target.GetPos())
 		lastPrint := time.Now().Add(-5 * time.Second)
@@ -202,7 +217,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 		}
 		g.AttackTarget(skillId, target)
 	} else {
-		time.Sleep(200 * time.Millisecond)
+		time.Sleep(100 * time.Millisecond)
 	}
 }
 
@@ -216,6 +231,7 @@ func (g *GameConnection) EnableAutoAttack(monsterList []string, disable chan *bo
 				return
 			default:
 				autoSkills := g.GetAutoSkills()
+			skillLoop:
 				for _, skill := range autoSkills {
 					select {
 					case <-disable:
@@ -229,7 +245,7 @@ func (g *GameConnection) EnableAutoAttack(monsterList []string, disable chan *bo
 						cd, _ := strconv.ParseFloat(skillItem.CD, 64)
 						if time.Since(g.Role.CDs[skill.GetId()]) < time.Duration(cd) {
 							log.Infof("技能CD中:%s", skillItem.NameZh)
-							continue
+							continue skillLoop
 						}
 						// 这是buff
 						if skillItem.Camps == CampsFriend {
@@ -267,9 +283,15 @@ func (g *GameConnection) EnableAutoAttack(monsterList []string, disable chan *bo
 										}
 									}
 								}
+							} else if skillItem.SkillType == "Heal" {
+								if g.GetHpPer() > 0.65 {
+									continue skillLoop
+								}
+							} else if skillItem.SkillType == "Reborn" {
+								continue skillLoop
 							} else if buff != "" {
 								log.Debugf("找到技能buff: %s -> %s", skillItem.NameZh, buff)
-								continue
+								continue skillLoop
 							} else {
 								log.Debugf("没有找到技能buff %s", skillItem.NameZh)
 								num := int32(1)
@@ -292,10 +314,22 @@ func (g *GameConnection) EnableAutoAttack(monsterList []string, disable chan *bo
 							//这是攻击技能
 							g.AttackClosestByName(skill.GetId(), monsterList)
 						}
-						time.Sleep(150 * time.Millisecond)
+						//time.Sleep(100 * time.Millisecond)
 					}
 				}
 			}
 		}
 	}()
+}
+
+func (g *GameConnection) GetAttackRange(skillId uint32) (atkRange float64) {
+	skillItem := g.SkillItems[skillId]
+	atkRange, _ = strconv.ParseFloat(skillItem.LaunchRange, 64)
+	if skillItem.NameZh == "普通攻击" {
+		// 无限星辰
+		if g.Role.Buffs[131080] != nil {
+			atkRange += float64(g.Role.SkillItems[13234].GetExtralv()) * 0.1
+		}
+	}
+	return atkRange
 }

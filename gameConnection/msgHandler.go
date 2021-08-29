@@ -263,7 +263,11 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 					}()
 				}
 				if cmd.GetCharid() == *g.Role.RoleId {
-					log.Infof("Moving charater to position: %v", param.(*Cmd.RetMoveUserCmd).GetPos())
+					log.Infof(
+						"Moving charater %s to position: %v",
+						g.Role.GetRoleName(),
+						param.(*Cmd.RetMoveUserCmd).GetPos(),
+					)
 					g.Role.Pos = cmd.GetPos()
 				} else if g.MapNpcs[cmd.GetCharid()] != nil {
 					g.MapNpcs[cmd.GetCharid()].Pos = cmd.GetPos()

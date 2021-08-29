@@ -49,7 +49,7 @@ func main() {
 	gameConnect.CheckForFubenInviteInBackground(quit)
 	disable := make(chan *bool)
 	gameConnect.EnableAutoAttack([]string{"all"}, disable)
-	gameConnect.InviteTeamExpFuben()
+	//gameConnect.InviteTeamExpFuben()
 	gameConnect.AutoSubmitWantedQuest()
 	go func() {
 		time.Sleep(10 * time.Second)
@@ -59,6 +59,7 @@ func main() {
 		} else {
 			gameConnect.GetCookWorkSpaceReward()
 		}
+		gameConnect.DailySignIn()
 	}()
 	for {
 		if gameConnect.Role.GetInGame() {

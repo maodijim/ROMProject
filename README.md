@@ -54,3 +54,8 @@ https://github.com/maodijim/ROMEncryption
 ### 11. Change the variable in_files to table_items.bytes path and run ./tools/key_val_to_json.py to get json formatted items.json
 
 ### 12. Change the variable in_files to parent folder path of Table_Skill_ClsBranch_* with only Table_Skill_ClsBranch_* files inside the folder then run ./tools/key_val_to_json.py to get skills.json
+
+### 13. Get access token from emulator
+```
+.\adb.exe -s emulator-5558 shell cat /data/data/com.xd.ro.roapk/shared_prefs/XDUserToken.xml
+```

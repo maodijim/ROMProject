@@ -433,6 +433,13 @@ func TranslateMsg(output [][]byte) {
 			default:
 				log.Infof("没有parsing")
 				continue
+
+			case Cmd.MapParam_value["MAPPARAM_ADDMAPITEM"]:
+				param = &Cmd.AddMapItem{}
+
+			case Cmd.MapParam_value["MAPPARAM_ADDMAPTRAP"]:
+				param = &Cmd.AddMapTrap{}
+
 			case Cmd.MapParam_value["MAPPARAM_EXIT_POINT_STATE"]:
 				param = &Cmd.ExitPointState{}
 

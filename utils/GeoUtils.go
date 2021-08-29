@@ -6,7 +6,7 @@ import (
 	"math"
 )
 
-const Scale = 1000
+const AtkRangeScale = 1000
 
 func GetAngleByAxisY(src *Cmd.ScenePos, target *Cmd.ScenePos) float64 {
 	return math.Atan2(float64(target.GetX()-src.GetX()), float64(target.GetZ()-src.GetZ())) * 57.29578
@@ -17,7 +17,7 @@ func CalcDir(angleY float64) float64 {
 	if dir < 0 {
 		dir = dir + 360
 	}
-	return math.Floor(dir * Scale)
+	return math.Floor(dir * AtkRangeScale)
 }
 
 func GetDistanceXZ(src *Cmd.ScenePos, target *Cmd.ScenePos) float64 {
