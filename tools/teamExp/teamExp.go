@@ -36,9 +36,11 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	logPath := path.Join(filepath.Dir(ex), "teamExp.log")
+	logFileName := fmt.Sprintf("teamExp-%s.log", "%Y-%m-%d")
+	logDir := filepath.Dir(ex)
+	logPath := path.Join(logDir, logFileName)
 	f, err := rotatelogs.New(
-		fmt.Sprintf("%s.%s", logPath, "%Y-%m-%d"),
+		logPath,
 		rotatelogs.WithRotationCount(10),
 		rotatelogs.WithMaxAge(time.Hour*24),
 	)

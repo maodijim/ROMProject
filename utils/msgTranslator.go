@@ -465,6 +465,9 @@ func TranslateMsg(output [][]byte) {
 			default:
 				log.Infof("没有parsing")
 				continue
+			case Cmd.EventParam_value["USER_EVENT_QUERY_CHARGE_CNT"]:
+				param = &Cmd.QueryChargeCnt{}
+
 			case Cmd.EventParam_value["USER_EVENT_AUTOBATTLE"]:
 				param = &Cmd.SwitchAutoBattleUserEvent{}
 
@@ -783,6 +786,23 @@ func TranslateMsg(output [][]byte) {
 
 			case Cmd.TowerParam_value["ETOWERPARAM_INVITE"]:
 				param = &Cmd.TeamTowerInviteCmd{}
+
+			default:
+				log.Infof("没有parsing")
+				continue
+			}
+			err = ParseCmd(o, param)
+			PrintTranslateMsgResult(cmdParamName, err, param)
+		} else if cmdId == Cmd.Command_value["SESSION_USER_MAIL_PROTOCMD"] {
+			switch cmdParamId {
+			case Cmd.MailParam_value["MAILPARAM_UPDATE"]:
+				param = &Cmd.MailUpdate{}
+
+			case Cmd.MapParam_value["MAILPARAM_READ"]:
+				param = &Cmd.MailRead{}
+
+			case Cmd.MailParam_value["MAILPARAM_GETATTACH"]:
+				param = &Cmd.MailAttach{}
 
 			default:
 				log.Infof("没有parsing")

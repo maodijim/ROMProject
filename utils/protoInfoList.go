@@ -6,6 +6,7 @@ import (
 
 var (
 	NameParamMap = map[string]map[int32]string{
+		"SESSION_USER_MAIL_PROTOCMD":      Cmd.MailParam_name,
 		"SCENE_USER_TIP_PROTOCMD":         Cmd.TipParam_name,
 		"MATCHC_PROTOCMD":                 Cmd.MatchCParam_name,
 		"FUBEN_PROTOCMD":                  Cmd.FuBenParam_name,
