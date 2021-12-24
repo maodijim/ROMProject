@@ -47,9 +47,21 @@ https://github.com/maodijim/ROMEncryption
 
 
 ### 9. Use ROMEncryption to decrypt table_exchange.bytes into table_exchange.lua
+```
+#Visual studio is needed to compile the .cs file https://visualstudio.microsoft.com/
+# Java https://www.java.com/en/download/
+
+Build ROMEncryption\UtinyRipper first then
+Build ROMEncryption
+Create folder rawlua at the ROMEncryption.exe folder
+Run ROMEncryption.exe
+```
 
 ### 10. Run ./tools/main.lua against table_exchange.lua to get the json formatted exchangeItems.json
-
+```
+# Lua binaries
+https://sourceforge.net/projects/luabinaries/files/5.4.2/Tools%20Executables
+```
 
 ### 11. Change the variable in_files to table_items.bytes path and run ./tools/key_val_to_json.py to get json formatted items.json
 
