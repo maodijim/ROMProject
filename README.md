@@ -25,16 +25,17 @@ python <pbtk repo path>/extractors/from_binary.py <path to folder pbbytes asset 
 
 ### 5. Install protobuf compiler
 ```
-https://github.com/protocolbuffers/protobuf/releases
+https://github.com/protocolbuffers/protobuf/releases/tag/v3.4.0
 
 # or
 
-go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.25.0 
 ```
 
 ### 6. Generate proto file for go
 ```
-protoc -I <path to the proto file folder> --go_out=proto_go .\*.proto
+cd <pbtk repo path>/extractors/proto
+protoc -I . --go_out=proto_go .\*.proto
 # Once Done copy all .pb.go file to ROMProject/Cmds
 ```
 
@@ -43,7 +44,7 @@ protoc -I <path to the proto file folder> --go_out=proto_go .\*.proto
 https://github.com/maodijim/ROMEncryption
 ```
 
-### 8. Export Table_exchange, Table_Items, Table_Skill_ClsBranch_* from script2 folder using AssetSutdio
+### 8. Export Table_exchange, Table_Item, Table_Skill_ClsBranch_* from script2 folder using AssetSutdio
 
 
 ### 9. Use ROMEncryption to decrypt table_exchange.bytes into table_exchange.lua
@@ -63,11 +64,18 @@ Run ROMEncryption.exe
 https://sourceforge.net/projects/luabinaries/files/5.4.2/Tools%20Executables
 ```
 
-### 11. Change the variable in_files to table_items.bytes path and run ./tools/key_val_to_json.py to get json formatted items.json
+### 11. Change the variable in_files to table_item.bytes path and run ./tools/key_val_to_json.py to get json formatted items.json
 
 ### 12. Change the variable in_files to parent folder path of Table_Skill_ClsBranch_* with only Table_Skill_ClsBranch_* files inside the folder then run ./tools/key_val_to_json.py to get skills.json
 
 ### 13. Get access token from emulator
 ```
 .\adb.exe -s emulator-5558 shell cat /data/data/com.xd.ro.roapk/shared_prefs/XDUserToken.xml
+```
+
+### 14. Build
+```
+$Env:GOOS = "linux"
+$Env:GOARCH = "amd64"
+go build -trimpath -ldflags "-w -s" .
 ```

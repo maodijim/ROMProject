@@ -40,8 +40,8 @@ def parse_byte_to_dict(in_file):
             output[i_id] = body
     return output
 
-#in_files = r"D:\Downloads\ROAPK\script2\TextAsset\Table_Item.bytes"
-in_files = r"D:\Downloads\ROAPK\script2\TextAsset\Table_Buffer.bytes"
+in_files = r"D:\Downloads\ROAPK\script2\TextAsset\Table_Item.bytes"
+#in_files = r"D:\Downloads\ROAPK\script2\TextAsset\Table_Buffer.bytes"
 # in_files = r"D:\Downloads\ROAPK\script2\TextAsset"
 output = {}
 

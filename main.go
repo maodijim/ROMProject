@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	dev_version = "v0.0.4"
+	dev_version = "v0.0.5"
 )
 
 type tradeItem struct {
