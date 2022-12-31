@@ -1,16 +1,12 @@
 package gameConnection
 
 import (
-	Cmd "ROMProject/Cmds"
-	"ROMProject/config"
-	"ROMProject/utils"
 	"bufio"
 	"crypto/sha1"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/golang/protobuf/proto"
 	"io"
 	"io/ioutil"
 	"net"
@@ -20,6 +16,11 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	Cmd "ROMProject/Cmds"
+	"ROMProject/config"
+	"ROMProject/utils"
+	"github.com/golang/protobuf/proto"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -145,7 +146,7 @@ func (g *GameConnection) GameServerLogin() {
 }
 
 func (g *GameConnection) handleConnection() {
-	//defer g.conn.Close()
+	// defer g.conn.Close()
 	// listen for reply
 	scanner := bufio.NewReader(g.conn)
 	buf := make([]byte, 512000)
@@ -308,7 +309,7 @@ func (g *GameConnection) sendServerTimeUserCmd(par Cmd.LoginCmdParam) {
 	_ = g.sendCmd(utils.TcpFlag[1], out, 0)
 }
 
-func (g GameConnection) sendProtoCmd(protoCmd proto.Message, cmdId, cmdParId int32) (err error) {
+func (g *GameConnection) sendProtoCmd(protoCmd proto.Message, cmdId, cmdParId int32) (err error) {
 	data, err := proto.Marshal(protoCmd)
 	if err != nil {
 		log.Errorf("failed to marshal sell info query: %s", err)
@@ -361,7 +362,7 @@ func (g *GameConnection) sendCmd(flag, body []byte, delay time.Duration) (err er
 		log.Debugf("sent %d bytes", writeLen)
 		if err != nil {
 			log.Errorf("%s failed to send command: %v", g.Role.GetRoleName(), err)
-			//g.Close()
+			// g.Close()
 		}
 	}
 	return err
@@ -415,8 +416,8 @@ func (g *GameConnection) getReqLoginUserCmd(zId, serverId, language, langZone, c
 }
 
 func (g *GameConnection) enterGameMap() {
-	//mid := g.Role.GetMapId()
-	//g.ChangeMap(mid)
+	// mid := g.Role.GetMapId()
+	// g.ChangeMap(mid)
 	g.enteringMap = true
 }
 
