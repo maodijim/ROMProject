@@ -1,10 +1,12 @@
 package gameConnection
 
 import (
+	"fmt"
+	"regexp"
+
 	Cmd "ROMProject/Cmds"
 	"ROMProject/utils"
 	log "github.com/sirupsen/logrus"
-	"regexp"
 )
 
 var (
@@ -31,7 +33,7 @@ func (g *GameConnection) updateAutoSkill(skill *Cmd.SkillItem) {
 
 func (g *GameConnection) GetAtkRange(skillId uint32) uint32 {
 
-	//g.SkillItems[]
+	// g.SkillItems[]
 	return 0
 }
 
@@ -100,5 +102,43 @@ func (g *GameConnection) takeServantReward(wid uint32) {
 	g.sendProtoCmd(cmd,
 		sceneUser2CmdId,
 		Cmd.User2Param_value["USER2PARAM_SERVANT_RECEIVE"],
+	)
+}
+
+// CreateCharacter
+// "unmarshal: name:\"ddftt\"  role_sex:2  profession:42  hair:12  haircolor:2  clothcolor:0  sequence:1"
+func (g *GameConnection) CreateCharacter(roleName string, roleSex, profession, hair, hairColor, clothColor, sequence uint32) (err error) {
+	if sequence == 0 {
+		sequence = 1
+	}
+	if roleSex == 0 {
+		roleSex = 1
+	}
+	if len(roleName) < 2 || len(roleName) > 8 {
+		return fmt.Errorf("角色名长度不符合要求 2-8个字符")
+	}
+	cmd := &Cmd.CreateCharUserCmd{
+		Name:       &roleName,
+		RoleSex:    &roleSex,
+		Profession: &profession,
+		Hair:       &hair,
+		Haircolor:  &hairColor,
+		Clothcolor: &clothColor,
+		Sequence:   &sequence,
+	}
+	err = g.sendProtoCmd(cmd,
+		LogInUserProtoCmdId,
+		Cmd.LoginCmdParam_value["CREATE_CHAR_USER_CMD"],
+	)
+	return err
+}
+
+func (g *GameConnection) DeleteCharacter(charId uint64) {
+	cmd := &Cmd.DeleteCharUserCmd{
+		Id: &charId,
+	}
+	_ = g.sendProtoCmd(cmd,
+		LogInUserProtoCmdId,
+		Cmd.LoginCmdParam_value["DELETE_CHAR_USER_CMD"],
 	)
 }

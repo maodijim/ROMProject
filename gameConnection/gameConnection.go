@@ -13,7 +13,6 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -75,7 +74,7 @@ type GameConnection struct {
 }
 
 const (
-	queryTimeout              = 15 * time.Second
+	queryTimeout              = 8 * time.Second
 	printHeartBeatLogInterval = 60 * time.Second
 	maxRetry                  = 0
 )
@@ -87,34 +86,8 @@ var (
 )
 
 func (g *GameConnection) GameServerLogin() {
-	res, err := g.httpAuth(g.Configs.AuthServer)
-	if err != nil {
-		log.Errorf("failed to get http auth: %s", err)
-		log.Exit(4)
-	}
-
-	if res.Status == 1001 {
-		log.Errorf("failed to get game server access token %v", res)
-		log.Exit(1)
-	}
-
-	regions := res.Data["regions"].([]interface{})
-	regionNum := g.Configs.Region
-	id := regions[regionNum].(map[string]interface{})["accid"].(float64)
-	sid, err := strconv.ParseUint(regions[regionNum].(map[string]interface{})["serverid"].(string), 10, 32)
-	lineGroup := regions[regionNum].(map[string]interface{})["linegroup"].(float64)
-	gwPort := regions[regionNum].(map[string]interface{})["gateway_ports"].([]interface{})[0]
-	shaStr := regions[regionNum].(map[string]interface{})["sha1"].(string)
-	timeStamp, err := strconv.ParseUint(regions[regionNum].(map[string]interface{})["timestamp"].(string), 10, 32)
-	g.Configs.AccId = uint64(id)
-	g.Configs.ServerId = uint32(lineGroup)
-	g.Configs.Sha1Str = shaStr
-	g.Configs.Authoriz = res.Data["authorize_state"].(string)
-	g.Configs.IpPort = fmt.Sprintf("%s:%s", g.Configs.GameServer, gwPort)
-	fmt.Printf("%v, %d ,%s", regions, sid, gwPort)
 	g.connectGameServer()
-	g.sendServerTimeUserCmd(0)
-	g.sendReqUserLoginCmd(uint32(timeStamp))
+	g.sendReqUserLoginParamCmd()
 	ticker := time.NewTicker(5 * time.Second)
 	g.quit = make(chan bool)
 
@@ -143,6 +116,43 @@ func (g *GameConnection) GameServerLogin() {
 		}
 	}()
 
+loginLoop:
+	for {
+		select {
+		case <-time.After(10 * time.Second):
+			log.Infof("Login timeout")
+			break loginLoop
+		case <-time.Tick(1 * time.Second):
+			if g.Role.GetRoleName() == "" {
+				continue
+			} else {
+				break loginLoop
+			}
+		}
+	}
+	if g.Configs.AutoCreateChar {
+		// random character name
+		if g.Configs.CharacterName == "" {
+			g.Configs.CharacterName = utils.RandomString(7)
+		}
+		err := g.CreateCharacter(
+			g.Configs.CharacterName,
+			2,
+			42,
+			12,
+			2,
+			0,
+			1,
+		)
+		if err != nil {
+			log.Error(err)
+		}
+	} else if g.Role.GetRoleId() != 0 && g.Role.GetRoleName() != "" && g.Role.GetAuthenticated() && g.conn != nil && !g.Role.GetRoleSelected() {
+		g.SelectRole()
+	}
+	if g.conn != nil && g.Role.GetMapId() != 0 && g.Role.GetInGame() && !g.enteringMap && g.Role.GetLoginResult() == 0 {
+		g.enterGameMap()
+	}
 }
 
 func (g *GameConnection) handleConnection() {
@@ -163,11 +173,11 @@ func (g *GameConnection) handleConnection() {
 			if err != nil {
 				switch err {
 				default:
-					if strings.ContainsAny(err.Error(), ErrUseClosedConnection.Error()) && g.shouldQuit {
+					if g.shouldQuit {
 						g.Close()
 						return
 					} else {
-						time.Sleep(5 * time.Second)
+						time.Sleep(8 * time.Second)
 						g.Reconnect()
 						return
 					}
@@ -384,34 +394,38 @@ func (g *GameConnection) getServerTimeUserCmd(curTime uint64, timeZone int32, pa
 
 func (g *GameConnection) getReqLoginUserCmd(zId, serverId, language, langZone, clientVer, timestamp uint32, accId uint64, userSha1Str, version, domain, ip, device, phone, safeDevice, authoriz, deviceId string) *Cmd.ReqLoginUserCmd {
 	pb := &Cmd.ReqLoginUserCmd{
-		Sha1:          &userSha1Str,
-		Accid:         &accId,
-		Zoneid:        &zId,
-		Version:       &version,
-		Domain:        &domain,
-		Ip:            &ip,
-		Device:        &device,
-		Language:      &language,
-		Deviceid:      &deviceId,
-		Clientversion: &clientVer,
-		Timestamp:     &timestamp,
-		Langzone:      &langZone,
-	}
-	if serverId != 0 {
-		pb.Serverid = &serverId
+		Sha1:    &userSha1Str,
+		Accid:   &accId,
+		Zoneid:  &zId,
+		Version: &version,
+		// Domain:        &domain,
+		// Ip:            &ip,
+		// Device:        &device,
+		Language: &language,
+		Deviceid: &deviceId,
+		// Clientversion: &clientVer,
+		Timestamp: &timestamp,
+		// Langzone:      &langZone,
 	}
 
-	if authoriz != "" {
-		pb.Authorize = &authoriz
-	}
+	loginSite := uint32(0)
+	pb.Site = &loginSite
 
-	if safeDevice != "" {
-		pb.SafeDevice = &safeDevice
-	}
-
-	if phone != "" {
-		pb.Phone = &phone
-	}
+	// if serverId != 0 {
+	// 	pb.Serverid = &serverId
+	// }
+	//
+	// if authoriz != "" {
+	// 	pb.Authorize = &authoriz
+	// }
+	//
+	// if safeDevice != "" {
+	// 	pb.SafeDevice = &safeDevice
+	// }
+	//
+	// if phone != "" {
+	// 	pb.Phone = &phone
+	// }
 	return pb
 }
 
@@ -439,6 +453,11 @@ func (g *GameConnection) QueryCat(catId uint32) (results *Cmd.BriefPendingListRe
 	}
 	err := g.sendProtoCmd(cmd, TradeProtoCmdId, Cmd.RecordUserTradeParam_value["BRIEF_PENDING_LIST_RECORDTRADE"])
 	err = g.waitForQueryResponse(catId)
+	for retry := 0; err != nil && retry < 3; retry++ {
+		log.Infof("retrying query category %d", catId)
+		_ = g.sendProtoCmd(cmd, TradeProtoCmdId, Cmd.RecordUserTradeParam_value["BRIEF_PENDING_LIST_RECORDTRADE"])
+		err = g.waitForQueryResponse(catId)
+	}
 	if err != nil {
 		log.Error(err)
 	} else {
@@ -479,6 +498,7 @@ func (g *GameConnection) QueryItemPrice(itemId uint32, pageIndex uint32) (result
 			TradeType: &tt,
 			PageIndex: &pageIndex,
 		},
+		Charid: g.Role.RoleId,
 	}
 	_ = g.sendProtoCmd(
 		cmd,
@@ -487,6 +507,15 @@ func (g *GameConnection) QueryItemPrice(itemId uint32, pageIndex uint32) (result
 	)
 
 	err := g.waitForQueryResponse(itemId)
+	for retry := 0; err != nil && retry < 3; retry++ {
+		log.Infof("retrying query item %d", itemId)
+		_ = g.sendProtoCmd(
+			cmd,
+			Cmd.Command_value["RECORD_USER_TRADE_PROTOCMD"],
+			Cmd.RecordUserTradeParam_value["DETAIL_PENDING_LIST_RECORDTRADE"],
+		)
+		err = g.waitForQueryResponse(itemId)
+	}
 	g.Mutex.Lock()
 	if err != nil {
 		log.Errorf("query for item %d return error: %s", itemId, err)
@@ -538,7 +567,11 @@ func (g *GameConnection) sendHeartBeat() {
 	cmd := &Cmd.HeartBeatUserCmd{
 		Time: &curTime,
 	}
-	_ = g.sendProtoCmd(cmd, LogInUserProtoCmdId, Cmd.LoginCmdParam_value["HEART_BEAT_USER_CMD"])
+	_ = g.sendProtoCmd(
+		cmd,
+		LogInUserProtoCmdId,
+		Cmd.LoginCmdParam_value["HEART_BEAT_USER_CMD"],
+	)
 	g.currentIndex = 1
 }
 
@@ -581,8 +614,15 @@ func (g *GameConnection) sendReqUserLoginCmd(timeStamp uint32) {
 		g.Configs.Authoriz,
 		g.Configs.DeviceId,
 	)
-	time.Sleep(3 * time.Second)
+	time.Sleep(1 * time.Second)
 	_ = g.sendProtoCmd(reqLoginCmd, LogInUserProtoCmdId, Cmd.LoginCmdParam_value["REQ_LOGIN_USER_CMD"])
+}
+
+func (g *GameConnection) sendReqUserLoginParamCmd() {
+	reqLoginParamCmd := Cmd.ReqLoginUserCmd{
+		Accid: &g.Configs.AccId,
+	}
+	_ = g.sendProtoCmd(&reqLoginParamCmd, LogInUserProtoCmdId, Cmd.LoginCmdParam_value["REQ_LOGIN_PARAM_USER_CMD"])
 }
 
 func (g *GameConnection) SelectRole() {

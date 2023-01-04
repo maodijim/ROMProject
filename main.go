@@ -1,21 +1,22 @@
 package main
 
 import (
-	Cmd "ROMProject/Cmds"
-	"ROMProject/config"
-	"ROMProject/esClient"
-	"ROMProject/gameConnection"
-	"ROMProject/utils"
 	"context"
 	"flag"
 	"fmt"
-	"github.com/olivere/elastic/v7"
-	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"os"
 	"strconv"
 	"sync"
 	"time"
+
+	Cmd "ROMProject/Cmds"
+	"ROMProject/config"
+	"ROMProject/esClient"
+	"ROMProject/gameConnection"
+	"ROMProject/utils"
+	"github.com/olivere/elastic/v7"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -43,7 +44,7 @@ func queryItems(ch chan uint32, details *[]tradeItem, wg *sync.WaitGroup, connec
 			time.Sleep(time.Second + time.Duration(rand.Int31n(500))*time.Millisecond)
 			initStart = false
 		}
-		log.Infof("Requesting information for pub item id: %d", itemId)
+		log.Infof("Requesting information for exchange item id: %d", itemId)
 		detail := connection.QueryItemPrice(itemId, 0)
 		if len(detail) > 0 {
 			// traverse all sub items under same itemId
@@ -72,20 +73,20 @@ func queryItems(ch chan uint32, details *[]tradeItem, wg *sync.WaitGroup, connec
 }
 
 func main() {
-	//hostname := "gw-m-ro.xd.com"
-	//ip, err := net.LookupIP(hostname)
-	//if err != nil {
+	// hostname := "gw-m-ro.xd.com"
+	// ip, err := net.LookupIP(hostname)
+	// if err != nil {
 	//	log.Errorf("%s", err)
-	//}
-	//log.Infof("ip for %s is :%s", hostname, ip)
+	// }
+	// log.Infof("ip for %s is :%s", hostname, ip)
 
 	confFile := flag.String("configPath", "", "Game Server Configuration Yaml Path")
 	itemFile := flag.String("itemPath", "", "Exchange Item Json Path")
 	buffFile := flag.String("buffPath", "", "Buff Json Path")
 	skillJson := flag.String("skillJson", "skills.yml", "json file of skills")
 	enableDebug := flag.Bool("debug", false, "Enable Debugging")
-	workerNum := flag.Int("worker", 5, "Number of work to pull Trade Info")
-	sleepInterval := flag.Int("sleepFor", 1800, "Interval between each pull circle")
+	workerNum := flag.Int("worker", 3, "Number of work to pull Trade Info")
+	sleepInterval := flag.Int("sleepFor", 1000, "Interval between each pull circle")
 	pullOnce := flag.Bool("once", false, "Pull Trade Information once")
 	flag.Parse()
 
@@ -230,7 +231,7 @@ func main() {
 			}
 
 			if gameConnect.Role.GetInGame() {
-				sleepFor := utils.RandomSleepTime(*sleepInterval, 1000)
+				sleepFor := utils.RandomSleepTime(*sleepInterval, 500)
 				log.Infof("sleeping for %d seconds", sleepFor)
 				time.Sleep(time.Duration(sleepFor) * time.Second)
 			} else {

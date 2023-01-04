@@ -1,7 +1,6 @@
 package utils
 
 import (
-	Cmd "ROMProject/Cmds"
 	"bytes"
 	"compress/zlib"
 	"crypto/des"
@@ -9,14 +8,16 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/golang/protobuf/proto"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"math"
 	"math/rand"
 	"reflect"
 	"time"
+
+	Cmd "ROMProject/Cmds"
+	"github.com/golang/protobuf/proto"
+	log "github.com/sirupsen/logrus"
 )
 
 func Decompress(data []byte) ([]byte, error) {
@@ -32,7 +33,7 @@ func Decompress(data []byte) ([]byte, error) {
 
 func Compress(data []byte) ([]byte, error) {
 	var b bytes.Buffer
-	//w := zlib.NewWriter(&b)
+	// w := zlib.NewWriter(&b)
 	w, err := zlib.NewWriterLevel(&b, zlib.NoCompression)
 	_, err = w.Write(data)
 	w.Close()
@@ -116,7 +117,7 @@ func parseCmdNonce(body []byte) (hasNonce bool, hasData bool, nonceSize int) {
 		return false, false, 0
 	}
 	startPoint := nonceSize + 4
-	if (nonceSize == 44 || nonceSize == 50) && body[3] == 0 {
+	if (nonceSize == 44 || startPoint == 50 || nonceSize == 50) && body[3] == 0 {
 		hasNonce = true
 	} else {
 		hasData = true
@@ -167,7 +168,7 @@ func ParseCmd(data []byte, param proto.Message) (err error) {
 }
 
 func ConstructBody(cmdId, cmdParamId int32, flag, body, nonce, cipherKey []byte) []byte {
-	//newBodyLength := len(body) + 2
+	// newBodyLength := len(body) + 2
 	var newBody []byte
 	if nonce != nil {
 		newBody = make([]byte, 4)
@@ -229,7 +230,7 @@ func ParseBody(body, cipherKey []byte) [][]byte {
 	var cmdList [][]byte
 	for bodyLength > offset {
 		if len(body[offset:]) > headerLength {
-			//log.Printf("starting at position %d with header %x", offset, body[offset:offset+headerLength])
+			// log.Printf("starting at position %d with header %x", offset, body[offset:offset+headerLength])
 			contentLength := int(binary.LittleEndian.Uint16(body[offset:][1:]))
 			start := offset + headerLength
 			end := start
@@ -261,7 +262,7 @@ func ParseBody(body, cipherKey []byte) [][]byte {
 			offset = end
 			cmdList = append(cmdList, newBody)
 			if len(newBody) > 2 && isClientCMD(int(newBody[0]), int(newBody[1])) {
-				//log.Printf("Client CMD found contiune parsing...")
+				// log.Printf("Client CMD found contiune parsing...")
 				cmdList = append(cmdList, doSubParse(newBody)...)
 			}
 		}
@@ -365,6 +366,7 @@ func StrSliceContain(strList []string, e string) bool {
 	}
 	return false
 }
+
 func Uint64SliceContains(s []*uint64, e uint64) bool {
 	for _, a := range s {
 		if *a == e {
@@ -372,4 +374,14 @@ func Uint64SliceContains(s []*uint64, e uint64) bool {
 		}
 	}
 	return false
+}
+
+func RandomString(length int) string {
+	rand.Seed(time.Now().UnixNano())
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	b := make([]rune, length)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
 }

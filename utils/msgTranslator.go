@@ -1,10 +1,11 @@
 package utils
 
 import (
+	"strings"
+
 	Cmd "ROMProject/Cmds"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
-	"strings"
 )
 
 func TranslateMsg(output [][]byte) {
@@ -57,6 +58,15 @@ func TranslateMsg(output [][]byte) {
 
 			case Cmd.LoginCmdParam_value["CONFIRM_AUTHORIZE_USER_CMD"]:
 				param = &Cmd.ConfirmAuthorizeUserCmd{}
+
+			case Cmd.LoginCmdParam_value["REQ_LOGIN_PARAM_USER_CMD"]:
+				param = &Cmd.ReqLoginParamUserCmd{}
+
+			case Cmd.LoginCmdParam_value["CREATE_CHAR_USER_CMD"]:
+				param = &Cmd.CreateCharUserCmd{}
+
+			case Cmd.LoginCmdParam_value["DELETE_CHAR_USER_CMD"]:
+				param = &Cmd.DeleteCharUserCmd{}
 
 			default:
 				log.Infof("没有parsing")

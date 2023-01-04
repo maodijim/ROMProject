@@ -1,12 +1,13 @@
 package gameConnection
 
 import (
+	"os"
+	"time"
+
 	Cmd "ROMProject/Cmds"
 	"ROMProject/utils"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
-	"os"
-	"time"
 )
 
 var (
@@ -32,13 +33,6 @@ func (g *GameConnection) waitForResponse(notifierType string) (res interface{}, 
 }
 
 func (g *GameConnection) HandleMsg(output [][]byte) {
-	if g.Role.GetRoleId() != 0 && g.Role.GetRoleName() != "" && g.Role.GetAuthenticated() && g.conn != nil && !g.Role.GetRoleSelected() {
-		g.SelectRole()
-	}
-	if g.conn != nil && g.Role.GetMapId() != 0 && g.Role.GetInGame() && !g.enteringMap && g.Role.GetLoginResult() == 0 {
-		g.enterGameMap()
-	}
-
 	for _, o := range output {
 		if len(o) < 2 {
 			log.Warn("result is empty")
@@ -76,12 +70,22 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				param = &Cmd.SnapShotUserCmd{}
 				err = utils.ParseCmd(o, param)
 				roleData := param.(*Cmd.SnapShotUserCmd)
-				roleId := roleData.GetData()[0].GetId()
-				if len(roleData.GetData()) >= int(g.Configs.Char) {
-					roleId = roleData.GetData()[g.Configs.Char-1].GetId()
+				var roleId uint64
+				if len(roleData.GetData()) > 0 {
+					roleId = roleData.GetData()[0].GetId()
+					if len(roleData.GetData()) >= int(g.Configs.Char) {
+						roleId = roleData.GetData()[g.Configs.Char-1].GetId()
+					}
+					if roleId != 0 {
+						g.Role.SetRoleId(roleId)
+						log.Infof("setting role id to %d", g.Role.GetRoleId())
+					} else {
+						log.Warn("no role id found")
+					}
+				} else {
+					log.Warn("no role data found")
 				}
-				g.Role.SetRoleId(roleId)
-				log.Infof("setting role id to %d", g.Role.GetRoleId())
+
 				for _, char := range param.(*Cmd.SnapShotUserCmd).GetData() {
 					if char.Id != nil && g.Role.GetRoleId() == *char.Id {
 						g.Role.SetRoleName(*char.Name)
@@ -110,6 +114,16 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 					}
 				}
 
+			case Cmd.LoginCmdParam_value["REQ_LOGIN_PARAM_USER_CMD"]:
+				param = &Cmd.ReqLoginParamUserCmd{}
+				err = utils.ParseCmd(o, param)
+				if g.conn != nil {
+					g.Mutex.Lock()
+					g.Configs.Sha1Str = *param.(*Cmd.ReqLoginParamUserCmd).Sha1
+					g.Mutex.Unlock()
+					g.sendServerTimeUserCmd(0)
+					g.sendReqUserLoginCmd(*param.(*Cmd.ReqLoginParamUserCmd).Timestamp)
+				}
 			default:
 				continue
 			}
@@ -516,7 +530,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				param = &Cmd.SkillUpdate{}
 				err = utils.ParseCmd(o, param)
 				skillUpdate := param.(*Cmd.SkillUpdate)
-				//g.Mutex.Lock()
+				// g.Mutex.Lock()
 				for _, skillData := range skillUpdate.GetUpdate() {
 					for _, newSkillItem := range skillData.GetItems() {
 						if g.Role.SkillItems[newSkillItem.GetId()] != nil {
@@ -525,7 +539,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 						}
 					}
 				}
-				//g.Mutex.Unlock()
+				// g.Mutex.Unlock()
 
 			default:
 				continue
@@ -538,7 +552,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 			case Cmd.FuBenParam_value["TEAMEXP_RAID_REPORT"]:
 				param = &Cmd.TeamExpReportFubenCmd{}
 				err = utils.ParseCmd(o, param)
-				//report := param.(*Cmd.TeamExpReportFubenCmd)
+				// report := param.(*Cmd.TeamExpReportFubenCmd)
 				go func() {
 					time.Sleep(10 * time.Second)
 					g.ExitTeamExpFuben()
@@ -631,7 +645,13 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				param = &Cmd.ChatRetCmd{}
 				err = utils.ParseCmd(o, param)
 				chatRet := param.(*Cmd.ChatRetCmd)
-				log.Infof("Receive chat from channel: %s, sender: %s content: %s", chatRet.GetChannel().String(), chatRet.GetName(), chatRet.GetStr())
+				log.Infof(
+					"Receive chat from channel: %s, sender id: %d sender: %s content: %s",
+					chatRet.GetChannel().String(),
+					chatRet.GetId(),
+					chatRet.GetName(),
+					chatRet.GetStr(),
+				)
 
 			default:
 				continue

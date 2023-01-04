@@ -1,11 +1,12 @@
 package esClient
 
 import (
-	Cmd "ROMProject/Cmds"
 	"fmt"
+	"time"
+
+	Cmd "ROMProject/Cmds"
 	"github.com/olivere/elastic/v7"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 type ExchangeTemplate struct {
@@ -27,7 +28,7 @@ type ExchangeTemplate struct {
 }
 
 func (e *ExchangeTemplate) GetIndexName() string {
-	return fmt.Sprintf("rom-exchange-%s", time.Now().Format("2006-01-02"))
+	return fmt.Sprintf("rom-exchange-private-%s", time.Now().Format("2006-01-02"))
 }
 
 func NewEsClient(urls []string) *elastic.Client {
