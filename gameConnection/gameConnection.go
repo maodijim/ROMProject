@@ -25,52 +25,65 @@ import (
 )
 
 type authJson struct {
-	Status int                    `json:"status"`
-	Msg    string                 `json:"message"`
-	Data   map[string]interface{} `json:"data"`
+	Status int    `json:"code"`
+	Msg    string `json:"msg"`
+	Data   string `json:"data"`
 }
 
 var (
-	cmdQueueInterval    = 500 * time.Millisecond
+	cmdQueueInterval    = 300 * time.Millisecond
 	TradeProtoCmdId     = Cmd.Command_value["RECORD_USER_TRADE_PROTOCMD"]
 	LogInUserProtoCmdId = Cmd.Command_value["LOGIN_USER_PROTOCMD"]
 )
 
 type GameConnection struct {
-	cmdQueue          [][]byte
-	lastCmdSend       time.Time
-	currentIndex      uint32
-	ShouldHeartBeat   bool
-	ShouldChangeScene bool
-	Configs           *config.ServerConfigs
-	conn              net.Conn
-	Role              *utils.RoleInfo
-	DebugMsg          bool
-	quit              chan bool
-	shouldQuit        bool
-	enteringMap       bool
-	inMap             bool
-	tradeDetail       map[uint32]*Cmd.DetailPendingListRecordTradeCmd
-	tradeBrief        map[uint32]*Cmd.BriefPendingListRecordTradeCmd
-	sellInfo          map[uint32]*Cmd.ItemSellInfoRecordTradeCmd
-	tradeHistory      *Cmd.MyTradeLogRecordTradeCmd
-	pendingSells      *Cmd.MyPendingListRecordTradeCmd
-	buyItem           map[uint32]*Cmd.BuyItemRecordTradeCmd
-	sellItem          map[uint32]*Cmd.SellItemRecordTradeCmd
-	reqServerPrice    map[uint32]*Cmd.ReqServerPriceRecordTradeCmd
-	MapNpcs           map[uint64]*Cmd.MapNpc
-	MapUsers          map[uint64]*Cmd.MapUser
-	GotoList          *Cmd.GoToListUserCmd
-	Mutex             *sync.RWMutex
-	lastHeartBeat     time.Time
-	retries           map[string]uint
-	ExchangeItems     map[uint32]utils.ExchangeItem
-	SkillItems        map[uint32]utils.SkillItem
-	BuffItems         map[uint32]utils.BuffItem
-	BuffItemsByName   map[string]utils.BuffItemByName
-	Items             map[uint32]utils.Items
-	ItemsByName       map[string]utils.ItemsByName
-	notifier          map[string]chan interface{}
+	Authed             bool
+	cmdQueue           [][]byte
+	lastCmdSend        time.Time
+	currentIndex       uint32
+	ShouldHeartBeat    bool
+	ShouldChangeScene  bool
+	Configs            *config.ServerConfigs
+	conn               net.Conn
+	Role               *utils.RoleInfo
+	AvailableRoles     map[uint32]*utils.RoleInfo
+	DebugMsg           bool
+	quit               chan bool
+	shouldQuit         bool
+	enteringMap        bool
+	inMap              bool
+	tradeDetail        map[uint32]*Cmd.DetailPendingListRecordTradeCmd
+	tradeBrief         map[uint32]*Cmd.BriefPendingListRecordTradeCmd
+	sellInfo           map[uint32]*Cmd.ItemSellInfoRecordTradeCmd
+	tradeHistory       *Cmd.MyTradeLogRecordTradeCmd
+	pendingSells       *Cmd.MyPendingListRecordTradeCmd
+	buyItem            map[uint32]*Cmd.BuyItemRecordTradeCmd
+	sellItem           map[uint32]*Cmd.SellItemRecordTradeCmd
+	reqServerPrice     map[uint32]*Cmd.ReqServerPriceRecordTradeCmd
+	MapNpcs            map[uint64]*Cmd.MapNpc
+	MapUsers           map[uint64]*Cmd.MapUser
+	GotoList           *Cmd.GoToListUserCmd
+	Mutex              *sync.RWMutex
+	lastHeartBeat      time.Time
+	retries            map[string]uint
+	ExchangeItems      map[uint32]utils.ExchangeItem
+	SkillItems         map[uint32]utils.SkillItem
+	BuffItems          map[uint32]utils.BuffItem
+	BuffItemsByName    map[string]utils.BuffItemByName
+	Items              map[uint32]utils.Items
+	ItemsByName        map[string]utils.ItemsByName
+	notifier           map[string]chan interface{}
+	MonsterItems       map[uint32]utils.MonsterInfo
+	MonsterItemsByName map[string]utils.MonsterInfo
+	lastAttack         time.Time
+}
+
+func (g *GameConnection) IsAuthed() bool {
+	return g.Authed
+}
+
+func (g *GameConnection) SetAuthed(Authed bool) {
+	g.Authed = Authed
 }
 
 const (
@@ -86,6 +99,12 @@ var (
 )
 
 func (g *GameConnection) GameServerLogin() {
+	if g.Configs.AccId == 0 {
+		err := g.getAccId()
+		if err != nil {
+			log.Fatalf("get accId failed: %v", err)
+		}
+	}
 	g.connectGameServer()
 	g.sendReqUserLoginParamCmd()
 	ticker := time.NewTicker(5 * time.Second)
@@ -119,11 +138,11 @@ func (g *GameConnection) GameServerLogin() {
 loginLoop:
 	for {
 		select {
-		case <-time.After(10 * time.Second):
+		case <-time.After(15 * time.Second):
 			log.Infof("Login timeout")
 			break loginLoop
-		case <-time.Tick(1 * time.Second):
-			if g.Role.GetRoleName() == "" {
+		case <-time.Tick(5 * time.Second):
+			if !g.IsAuthed() {
 				continue
 			} else {
 				break loginLoop
@@ -131,23 +150,28 @@ loginLoop:
 		}
 	}
 	if g.Configs.AutoCreateChar {
-		// random character name
-		if g.Configs.CharacterName == "" {
-			g.Configs.CharacterName = utils.RandomString(7)
+		if _, ok := g.AvailableRoles[uint32(g.Configs.Char)]; !ok {
+			// random character name
+			if g.Configs.CharacterName == "" {
+				g.Configs.CharacterName = utils.RandomString(7)
+			}
+			err := g.CreateCharacter(
+				g.Configs.CharacterName,
+				2,
+				42,
+				12,
+				2,
+				0,
+				1,
+			)
+			if err != nil {
+				log.Error(err)
+			}
+			log.Infof("Created character %s", g.Configs.CharacterName)
 		}
-		err := g.CreateCharacter(
-			g.Configs.CharacterName,
-			2,
-			42,
-			12,
-			2,
-			0,
-			1,
-		)
-		if err != nil {
-			log.Error(err)
-		}
-	} else if g.Role.GetRoleId() != 0 && g.Role.GetRoleName() != "" && g.Role.GetAuthenticated() && g.conn != nil && !g.Role.GetRoleSelected() {
+	}
+
+	if g.IsAuthed() && g.conn != nil {
 		g.SelectRole()
 	}
 	if g.conn != nil && g.Role.GetMapId() != 0 && g.Role.GetInGame() && !g.enteringMap && g.Role.GetLoginResult() == 0 {
@@ -265,6 +289,7 @@ func (g *GameConnection) Reconnect() {
 func (g *GameConnection) Close() {
 	g.quit <- true
 	g.shouldQuit = true
+	g.SetAuthed(false)
 	_ = g.conn.Close()
 }
 
@@ -279,7 +304,7 @@ func (g *GameConnection) connectGameServer() {
 
 func (g *GameConnection) httpAuth(authHost string) (*authJson, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", authHost, nil)
+	req, err := http.NewRequest(http.MethodPost, authHost, nil)
 	if err != nil {
 		log.Fatalf("failed to create http newRequest: %s", err)
 	}
@@ -310,7 +335,7 @@ func (g *GameConnection) httpAuth(authHost string) (*authJson, error) {
 	return result, err
 }
 
-func (g *GameConnection) sendServerTimeUserCmd(par Cmd.LoginCmdParam) {
+func (g *GameConnection) SendServerTimeUserCmd(par Cmd.LoginCmdParam) {
 	serverTimeUserCmd := g.getServerTimeUserCmd(0, 0, par)
 	data, _ := proto.Marshal(serverTimeUserCmd)
 	log.Debug(data)
@@ -347,13 +372,15 @@ func (g *GameConnection) sendCmd(flag, body []byte, delay time.Duration) (err er
 		newBody = append(newBody[:], body[:]...)
 		time.Sleep(delay)
 	}
-	g.Mutex.Lock()
 	if time.Since(g.lastCmdSend) <= cmdQueueInterval {
-		g.Mutex.Unlock()
 		g.cmdQueue = append(g.cmdQueue, newBody)
 		go func() {
-			time.Sleep(cmdQueueInterval)
-			err = g.sendCmd(flag, body, 0)
+			select {
+			case <-time.After(cmdQueueInterval):
+				if len(g.cmdQueue) > 0 {
+					err = g.sendCmd(flag, body, 0)
+				}
+			}
 		}()
 		return
 	} else if len(g.cmdQueue) > 0 {
@@ -366,8 +393,8 @@ func (g *GameConnection) sendCmd(flag, body []byte, delay time.Duration) (err er
 		g.currentIndex = 0
 	}
 	g.lastCmdSend = time.Now()
-	g.Mutex.Unlock()
 	if g.conn != nil {
+		log.Debugf("sending %v bytes at %v", len(newBody), time.Now())
 		writeLen, err := g.conn.Write(newBody)
 		log.Debugf("sent %d bytes", writeLen)
 		if err != nil {
@@ -435,6 +462,27 @@ func (g *GameConnection) enterGameMap() {
 	g.enteringMap = true
 }
 
+func (g *GameConnection) ExitMapWait(mapId uint32) {
+	g.ExitMap(mapId)
+	for {
+		select {
+		case <-time.Tick(2 * time.Second):
+			if g.Role.GetMapId() != mapId {
+				continue
+			}
+			g.ChangeMap(mapId)
+			return
+		}
+	}
+}
+
+func (g *GameConnection) ExitMap(targetMapId uint32) {
+	cmd := &Cmd.GoToExitPosUserCmd{
+		Mapid: &targetMapId,
+	}
+	_ = g.sendProtoCmd(cmd, sceneUserCmdId, Cmd.CmdParam_value["GOTO_EXIT_POS_USER_CMD"])
+}
+
 func (g *GameConnection) ChangeMap(mId uint32) {
 	cmd := &Cmd.ChangeSceneUserCmd{
 		MapID: &mId,
@@ -454,7 +502,7 @@ func (g *GameConnection) QueryCat(catId uint32) (results *Cmd.BriefPendingListRe
 	err := g.sendProtoCmd(cmd, TradeProtoCmdId, Cmd.RecordUserTradeParam_value["BRIEF_PENDING_LIST_RECORDTRADE"])
 	err = g.waitForQueryResponse(catId)
 	for retry := 0; err != nil && retry < 3; retry++ {
-		log.Infof("retrying query category %d", catId)
+		log.Infof("retrying #%d query category %d", retry, catId)
 		_ = g.sendProtoCmd(cmd, TradeProtoCmdId, Cmd.RecordUserTradeParam_value["BRIEF_PENDING_LIST_RECORDTRADE"])
 		err = g.waitForQueryResponse(catId)
 	}
@@ -508,7 +556,7 @@ func (g *GameConnection) QueryItemPrice(itemId uint32, pageIndex uint32) (result
 
 	err := g.waitForQueryResponse(itemId)
 	for retry := 0; err != nil && retry < 3; retry++ {
-		log.Infof("retrying query item %d", itemId)
+		log.Infof("retrying #%d query item %d", retry, itemId)
 		_ = g.sendProtoCmd(
 			cmd,
 			Cmd.Command_value["RECORD_USER_TRADE_PROTOCMD"],
@@ -595,7 +643,7 @@ func (g *GameConnection) getNonce(includeTime bool) []byte {
 	return pOut
 }
 
-func (g *GameConnection) sendReqUserLoginCmd(timeStamp uint32) {
+func (g *GameConnection) SendReqUserLoginCmd(timeStamp uint32) {
 	reqLoginCmd := g.getReqLoginUserCmd(
 		g.Configs.ZoneId,
 		g.Configs.ServerId,
@@ -626,10 +674,18 @@ func (g *GameConnection) sendReqUserLoginParamCmd() {
 }
 
 func (g *GameConnection) SelectRole() {
-	if g.Role.GetRoleId() != 0 && g.Role.GetRoleName() != "" && g.Role.GetAuthenticated() && g.conn != nil && !g.Role.GetRoleSelected() {
-		log.Infof("selecting role with id: %d name: %s", g.Role.GetRoleId(), g.Role.GetRoleName())
-		g.doSelectRole()
+	if len(g.AvailableRoles) == 0 {
+		log.Error("no available roles")
+		return
 	}
+	role, ok := g.AvailableRoles[uint32(g.Configs.Char)]
+	if !ok {
+		log.Errorf("no available role with at %d", g.Configs.Char)
+		g.Close()
+	}
+	g.Role = role
+	log.Infof("selecting role with id: %d name: %s", g.Role.GetRoleId(), g.Role.GetRoleName())
+	g.doSelectRole()
 }
 
 func (g *GameConnection) doSelectRole() {
@@ -666,7 +722,7 @@ func (g *GameConnection) InGameMap() bool {
 	return g.inMap
 }
 
-func (g *GameConnection) addNotifier(notifierType string) {
+func (g *GameConnection) AddNotifier(notifierType string) {
 	g.Mutex.Lock()
 	g.notifier[notifierType] = make(chan interface{})
 	g.Mutex.Unlock()
@@ -676,6 +732,35 @@ func (g *GameConnection) removeNotifier(notifierType string) {
 	g.Mutex.Lock()
 	g.notifier[notifierType] = nil
 	g.Mutex.Unlock()
+}
+
+func (g *GameConnection) getAccId() (err error) {
+	if g.Configs.Username != "" && g.Configs.Password != "" {
+		res, err := g.httpAuth(g.Configs.AuthServer)
+		if err != nil {
+			err = fmt.Errorf("failed to login to auth server for user %s: %w", g.Configs.Username, err)
+			return err
+		}
+		g.Configs.AccId, _ = strconv.ParseUint(res.Data, 10, 64)
+	} else {
+		err = fmt.Errorf("no account id nor username and password provided for login: %w", err)
+	}
+	return err
+}
+
+func (g *GameConnection) LoadMonster(monsterJsonPath string) *GameConnection {
+	monsters := utils.MonsterParser(monsterJsonPath)
+	g.Mutex.Lock()
+	for _, monster := range monsters {
+		g.MonsterItems[uint32(monster.Id)] = monster
+		g.MonsterItemsByName[monster.NameZh] = monster
+	}
+	g.Mutex.Unlock()
+	return g
+}
+
+func (g *GameConnection) SetEnteringMap() {
+	g.enteringMap = true
 }
 
 func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.SkillItem, items *utils.ItemsLoader) *GameConnection {
@@ -707,28 +792,41 @@ func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 	}
 
 	gc := &GameConnection{
-		Configs:         config,
-		Role:            utils.NewRole(),
-		currentIndex:    1,
-		tradeBrief:      map[uint32]*Cmd.BriefPendingListRecordTradeCmd{},
-		tradeDetail:     map[uint32]*Cmd.DetailPendingListRecordTradeCmd{},
-		sellInfo:        map[uint32]*Cmd.ItemSellInfoRecordTradeCmd{},
-		tradeHistory:    &Cmd.MyTradeLogRecordTradeCmd{},
-		buyItem:         map[uint32]*Cmd.BuyItemRecordTradeCmd{},
-		sellItem:        map[uint32]*Cmd.SellItemRecordTradeCmd{},
-		pendingSells:    &Cmd.MyPendingListRecordTradeCmd{},
-		reqServerPrice:  map[uint32]*Cmd.ReqServerPriceRecordTradeCmd{},
-		Mutex:           &sync.RWMutex{},
-		retries:         map[string]uint{},
-		MapNpcs:         map[uint64]*Cmd.MapNpc{},
-		MapUsers:        map[uint64]*Cmd.MapUser{},
-		SkillItems:      si,
-		BuffItems:       bi,
-		BuffItemsByName: bin,
-		ExchangeItems:   ei,
-		Items:           allItems,
-		ItemsByName:     allItemsByName,
-		notifier:        map[string]chan interface{}{},
+		Configs:            config,
+		Role:               utils.NewRole(),
+		AvailableRoles:     map[uint32]*utils.RoleInfo{},
+		currentIndex:       1,
+		tradeBrief:         map[uint32]*Cmd.BriefPendingListRecordTradeCmd{},
+		tradeDetail:        map[uint32]*Cmd.DetailPendingListRecordTradeCmd{},
+		sellInfo:           map[uint32]*Cmd.ItemSellInfoRecordTradeCmd{},
+		tradeHistory:       &Cmd.MyTradeLogRecordTradeCmd{},
+		buyItem:            map[uint32]*Cmd.BuyItemRecordTradeCmd{},
+		sellItem:           map[uint32]*Cmd.SellItemRecordTradeCmd{},
+		pendingSells:       &Cmd.MyPendingListRecordTradeCmd{},
+		reqServerPrice:     map[uint32]*Cmd.ReqServerPriceRecordTradeCmd{},
+		Mutex:              &sync.RWMutex{},
+		retries:            map[string]uint{},
+		MapNpcs:            map[uint64]*Cmd.MapNpc{},
+		MapUsers:           map[uint64]*Cmd.MapUser{},
+		SkillItems:         si,
+		BuffItems:          bi,
+		BuffItemsByName:    bin,
+		ExchangeItems:      ei,
+		Items:              allItems,
+		ItemsByName:        allItemsByName,
+		MonsterItems:       map[uint32]utils.MonsterInfo{},
+		MonsterItemsByName: map[string]utils.MonsterInfo{},
+		notifier:           map[string]chan interface{}{},
+	}
+	if gc.MonsterItemsByName == nil {
+		gc.MonsterItemsByName = map[string]utils.MonsterInfo{}
+	}
+	if gc.MonsterItems == nil {
+		gc.MonsterItems = map[uint32]utils.MonsterInfo{}
 	}
 	return gc
+}
+
+func (g *GameConnection) IsTCPConnected() bool {
+	return g.conn != nil
 }

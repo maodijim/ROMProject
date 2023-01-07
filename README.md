@@ -58,7 +58,7 @@ Create folder rawlua at the ROMEncryption.exe folder
 Run ROMEncryption.exe
 ```
 
-### 10. Run ./tools/main.lua against table_exchange.lua to get the json formatted exchangeItems.json
+### 10. Run ./tools/luaObjectParser/[main.lua](tools%2FluaObjectParser%2Fmain.lua) against table_exchange.lua to get the json formatted exchangeItems.json
 ```
 # Lua binaries
 https://sourceforge.net/projects/luabinaries/files/5.4.2/Tools%20Executables

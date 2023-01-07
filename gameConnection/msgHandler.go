@@ -46,399 +46,19 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 		var err error
 		switch cmdId {
 		case Cmd.Command_value["LOGIN_USER_PROTOCMD"]:
-			switch cmdParamId {
-			case Cmd.LoginCmdParam_value["LOGIN_RESULT_USER_CMD"]:
-				param = &Cmd.LoginResultUserCmd{}
-				err = utils.ParseCmd(o, param)
-				g.Role.SetLoginResult(param.(*Cmd.LoginResultUserCmd).GetRet())
-
-			case Cmd.LoginCmdParam_value["REAL_AUTHORIZE_USER_CMD"]:
-				param = &Cmd.RealAuthorizeUserCmd{}
-				err = proto.Unmarshal(o[2:], param)
-				g.Role.SetAuthenticated(param.(*Cmd.RealAuthorizeUserCmd).GetAuthorized())
-
-			case Cmd.LoginCmdParam_value["HEART_BEAT_USER_CMD"]:
-				param = &Cmd.HeartBeatUserCmd{}
-				err = utils.ParseCmd(o, param)
-				if g.conn != nil {
-					g.currentIndex = 1
-					g.ShouldHeartBeat = true
-					g.lastHeartBeat = time.Now()
-				}
-
-			case Cmd.LoginCmdParam_value["SNAPSHOT_USER_CMD"]:
-				param = &Cmd.SnapShotUserCmd{}
-				err = utils.ParseCmd(o, param)
-				roleData := param.(*Cmd.SnapShotUserCmd)
-				var roleId uint64
-				if len(roleData.GetData()) > 0 {
-					roleId = roleData.GetData()[0].GetId()
-					if len(roleData.GetData()) >= int(g.Configs.Char) {
-						roleId = roleData.GetData()[g.Configs.Char-1].GetId()
-					}
-					if roleId != 0 {
-						g.Role.SetRoleId(roleId)
-						log.Infof("setting role id to %d", g.Role.GetRoleId())
-					} else {
-						log.Warn("no role id found")
-					}
-				} else {
-					log.Warn("no role data found")
-				}
-
-				for _, char := range param.(*Cmd.SnapShotUserCmd).GetData() {
-					if char.Id != nil && g.Role.GetRoleId() == *char.Id {
-						g.Role.SetRoleName(*char.Name)
-						log.Infof("setting role name to %s", g.Role.GetRoleName())
-					}
-				}
-
-			case Cmd.LoginCmdParam_value["SERVERTIME_USER_CMD"]:
-				param = &Cmd.ServerTimeUserCmd{}
-				err = utils.ParseCmd(o, param)
-				g.currentIndex = 1
-				if g.conn != nil {
-					g.sendServerTimeUserCmd(0)
-				}
-
-			case Cmd.LoginCmdParam_value["CONFIRM_AUTHORIZE_USER_CMD"]:
-				param = &Cmd.ConfirmAuthorizeUserCmd{}
-				err = utils.ParseCmd(o, param)
-				if g.conn != nil {
-					g.sendServerTimeUserCmd(0)
-					g.Role.AuthConfirm = param.(*Cmd.ConfirmAuthorizeUserCmd).Success
-					if *g.Role.AuthConfirm == false {
-						log.Warn("account is NOT authorized to trade and perform certain actions")
-					} else {
-						log.Info("account is authorized to trade and perform certain actions")
-					}
-				}
-
-			case Cmd.LoginCmdParam_value["REQ_LOGIN_PARAM_USER_CMD"]:
-				param = &Cmd.ReqLoginParamUserCmd{}
-				err = utils.ParseCmd(o, param)
-				if g.conn != nil {
-					g.Mutex.Lock()
-					g.Configs.Sha1Str = *param.(*Cmd.ReqLoginParamUserCmd).Sha1
-					g.Mutex.Unlock()
-					g.sendServerTimeUserCmd(0)
-					g.sendReqUserLoginCmd(*param.(*Cmd.ReqLoginParamUserCmd).Timestamp)
-				}
-			default:
-				continue
-			}
+			_, _ = g.HandleLoginUserCmd(cmdParamId, o)
 
 		case Cmd.Command_value["SCENE_USER2_PROTOCMD"]:
-			switch cmdParamId {
-			case Cmd.User2Param_value["USER2PARAM_SIGNIN_NTF"]:
-				param = &Cmd.SignInNtfUserCmd{}
-				err = utils.ParseCmd(o, param)
-				dailySign := param.(*Cmd.SignInNtfUserCmd)
-				g.Role.DailySignIn = dailySign
-
-			case Cmd.User2Param_value["USER2PARAM_SERVANT_RECOMMEND"]:
-				param = &Cmd.RecommendServantUserCmd{}
-				err = utils.ParseCmd(o, param)
-				recommendServant := param.(*Cmd.RecommendServantUserCmd)
-				for _, i := range recommendServant.GetItems() {
-					if i.GetStatus() == Cmd.ERecommendStatus_ERECOMMEND_STATUS_RECEIVE {
-						go func() {
-							time.Sleep(time.Second)
-							g.takeServantReward(i.GetDwid())
-						}()
-					}
-				}
-
-			case Cmd.User2Param_value["USER2PARAM_INVITEFOLLOW"]:
-				param = &Cmd.InviteFollowUserCmd{}
-
-			case Cmd.User2Param_value["USER2PARAM_BUFFERSYNC"]:
-				param = &Cmd.UserBuffNineSyncCmd{}
-				err = utils.ParseCmd(o, param)
-				buffSync := param.(*Cmd.UserBuffNineSyncCmd)
-				g.Mutex.Lock()
-				if buffSync.GetGuid() == g.Role.GetRoleId() {
-					for _, updateBuff := range buffSync.GetUpdates() {
-						g.Role.Buffs[updateBuff.GetId()] = updateBuff
-					}
-
-					for _, delBuff := range buffSync.GetDels() {
-						if g.Role.Buffs[delBuff] != nil {
-							delete(g.Role.Buffs, delBuff)
-						}
-					}
-				}
-				g.Mutex.Unlock()
-
-			case Cmd.User2Param_value["USER2PARAM_VAR"]:
-				param = &Cmd.VarUpdate{}
-				err = utils.ParseCmd(o, param)
-				userVar := param.(*Cmd.VarUpdate)
-				g.Mutex.Lock()
-				for _, uv := range userVar.GetVars() {
-					g.Role.UserVars[uv.GetType()] = uv
-				}
-				for _, av := range userVar.GetAccvars() {
-					g.Role.AccVars[av.GetType()] = av
-				}
-				g.Mutex.Unlock()
-
-			case Cmd.User2Param_value["USER2PARAM_GOTO_LIST"]:
-				param = &Cmd.GoToListUserCmd{}
-				err = utils.ParseCmd(o, param)
-				g.GotoList = param.(*Cmd.GoToListUserCmd)
-
-			case Cmd.User2Param_value["USER2PARAM_READYTOMAP"]:
-				param = &Cmd.ReadyToMapUserCmd{}
-				err = utils.ParseCmd(o, param)
-				rMap := param.(*Cmd.ReadyToMapUserCmd)
-				if rMap.GetMapID() != 0 {
-					log.Debugf("Ready to move to map ID: %d", rMap.GetMapID())
-					g.enteringMap = true
-					g.Role.MapId = rMap.MapID
-				}
-
-			case Cmd.User2Param_value["USER2PARAM_NPCDATASYNC"]:
-				param = &Cmd.NpcDataSync{}
-				err = utils.ParseCmd(o, param)
-				dataSync := param.(*Cmd.NpcDataSync)
-				if dataSync != nil {
-					g.Mutex.Lock()
-					var userDatas []*Cmd.UserData
-					var userAttrs []*Cmd.UserAttr
-					if g.MapNpcs[dataSync.GetGuid()] != nil {
-						userDatas = g.MapNpcs[dataSync.GetGuid()].GetDatas()
-						userAttrs = g.MapNpcs[dataSync.GetGuid()].GetAttrs()
-					} else if g.MapUsers[dataSync.GetGuid()] != nil {
-						userDatas = g.MapUsers[dataSync.GetGuid()].GetDatas()
-						userAttrs = g.MapUsers[dataSync.GetGuid()].GetAttrs()
-					}
-					// update NPC data
-					for _, ds := range dataSync.GetDatas() {
-						for _, data := range userDatas {
-							if data.GetType() == ds.GetType() {
-								data.Data = ds.GetData()
-							}
-						}
-					}
-					// update NPC attr
-					for _, as := range dataSync.GetAttrs() {
-						for _, attr := range userAttrs {
-							if attr.GetType() == as.GetType() {
-								attr.Value = as.Value
-							}
-						}
-					}
-					g.Mutex.Unlock()
-				}
-
-			case Cmd.User2Param_value["USER2PARAM_QUERY_MAPAREA"]:
-				param = &Cmd.QueryMapArea{}
-				err = utils.ParseCmd(o, param)
-				if len(param.(*Cmd.QueryMapArea).Areas) > 0 {
-					g.Role.SetMapId(param.(*Cmd.QueryMapArea).GetAreas()[0])
-				}
-			}
+			_, _ = g.HandleSceneUser2ProtoCmd(cmdParamId, o)
 
 		case Cmd.Command_value["SCENE_USER_PROTOCMD"]:
-			switch cmdParamId {
-
-			case Cmd.CmdParam_value["DELETE_ENTRY_USER_CMD"]:
-				param = &Cmd.DeleteEntryUserCmd{}
-				err = utils.ParseCmd(o, param)
-				entries := param.(*Cmd.DeleteEntryUserCmd)
-				for _, entryId := range entries.GetList() {
-					g.Mutex.Lock()
-					if g.MapNpcs[entryId] != nil {
-						log.Debugf("delete entry: id: %d, name: %s",
-							entryId,
-							g.MapNpcs[entryId].GetName(),
-						)
-						delete(g.MapNpcs, entryId)
-					} else if g.MapUsers[entryId] != nil {
-						log.Debugf("delete entry: id: %d, name: %s",
-							entryId,
-							g.MapNpcs[entryId].GetName(),
-						)
-						delete(g.MapUsers, entryId)
-					}
-					g.Mutex.Unlock()
-				}
-
-			case Cmd.CmdParam_value["RET_MOVE_USER_CMD"]:
-				param = &Cmd.RetMoveUserCmd{}
-				err = utils.ParseCmd(o, param)
-				cmd := param.(*Cmd.RetMoveUserCmd)
-				g.Mutex.Lock()
-				if g.Role.FollowUserId != 0 && g.Role.FollowUserId == cmd.GetCharid() {
-					go func() {
-						log.Debugf("following user %d to %v", cmd.GetCharid(), cmd.GetPos())
-						g.MoveChart(cmd.GetPos())
-					}()
-				}
-				if cmd.GetCharid() == *g.Role.RoleId {
-					log.Infof(
-						"Moving charater %s to position: %v",
-						g.Role.GetRoleName(),
-						param.(*Cmd.RetMoveUserCmd).GetPos(),
-					)
-					g.Role.Pos = cmd.GetPos()
-				} else if g.MapNpcs[cmd.GetCharid()] != nil {
-					g.MapNpcs[cmd.GetCharid()].Pos = cmd.GetPos()
-				} else if g.MapUsers[cmd.GetCharid()] != nil {
-					g.MapUsers[cmd.GetCharid()].Pos = cmd.GetPos()
-				}
-				g.Mutex.Unlock()
-
-			case Cmd.CmdParam_value["USERPARAM_USERSYNC"]:
-				param = &Cmd.UserSyncCmd{}
-				err = utils.ParseCmd(o, param)
-				if param.(*Cmd.UserSyncCmd).GetType() == Cmd.EUserSyncType_EUSERSYNCTYPE_SYNC {
-					datas := param.(*Cmd.UserSyncCmd).GetDatas()
-					attrs := param.(*Cmd.UserSyncCmd).GetAttrs()
-					g.Mutex.Lock()
-					g.UpdateUserParams(datas, attrs)
-					g.Mutex.Unlock()
-				} else if param.(*Cmd.UserSyncCmd).GetType() == Cmd.EUserSyncType_EUSERSYNCTYPE_INIT {
-					datas := param.(*Cmd.UserSyncCmd).GetDatas()
-					attrs := param.(*Cmd.UserSyncCmd).GetAttrs()
-					g.Mutex.Lock()
-					g.UpdateUserParams(datas, attrs)
-					g.Mutex.Unlock()
-				}
-
-			case Cmd.CmdParam_value["CHANGE_SCENE_USER_CMD"]:
-				param = &Cmd.ChangeSceneUserCmd{}
-				err = utils.ParseCmd(o, param)
-				changeScene := param.(*Cmd.ChangeSceneUserCmd)
-				if changeScene.GetMapID() != 0 {
-					log.Infof("Moving %s to %v", g.Role.GetRoleName(), changeScene)
-					g.MapNpcs = map[uint64]*Cmd.MapNpc{}
-					g.MapUsers = map[uint64]*Cmd.MapUser{}
-					g.Role.SetMapId(changeScene.GetMapID())
-					g.Role.SetMapName(changeScene.GetMapName())
-				}
-				if changeScene != nil {
-					g.Role.SetRolePos(changeScene.GetPos())
-					inGame := true
-					g.Role.InGame = &inGame
-					if g.ShouldChangeScene {
-						go func() {
-							time.Sleep(time.Second)
-							g.ChangeMap(g.Role.GetMapId())
-						}()
-
-					}
-				}
-			}
+			_ = g.HandleSceneUserProtoCmd(cmdParamId, o)
 
 		case Cmd.Command_value["SCENE_USER_MAP_PROTOCMD"]:
-			switch cmdParamId {
-
-			case Cmd.MapParam_value["MAPPARAM_ADDMAPUSER"]:
-				param = &Cmd.AddMapUser{}
-				err = utils.ParseCmd(o, param)
-				addUsers := param.(*Cmd.AddMapUser)
-				g.Mutex.Lock()
-				for _, user := range addUsers.GetUsers() {
-					g.MapUsers[user.GetGuid()] = user
-				}
-				g.Mutex.Unlock()
-
-			case Cmd.MapParam_value["MAPPARAM_ADDMAPNPC"]:
-				param = &Cmd.AddMapNpc{}
-				err = utils.ParseCmd(o, param)
-				addNpcs := param.(*Cmd.AddMapNpc)
-				g.Mutex.Lock()
-				for _, npc := range addNpcs.GetNpcs() {
-					g.MapNpcs[npc.GetId()] = npc
-				}
-				g.Mutex.Unlock()
-
-			case Cmd.MapParam_value["MAPPARAM_MAP_CMD_END"]:
-				param = &Cmd.MapCmdEnd{}
-				err = utils.ParseCmd(o, param)
-			}
+			_ = g.HandleSceneUserMapProtoCmd(cmdParamId, o)
 
 		case Cmd.Command_value["RECORD_USER_TRADE_PROTOCMD"]:
-			switch cmdParamId {
-
-			case Cmd.RecordUserTradeParam_value["MY_PENDING_LIST_RECORDTRADE"]:
-				param = &Cmd.MyPendingListRecordTradeCmd{}
-				err = utils.ParseCmd(o, param)
-				pRes := param.(*Cmd.MyPendingListRecordTradeCmd)
-				if len(pRes.Lists) > 0 {
-					g.Mutex.Lock()
-					g.pendingSells = pRes
-					g.Mutex.Unlock()
-				}
-
-			case Cmd.RecordUserTradeParam_value["SELL_ITEM_RECORDTRADE"]:
-				param = &Cmd.SellItemRecordTradeCmd{}
-				err = utils.ParseCmd(o, param)
-				sellRes := param.(*Cmd.SellItemRecordTradeCmd)
-				g.Mutex.Lock()
-				g.sellItem[sellRes.GetItemInfo().GetItemid()] = sellRes
-				g.Mutex.Unlock()
-
-			case Cmd.RecordUserTradeParam_value["REQ_SERVER_PRICE_RECORDTRADE"]:
-				param = &Cmd.ReqServerPriceRecordTradeCmd{}
-				err = utils.ParseCmd(o, param)
-				reqServerPrice := param.(*Cmd.ReqServerPriceRecordTradeCmd)
-				if reqServerPrice.GetPrice() > 0 {
-					g.Mutex.Lock()
-					g.reqServerPrice[reqServerPrice.GetItemData().GetBase().GetId()] = reqServerPrice
-					g.Mutex.Unlock()
-				}
-
-			case Cmd.RecordUserTradeParam_value["BUY_ITEM_RECORDTRADE"]:
-				param = &Cmd.BuyItemRecordTradeCmd{}
-				err = utils.ParseCmd(o, param)
-				buyRes := param.(*Cmd.BuyItemRecordTradeCmd)
-				g.Mutex.Lock()
-				g.buyItem[buyRes.ItemInfo.GetItemid()] = buyRes
-				g.Mutex.Unlock()
-
-			case Cmd.RecordUserTradeParam_value["MY_TRADE_LOG_LIST_RECORDTRADE"]:
-				param = &Cmd.MyTradeLogRecordTradeCmd{}
-				err = utils.ParseCmd(o, param)
-				history := param.(*Cmd.MyTradeLogRecordTradeCmd)
-				if len(history.GetLogList()) > 0 {
-					g.Mutex.Lock()
-					g.tradeHistory = history
-					g.Mutex.Unlock()
-				}
-
-			case Cmd.RecordUserTradeParam_value["DETAIL_PENDING_LIST_RECORDTRADE"]:
-				param = &Cmd.DetailPendingListRecordTradeCmd{}
-				err = utils.ParseCmd(o, param)
-				detail := param.(*Cmd.DetailPendingListRecordTradeCmd)
-				if detail.GetSearchCond() != nil {
-					g.Mutex.Lock()
-					g.tradeDetail[detail.GetSearchCond().GetItemId()] = detail
-					g.Mutex.Unlock()
-				}
-
-			case Cmd.RecordUserTradeParam_value["BRIEF_PENDING_LIST_RECORDTRADE"]:
-				param = &Cmd.BriefPendingListRecordTradeCmd{}
-				err = utils.ParseCmd(o, param)
-				brief := param.(*Cmd.BriefPendingListRecordTradeCmd)
-				if brief.GetCategory() != 0 {
-					g.Mutex.Lock()
-					g.tradeBrief[brief.GetCategory()] = brief
-					g.Mutex.Unlock()
-				}
-
-			case Cmd.RecordUserTradeParam_value["ITEM_SELL_INFO_RECORDTRADE"]:
-				param = &Cmd.ItemSellInfoRecordTradeCmd{}
-				err = utils.ParseCmd(o, param)
-				sellInfo := param.(*Cmd.ItemSellInfoRecordTradeCmd)
-				if sellInfo.GetItemid() != 0 {
-					g.Mutex.Lock()
-					g.sellInfo[sellInfo.GetItemid()] = sellInfo
-					g.Mutex.Unlock()
-				}
-			}
+			_ = g.HandleRecordUserTradeProtoCmd(cmdParamId, o)
 
 		case Cmd.Command_value["ERROR_USER_PROTOCMD"]:
 			switch cmdParamId {
@@ -467,6 +87,18 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 			}
 		case Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"]:
 			switch cmdParamId {
+			case Cmd.ItemParam_value["ITEMPARAM_NTF_HIGHTREFINE_DATA"]:
+				param = &Cmd.NtfHighRefineDataCmd{}
+				err = utils.ParseCmd(o, param)
+
+			case Cmd.ItemParam_value["ITEMPARAM_PACKSLOTNTF"]:
+				param = &Cmd.PackSlotNtfItemCmd{}
+				err = utils.ParseCmd(o, param)
+
+			case Cmd.ItemParam_value["ITEMPARAM_ITEMSHOW"]:
+				param = &Cmd.ItemShow{}
+				err = utils.ParseCmd(o, param)
+
 			case Cmd.ItemParam_value["ITEMPARAM_PACKAGEUPDATE"]:
 				param = &Cmd.PackageUpdate{}
 				err = utils.ParseCmd(o, param)
@@ -761,6 +393,36 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 
 		case Cmd.Command_value["SCENE_USER_QUEST_PROTOCMD"]:
 			switch cmdParamId {
+			case Cmd.QuestParam_value["QUESTPARAM_QUESTUPDATE"]:
+				param = &Cmd.QuestUpdate{}
+				err = utils.ParseCmd(o, param)
+				questUpdate := param.(*Cmd.QuestUpdate)
+				g.Mutex.Lock()
+				for _, quests := range questUpdate.GetItems() {
+					tempQuestList := g.Role.GetQuestList(quests.GetType()).GetList()
+					for _, update := range quests.GetUpdate() {
+						for i, quest := range g.Role.GetQuestList(quests.GetType()).GetList() {
+							if quest.GetId() == update.GetId() {
+								tempQuestList[i] = update
+							}
+						}
+					}
+					for _, del := range quests.GetDel() {
+						for i, quest := range g.Role.GetQuestList(quests.GetType()).GetList() {
+							if quest.GetId() == del {
+								tempQuestList = append(tempQuestList[:i], tempQuestList[i+1:]...)
+							}
+						}
+					}
+					if g.Role.QuestList[quests.GetType()] == nil {
+						g.Role.QuestList[quests.GetType()] = &Cmd.QuestList{}
+						g.Role.QuestList[quests.GetType()].List = tempQuestList
+					} else {
+						g.Role.QuestList[quests.GetType()].List = tempQuestList
+					}
+				}
+				g.Mutex.Unlock()
+
 			case Cmd.QuestParam_value["QUESTPARAM_QUESTLIST"]:
 				param = &Cmd.QuestList{}
 				err = utils.ParseCmd(o, param)
@@ -768,7 +430,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				if g.notifier["QUESTPARAM_QUESTLIST"] != nil {
 					g.notifier["QUESTPARAM_QUESTLIST"] <- ql
 				} else {
-					g.Role.QuestList = ql
+					g.Role.QuestList[ql.GetType()] = ql
 				}
 
 			default:
@@ -843,6 +505,17 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 			default:
 				continue
 			}
+		case Cmd.Command_value["SCENE_USER_INTER_PROTOCMD"]:
+			switch cmdParamId {
+			case Cmd.InterParam_value["INTERPARAM_NEWINTERLOCUTION"]:
+				param = &Cmd.NewInter{}
+				err = utils.ParseCmd(o, param)
+				if g.notifier["INTER_QUESTION"] != nil {
+					go func() {
+						g.notifier["INTER_QUESTION"] <- param.(*Cmd.NewInter)
+					}()
+				}
+			}
 		}
 
 		if err != nil && param == nil {
@@ -885,4 +558,16 @@ func (g *GameConnection) UpdateUserParams(datas []*Cmd.UserData, attrs []*Cmd.Us
 			g.Role.UserAttrs = append(g.Role.UserAttrs, attr)
 		}
 	}
+}
+
+func (g *GameConnection) setLastHeartBeat() {
+	if g.conn != nil {
+		g.currentIndex = 1
+		g.ShouldHeartBeat = true
+		g.lastHeartBeat = time.Now()
+	}
+}
+
+func (g *GameConnection) setCurrentMsgIndex(index uint32) {
+	g.currentIndex = index
 }

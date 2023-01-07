@@ -1,40 +1,41 @@
 package utils
 
 import (
-	"ROMProject/data"
 	"encoding/json"
-	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"strconv"
+
+	"ROMProject/data"
+	log "github.com/sirupsen/logrus"
 )
 
 type ExchangeItem struct {
-	Trade         string `json:"Trade,omitempty"`
-	NameZh        string `json:"NameZh"`
-	Id            string `json:"id"`
-	Category      string `json:"Category"`
-	ShowTime      string `json:"ShowTime,omitempty"`
-	Overlap       string `json:"Overlap,omitempty"`
-	UnTradeTime   string `json:"UnTradeTime,omitempty"`
-	TFTradeTime   string `json:"TFTradeTime,omitempty"`
-	TFUnTradeTime string `json:"TRUnTradeTime,,omitempty"`
+	Trade         string      `json:"Trade,omitempty"`
+	NameZh        string      `json:"NameZh"`
+	Id            json.Number `json:"id"`
+	Category      string      `json:"Category"`
+	ShowTime      string      `json:"ShowTime,omitempty"`
+	Overlap       string      `json:"Overlap,omitempty"`
+	UnTradeTime   string      `json:"UnTradeTime,omitempty"`
+	TFTradeTime   string      `json:"TFTradeTime,omitempty"`
+	TFUnTradeTime string      `json:"TRUnTradeTime,,omitempty"`
 }
 
 type BuffItem struct {
-	Id          string `json:"id"`
-	BuffDesc    string `json:"BuffDesc"`
-	BuffIcon    string `json:"BuffIcon,omitempty"`
-	BuffName    string `json:"BuffName"`
-	IconType    string `json:"IconType,omitempty"`
-	NoAttack    string `json:"NoAttack,omitempty"`
-	Odds        string `json:"Odds,,omitempty"`
-	TransformID string `json:"TransformID,,omitempty"`
-	IsDisperse  string `json:"isdisperse,omitempty"`
-	IsGain      string `json:"isgain,,omitempty"`
-	Rate        string `json:"rate,omitempty"`
-	Shape       string `json:"shape,omitempty"`
-	Type        string `json:"type,,omitempty"`
+	Id          json.Number `json:"id"`
+	BuffDesc    string      `json:"BuffDesc"`
+	BuffIcon    string      `json:"BuffIcon,omitempty"`
+	BuffName    string      `json:"BuffName"`
+	IconType    string      `json:"IconType,omitempty"`
+	NoAttack    string      `json:"NoAttack,omitempty"`
+	Odds        string      `json:"Odds,,omitempty"`
+	TransformID string      `json:"TransformID,,omitempty"`
+	IsDisperse  string      `json:"isdisperse,omitempty"`
+	IsGain      string      `json:"isgain,,omitempty"`
+	Rate        json.Number `json:"rate,omitempty"`
+	Shape       string      `json:"shape,omitempty"`
+	Type        string      `json:"type,,omitempty"`
 }
 
 type BuffItemByName struct {
@@ -43,27 +44,27 @@ type BuffItemByName struct {
 
 // Items All Available items
 type Items struct {
-	AdventureSort  string `json:"AdventureSort"`
-	AuctionPrice   string `json:"AuctionPrice"`
-	AdventureValue string `json:"AdventureValue"`
-	Condition      string `json:"Condition"`
-	Feature        string `json:"Feature"`
-	Desc           string `json:"Desc"`
-	Icon           string `json:"Icon"`
-	Level          string `json:"Level"`
-	LoadShowSize   string `json:"LoadShowSize"`
-	MaxNum         string `json:"MaxNum"`
-	NameZh         string `json:"NameZh"`
-	NoStorage      string `json:"NoStorage"`
-	Quality        string `json:"Quality"`
-	SellPrice      string `json:"SellPrice"`
-	Type           string `json:"Type"`
-	Id             string `json:"id"`
+	AdventureSort  string      `json:"AdventureSort"`
+	AuctionPrice   json.Number `json:"AuctionPrice"`
+	AdventureValue string      `json:"AdventureValue"`
+	Condition      string      `json:"Condition"`
+	Feature        string      `json:"Feature"`
+	Desc           string      `json:"Desc"`
+	Icon           string      `json:"Icon"`
+	Level          json.Number `json:"Level"`
+	LoadShowSize   string      `json:"LoadShowSize"`
+	MaxNum         uint32      `json:"MaxNum"`
+	NameZh         string      `json:"NameZh"`
+	NoStorage      string      `json:"NoStorage"`
+	Quality        json.Number `json:"Quality"`
+	SellPrice      string      `json:"SellPrice"`
+	Type           json.Number `json:"Type"`
+	Id             json.Number `json:"id"`
 }
 
 func (i Items) GetLevel() uint64 {
 	if i.Level != "" {
-		result, _ := strconv.ParseUint(i.Level, 10, 32)
+		result, _ := strconv.ParseUint(i.Level.String(), 10, 32)
 		return result
 	}
 	return 0
@@ -80,6 +81,7 @@ type ItemsLoader struct {
 	ExchangeItemsByName map[string]ExchangeItem
 	Items               map[uint32]Items
 	ItemsByName         map[string]ItemsByName
+	Monsters            map[uint32]MonsterInfo
 }
 
 func (i *ItemsLoader) GetItemName(itemId uint32) string {
@@ -95,7 +97,7 @@ func (i *ItemsLoader) GetItemName(itemId uint32) string {
 func (i *ItemsLoader) GetItemIdByName(itemName string) uint32 {
 	if i.ExchangeItemsByName != nil {
 		if _, ok := i.ExchangeItemsByName[itemName]; ok {
-			id, _ := strconv.ParseUint(i.ExchangeItemsByName[itemName].Id, 10, 32)
+			id, _ := strconv.ParseUint(i.ExchangeItemsByName[itemName].Id.String(), 10, 32)
 			return uint32(id)
 		}
 		log.Warnf("item name %s not found", itemName)

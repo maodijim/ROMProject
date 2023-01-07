@@ -127,6 +127,24 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER2_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.User2Param_value["USER2PARAM_ADDATTRPOINT"]:
+				param = &Cmd.AddAttrPoint{}
+
+			case Cmd.User2Param_value["USER2PARAM_SCENERY"]:
+				param = &Cmd.SceneryUserCmd{}
+
+			case Cmd.User2Param_value["USER2PARAM_CAMERAFOCUS"]:
+				param = &Cmd.CameraFocus{}
+
+			case Cmd.User2Param_value["USER2PARAM_STATECHANGE"]:
+				param = &Cmd.StateChange{}
+
+			case Cmd.User2Param_value["USER2PARAM_NEWMENU"]:
+				param = &Cmd.NewMenu{}
+
+			case Cmd.User2Param_value["USER2PARAM_PUTSHORTCUT"]:
+				param = &Cmd.PutShortcut{}
+
 			case Cmd.User2Param_value["USER2PARAM_SIGNIN"]:
 				param = &Cmd.SignInUserCmd{}
 
@@ -260,6 +278,15 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.ItemParam_value["ITEMPARAM_USECOUNT"]:
+				param = &Cmd.UseCountItemCmd{}
+
+			case Cmd.ItemParam_value["ITEMPARAM_HINTNTF"]:
+				param = &Cmd.HintNtf{}
+
+			case Cmd.ItemParam_value["ITEMPARAM_ITEMSHOW"]:
+				param = &Cmd.ItemShow{}
+
 			case Cmd.ItemParam_value["ITEMPARAM_EQUIP"]:
 				param = &Cmd.Equip{}
 
@@ -605,6 +632,12 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER_QUEST_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.QuestParam_value["QUESTPARAM_QUESTRAIDCMD"]:
+				param = &Cmd.QuestRaidCmd{}
+
+			case Cmd.QuestParam_value["QUESTPARAM_RUNQUESTSTEP"]:
+				param = &Cmd.RunQuestStep{}
+
 			case Cmd.QuestParam_value["QUESTPARAM_QUESTACTION"]:
 				param = &Cmd.QuestAction{}
 
@@ -813,6 +846,31 @@ func TranslateMsg(output [][]byte) {
 
 			case Cmd.MailParam_value["MAILPARAM_GETATTACH"]:
 				param = &Cmd.MailAttach{}
+
+			default:
+				log.Infof("没有parsing")
+				continue
+			}
+			err = ParseCmd(o, param)
+			PrintTranslateMsgResult(cmdParamName, err, param)
+		} else if cmdId == Cmd.Command_value["SCENE_BOSS_PROTOCMD"] {
+			switch cmdParamId {
+			case Cmd.BossParam_value["BOSS_WORLD_NTF"]:
+				param = &Cmd.WorldBossNtf{}
+
+			default:
+				log.Infof("没有parsing")
+				continue
+			}
+			err = ParseCmd(o, param)
+			PrintTranslateMsgResult(cmdParamName, err, param)
+		} else if cmdId == Cmd.Command_value["SCENE_USER_INTER_PROTOCMD"] {
+			switch cmdParamId {
+			case Cmd.InterParam_value["INTERPARAM_ANSWERINTER"]:
+				param = &Cmd.Answer{}
+
+			case Cmd.InterParam_value["INTERPARAM_NEWINTERLOCUTION"]:
+				param = &Cmd.NewInter{}
 
 			default:
 				log.Infof("没有parsing")

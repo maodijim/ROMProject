@@ -295,7 +295,8 @@ func doSubParse(body []byte) [][]byte {
 func printNonceStr(body []byte, startPoint int) {
 	noStr := &Cmd.Nonce{}
 	err1 := proto.Unmarshal(body[4:startPoint], noStr)
-	log.Printf("Nonce Str: %v; err: %v", noStr, err1)
+	ts := time.Unix(int64(noStr.GetTimestamp()), 0)
+	log.Printf("date: %s, Nonce Str: %v; err: %v", ts, noStr, err1)
 }
 
 func getNonce(includeTime bool, currentIndex *uint32) []byte {
@@ -376,6 +377,15 @@ func Uint64SliceContains(s []*uint64, e uint64) bool {
 	return false
 }
 
+func Contains[T comparable](s []T, e T) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
 func RandomString(length int) string {
 	rand.Seed(time.Now().UnixNano())
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -384,4 +394,8 @@ func RandomString(length int) string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+func GetAttrPointReq(currentPoint int32) int32 {
+	return int32(math.Floor(float64(currentPoint)/9) + 2)
 }

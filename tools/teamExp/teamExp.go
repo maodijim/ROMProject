@@ -1,13 +1,8 @@
 package main
 
 import (
-	"ROMProject/config"
-	"ROMProject/gameConnection"
-	"ROMProject/utils"
 	"flag"
 	"fmt"
-	rotatelogs "github.com/lestrrat/go-file-rotatelogs"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"os"
@@ -16,6 +11,12 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"ROMProject/config"
+	"ROMProject/gameConnection"
+	"ROMProject/utils"
+	rotatelogs "github.com/lestrrat/go-file-rotatelogs"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -27,7 +28,7 @@ var (
 )
 
 func init() {
-	//log.SetReportCaller(true)
+	// log.SetReportCaller(true)
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors:   true,
 		FullTimestamp: true,
@@ -68,7 +69,7 @@ func worker(wg *sync.WaitGroup, completeFuben chan bool, cPath string, skills ma
 	gameConnect.GameServerLogin()
 	quit := make(chan bool)
 	gameConnect.CheckForFubenInviteInBackground(quit)
-	disable := make(chan *bool)
+	disable := make(chan bool)
 	gameConnect.EnableAutoAttack([]string{"all"}, disable)
 	gameConnect.InviteTeamExpFuben()
 	gameConnect.AutoSubmitWantedQuest()
@@ -99,8 +100,7 @@ func worker(wg *sync.WaitGroup, completeFuben chan bool, cPath string, skills ma
 				gameConnect.Role.TeamExpFubenInfo.GetTotaltimes(),
 			)
 			log.Infof("队长完成副本 %s 退出", gameConnect.Role.GetRoleName())
-			disableAuto := true
-			disable <- &disableAuto
+			disable <- true
 			gameConnect.Close()
 			return
 		default:
@@ -116,8 +116,7 @@ func worker(wg *sync.WaitGroup, completeFuben chan bool, cPath string, skills ma
 							completeFuben <- true
 						}()
 					}
-					disableAuto := true
-					disable <- &disableAuto
+					disable <- true
 					gameConnect.Close()
 					return
 				}

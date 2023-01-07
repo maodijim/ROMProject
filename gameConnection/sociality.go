@@ -13,7 +13,7 @@ func (g *GameConnection) FindUser(userName string) (result *Cmd.FindUser, err er
 	cmd := &Cmd.FindUser{
 		Keyword: &userName,
 	}
-	g.addNotifier("SOCIALITYPARAM_FINDUSER")
+	g.AddNotifier("SOCIALITYPARAM_FINDUSER")
 	g.sendProtoCmd(cmd,
 		SocialityProtoCmdId,
 		Cmd.SocialityParam_value["SOCIALITYPARAM_FINDUSER"],

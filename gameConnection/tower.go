@@ -1,9 +1,10 @@
 package gameConnection
 
 import (
+	"time"
+
 	Cmd "ROMProject/Cmds"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 var (
@@ -26,7 +27,7 @@ func (g *GameConnection) GetTeamTowerSummary() (towerSummary *Cmd.TeamTowerSumma
 	cmd := &Cmd.TeamTowerInfoCmd{
 		Teamid: g.Role.TeamData.Guid,
 	}
-	g.addNotifier("ETOWERPARAM_TEAMTOWERSUMMARY")
+	g.AddNotifier("ETOWERPARAM_TEAMTOWERSUMMARY")
 	_ = g.sendProtoCmd(cmd,
 		TeamProtoCmdId,
 		Cmd.TowerParam_value["ETOWERPARAM_TEAMTOWERINFO"],

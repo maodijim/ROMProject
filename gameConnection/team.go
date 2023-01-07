@@ -1,11 +1,12 @@
 package gameConnection
 
 import (
-	Cmd "ROMProject/Cmds"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"strings"
 	"time"
+
+	Cmd "ROMProject/Cmds"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -288,7 +289,7 @@ func (g *GameConnection) QueryTeamInfo(charId uint64) (teamInfo *Cmd.QueryUserTe
 	cmd := &Cmd.QueryUserTeamInfoTeamCmd{
 		Charid: &charId,
 	}
-	g.addNotifier("TEAMPARAM_QUERYUSERTEAMINFO")
+	g.AddNotifier("TEAMPARAM_QUERYUSERTEAMINFO")
 	g.sendProtoCmd(cmd,
 		TeamProtoCmdId,
 		Cmd.TeamParam_value["TEAMPARAM_QUERYUSERTEAMINFO"],

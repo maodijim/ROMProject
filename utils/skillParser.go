@@ -1,11 +1,12 @@
 package utils
 
 import (
-	"ROMProject/data"
 	"encoding/json"
-	log "github.com/sirupsen/logrus"
-	"io/ioutil"
+	"io"
 	"os"
+
+	"ROMProject/data"
+	log "github.com/sirupsen/logrus"
 )
 
 type SkillItem struct {
@@ -79,7 +80,7 @@ func readSkillItem(skillJson string) map[uint32]SkillItem {
 			log.Errorf("failed to open %s: %s", fName, err)
 			b = data.SkillsJson
 		} else {
-			b, _ = ioutil.ReadAll(jsonFile)
+			b, _ = io.ReadAll(jsonFile)
 		}
 	} else {
 		b = data.SkillsJson

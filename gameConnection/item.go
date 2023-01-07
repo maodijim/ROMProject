@@ -1,6 +1,8 @@
 package gameConnection
 
 import (
+	"errors"
+
 	Cmd "ROMProject/Cmds"
 	log "github.com/sirupsen/logrus"
 )
@@ -9,8 +11,15 @@ var (
 	SceneUserItemCmdId = Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"]
 )
 
-func (g *GameConnection) UseItem() {
-
+func (g *GameConnection) UseItem(itemGuid string, count uint32) {
+	if count <= 0 {
+		count = 1
+	}
+	cmd := &Cmd.ItemUse{
+		Itemguid: &itemGuid,
+		Count:    &count,
+	}
+	_ = g.sendProtoCmd(cmd, SceneUserItemCmdId, Cmd.ItemParam_value["ITEMPARAM_ITEMUSE"])
 }
 
 func (g *GameConnection) IsQuickSellItem(itemId uint32) bool {
@@ -49,4 +58,69 @@ func (g *GameConnection) GetTempItems() {
 		Oper: &op,
 	}
 	g.sendProtoCmd(cmd, SceneUserItemCmdId, Cmd.ItemParam_value["ITEMPARAM_EQUIP"])
+}
+
+func (g *GameConnection) EquipItem(guid string, pos Cmd.EEquipPos, oper Cmd.EEquipOper) {
+	cmd := &Cmd.Equip{
+		Oper: &oper,
+		Pos:  &pos,
+		Guid: &guid,
+	}
+	_ = g.sendProtoCmd(cmd, SceneUserItemCmdId, Cmd.ItemParam_value["ITEMPARAM_EQUIP"])
+}
+
+func (g *GameConnection) FindItemByName(name string, packType Cmd.EPackType) (itemData *Cmd.ItemInfo) {
+	var itemId uint32
+	g.Mutex.RLock()
+	if val, ok := g.ItemsByName[name]; ok {
+		for _, item := range val.Items {
+			id, _ := item.Id.Int64()
+			itemId = uint32(id)
+			break
+		}
+	}
+	if itemId == 0 {
+		log.Warnf("item name for id %s not found", name)
+	}
+	items := g.Role.GetPackItems()
+	for _, item := range items[packType] {
+		if item.GetBase().GetId() == itemId {
+			itemData = item.GetBase()
+			break
+		}
+	}
+	g.Mutex.RUnlock()
+	return itemData
+}
+
+func (g *GameConnection) EquipItemByName(name string, pos Cmd.EEquipPos, oper Cmd.EEquipOper) (err error) {
+	itemInfo := g.FindItemByName(name, Cmd.EPackType_EPACKTYPE_MAIN)
+	if itemInfo == nil {
+		return errors.New("item not found")
+	}
+	if pos == Cmd.EEquipPos_EEQUIPPOS_MIN {
+		pos = g.GetItemEquipPos(itemInfo)
+	}
+	g.EquipItem(itemInfo.GetGuid(), pos, oper)
+	return nil
+}
+
+func (g *GameConnection) GetItemEquipPos(item *Cmd.ItemInfo) Cmd.EEquipPos {
+	switch item.GetEquipType() {
+	case Cmd.EEquipType_EEQUIPTYPE_WEAPON:
+		return Cmd.EEquipPos_EEQUIPPOS_WEAPON
+	case Cmd.EEquipType_EEQUIPTYPE_SHIELD:
+		return Cmd.EEquipPos_EEQUIPPOS_SHIELD
+	case Cmd.EEquipType_EEQUIPTYPE_HEAD:
+		return Cmd.EEquipPos_EEQUIPPOS_HEAD
+	case Cmd.EEquipType_EEQUIPTYPE_ARMOUR:
+		return Cmd.EEquipPos_EEQUIPPOS_ARMOUR
+	case Cmd.EEquipType_EEQUIPTYPE_ACCESSORY:
+		return Cmd.EEquipPos_EEQUIPPOS_ACCESSORY1
+	case Cmd.EEquipType_EEQUIPTYPE_ROBE:
+		return Cmd.EEquipPos_EEQUIPPOS_ROBE
+	case Cmd.EEquipType_EEQUIPTYPE_SHOES:
+		return Cmd.EEquipPos_EEQUIPPOS_SHOES
+	}
+	return Cmd.EEquipPos_EEQUIPPOS_MIN
 }

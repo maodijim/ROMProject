@@ -1,12 +1,13 @@
 package gameConnection
 
 import (
-	Cmd "ROMProject/Cmds"
-	"ROMProject/utils"
-	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"strings"
 	"time"
+
+	Cmd "ROMProject/Cmds"
+	"ROMProject/utils"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -18,7 +19,7 @@ var (
 // GetTeamEXPQueryInfo 查询怪物研究所副本次数
 func (g *GameConnection) GetTeamEXPQueryInfo() (info *Cmd.TeamExpQueryInfoFubenCmd, err error) {
 	cmd := &Cmd.TeamExpQueryInfoFubenCmd{}
-	g.addNotifier("TEAMEXP_QUERY_INFO")
+	g.AddNotifier("TEAMEXP_QUERY_INFO")
 	g.sendProtoCmd(
 		cmd,
 		FubenProtoCmdId,

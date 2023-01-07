@@ -1,8 +1,9 @@
 package utils
 
 import (
-	Cmd "ROMProject/Cmds"
 	"time"
+
+	Cmd "ROMProject/Cmds"
 )
 
 type MatchDetail struct {
@@ -27,6 +28,7 @@ type RoleInfo struct {
 	Silver              *uint64
 	PackItems           map[Cmd.EPackType]map[string]*Cmd.ItemData
 	SkillItems          map[uint32]*Cmd.SkillItem
+	Sequence            *uint32
 	AutoSkills          map[uint32]*Cmd.SkillItem
 	TeamExpFubenInfo    *Cmd.TeamExpQueryInfoFubenCmd
 	MatchInfos          map[Cmd.EPvpType]*MatchDetail
@@ -39,10 +41,25 @@ type RoleInfo struct {
 	CDs                 map[uint32]time.Time
 	UserVars            map[Cmd.EVarType]*Cmd.Var
 	AccVars             map[Cmd.EAccVarType]*Cmd.AccVar
-	QuestList           *Cmd.QuestList
+	QuestList           map[Cmd.EQuestList]*Cmd.QuestList
 	UserTowerInfo       *Cmd.UserTowerInfo
 	FollowUserId        uint64
 	DailySignIn         *Cmd.SignInNtfUserCmd
+}
+
+func (r *RoleInfo) GetProfession() string {
+	val := GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_PROFESSION)
+	return Cmd.EProfession_name[int32(val)]
+}
+
+func (r *RoleInfo) GetSkillPoint() int32 {
+	val := GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_SKILL_POINT)
+	return int32(val)
+}
+
+func (r *RoleInfo) GetTotalPoint() int32 {
+	val := GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_TOTALPOINT)
+	return int32(val)
 }
 
 func (r *RoleInfo) GetPackItems() map[Cmd.EPackType]map[string]*Cmd.ItemData {
@@ -64,8 +81,16 @@ func (r *RoleInfo) GetRoleName() string {
 	}
 }
 
+func (r *RoleInfo) GetSequence() uint32 {
+	return *r.Sequence
+}
+
 func (r *RoleInfo) SetRoleName(roleName string) {
 	r.RoleName = &roleName
+}
+
+func (r *RoleInfo) SetSequence(sequence uint32) {
+	r.Sequence = &sequence
 }
 
 func (r *RoleInfo) SetMapId(mapId uint32) {
@@ -90,15 +115,26 @@ func (r *RoleInfo) SetRoleId(roleId uint64) {
 	r.RoleId = &roleId
 }
 
-func (r *RoleInfo) GetAuthenticated() bool {
-	if r.Authed != nil {
-		return *r.Authed
-	}
-	return false
+func (r *RoleInfo) GetPos() Cmd.ScenePos {
+	return *r.Pos
 }
 
-func (r *RoleInfo) SetAuthenticated(auth bool) {
-	r.Authed = &auth
+func (r *RoleInfo) GetJobLevel() uint64 {
+	for _, data := range r.UserDatas {
+		if data.GetType() == Cmd.EUserDataType_EUSERDATATYPE_JOBLEVEL {
+			return data.GetValue()
+		}
+	}
+	return 0
+}
+
+func (r *RoleInfo) GetRoleLevel() uint64 {
+	for _, data := range r.UserDatas {
+		if data.GetType() == Cmd.EUserDataType_EUSERDATATYPE_ROLELEVEL {
+			return data.GetValue()
+		}
+	}
+	return 0
 }
 
 func (r *RoleInfo) GetRoleSelected() bool {
@@ -148,6 +184,13 @@ func (r *RoleInfo) GetAuthConfirm() bool {
 	return false
 }
 
+func (r *RoleInfo) GetQuestList(questType Cmd.EQuestList) (questList *Cmd.QuestList) {
+	if v, ok := r.QuestList[questType]; ok {
+		questList = v
+	}
+	return questList
+}
+
 func (r *RoleInfo) GetSkillShortCut() (shortCutItems map[uint32][]*Cmd.SkillShortcut) {
 	shortCutItems = map[uint32][]*Cmd.SkillShortcut{}
 	for _, item := range r.SkillItems {
@@ -193,6 +236,7 @@ func NewRole() *RoleInfo {
 		TeamMemberPos: map[uint64]*Cmd.MemberPosUpdate{},
 		UserVars:      map[Cmd.EVarType]*Cmd.Var{},
 		AccVars:       map[Cmd.EAccVarType]*Cmd.AccVar{},
+		QuestList:     map[Cmd.EQuestList]*Cmd.QuestList{},
 	}
 	return role
 }

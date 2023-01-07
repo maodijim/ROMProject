@@ -1,15 +1,17 @@
 package gameConnection
 
 import (
+	"time"
+
 	Cmd "ROMProject/Cmds"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 var (
 	QuestProtoCmdId     = Cmd.Command_value["SCENE_USER_QUEST_PROTOCMD"]
 	WantedQuestMaxCount = uint32(3)
 	WantedQuestType     = "wanted"
+	sceneUserQuestId    = Cmd.Command_value["SCENE_USER_QUEST_PROTOCMD"]
 )
 
 func (g *GameConnection) GetWantedQuestCompleteCount() (count uint32) {
@@ -25,7 +27,7 @@ func (g *GameConnection) GetWantedQuestList(questType Cmd.EQuestList) (wantedQue
 		log.Errorf("failed to get quest list: %v", err)
 		return wantedQuests
 	}
-	for _, quest := range g.Role.QuestList.GetList() {
+	for _, quest := range g.Role.GetQuestList(questType).GetList() {
 		for _, step := range quest.GetSteps() {
 			if step.GetConfig() != nil && step.GetConfig().GetType() == WantedQuestType {
 				wantedQuests = append(wantedQuests, quest)
@@ -43,7 +45,7 @@ func (g *GameConnection) GetQuestList(questType Cmd.EQuestList, id uint32) (ques
 	if id != 0 {
 		cmd.Id = &id
 	}
-	g.addNotifier("QUESTPARAM_QUESTLIST")
+	g.AddNotifier("QUESTPARAM_QUESTLIST")
 	g.sendProtoCmd(cmd,
 		QuestProtoCmdId,
 		Cmd.QuestParam_value["QUESTPARAM_QUESTLIST"],
@@ -51,7 +53,7 @@ func (g *GameConnection) GetQuestList(questType Cmd.EQuestList, id uint32) (ques
 	res, err := g.waitForResponse("QUESTPARAM_QUESTLIST")
 	if res != nil {
 		ql := res.(*Cmd.QuestList)
-		g.Role.QuestList = ql
+		g.Role.QuestList[questType] = ql
 		questList = ql
 	}
 	return questList, err
@@ -99,4 +101,33 @@ func (g *GameConnection) AutoSubmitWantedQuest() {
 			}
 		}
 	}()
+}
+
+func (g *GameConnection) RunQuestStep(questId, startId, Subgroup, step uint32) {
+	cmd := Cmd.RunQuestStep{
+		Questid:  &questId,
+		Subgroup: &Subgroup,
+	}
+	if startId != 0 {
+		cmd.Starid = &startId
+	}
+	if step != 0 {
+		cmd.Step = &step
+	}
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneUserQuestId,
+		Cmd.QuestParam_value["QUESTPARAM_RUNQUESTSTEP"],
+	)
+}
+
+func (g *GameConnection) QuestRaidCmd(questId uint32) {
+	cmd := Cmd.QuestRaidCmd{
+		Questid: &questId,
+	}
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneUserQuestId,
+		Cmd.QuestParam_value["QUESTPARAM_QUESTRAIDCMD"],
+	)
 }

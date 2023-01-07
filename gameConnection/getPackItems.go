@@ -1,9 +1,10 @@
 package gameConnection
 
 import (
+	"time"
+
 	Cmd "ROMProject/Cmds"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 const (
@@ -35,12 +36,11 @@ func (g *GameConnection) GetTempMainPackItems() (err error) {
 func (g *GameConnection) GetAllPackItems() (err error) {
 	packTypes := []Cmd.EPackType{
 		Cmd.EPackType_EPACKTYPE_MAIN,
-		//Cmd.EPackType_EPACKTYPE_STORE,
+		// Cmd.EPackType_EPACKTYPE_STORE,
 		Cmd.EPackType_EPACKTYPE_PERSONAL_STORE,
 	}
 	for _, pType := range packTypes {
 		err = g.GetPackItem(&pType)
-		time.Sleep(time.Second)
 	}
 	return err
 }

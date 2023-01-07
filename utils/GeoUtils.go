@@ -1,9 +1,10 @@
 package utils
 
 import (
+	"math"
+
 	Cmd "ROMProject/Cmds"
 	log "github.com/sirupsen/logrus"
-	"math"
 )
 
 const AtkRangeScale = 1000
@@ -17,7 +18,7 @@ func CalcDir(angleY float64) float64 {
 	if dir < 0 {
 		dir = dir + 360
 	}
-	return math.Floor(dir * AtkRangeScale)
+	return dir
 }
 
 func GetDistanceXZ(src *Cmd.ScenePos, target *Cmd.ScenePos) float64 {
@@ -43,22 +44,22 @@ func GetPosAwayFromTarget(src *Cmd.ScenePos, target *Cmd.ScenePos, disToTarget f
 	}
 
 	targetPos := GetDistanceXZ(src, target)
-	disFromX := int32(math.Ceil(math.Cos(DegreeToRadian(angle)) * (targetPos - disToTarget)))
-	disFromY := int32(math.Ceil(math.Sin(DegreeToRadian(angle)) * (targetPos - disToTarget)))
+	disFromX := int32(math.Ceil(math.Cos(DegreeToRadian(angle)) * (targetPos - disToTarget*0.85)))
+	disFromY := int32(math.Ceil(math.Sin(DegreeToRadian(angle)) * (targetPos - disToTarget*0.85)))
 	var x, y int32
 	switch quadrant {
 	case 1:
 		x = src.GetX() + disFromX
 		y = src.GetY() + disFromY
 	case 2:
-		x = src.GetX() + disFromX
-		y = src.GetY() - disFromY
+		x = src.GetX() - disFromX
+		y = src.GetY() + disFromY
 	case 3:
 		x = src.GetX() - disFromX
 		y = src.GetY() - disFromY
 	case 4:
-		x = src.GetX() - disFromX
-		y = src.GetY() + disFromY
+		x = src.GetX() + disFromX
+		y = src.GetY() - disFromY
 	default:
 		log.Warnf("Invalid Quadrant %d angle %f angleY %f \n%v %v", quadrant, angle, angleY, src, target)
 		return target
@@ -80,7 +81,7 @@ func GetQuadrantByAngle(angle float64) int32 {
 	angleInt := int(angle) % 360
 	if angleInt >= 0 && angleInt <= 90 {
 		return 1
-	} else if angleInt < 360 && angleInt > 270 {
+	} else if angleInt <= 360 && angleInt > 270 {
 		return 2
 	} else if angleInt <= 270 && angleInt > 180 {
 		return 3
@@ -88,4 +89,24 @@ func GetQuadrantByAngle(angle float64) int32 {
 		return 4
 	}
 	return 0
+}
+
+func Rotate90DegreeClockwise(pos *Cmd.ScenePos) *Cmd.ScenePos {
+	x := pos.GetX()
+	y := pos.GetY()
+	return &Cmd.ScenePos{
+		X: &y,
+		Y: &x,
+		Z: pos.Z,
+	}
+}
+
+func Rotate180Degree(pos *Cmd.ScenePos) *Cmd.ScenePos {
+	x := -pos.GetX()
+	y := -pos.GetY()
+	return &Cmd.ScenePos{
+		X: &x,
+		Y: &y,
+		Z: pos.Z,
+	}
 }

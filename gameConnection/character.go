@@ -50,6 +50,10 @@ func (g *GameConnection) GetBuffNameByRegex(searchRegex string) (buffName string
 	return buffName
 }
 
+func (g *GameConnection) GetAtk() int32 {
+	return utils.GetNpcAttrValByType(g.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_ATK)
+}
+
 func (g *GameConnection) GetAtkSpd() int32 {
 	return utils.GetNpcAttrValByType(g.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_ATKSPD)
 }
@@ -94,8 +98,8 @@ func (g *GameConnection) GoToMap(mapId uint32) {
 	log.Warnf("mapId: %d is not in map goto list %v", mapId, g.GotoList)
 }
 
-// 领取执事奖励
-func (g *GameConnection) takeServantReward(wid uint32) {
+// TakeServantReward 领取执事奖励
+func (g *GameConnection) TakeServantReward(wid uint32) {
 	cmd := &Cmd.ReceiveServantUserCmd{
 		Dwid: &wid,
 	}
@@ -141,4 +145,18 @@ func (g *GameConnection) DeleteCharacter(charId uint64) {
 		LogInUserProtoCmdId,
 		Cmd.LoginCmdParam_value["DELETE_CHAR_USER_CMD"],
 	)
+}
+
+func (g *GameConnection) PickupMapItem(mapItem *Cmd.AddMapItem) {
+	for _, item := range mapItem.GetItems() {
+		if utils.Contains(item.GetOwners(), *g.Role.RoleId) {
+			cmd := Cmd.PickupItem{
+				Itemguid: item.Guid,
+			}
+			_ = g.sendProtoCmd(&cmd,
+				sceneUser2CmdId,
+				Cmd.User2Param_value["USER2PARAM_PICKUP_ITEM"],
+			)
+		}
+	}
 }

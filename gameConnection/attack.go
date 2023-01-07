@@ -1,14 +1,16 @@
 package gameConnection
 
 import (
-	Cmd "ROMProject/Cmds"
-	"ROMProject/utils"
+	"errors"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"math"
 	"sort"
 	"strconv"
 	"time"
+
+	Cmd "ROMProject/Cmds"
+	"ROMProject/utils"
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -25,8 +27,7 @@ var (
 )
 
 func (g *GameConnection) SkillCmd(skillId uint32, data *Cmd.PhaseData, random1 bool) {
-	skillItem := g.SkillItems[skillId]
-	if skillItem.NameZh != "普通攻击" {
+	if skillItem, ok := g.SkillItems[skillId]; ok && skillItem.NameZh != "普通攻击" {
 		log.Infof("%s 释放技能 %d %s", g.Role.GetRoleName(), skillId, skillItem.NameZh)
 	}
 	random := uint32(1)
@@ -52,58 +53,65 @@ func (g *GameConnection) CalDmgTargets() []*Cmd.HitedTarget {
 
 func (g *GameConnection) AttackTarget(skillId uint32, target *Cmd.MapNpc) {
 	skillItem := g.SkillItems[skillId]
-	if g.MapNpcs[target.GetId()] != nil {
-		hitType := int32(2)
-		damage := int32(1)
-		hitTargets := []*Cmd.HitedTarget{
-			&Cmd.HitedTarget{
-				Charid: target.Id,
+	g.Mutex.Lock()
+	if g.MapNpcs[target.GetId()] == nil {
+		g.Mutex.Unlock()
+		return
+	}
+	g.Mutex.Unlock()
+
+	hitType := int32(2)
+	damage := int32(1)
+	hitTargets := []*Cmd.HitedTarget{
+		&Cmd.HitedTarget{
+			Charid: target.Id,
+			Type:   &hitType,
+			Damage: &damage,
+		},
+	}
+	if skillItem.Range != "" && skillItem.Logic == attackLogic["SkillLockedTarget"] {
+		DmgRange, _ := strconv.ParseFloat(skillItem.Range, 64)
+		targetDict, targetRange := g.GetTargetByRange([]string{"all"}, target.GetPos(), DmgRange)
+		for _, t := range targetRange {
+			newTarget := targetDict[t]
+			newHitedTarget := &Cmd.HitedTarget{
+				Charid: &newTarget,
 				Type:   &hitType,
 				Damage: &damage,
-			},
-		}
-		if skillItem.Range != "" && skillItem.Logic == attackLogic["SkillLockedTarget"] {
-			DmgRange, _ := strconv.ParseFloat(skillItem.Range, 64)
-			targetDict, targetRange := g.GetTargetByRange([]string{"all"}, target.GetPos(), DmgRange)
-			for _, t := range targetRange {
-				newTarget := targetDict[t]
-				newHitedTarget := &Cmd.HitedTarget{
-					Charid: &newTarget,
-					Type:   &hitType,
-					Damage: &damage,
-				}
-				hitTargets = append(hitTargets, newHitedTarget)
 			}
+			hitTargets = append(hitTargets, newHitedTarget)
 		}
-		num := int32(1)
-		dir := int32(utils.CalcDir(utils.GetAngleByAxisY(g.Role.Pos, target.GetPos())))
-		pData := &Cmd.PhaseData{
-			Number: &num,
-			Pos:    target.GetPos(),
-			Dir:    &dir,
-		}
-		if skillItem.Logic == attackLogic["SkillLockedTarget"] {
-			pData.HitedTargets = hitTargets
-		} else if skillItem.Logic == attackLogic["SkillPointRange"] {
-			num = int32(0)
-			pData.Number = &num
-		}
+	}
+	num := int32(1)
+	// dir := int32(utils.CalcDir(utils.GetAngleByAxisY(g.Role.Pos, target.GetPos())))
+	pData := &Cmd.PhaseData{
+		Number: &num,
+		Pos:    target.GetPos(),
+		// Dir:    &dir,
+	}
+	if skillItem.Logic == attackLogic["SkillLockedTarget"] {
+		pData.HitedTargets = hitTargets
+	} else if skillItem.Logic == attackLogic["SkillPointRange"] {
+		num = int32(0)
+		pData.Number = &num
+	}
 
-		// Calculate Skill Delay & CD
-		var delay float64
-		if skillItem.NameZh == "普通攻击" {
-			delay = 1 / (float64(g.GetAtkSpd()) / 1000)
-			//delay = 1
-		} else {
-			delay, _ = strconv.ParseFloat(skillItem.DelayCd, 64)
-		}
-		cd, _ := strconv.ParseFloat(skillItem.CD, 64)
-		if cd > delay {
-			g.Role.CDs[skillId] = time.Now().Add(time.Duration(cd) * time.Second)
-		}
+	// Calculate Skill Delay & CD
+	var delay float64
+	if skillItem.NameZh == "普通攻击" {
+		delay = 1 / (float64(g.GetAtkSpd()) / 1000)
+		// delay = 1
+	} else {
+		delay, _ = strconv.ParseFloat(skillItem.DelayCd, 64)
+	}
+	cd, _ := strconv.ParseFloat(skillItem.CD, 64)
+	if cd > delay {
+		g.Role.CDs[skillId] = time.Now().Add(time.Duration(cd) * time.Second)
+	}
+	maxDelay := math.Max(delay, 0.1)
+	if time.Since(g.lastAttack) >= time.Duration(maxDelay*500)*time.Millisecond {
 		g.SkillCmd(skillId, pData, false)
-		maxDelay := math.Max(delay, 0.1)
-		time.Sleep(time.Duration(maxDelay*1000) * time.Millisecond)
+		g.lastAttack = time.Now()
 	}
 }
 
@@ -112,6 +120,10 @@ func (g *GameConnection) GetTargetByRange(monsterName []string, srcPos *Cmd.Scen
 	g.Mutex.RLock()
 	for _, npc := range g.MapNpcs {
 		if npc.GetOwner() != 0 {
+			continue
+		}
+		// This is not a monster
+		if npc.GetId() < 10000 {
 			continue
 		}
 		if (utils.StrSliceContain(monsterName, "all") || utils.StrSliceContain(monsterName, npc.GetName())) && len(npc.GetAttrs()) != 1 {
@@ -173,10 +185,13 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 				select {
 				case <-g.quit:
 					return
-				default:
-					if staleMoveCount > 10 {
+				case <-time.Tick(50 * time.Millisecond):
+					if staleMoveCount > 20 {
 						break moveToTargetLoop
+					} else if staleMoveCount == 10 {
+						g.MoveChart(utils.Rotate90DegreeClockwise(launchSkillPos))
 					}
+					distance = utils.GetDistanceXZ(g.Role.Pos, target.GetPos())
 					if g.MapNpcs[closestId] != nil && distance <= launchSkillDis {
 						break moveToTargetLoop
 					} else {
@@ -191,13 +206,6 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 								g.Role.GetRoleName(), closestId, target.GetName(), utils.GetNpcAttrValByType(target.GetAttrs(), Cmd.EAttrType_EATTRTYPE_HP), target.GetPos(), distance, launchSkillDis)
 						}
 						target = g.copyTarget(g.MapNpcs[closestId])
-						launchSkillPos = utils.GetPosAwayFromTarget(g.Role.Pos, target.GetPos(), launchSkillDis)
-						if staleMoveCount > 5 {
-							g.MoveChart(target.GetPos())
-						} else if distance <= launchSkillDis {
-							g.MoveChart(launchSkillPos)
-						}
-						time.Sleep(300 * time.Millisecond)
 					}
 					if prePos.GetX() == g.Role.Pos.GetX() && prePos.GetY() == g.Role.Pos.GetY() {
 						staleMoveCount += 1
@@ -216,12 +224,11 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 			}
 		}
 		g.AttackTarget(skillId, target)
-	} else {
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(50 * time.Millisecond)
 	}
 }
 
-func (g *GameConnection) EnableAutoAttack(monsterList []string, disable chan *bool) {
+func (g *GameConnection) EnableAutoAttack(monsterList []string, disable chan bool) {
 	go func() {
 		for {
 			select {
@@ -276,10 +283,12 @@ func (g *GameConnection) EnableAutoAttack(monsterList []string, disable chan *bo
 												lastPrint = time.Now()
 												log.Infof("%s 装死中 血量:%d SP:%d", g.Role.GetRoleName(), g.GetCurrentHp(), g.GetCurrentSp())
 											}
-											if curHpPer > g.GetHpPer() || g.GetBuffNameByRegex("原地休息") == "" || (g.GetHpPer() > 0.95 && g.GetSpPer() > 0.95) {
+											if curHpPer > g.GetHpPer() ||
+												g.GetBuffNameByRegex("原地休息") == "" ||
+												(g.GetHpPer() > 0.95 && g.GetSpPer() > 0.95) {
 												break
 											}
-											time.Sleep(6 * time.Second)
+											time.Sleep(5 * time.Second)
 										}
 									}
 								}
@@ -311,10 +320,10 @@ func (g *GameConnection) EnableAutoAttack(monsterList []string, disable chan *bo
 								time.Sleep(time.Duration(math.Max(delay, 0.1)*1000) * time.Millisecond)
 							}
 						} else if skillItem.Camps == CampsEnemy {
-							//这是攻击技能
+							// 这是攻击技能
 							g.AttackClosestByName(skill.GetId(), monsterList)
 						}
-						//time.Sleep(100 * time.Millisecond)
+						// time.Sleep(100 * time.Millisecond)
 					}
 				}
 			}
@@ -332,4 +341,79 @@ func (g *GameConnection) GetAttackRange(skillId uint32) (atkRange float64) {
 		}
 	}
 	return atkRange
+}
+
+func (g *GameConnection) AddAttrPoint(s, a, v, i, d, l uint32) ([]int32, error) {
+	pt := g.Role.GetTotalPoint()
+	sNow := int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_STRPOINT))
+	aNow := int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_AGIPOINT))
+	vNow := int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_VITPOINT))
+	iNow := int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_INTPOINT))
+	dNow := int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_DEXPOINT))
+	lNow := int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_LUKPOINT))
+	attrs := []int32{sNow, aNow, vNow, iNow, dNow, lNow}
+	errMsg := "Not enough point for %d %s need %d more point"
+	if s > 0 {
+		if int32(s)*utils.GetAttrPointReq(sNow) > pt {
+			msg := fmt.Sprintf(errMsg, s, "strenth", int32(s)*utils.GetAttrPointReq(sNow)-pt)
+			return attrs, errors.New(msg)
+		}
+	}
+	if a > 0 {
+		if int32(a)+utils.GetAttrPointReq(aNow) > pt {
+			msg := fmt.Sprintf(errMsg, a, "agility", int32(a)*utils.GetAttrPointReq(aNow)-pt)
+			return attrs, errors.New(msg)
+		}
+	}
+	if v > 0 {
+		if int32(v)+utils.GetAttrPointReq(vNow) > pt {
+			msg := fmt.Sprintf(errMsg, v, "vitality", int32(v)*utils.GetAttrPointReq(vNow)-pt)
+			return attrs, errors.New(msg)
+		}
+	}
+	if i > 0 {
+		if int32(i)+utils.GetAttrPointReq(iNow) > pt {
+			msg := fmt.Sprintf(errMsg, i, "intelligence", int32(i)*utils.GetAttrPointReq(iNow)-pt)
+			return attrs, errors.New(msg)
+		}
+	}
+	if d > 0 {
+		if int32(d)+utils.GetAttrPointReq(dNow) > pt {
+			msg := fmt.Sprintf(errMsg, d, "dexterity", int32(d)*utils.GetAttrPointReq(dNow)-pt)
+			return attrs, errors.New(msg)
+		}
+	}
+	if l > 0 {
+		if int32(l)+utils.GetAttrPointReq(lNow) > pt {
+			msg := fmt.Sprintf(errMsg, l, "luck", int32(l)*utils.GetAttrPointReq(lNow)-pt)
+			return attrs, errors.New(msg)
+		}
+	}
+	attType := Cmd.PointType_POINTTYPE_ADD
+	cmd := &Cmd.AddAttrPoint{
+		Type:     &attType,
+		Strpoint: &s,
+		Agipoint: &a,
+		Vitpoint: &v,
+		Intpoint: &i,
+		Dexpoint: &d,
+		Lukpoint: &l,
+	}
+	g.AddNotifier("AddAttrPoint")
+	_ = g.sendProtoCmd(
+		cmd,
+		sceneUser2CmdId,
+		Cmd.User2Param_value["USER2PARAM_ADDATTRPOINT"],
+	)
+	<-g.notifier["AddAttrPoint"]
+	g.removeNotifier("AddAttrPoint")
+	attrs = []int32{
+		int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_STRPOINT)),
+		int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_AGIPOINT)),
+		int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_VITPOINT)),
+		int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_INTPOINT)),
+		int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_DEXPOINT)),
+		int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_LUKPOINT)),
+	}
+	return attrs, nil
 }
