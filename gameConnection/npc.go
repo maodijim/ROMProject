@@ -13,6 +13,17 @@ var (
 	sceneUserIntertCmdId = Cmd.Command_value["SCENE_USER_INTER_PROTOCMD"]
 )
 
+func (g *GameConnection) VisitNpcByName(name string) (npc Cmd.MapNpc, err error) {
+	npcs := g.GetMapNpcs()
+	for _, npc := range npcs {
+		if npc.GetName() == name {
+			g.VisitNpc(npc.GetId())
+			return npc, nil
+		}
+	}
+	return npc, errors.New(fmt.Sprintf("npc %s not found", name))
+}
+
 func (g *GameConnection) VisitNpc(npcId uint64) {
 	cmdMap := Cmd.MapObjectData{
 		Guid: &npcId,
@@ -74,4 +85,14 @@ func (g *GameConnection) Answer(npcId uint64, interId, Answer uint32) {
 		sceneUserIntertCmdId,
 		Cmd.InterParam_value["INTERPARAM_ANSWERINTER"],
 	)
+}
+
+func (g *GameConnection) GetMapNpcs() map[uint64]Cmd.MapNpc {
+	g.Mutex.RLock()
+	defer g.Mutex.RUnlock()
+	mapNpc := make(map[uint64]Cmd.MapNpc)
+	for _, npc := range g.MapNpcs {
+		mapNpc[npc.GetId()] = *npc
+	}
+	return mapNpc
 }

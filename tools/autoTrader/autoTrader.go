@@ -1,15 +1,16 @@
 package main
 
 import (
+	"errors"
+	"flag"
+	"math"
+	"time"
+
 	Cmd "ROMProject/Cmds"
 	"ROMProject/config"
 	"ROMProject/gameConnection"
 	"ROMProject/utils"
-	"errors"
-	"flag"
 	log "github.com/sirupsen/logrus"
-	"math"
-	"time"
 )
 
 const (
@@ -24,7 +25,7 @@ var (
 )
 
 func init() {
-	//log.SetReportCaller(true)
+	// log.SetReportCaller(true)
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors:   true,
 		FullTimestamp: true,
@@ -60,13 +61,13 @@ func main() {
 				shouldReconnect = false
 				continue
 			}
-			gameConnect.MoveChart(gameConnect.Role.GetRolePos())
+			gameConnect.MoveChart(gameConnect.Role.GetPos())
 
 			if !gameConnect.Role.GetAuthConfirm() {
 				gameConnect.AuthConfirm(purchaseConfig.AuthPass)
 			}
 
-			//gameConnect.ChangeMap(uint32(1))
+			// gameConnect.ChangeMap(uint32(1))
 			// 获取书包和个人仓库的道具
 			_ = gameConnect.GetAllPackItems()
 			// 检查交易记录
@@ -297,11 +298,11 @@ func handleTradeHistory(connection *gameConnection.GameConnection, tradeHistory 
 			excel.AddRecord(tradeLog, itemName)
 			takeTradeLog(connection, tradeLog)
 		}
-		//if (tradeLog.GetLogtype() == Cmd.EOperType_EOperType_PublicitySellSuccess ||
+		// if (tradeLog.GetLogtype() == Cmd.EOperType_EOperType_PublicitySellSuccess ||
 		//	tradeLog.GetLogtype() == Cmd.EOperType_EOperType_NormalSell && itemName == "哈比的羽毛") {
 		//	hasNewRecord = true
 		//	excel.AddRecord(tradeLog, itemName)
-		//}
+		// }
 	}
 	if hasNewRecord {
 		excel.WriteExcel()

@@ -4,14 +4,14 @@ import (
 	Cmd "ROMProject/Cmds"
 )
 
-func (g *GameConnection) TakePhoto(focus *Cmd.CameraFocus, pos *Cmd.ScenePos) {
+func (g *GameConnection) TakePhoto(focus *Cmd.CameraFocus, pos Cmd.ScenePos) {
 	photoState := Cmd.ECreatureStatus_ECREATURESTATUS_SELF_PHOTO
 	g.StateChangeCmd(&photoState)
 	g.TakePhotoCmd(focus, pos)
 	g.StateChangeCmd(nil)
 }
 
-func (g *GameConnection) TakePhotoCmd(focus *Cmd.CameraFocus, pos *Cmd.ScenePos) {
+func (g *GameConnection) TakePhotoCmd(focus *Cmd.CameraFocus, pos Cmd.ScenePos) {
 	if focus != nil {
 		_ = g.sendProtoCmd(
 			focus,
@@ -22,7 +22,7 @@ func (g *GameConnection) TakePhotoCmd(focus *Cmd.CameraFocus, pos *Cmd.ScenePos)
 	number := int32(1)
 	data := Cmd.PhaseData{
 		Number: &number,
-		Pos:    pos,
+		Pos:    &pos,
 	}
 	g.SkillCmd(20004001, &data, true)
 }

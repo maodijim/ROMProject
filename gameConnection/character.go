@@ -58,6 +58,10 @@ func (g *GameConnection) GetAtkSpd() int32 {
 	return utils.GetNpcAttrValByType(g.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_ATKSPD)
 }
 
+func (g *GameConnection) getAtkSpdPer() int32 {
+	return utils.GetNpcAttrValByType(g.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_ATKSPD)
+}
+
 func (g *GameConnection) GetCurrentHp() int32 {
 	return utils.GetNpcAttrValByType(g.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_HP)
 }

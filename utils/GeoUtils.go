@@ -9,7 +9,7 @@ import (
 
 const AtkRangeScale = 1000
 
-func GetAngleByAxisY(src *Cmd.ScenePos, target *Cmd.ScenePos) float64 {
+func GetAngleByAxisY(src Cmd.ScenePos, target Cmd.ScenePos) float64 {
 	return math.Atan2(float64(target.GetX()-src.GetX()), float64(target.GetZ()-src.GetZ())) * 57.29578
 }
 
@@ -21,7 +21,20 @@ func CalcDir(angleY float64) float64 {
 	return dir
 }
 
-func GetDistanceXZ(src *Cmd.ScenePos, target *Cmd.ScenePos) float64 {
+func GetDistanceXYZ(src Cmd.ScenePos, target Cmd.ScenePos) float64 {
+	x := src.GetX() - target.GetX()
+	y := src.GetY() - target.GetY()
+	z := src.GetZ() - target.GetZ()
+	return math.Sqrt(float64(x*x + y*y + z*z))
+}
+
+func GetDistanceXY(src Cmd.ScenePos, target Cmd.ScenePos) float64 {
+	x := src.GetX() - target.GetX()
+	y := src.GetY() - target.GetY()
+	return math.Sqrt(float64(x*x + y*y))
+}
+
+func GetDistanceXZ(src Cmd.ScenePos, target Cmd.ScenePos) float64 {
 	x := src.GetX() - target.GetX()
 	z := src.GetZ() - target.GetZ()
 	return math.Sqrt(float64(x*x + z*z))
@@ -33,9 +46,10 @@ func GetDistanceXZSquare(src *Cmd.ScenePos, target *Cmd.ScenePos) float64 {
 	return float64(x*x + z*z)
 }
 
-func GetPosAwayFromTarget(src *Cmd.ScenePos, target *Cmd.ScenePos, disToTarget float64) *Cmd.ScenePos {
+func GetPosAwayFromTarget(src Cmd.ScenePos, target Cmd.ScenePos, disToTarget float64) Cmd.ScenePos {
 	angleY := CalcDir(GetAngleByAxisY(src, target))
 	quadrant := GetQuadrantByAngle(angleY)
+	disToTarget = disToTarget * 0.95
 	angle := 0.0
 	if quadrant == 1 || quadrant == 3 {
 		angle = 90 - float64(int32(angleY)%90) + (angleY - float64(int32(angleY)))
@@ -44,31 +58,31 @@ func GetPosAwayFromTarget(src *Cmd.ScenePos, target *Cmd.ScenePos, disToTarget f
 	}
 
 	targetPos := GetDistanceXZ(src, target)
-	disFromX := int32(math.Ceil(math.Cos(DegreeToRadian(angle)) * (targetPos - disToTarget*0.85)))
-	disFromY := int32(math.Ceil(math.Sin(DegreeToRadian(angle)) * (targetPos - disToTarget*0.85)))
-	var x, y int32
+	disFromX := int32(math.Ceil(math.Cos(DegreeToRadian(angle)) * (targetPos - disToTarget)))
+	disFromZ := int32(math.Ceil(math.Sin(DegreeToRadian(angle)) * (targetPos - disToTarget)))
+	var x, z int32
 	switch quadrant {
 	case 1:
 		x = src.GetX() + disFromX
-		y = src.GetY() + disFromY
+		z = src.GetZ() + disFromZ
 	case 2:
 		x = src.GetX() - disFromX
-		y = src.GetY() + disFromY
+		z = src.GetZ() + disFromZ
 	case 3:
 		x = src.GetX() - disFromX
-		y = src.GetY() - disFromY
+		z = src.GetZ() - disFromZ
 	case 4:
 		x = src.GetX() + disFromX
-		y = src.GetY() - disFromY
+		z = src.GetZ() - disFromZ
 	default:
 		log.Warnf("Invalid Quadrant %d angle %f angleY %f \n%v %v", quadrant, angle, angleY, src, target)
 		return target
 	}
 
-	newPos := &Cmd.ScenePos{
+	newPos := Cmd.ScenePos{
 		X: &x,
-		Y: &y,
-		Z: target.Z,
+		Y: target.Y,
+		Z: &z,
 	}
 	return newPos
 }
@@ -91,10 +105,10 @@ func GetQuadrantByAngle(angle float64) int32 {
 	return 0
 }
 
-func Rotate90DegreeClockwise(pos *Cmd.ScenePos) *Cmd.ScenePos {
+func Rotate90DegreeClockwise(pos Cmd.ScenePos) Cmd.ScenePos {
 	x := pos.GetX()
 	y := pos.GetY()
-	return &Cmd.ScenePos{
+	return Cmd.ScenePos{
 		X: &y,
 		Y: &x,
 		Z: pos.Z,

@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -31,7 +32,7 @@ type authJson struct {
 }
 
 var (
-	cmdQueueInterval    = 300 * time.Millisecond
+	cmdQueueInterval    = 30 * time.Millisecond
 	TradeProtoCmdId     = Cmd.Command_value["RECORD_USER_TRADE_PROTOCMD"]
 	LogInUserProtoCmdId = Cmd.Command_value["LOGIN_USER_PROTOCMD"]
 )
@@ -68,6 +69,7 @@ type GameConnection struct {
 	retries            map[string]uint
 	ExchangeItems      map[uint32]utils.ExchangeItem
 	SkillItems         map[uint32]utils.SkillItem
+	SkillItemsByName   map[string][]utils.SkillItem
 	BuffItems          map[uint32]utils.BuffItem
 	BuffItemsByName    map[string]utils.BuffItemByName
 	Items              map[uint32]utils.Items
@@ -75,7 +77,7 @@ type GameConnection struct {
 	notifier           map[string]chan interface{}
 	MonsterItems       map[uint32]utils.MonsterInfo
 	MonsterItemsByName map[string]utils.MonsterInfo
-	lastAttack         time.Time
+	AtkStat            AttackMonsterStat
 }
 
 func (g *GameConnection) IsAuthed() bool {
@@ -105,6 +107,7 @@ func (g *GameConnection) GameServerLogin() {
 			log.Fatalf("get accId failed: %v", err)
 		}
 	}
+	go g.sendHandler()
 	g.connectGameServer()
 	g.sendReqUserLoginParamCmd()
 	ticker := time.NewTicker(5 * time.Second)
@@ -134,14 +137,15 @@ func (g *GameConnection) GameServerLogin() {
 			}
 		}
 	}()
-
+	loginTicker := time.NewTicker(5 * time.Second)
+	defer loginTicker.Stop()
 loginLoop:
 	for {
 		select {
 		case <-time.After(15 * time.Second):
 			log.Infof("Login timeout")
 			break loginLoop
-		case <-time.Tick(5 * time.Second):
+		case <-loginTicker.C:
 			if !g.IsAuthed() {
 				continue
 			} else {
@@ -154,6 +158,7 @@ loginLoop:
 			// random character name
 			if g.Configs.CharacterName == "" {
 				g.Configs.CharacterName = utils.RandomString(7)
+				g.Configs.CharacterName = strings.ToLower(string(g.Configs.CharacterName[0])) + g.Configs.CharacterName[1:]
 			}
 			err := g.CreateCharacter(
 				g.Configs.CharacterName,
@@ -168,11 +173,13 @@ loginLoop:
 				log.Error(err)
 			}
 			log.Infof("Created character %s", g.Configs.CharacterName)
+			time.Sleep(3 * time.Second)
 		}
 	}
 
 	if g.IsAuthed() && g.conn != nil {
 		g.SelectRole()
+		time.Sleep(1 * time.Second)
 	}
 	if g.conn != nil && g.Role.GetMapId() != 0 && g.Role.GetInGame() && !g.enteringMap && g.Role.GetLoginResult() == 0 {
 		g.enterGameMap()
@@ -287,9 +294,9 @@ func (g *GameConnection) Reconnect() {
 }
 
 func (g *GameConnection) Close() {
-	g.quit <- true
 	g.shouldQuit = true
 	g.SetAuthed(false)
+	g.quit <- true
 	_ = g.conn.Close()
 }
 
@@ -341,7 +348,7 @@ func (g *GameConnection) SendServerTimeUserCmd(par Cmd.LoginCmdParam) {
 	log.Debug(data)
 	out := utils.ConstructBody(1, 11, utils.TcpFlag[1], data, g.getNonce(false), utils.CipherKey)
 	log.Infof("sending %v bytes serverTimeUserCmd", len(out))
-	_ = g.sendCmd(utils.TcpFlag[1], out, 0)
+	g.sendCmd(utils.TcpFlag[1], out, 0)
 }
 
 func (g *GameConnection) sendProtoCmd(protoCmd proto.Message, cmdId, cmdParId int32) (err error) {
@@ -358,12 +365,12 @@ func (g *GameConnection) sendProtoCmd(protoCmd proto.Message, cmdId, cmdParId in
 			g.getNonce(true),
 			utils.CipherKey,
 		)
-		err = g.sendCmd(utils.TcpFlag[1], body, 0)
+		g.sendCmd(utils.TcpFlag[1], body, 0)
 	}
 	return err
 }
 
-func (g *GameConnection) sendCmd(flag, body []byte, delay time.Duration) (err error) {
+func (g *GameConnection) sendCmd(flag, body []byte, delay time.Duration) {
 	var newBody []byte
 	if len(body) > 0 {
 		newBody = make([]byte, 3)
@@ -372,37 +379,39 @@ func (g *GameConnection) sendCmd(flag, body []byte, delay time.Duration) (err er
 		newBody = append(newBody[:], body[:]...)
 		time.Sleep(delay)
 	}
-	if time.Since(g.lastCmdSend) <= cmdQueueInterval {
-		g.cmdQueue = append(g.cmdQueue, newBody)
-		go func() {
-			select {
-			case <-time.After(cmdQueueInterval):
-				if len(g.cmdQueue) > 0 {
-					err = g.sendCmd(flag, body, 0)
+	g.Mutex.Lock()
+	defer g.Mutex.Unlock()
+	g.cmdQueue = append(g.cmdQueue, newBody)
+}
+
+func (g *GameConnection) sendHandler() {
+	ticker := time.NewTicker(cmdQueueInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-g.quit:
+			return
+		case <-ticker.C:
+			g.Mutex.Lock()
+			if len(g.cmdQueue) > 0 {
+				body := []byte{}
+				for _, b := range g.cmdQueue {
+					body = append(body, b...)
+				}
+				g.currentIndex = 0
+				if g.conn != nil {
+					log.Debugf("sending %v bytes at %v", len(body), time.Now())
+					writeLen, err := g.conn.Write(body)
+					log.Debugf("sent %d bytes", writeLen)
+					if err != nil {
+						log.Errorf("%s failed to send command: %v", g.Role.GetRoleName(), err)
+					}
 				}
 			}
-		}()
-		return
-	} else if len(g.cmdQueue) > 0 {
-		var oldBody []byte
-		for _, b := range g.cmdQueue {
-			oldBody = append(oldBody, b...)
-		}
-		newBody = append(oldBody, newBody...)
-		g.cmdQueue = [][]byte{}
-		g.currentIndex = 0
-	}
-	g.lastCmdSend = time.Now()
-	if g.conn != nil {
-		log.Debugf("sending %v bytes at %v", len(newBody), time.Now())
-		writeLen, err := g.conn.Write(newBody)
-		log.Debugf("sent %d bytes", writeLen)
-		if err != nil {
-			log.Errorf("%s failed to send command: %v", g.Role.GetRoleName(), err)
-			// g.Close()
+			g.cmdQueue = [][]byte{}
+			g.Mutex.Unlock()
 		}
 	}
-	return err
 }
 
 func (g *GameConnection) getServerTimeUserCmd(curTime uint64, timeZone int32, params Cmd.LoginCmdParam) *Cmd.ServerTimeUserCmd {
@@ -460,37 +469,11 @@ func (g *GameConnection) enterGameMap() {
 	// mid := g.Role.GetMapId()
 	// g.ChangeMap(mid)
 	g.enteringMap = true
-}
-
-func (g *GameConnection) ExitMapWait(mapId uint32) {
-	g.ExitMap(mapId)
-	for {
-		select {
-		case <-time.Tick(2 * time.Second):
-			if g.Role.GetMapId() != mapId {
-				continue
-			}
-			g.ChangeMap(mapId)
-			return
-		}
+	if g.Role.GetMapId() == 0 {
+		log.Warnf("%s map id is 0 when entering game map", g.Role.GetRoleName())
+		return
 	}
-}
-
-func (g *GameConnection) ExitMap(targetMapId uint32) {
-	cmd := &Cmd.GoToExitPosUserCmd{
-		Mapid: &targetMapId,
-	}
-	_ = g.sendProtoCmd(cmd, sceneUserCmdId, Cmd.CmdParam_value["GOTO_EXIT_POS_USER_CMD"])
-}
-
-func (g *GameConnection) ChangeMap(mId uint32) {
-	cmd := &Cmd.ChangeSceneUserCmd{
-		MapID: &mId,
-	}
-	log.Infof("%s is sending change scene cmd: %v", g.Role.GetRoleName(), cmd)
-	g.sendProtoCmd(cmd, 5, 23)
-	g.enteringMap = true
-	g.inMap = true
+	g.ChangeMap(g.Role.GetMapId())
 }
 
 func (g *GameConnection) QueryCat(catId uint32) (results *Cmd.BriefPendingListRecordTradeCmd) {
@@ -765,8 +748,16 @@ func (g *GameConnection) SetEnteringMap() {
 
 func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.SkillItem, items *utils.ItemsLoader) *GameConnection {
 	si := map[uint32]utils.SkillItem{}
+	siName := map[string][]utils.SkillItem{}
 	if skillItems != nil {
 		si = skillItems
+		for _, skill := range skillItems {
+			if _, ok := siName[skill.NameZh]; !ok {
+				siName[skill.NameZh] = []utils.SkillItem{}
+			} else {
+				siName[skill.NameZh] = append(siName[skill.NameZh], skill)
+			}
+		}
 	}
 	bi := map[uint32]utils.BuffItem{}
 	if items != nil && items.BuffItems != nil {
@@ -809,6 +800,7 @@ func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 		MapNpcs:            map[uint64]*Cmd.MapNpc{},
 		MapUsers:           map[uint64]*Cmd.MapUser{},
 		SkillItems:         si,
+		SkillItemsByName:   siName,
 		BuffItems:          bi,
 		BuffItemsByName:    bin,
 		ExchangeItems:      ei,

@@ -9,8 +9,8 @@ import (
 )
 
 func TranslateMsg(output [][]byte) {
-	for _, o := range output {
-		log.Printf("%s", strings.Repeat("-", 50))
+	for i, o := range output {
+		log.Printf("%s #%d", strings.Repeat("-", 50), i)
 		if len(o) < 2 {
 			log.Printf("result is empty")
 			continue
@@ -127,6 +127,9 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER2_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.User2Param_value["USER2PARAM_PROFESSION_QUERY"]:
+				param = &Cmd.ProfessionQueryUserCmd{}
+
 			case Cmd.User2Param_value["USER2PARAM_ADDATTRPOINT"]:
 				param = &Cmd.AddAttrPoint{}
 
@@ -426,6 +429,8 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER_SKILL_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.SkillParam_value["SKILLPARAM_LEVELUPSKILL"]:
+				param = &Cmd.LevelupSkill{}
 
 			case Cmd.SkillParam_value["SKILLPARAM_SKILLVALIDPOS"]:
 				param = &Cmd.SkillValidPos{}
@@ -546,6 +551,9 @@ func TranslateMsg(output [][]byte) {
 			switch cmdParamId {
 			case Cmd.ChatParam_value["CHATPARAM_SYSTEM_BARRAGE"]:
 				param = &Cmd.SystemBarrageChatCmd{}
+
+			case Cmd.ChatParam_value["CHATPARAM_CHAT"]:
+				param = &Cmd.ChatCmd{}
 
 			case Cmd.ChatParam_value["CHATPARAM_CHAT_RET"]:
 				param = &Cmd.ChatRetCmd{}
@@ -871,6 +879,17 @@ func TranslateMsg(output [][]byte) {
 
 			case Cmd.InterParam_value["INTERPARAM_NEWINTERLOCUTION"]:
 				param = &Cmd.NewInter{}
+
+			default:
+				log.Infof("没有parsing")
+				continue
+			}
+			err = ParseCmd(o, param)
+			PrintTranslateMsgResult(cmdParamName, err, param)
+		} else if cmdId == Cmd.Command_value["SCENE_USER_ASTROLABE_PROTOCMD"] {
+			switch cmdParamId {
+			case Cmd.AstrolabeParam_value["ASTROLABEPARAM_QUERY"]:
+				param = &Cmd.AstrolabeQueryCmd{}
 
 			default:
 				log.Infof("没有parsing")

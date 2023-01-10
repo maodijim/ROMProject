@@ -45,9 +45,10 @@ func (g *GameConnection) GetTeamTowerSummary() (towerSummary *Cmd.TeamTowerSumma
 func (g *GameConnection) ExitTower() {
 	num := int32(1)
 	dir := int32(0)
+	pos := g.Role.GetPos()
 	pData := &Cmd.PhaseData{
 		Number: &num,
-		Pos:    g.Role.GetRolePos(),
+		Pos:    &pos,
 		Dir:    &dir,
 	}
 	g.SkillCmd(20002001, pData, true)

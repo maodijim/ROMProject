@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"sync"
 	"time"
 
 	Cmd "ROMProject/Cmds"
@@ -14,6 +15,7 @@ type MatchDetail struct {
 }
 
 type RoleInfo struct {
+	Mutex               sync.RWMutex
 	AcceptAllTeamInvite bool
 	RoleId              *uint64
 	RoleName            *string
@@ -26,6 +28,7 @@ type RoleInfo struct {
 	LoginResult         *uint32
 	InGame              *bool
 	Silver              *uint64
+	Lottery             *uint64
 	PackItems           map[Cmd.EPackType]map[string]*Cmd.ItemData
 	SkillItems          map[uint32]*Cmd.SkillItem
 	Sequence            *uint32
@@ -47,9 +50,24 @@ type RoleInfo struct {
 	DailySignIn         *Cmd.SignInNtfUserCmd
 }
 
-func (r *RoleInfo) GetProfession() string {
+func (r *RoleInfo) SetSkillCd(skillId uint32, cd time.Time) {
+	r.Mutex.Lock()
+	defer r.Mutex.Unlock()
+	r.CDs[skillId] = cd
+}
+
+func (r *RoleInfo) GetSkillCd(skillId uint32) time.Time {
+	r.Mutex.RLock()
+	defer r.Mutex.RUnlock()
+	if cd, ok := r.CDs[skillId]; ok {
+		return cd
+	}
+	return time.Time{}
+}
+
+func (r *RoleInfo) GetProfession() Cmd.EProfession {
 	val := GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_PROFESSION)
-	return Cmd.EProfession_name[int32(val)]
+	return Cmd.EProfession(val)
 }
 
 func (r *RoleInfo) GetSkillPoint() int32 {
@@ -69,6 +87,13 @@ func (r *RoleInfo) GetPackItems() map[Cmd.EPackType]map[string]*Cmd.ItemData {
 func (r *RoleInfo) GetSilver() uint64 {
 	if r.Silver != nil {
 		return *r.Silver
+	}
+	return 0
+}
+
+func (r *RoleInfo) GetLottery() uint64 {
+	if r.Lottery != nil {
+		return *r.Lottery
 	}
 	return 0
 }
@@ -94,17 +119,24 @@ func (r *RoleInfo) SetSequence(sequence uint32) {
 }
 
 func (r *RoleInfo) SetMapId(mapId uint32) {
+	r.Mutex.Lock()
+	defer r.Mutex.Unlock()
 	r.MapId = &mapId
+
 }
 
-func (r *RoleInfo) GetMapId() uint32 {
+func (r *RoleInfo) GetMapId() (mapId uint32) {
+	r.Mutex.RLock()
+	defer r.Mutex.RUnlock()
 	if r.MapId != nil {
-		return *r.MapId
+		mapId = *r.MapId
 	}
-	return 0
+	return mapId
 }
 
-func (r *RoleInfo) GetRoleId() uint64 {
+func (r *RoleInfo) GetRoleId() (roleId uint64) {
+	r.Mutex.RLock()
+	defer r.Mutex.RUnlock()
 	if r.RoleId != nil {
 		return *r.RoleId
 	}
@@ -112,11 +144,18 @@ func (r *RoleInfo) GetRoleId() uint64 {
 }
 
 func (r *RoleInfo) SetRoleId(roleId uint64) {
+	r.Mutex.Lock()
+	defer r.Mutex.Unlock()
 	r.RoleId = &roleId
 }
 
 func (r *RoleInfo) GetPos() Cmd.ScenePos {
-	return *r.Pos
+	r.Mutex.RLock()
+	defer r.Mutex.RUnlock()
+	if r.Pos != nil {
+		return *r.Pos
+	}
+	return Cmd.ScenePos{}
 }
 
 func (r *RoleInfo) GetJobLevel() uint64 {
@@ -157,13 +196,6 @@ func (r *RoleInfo) GetLoginResult() uint32 {
 
 func (r *RoleInfo) SetLoginResult(result uint32) {
 	r.LoginResult = &result
-}
-
-func (r *RoleInfo) GetRolePos() *Cmd.ScenePos {
-	if r.LoginResult != nil {
-		return r.Pos
-	}
-	return nil
 }
 
 func (r *RoleInfo) SetRolePos(pos *Cmd.ScenePos) {
@@ -212,6 +244,25 @@ func (r *RoleInfo) GetSkillAuto() (autoItems map[uint32]uint32) {
 		}
 	}
 	return autoItems
+}
+
+func (r *RoleInfo) IsSkillLearned(skillId uint32) bool {
+	if _, ok := r.SkillItems[skillId]; ok {
+		return true
+	}
+	return false
+}
+
+func (r *RoleInfo) GetLearnedSkill() (skillItem []Cmd.SkillItem) {
+	skillItem = []Cmd.SkillItem{}
+	r.Mutex.RLock()
+	defer r.Mutex.RUnlock()
+	for _, skill := range r.SkillItems {
+		if skill.GetLearn() {
+			skillItem = append(skillItem, *skill)
+		}
+	}
+	return skillItem
 }
 
 func (r *RoleInfo) SetMapName(mapName string) {

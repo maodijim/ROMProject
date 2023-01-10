@@ -6,10 +6,12 @@ import (
 	"math"
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	Cmd "ROMProject/Cmds"
 	"ROMProject/utils"
+	"github.com/mohae/deepcopy"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -24,7 +26,35 @@ var (
 		"SkillNone":         "SkillNone",
 		"SkillForwardRect":  "SkillForwardRect",
 	}
+	lastPrint = time.Now()
+	lastMove  = time.Now()
 )
+
+type AttackMonsterStat struct {
+	lastAttack time.Time
+	lock       sync.RWMutex
+	Standstill bool
+}
+
+func (a *AttackMonsterStat) IsStandstill() bool {
+	return a.Standstill
+}
+
+func (a *AttackMonsterStat) SetStandstill(standstill bool) {
+	a.Standstill = standstill
+}
+
+func (a *AttackMonsterStat) GetLastAttack() time.Time {
+	a.lock.RLock()
+	defer a.lock.RUnlock()
+	return a.lastAttack
+}
+
+func (a *AttackMonsterStat) SetLastAttack(t time.Time) {
+	a.lock.Lock()
+	defer a.lock.Unlock()
+	a.lastAttack = t
+}
 
 func (g *GameConnection) SkillCmd(skillId uint32, data *Cmd.PhaseData, random1 bool) {
 	if skillItem, ok := g.SkillItems[skillId]; ok && skillItem.NameZh != "普通攻击" {
@@ -51,7 +81,7 @@ func (g *GameConnection) CalDmgTargets() []*Cmd.HitedTarget {
 	return nil
 }
 
-func (g *GameConnection) AttackTarget(skillId uint32, target *Cmd.MapNpc) {
+func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 	skillItem := g.SkillItems[skillId]
 	g.Mutex.Lock()
 	if g.MapNpcs[target.GetId()] == nil {
@@ -71,7 +101,7 @@ func (g *GameConnection) AttackTarget(skillId uint32, target *Cmd.MapNpc) {
 	}
 	if skillItem.Range != "" && skillItem.Logic == attackLogic["SkillLockedTarget"] {
 		DmgRange, _ := strconv.ParseFloat(skillItem.Range, 64)
-		targetDict, targetRange := g.GetTargetByRange([]string{"all"}, target.GetPos(), DmgRange)
+		targetDict, targetRange := g.GetTargetByRange([]string{"all"}, *target.GetPos(), DmgRange)
 		for _, t := range targetRange {
 			newTarget := targetDict[t]
 			newHitedTarget := &Cmd.HitedTarget{
@@ -99,26 +129,28 @@ func (g *GameConnection) AttackTarget(skillId uint32, target *Cmd.MapNpc) {
 	// Calculate Skill Delay & CD
 	var delay float64
 	if skillItem.NameZh == "普通攻击" {
-		delay = 1 / (float64(g.GetAtkSpd()) / 1000)
+		delay = 1 / (float64(g.GetAtkSpd()) / 1000 * (1 + float64(g.getAtkSpdPer())/1000))
 		// delay = 1
 	} else {
 		delay, _ = strconv.ParseFloat(skillItem.DelayCd, 64)
 	}
 	cd, _ := strconv.ParseFloat(skillItem.CD, 64)
 	if cd > delay {
-		g.Role.CDs[skillId] = time.Now().Add(time.Duration(cd) * time.Second)
+		g.Role.SetSkillCd(skillId, time.Now().Add(time.Duration(cd)*time.Second))
 	}
 	maxDelay := math.Max(delay, 0.1)
-	if time.Since(g.lastAttack) >= time.Duration(maxDelay*500)*time.Millisecond {
+	if time.Since(g.AtkStat.GetLastAttack()) >= time.Duration(maxDelay*500)*time.Millisecond {
 		g.SkillCmd(skillId, pData, false)
-		g.lastAttack = time.Now()
+		g.AtkStat.SetLastAttack(time.Now())
 	}
 }
 
-func (g *GameConnection) GetTargetByRange(monsterName []string, srcPos *Cmd.ScenePos, targetRange float64) (distDict map[float64]uint64, distanceList []float64) {
+func (g *GameConnection) GetTargetByRange(monsterName []string, srcPos Cmd.ScenePos, targetRange float64) (distDict map[float64]uint64, distanceList []float64) {
 	distDict = map[float64]uint64{}
 	g.Mutex.RLock()
-	for _, npc := range g.MapNpcs {
+	mapNpcs := deepcopy.Copy(g.MapNpcs).(map[uint64]*Cmd.MapNpc)
+	g.Mutex.RUnlock()
+	for _, npc := range mapNpcs {
 		if npc.GetOwner() != 0 {
 			continue
 		}
@@ -127,109 +159,104 @@ func (g *GameConnection) GetTargetByRange(monsterName []string, srcPos *Cmd.Scen
 			continue
 		}
 		if (utils.StrSliceContain(monsterName, "all") || utils.StrSliceContain(monsterName, npc.GetName())) && len(npc.GetAttrs()) != 1 {
-			distance := utils.GetDistanceXZ(srcPos, npc.GetPos())
+			if npc.GetPos() == nil {
+				continue
+			}
+			distance := utils.GetDistanceXYZ(srcPos, *npc.GetPos())
 			if distance <= targetRange*utils.AtkRangeScale {
 				distanceList = append(distanceList, distance)
 				distDict[distance] = npc.GetId()
 			}
 		}
 	}
-	g.Mutex.RUnlock()
 	sort.Float64s(distanceList)
 	return distDict, distanceList
 }
 
 func (g *GameConnection) copyTarget(org *Cmd.MapNpc) *Cmd.MapNpc {
-	orgX := org.GetPos().GetX()
-	orgY := org.GetPos().GetY()
-	orgZ := org.GetPos().GetZ()
-	orgId := org.GetId()
-	orgName := org.GetName()
-	target := &Cmd.MapNpc{
-		Pos: &Cmd.ScenePos{
-			X: &orgX,
-			Y: &orgY,
-			Z: &orgZ,
-		},
-		Id:   &orgId,
-		Name: &orgName,
-	}
+	g.Mutex.RLock()
+	target := deepcopy.Copy(org).(*Cmd.MapNpc)
+	g.Mutex.RUnlock()
 	return target
 }
 
 func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []string) {
-	distDict, distanceList := g.GetTargetByRange(monsterName, g.Role.Pos, DefaultTargetRange)
+	distDict, distanceList := g.GetTargetByRange(monsterName, g.Role.GetPos(), DefaultTargetRange)
 	if len(distanceList) > 0 {
 		distance := distanceList[0]
 		closestId := distDict[distanceList[0]]
-		target := g.copyTarget(g.MapNpcs[closestId])
+		target, ok := g.GetMapNpcs()[closestId]
+		if !ok {
+			return
+		}
 		skillRange := g.GetAttackRange(skillId)
 		launchSkillDis := skillRange * utils.AtkRangeScale
-		launchSkillPos := utils.GetPosAwayFromTarget(g.Role.Pos, target.GetPos(), launchSkillDis)
-		targetDis := utils.GetDistanceXZ(g.Role.Pos, target.GetPos())
-		lastPrint := time.Now().Add(-5 * time.Second)
+		var launchSkillPos Cmd.ScenePos
+		if launchSkillDis <= 1500 {
+			launchSkillPos = *target.GetPos()
+		} else {
+			launchSkillPos = utils.GetPosAwayFromTarget(g.Role.GetPos(), *target.GetPos(), launchSkillDis)
+		}
+		targetDis := utils.GetDistanceXZ(g.Role.GetPos(), *target.GetPos())
 
 		if targetDis >= launchSkillDis {
-			g.MoveChart(launchSkillPos)
-			staleMoveCount := 0
-			x := g.Role.Pos.GetX()
-			y := g.Role.Pos.GetY()
-			z := g.Role.Pos.GetZ()
-			prePos := Cmd.ScenePos{
-				X: &x,
-				Y: &y,
-				Z: &z,
+			if g.AtkStat.IsStandstill() {
+				log.Warnf(
+					"attack mode is standstill but monster %s distance is %f greater than range %f, skip attack",
+					target.GetName(),
+					targetDis,
+					launchSkillDis,
+				)
+				return
+			} else if time.Since(lastMove) > time.Millisecond*150 {
+				lastMove = time.Now()
+				g.MoveChart(launchSkillPos)
 			}
 		moveToTargetLoop:
 			for {
 				select {
-				case <-g.quit:
-					return
-				case <-time.Tick(50 * time.Millisecond):
-					if staleMoveCount > 20 {
+				case <-time.After(100 * time.Millisecond):
+					// oldDistance := distance
+					target, ok = g.GetMapNpcs()[closestId]
+					if !ok {
 						break moveToTargetLoop
-					} else if staleMoveCount == 10 {
-						g.MoveChart(utils.Rotate90DegreeClockwise(launchSkillPos))
 					}
-					distance = utils.GetDistanceXZ(g.Role.Pos, target.GetPos())
-					if g.MapNpcs[closestId] != nil && distance <= launchSkillDis {
+					if time.Since(lastPrint) > time.Second*5 {
+						lastPrint = time.Now()
+						log.Infof("%s 跑路中 怪物id: %d 名字: %s 血量: %d 位置: %v 距离: %f 攻击距离 %f 角度 %f",
+							g.Role.GetRoleName(),
+							closestId,
+							target.GetName(),
+							utils.GetNpcAttrValByType(target.GetAttrs(), Cmd.EAttrType_EATTRTYPE_HP),
+							target.GetPos(),
+							distance,
+							launchSkillDis,
+							utils.GetAngleByAxisY(g.Role.GetPos(), *target.GetPos()),
+						)
+					}
+					if g.GetMapNpcs()[closestId].Id == nil {
+						log.Warnf("target %s is dead, skip attack", target.GetName())
+						return
+					} else if distance <= launchSkillDis {
 						break moveToTargetLoop
-					} else {
-						if _, ok := g.MapNpcs[closestId]; !ok {
-							log.Infof("没有找到怪物id %d %s", closestId, monsterName)
-							return
-						}
-						distance = utils.GetDistanceXZ(g.Role.Pos, target.GetPos())
-						if time.Since(lastPrint) > time.Second*5 {
-							lastPrint = time.Now()
-							log.Infof("%s 跑路中 怪物id: %d 名字: %s 血量: %d 位置: %v 距离: %f 攻击距离 %f",
-								g.Role.GetRoleName(), closestId, target.GetName(), utils.GetNpcAttrValByType(target.GetAttrs(), Cmd.EAttrType_EATTRTYPE_HP), target.GetPos(), distance, launchSkillDis)
-						}
-						target = g.copyTarget(g.MapNpcs[closestId])
 					}
-					if prePos.GetX() == g.Role.Pos.GetX() && prePos.GetY() == g.Role.Pos.GetY() {
-						staleMoveCount += 1
-					} else {
-						staleMoveCount = 0
-						x = g.Role.Pos.GetX()
-						y = g.Role.Pos.GetY()
-						z = g.Role.Pos.GetZ()
-						prePos = Cmd.ScenePos{
-							X: &x,
-							Y: &y,
-							Z: &z,
-						}
-					}
+					break moveToTargetLoop
 				}
 			}
+		} else {
+			g.AttackTarget(skillId, target)
+			if g.GetMapNpcs()[closestId].Id == nil {
+				log.Warnf("target %s is killed", target.GetName())
+				return
+			}
 		}
-		g.AttackTarget(skillId, target)
-		time.Sleep(50 * time.Millisecond)
 	}
 }
 
 func (g *GameConnection) EnableAutoAttack(monsterList []string, disable chan bool) {
 	go func() {
+		ticker := time.NewTicker(time.Millisecond * 100)
+		defer ticker.Stop()
 		for {
 			select {
 			case <-disable:
@@ -245,12 +272,12 @@ func (g *GameConnection) EnableAutoAttack(monsterList []string, disable chan boo
 						return
 					case <-g.quit:
 						return
-					default:
+					case <-ticker.C:
 						skillItem := g.SkillItems[skill.GetId()]
 						log.Debugf("自动技能位置: %d, 技能id: %d, 技能名字: %s",
 							skill.GetShortcuts()[len(skill.GetShortcuts())-1].GetPos(), skill.GetId(), skillItem.NameZh)
 						cd, _ := strconv.ParseFloat(skillItem.CD, 64)
-						if time.Since(g.Role.CDs[skill.GetId()]) < time.Duration(cd) {
+						if time.Since(g.Role.GetSkillCd(skill.GetId())) < time.Duration(cd) {
 							log.Infof("技能CD中:%s", skillItem.NameZh)
 							continue skillLoop
 						}
@@ -323,7 +350,6 @@ func (g *GameConnection) EnableAutoAttack(monsterList []string, disable chan boo
 							// 这是攻击技能
 							g.AttackClosestByName(skill.GetId(), monsterList)
 						}
-						// time.Sleep(100 * time.Millisecond)
 					}
 				}
 			}
@@ -339,6 +365,10 @@ func (g *GameConnection) GetAttackRange(skillId uint32) (atkRange float64) {
 		if g.Role.Buffs[131080] != nil {
 			atkRange += float64(g.Role.SkillItems[13234].GetExtralv()) * 0.1
 		}
+	}
+	atkPer := utils.GetNpcAttrValByType(g.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_ATKDISTANCEPER)
+	if atkPer > 0 {
+		atkRange = atkRange * (1 + float64(atkPer)/1000)
 	}
 	return atkRange
 }
@@ -416,4 +446,15 @@ func (g *GameConnection) AddAttrPoint(s, a, v, i, d, l uint32) ([]int32, error) 
 		int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_LUKPOINT)),
 	}
 	return attrs, nil
+}
+
+func (g *GameConnection) GetBuffByName(name string) utils.BuffItem {
+	g.Role.Mutex.RLock()
+	defer g.Role.Mutex.RUnlock()
+	for _, v := range g.Role.Buffs {
+		if name == g.BuffItems[v.GetId()].BuffName {
+			return g.BuffItems[v.GetId()]
+		}
+	}
+	return utils.BuffItem{}
 }

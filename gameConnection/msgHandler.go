@@ -148,21 +148,21 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				err = utils.ParseCmd(o, param)
 				skillItems := param.(*Cmd.ReqSkillData)
 				if len(skillItems.GetData()) > 0 {
-					g.Mutex.Lock()
+					g.Role.Mutex.Lock()
 					for _, skillData := range skillItems.GetData() {
 						for _, skillItem := range skillData.GetItems() {
 							g.Role.SkillItems[skillItem.GetId()] = skillItem
 							g.updateAutoSkill(skillItem)
 						}
 					}
-					g.Mutex.Unlock()
+					g.Role.Mutex.Unlock()
 				}
 
 			case Cmd.SkillParam_value["SKILLPARAM_SKILLUPDATE"]:
 				param = &Cmd.SkillUpdate{}
 				err = utils.ParseCmd(o, param)
 				skillUpdate := param.(*Cmd.SkillUpdate)
-				// g.Mutex.Lock()
+				g.Role.Mutex.Lock()
 				for _, skillData := range skillUpdate.GetUpdate() {
 					for _, newSkillItem := range skillData.GetItems() {
 						if g.Role.SkillItems[newSkillItem.GetId()] != nil {
@@ -171,7 +171,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 						}
 					}
 				}
-				// g.Mutex.Unlock()
+				g.Role.Mutex.Unlock()
 
 			default:
 				continue
@@ -516,6 +516,21 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 					}()
 				}
 			}
+		case Cmd.Command_value["SESSION_USER_SHOP_PROTOCMD"]:
+			switch cmdParamId {
+			case Cmd.ShopParam_value["SHOPPARAM_QUERY_SHOP_CONFIG"]:
+				param = &Cmd.QueryShopConfigCmd{}
+				err = utils.ParseCmd(o, param)
+				if g.notifier["SHOPPARAM_QUERY_SHOP_CONFIG"] != nil {
+					g.notifier["SHOPPARAM_QUERY_SHOP_CONFIG"] <- param.(*Cmd.QueryShopConfigCmd)
+				}
+			case Cmd.ShopParam_value["SHOPPARAM_BUYITEM"]:
+				param = &Cmd.BuyShopItem{}
+				err = utils.ParseCmd(o, param)
+				if g.notifier["SHOPPARAM_BUYITEM"] != nil {
+					g.notifier["SHOPPARAM_BUYITEM"] <- param.(*Cmd.BuyShopItem)
+				}
+			}
 		}
 
 		if err != nil && param == nil {
@@ -533,6 +548,10 @@ func (g *GameConnection) UpdateUserParams(datas []*Cmd.UserData, attrs []*Cmd.Us
 			silver := data.GetValue()
 			g.Role.Silver = &silver
 			log.Infof("%s has %d zeny", g.Role.GetRoleName(), silver)
+		} else if data.GetType() == Cmd.EUserDataType_EUSERDATATYPE_LOTTERY {
+			lottery := data.GetValue()
+			g.Role.Lottery = &lottery
+			log.Infof("%s has %d lottery", g.Role.GetRoleName(), lottery)
 		}
 		for _, d := range g.Role.UserDatas {
 			if d.GetType() == data.GetType() {

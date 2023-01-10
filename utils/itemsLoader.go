@@ -23,7 +23,8 @@ type ExchangeItem struct {
 }
 
 type BuffItem struct {
-	Id          json.Number `json:"id"`
+	Id json.Number `json:"id"`
+	BuffEffect
 	BuffDesc    string      `json:"BuffDesc"`
 	BuffIcon    string      `json:"BuffIcon,omitempty"`
 	BuffName    string      `json:"BuffName"`
@@ -40,6 +41,12 @@ type BuffItem struct {
 
 type BuffItemByName struct {
 	Items []BuffItem
+}
+
+type BuffEffect struct {
+	AtkDistancePer float64 `json:"AtkDistancePer"`
+	Hit            int     `json:"Hit"`
+	Type           string  `json:"type"`
 }
 
 // Items All Available items

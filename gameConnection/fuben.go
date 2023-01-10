@@ -71,11 +71,11 @@ func (g *GameConnection) CheckForFubenInviteInBackground(quit chan bool) {
 							// 分散站位
 							go func() {
 								time.Sleep(time.Second * 10)
-								g.Role.GetRolePos()
-								randomX := g.Role.GetRolePos().GetX() + (rand.Int31n(20000) - 10000)
-								randomY := g.Role.GetRolePos().GetY() + (rand.Int31n(20000) - 10000)
-								z := g.Role.GetRolePos().GetZ()
-								newPos := &Cmd.ScenePos{
+								pos := g.Role.GetPos()
+								randomX := pos.GetX() + (rand.Int31n(20000) - 10000)
+								randomY := pos.GetY() + (rand.Int31n(20000) - 10000)
+								z := pos.GetZ()
+								newPos := Cmd.ScenePos{
 									X: &randomX,
 									Y: &randomY,
 									Z: &z,

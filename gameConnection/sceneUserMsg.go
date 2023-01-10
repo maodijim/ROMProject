@@ -46,15 +46,17 @@ func (g *GameConnection) HandleSceneUserProtoCmd(cmdParamId int32, rawData []byt
 		if g.Role.FollowUserId != 0 && g.Role.FollowUserId == cmd.GetCharid() {
 			go func() {
 				log.Debugf("following user %d to %v", cmd.GetCharid(), cmd.GetPos())
-				g.MoveChart(cmd.GetPos())
+				g.MoveChart(*cmd.GetPos())
 			}()
 		}
 		if cmd.GetCharid() == *g.Role.RoleId {
-			log.Infof(
-				"Moving charater %s to position: %v",
-				g.Role.GetRoleName(),
-				param.(*Cmd.RetMoveUserCmd).GetPos(),
-			)
+			if time.Now().Second()%5 == 0 {
+				log.Infof(
+					"Moving charater %s to position: %v",
+					g.Role.GetRoleName(),
+					param.(*Cmd.RetMoveUserCmd).GetPos(),
+				)
+			}
 			g.Role.Pos = cmd.GetPos()
 		} else if g.MapNpcs[cmd.GetCharid()] != nil {
 			g.MapNpcs[cmd.GetCharid()].Pos = cmd.GetPos()
