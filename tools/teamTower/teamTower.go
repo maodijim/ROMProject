@@ -1,27 +1,31 @@
 package main
 
 import (
-	Cmd "ROMProject/Cmds"
-	"ROMProject/config"
-	"ROMProject/gameConnection"
-	"ROMProject/utils"
 	"flag"
-	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
 	"sync"
 	"time"
+
+	Cmd "ROMProject/Cmds"
+	"ROMProject/config"
+	"ROMProject/gameConnection"
+	"ROMProject/utils"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
-	teamTowerVer = "0.0.2"
+	teamTowerVer = "0.0.3"
 	maxTowerTime = time.Minute * 75
 )
 
+var (
+	teamLeaderName = ""
+)
+
 func init() {
-	//log.SetReportCaller(true)
+	// log.SetReportCaller(true)
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors:   true,
 		FullTimestamp: true,
@@ -32,6 +36,10 @@ func worker(wg *sync.WaitGroup, cPath string, skills map[uint32]utils.SkillItem,
 	defer wg.Done()
 	time.Sleep(5 * time.Second)
 	conf := config.NewServerConfigs(cPath)
+	if teamLeaderName != "" {
+		conf.SetTeamLeader(teamLeaderName)
+		conf.SetFollowTeamLeader(true)
+	}
 	gameConnect := gameConnection.NewConnection(conf, skills, items)
 	gameConnect.ShouldChangeScene = true
 	if enableDebug {
@@ -40,8 +48,6 @@ func worker(wg *sync.WaitGroup, cPath string, skills map[uint32]utils.SkillItem,
 	}
 	log.Infof("worker for %s ready", cPath)
 	gameConnect.GameServerLogin()
-	waitCount := 0
-	time.Sleep(5 * time.Second)
 	_ = gameConnect.GetMainPackItems()
 	_ = gameConnect.GetTempMainPackItems()
 	gameConnect.DailySignIn()
@@ -74,11 +80,11 @@ func worker(wg *sync.WaitGroup, cPath string, skills map[uint32]utils.SkillItem,
 					if gameConnect.Configs.TeamConfig.FollowTeamLeader && gameConnect.Role.FollowUserId != gameConnect.GetTeamLeader(false) {
 						gameConnect.Role.FollowUserId = gameConnect.GetTeamLeader(false)
 					}
-					leaderMapId := utils.GetMemberDataByType(gameConnect.GetTeamLeaderData(false).GetDatas(), Cmd.EMemberData_EMEMBERDATA_MAPID)
-					if uint32(leaderMapId) != gameConnect.Role.GetMapId() {
-						log.Infof("队长离开了地图 %s 离开副本", roleName)
-						//gameConnect.ExitTower()
-					}
+					// leaderMapId := utils.GetMemberDataByType(gameConnect.GetTeamLeaderData(false).GetDatas(), Cmd.EMemberData_EMEMBERDATA_MAPID)
+					// if uint32(leaderMapId) != gameConnect.Role.GetMapId() {
+					// 	log.Infof("队长离开了地图 %s 离开副本", roleName)
+					// 	gameConnect.ExitMapWait(31)
+					// }
 					time.Sleep(15 * time.Second)
 					continue
 				}
@@ -87,15 +93,13 @@ func worker(wg *sync.WaitGroup, cPath string, skills map[uint32]utils.SkillItem,
 				gameConnect.AutoCreateJoinTeam(gameConnect.Configs.TeamConfig.GetLeaderName())
 				time.Sleep(10 * time.Second)
 			}
-			time.Sleep(10 * time.Second)
 		} else {
-			if waitCount > 5 {
-				log.Warnf("进入角色超时")
-				return
+			for {
+				select {
+				case <-time.After(15 * time.Second):
+					log.Warnf("进入角色超时")
+				}
 			}
-			log.Infof("")
-			time.Sleep(10 * time.Second)
-			waitCount += 1
 		}
 	}
 }
@@ -108,8 +112,10 @@ func main() {
 	buffFile := flag.String("buffPath", "", "Buff Json Path")
 	skillJson := flag.String("skillJson", "", "json file of skills")
 	enableDebug := flag.Bool("debug", false, "Enable Debugging")
+	teamLeader := flag.String("teamLeader", "", "Team Leader Name")
 	flag.Parse()
 
+	teamLeaderName = *teamLeader
 	items := utils.NewItemsLoader(*exchangeItemFile, *buffFile, *itemFile)
 	skills := utils.NewSkillParser(*skillJson)
 
@@ -117,7 +123,7 @@ func main() {
 	var wg sync.WaitGroup
 	switch mode := fi.Mode(); {
 	case mode.IsDir():
-		teamFolders, err := ioutil.ReadDir(*confFile)
+		teamFolders, err := os.ReadDir(*confFile)
 		if err != nil {
 			log.Fatalf("failed to read directory %s", *confFile)
 		}

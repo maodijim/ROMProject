@@ -386,6 +386,11 @@ func Contains[T comparable](s []T, e T) bool {
 	return false
 }
 
+func MapContains[T comparable](s map[T]bool, e T) bool {
+	_, ok := s[e]
+	return ok
+}
+
 func RandomString(length int) string {
 	rand.Seed(time.Now().UnixNano())
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -394,6 +399,26 @@ func RandomString(length int) string {
 		b[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(b)
+}
+
+func RandomZhCharacterName(length int) string {
+	var name string
+	lastChar := []string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
+	fourthChar := []string{"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
+	thirdChar := []string{"名", "轩", "汉", "姝", "逸", "宫", "布", "菲", "星", "托"}
+	secChar := []string{"问", "叶", "时", "季", "乐", "月", "荦", "醉", "梦", "生"}
+	firstChar := []string{"明", "猎", "登", "高", "长", "伪", "罗", "净", "空", "竹"}
+	rand.Seed(time.Now().UnixNano())
+	name += firstChar[rand.Intn(len(firstChar))]
+	rand.Seed(time.Now().UnixNano())
+	name += secChar[rand.Intn(len(secChar))]
+	rand.Seed(time.Now().UnixNano())
+	name += thirdChar[rand.Intn(len(thirdChar))]
+	rand.Seed(time.Now().UnixNano())
+	name += fourthChar[rand.Intn(len(fourthChar))]
+	rand.Seed(time.Now().UnixNano())
+	name += lastChar[rand.Intn(len(lastChar))]
+	return name
 }
 
 func GetAttrPointReq(currentPoint int32) int32 {

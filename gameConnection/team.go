@@ -63,6 +63,7 @@ func (g *GameConnection) GetCurrentTeamName() (teamName string) {
 func (g *GameConnection) removeTeamMember(userId uint64) {
 	deleteIndex := -1
 	if g.Role.TeamData != nil {
+		g.Role.Mutex.Lock()
 		for i, member := range g.Role.TeamData.GetMembers() {
 			if member.GetGuid() == userId {
 				deleteIndex = i
@@ -71,6 +72,7 @@ func (g *GameConnection) removeTeamMember(userId uint64) {
 		if deleteIndex > -1 {
 			g.Role.TeamData.Members = append(g.Role.TeamData.Members[:deleteIndex], g.Role.TeamData.Members[deleteIndex+1:]...)
 		}
+		g.Role.Mutex.Unlock()
 	}
 }
 
@@ -86,6 +88,7 @@ func (g *GameConnection) updateTeamMember(member *Cmd.TeamMember) {
 
 func (g *GameConnection) updateTeamMemberDatas(newDatas *Cmd.MemberDataUpdate) {
 	if g.Role.TeamData != nil {
+		g.Role.Mutex.Lock()
 		for _, m := range g.Role.TeamData.GetMembers() {
 			if m.GetGuid() == newDatas.GetId() {
 				for _, dNew := range newDatas.GetMembers() {
@@ -103,6 +106,7 @@ func (g *GameConnection) updateTeamMemberDatas(newDatas *Cmd.MemberDataUpdate) {
 				}
 			}
 		}
+		g.Role.Mutex.Unlock()
 	} else {
 		g.Role.TeamData = &Cmd.TeamData{}
 		g.updateTeamMemberDatas(newDatas)
@@ -111,7 +115,9 @@ func (g *GameConnection) updateTeamMemberDatas(newDatas *Cmd.MemberDataUpdate) {
 
 func (g *GameConnection) addTeamMember(member *Cmd.TeamMember) {
 	if g.Role.TeamData != nil {
+		g.Role.Mutex.Lock()
 		g.Role.TeamData.Members = append(g.Role.TeamData.Members, member)
+		g.Role.Mutex.Unlock()
 	}
 }
 
@@ -328,7 +334,7 @@ func (g *GameConnection) AutoCreateJoinTeam(leaderName string) {
 		if len(res.GetDatas()) > 0 {
 			d := res.GetDatas()[0]
 			teamInfo := g.QueryTeamInfo(d.GetGuid())
-			time.Sleep(time.Second)
+			time.Sleep(2 * time.Second)
 			g.TeamMemberApply(teamInfo.GetTeamid())
 		} else {
 			log.Warnf("user %s not found", leaderName)

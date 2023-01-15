@@ -1,10 +1,11 @@
 package main
 
 import (
-	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
 	"os"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -20,7 +21,7 @@ const (
 
 type PurchaseConfig struct {
 	AuthPass    string          `yaml:"authPass"`
-	BuyInterval uint32          `yaml:"buyInterval"`
+	BuyInterval int32           `yaml:"buyInterval"`
 	MinZenyKeep uint64          `yaml:"minZenyKeep"`
 	EnterMap    bool            `yaml:"enterMap"`
 	Items       []*PurchaseItem `yaml:"items"`

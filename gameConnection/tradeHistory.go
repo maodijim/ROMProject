@@ -1,9 +1,10 @@
 package gameConnection
 
 import (
+	"time"
+
 	Cmd "ROMProject/Cmds"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 const (
@@ -153,7 +154,7 @@ func (g *GameConnection) takeFailedMoney(tradeLog *Cmd.LogItemInfo) {
 		tradeLog.GetStatus() == Cmd.ETakeStatus_ETakeStatus_CanTakeGive {
 		log.Infof("取回抢购失败 %d个%s %d zeny", tradeLog.GetFailcount(), g.Items[tradeLog.GetItemid()], tradeLog.GetRetmoney())
 		g.TakeLogTrade(tradeLog.GetId(), tradeLog.GetLogtype())
-		newSilver := g.Role.GetSilver() + tradeLog.GetRetmoney()
+		newSilver := g.Role.GetSilver() + uint64(tradeLog.GetRetmoney())
 		g.Role.Silver = &newSilver
 		time.Sleep(500 * time.Millisecond)
 	}
@@ -177,10 +178,10 @@ func (g *GameConnection) HandleTradeHistory(tradeHistory *Cmd.MyTradeLogRecordTr
 			tradeLog.GetStatus() == Cmd.ETakeStatus_ETakeStatus_CanTakeGive {
 			g.takeTradeLog(tradeLog)
 		}
-		//if (tradeLog.GetLogtype() == Cmd.EOperType_EOperType_PublicitySellSuccess ||
+		// if (tradeLog.GetLogtype() == Cmd.EOperType_EOperType_PublicitySellSuccess ||
 		//	tradeLog.GetLogtype() == Cmd.EOperType_EOperType_NormalSell && itemName == "哈比的羽毛") {
 		//	hasNewRecord = true
 		//	excel.AddRecord(tradeLog, itemName)
-		//}
+		// }
 	}
 }

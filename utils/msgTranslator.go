@@ -323,8 +323,9 @@ func TranslateMsg(output [][]byte) {
 			case Cmd.ItemParam_value["ITEMPARAM_PACKSLOTNTF"]:
 				param = &Cmd.PackSlotNtfItemCmd{}
 
-			case Cmd.ItemParam_value["ITEMPARAM_QUERY_ITEMDEBT"]:
-				param = &Cmd.QueryDebtItemCmd{}
+			// Not available in EP 5.0
+			// case Cmd.ItemParam_value["ITEMPARAM_QUERY_ITEMDEBT"]:
+			// 	param = &Cmd.QueryDebtItemCmd{}
 
 			case Cmd.ItemParam_value["ITEMPARAM_BROWSEPACK"]:
 				param = &Cmd.BrowsePackage{}
@@ -507,11 +508,17 @@ func TranslateMsg(output [][]byte) {
 			default:
 				log.Infof("没有parsing")
 				continue
+			case Cmd.EventParam_value["USER_EVENT_ALL_TITLE"]:
+				param = &Cmd.AllTitle{}
+
+			case Cmd.EventParam_value["USER_EVENT_BUFF_DAMAGE"]:
+				param = &Cmd.BuffDamageUserEvent{}
+
 			case Cmd.EventParam_value["USER_EVENT_QUERY_CHARGE_CNT"]:
 				param = &Cmd.QueryChargeCnt{}
 
-			case Cmd.EventParam_value["USER_EVENT_AUTOBATTLE"]:
-				param = &Cmd.SwitchAutoBattleUserEvent{}
+			// case Cmd.EventParam_value["USER_EVENT_AUTOBATTLE"]:
+			// 	param = &Cmd.SwitchAutoBattleUserEvent{}
 
 			case Cmd.EventParam_value["USER_EVENT_NTF_VERSION_CARD"]:
 				param = &Cmd.NtfVersionCardInfo{}
@@ -849,11 +856,15 @@ func TranslateMsg(output [][]byte) {
 			case Cmd.MailParam_value["MAILPARAM_UPDATE"]:
 				param = &Cmd.MailUpdate{}
 
-			case Cmd.MapParam_value["MAILPARAM_READ"]:
-				param = &Cmd.MailRead{}
+			// Not available in EP 5.0
+			// 	param = &Cmd.MailRead{}
+			// case Cmd.MapParam_value["MAILPARAM_READ"]:
 
 			case Cmd.MailParam_value["MAILPARAM_GETATTACH"]:
-				param = &Cmd.MailAttach{}
+				param = &Cmd.GetMailAttach{}
+
+			case Cmd.MailParam_value["MAILPARAM_QUERYALLMAIL"]:
+				param = &Cmd.QueryAllMail{}
 
 			default:
 				log.Infof("没有parsing")

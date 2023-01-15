@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"io"
@@ -69,8 +70,8 @@ func worker(wg *sync.WaitGroup, completeFuben chan bool, cPath string, skills ma
 	gameConnect.GameServerLogin()
 	quit := make(chan bool)
 	gameConnect.CheckForFubenInviteInBackground(quit)
-	disable := make(chan bool)
-	gameConnect.EnableAutoAttack([]string{"all"}, disable)
+	disable, cancel := context.WithCancel(context.Background())
+	gameConnect.EnableAutoAttack(disable, "all")
 	gameConnect.InviteTeamExpFuben()
 	gameConnect.AutoSubmitWantedQuest()
 	go func() {
@@ -100,7 +101,7 @@ func worker(wg *sync.WaitGroup, completeFuben chan bool, cPath string, skills ma
 				gameConnect.Role.TeamExpFubenInfo.GetTotaltimes(),
 			)
 			log.Infof("队长完成副本 %s 退出", gameConnect.Role.GetRoleName())
-			disable <- true
+			cancel()
 			gameConnect.Close()
 			return
 		default:
@@ -116,7 +117,7 @@ func worker(wg *sync.WaitGroup, completeFuben chan bool, cPath string, skills ma
 							completeFuben <- true
 						}()
 					}
-					disable <- true
+					cancel()
 					gameConnect.Close()
 					return
 				}

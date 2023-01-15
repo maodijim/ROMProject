@@ -2,6 +2,7 @@ package gameConnection
 
 import (
 	Cmd "ROMProject/Cmds"
+	gameTypes "ROMProject/gameConnection/types"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -9,9 +10,9 @@ var (
 	sessionUserShopCmdId = Cmd.Command_value["SESSION_USER_SHOP_PROTOCMD"]
 )
 
-func (g *GameConnection) QueryShopConfig(shopType, shopId uint32) (result *Cmd.QueryShopConfigCmd, err error) {
+func (g *GameConnection) QueryShopConfig(shopType gameTypes.ShopType, shopId uint32) (result *Cmd.QueryShopConfigCmd, err error) {
 	cmd := Cmd.QueryShopConfigCmd{
-		Type:   &shopType,
+		Type:   (*uint32)(&shopType),
 		Shopid: &shopId,
 	}
 	g.AddNotifier("SHOPPARAM_QUERY_SHOP_CONFIG")

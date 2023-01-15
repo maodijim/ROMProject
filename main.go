@@ -172,9 +172,9 @@ func main() {
 					sellInfo := val.TradeSellInfo
 					salePrice := baseInfo.GetPrice()
 					if baseInfo.GetDownRate() != 0 {
-						salePrice = uint64(float64(salePrice) * float64(baseInfo.GetDownRate()) * 0.001)
+						salePrice = uint32(float64(salePrice) * float64(baseInfo.GetDownRate()) * 0.001)
 					} else if baseInfo.GetUpRate() != 0 {
-						salePrice = uint64(float64(salePrice) * (float64(baseInfo.GetUpRate())*0.001 + 1))
+						salePrice = uint32(float64(salePrice) * (float64(baseInfo.GetUpRate())*0.001 + 1))
 					}
 					serverIdWithLine, _ := strconv.ParseUint(
 						fmt.Sprintf("%d%d", gameConnect.Configs.ZoneId, gameConnect.Configs.ServerId),
@@ -185,7 +185,7 @@ func main() {
 						ServerId:     uint32(serverIdWithLine),
 						ItemId:       val.TradeBaseInfo.GetItemid(),
 						ItemName:     items.GetItemName(baseInfo.GetItemid()),
-						ItemPrice:    salePrice,
+						ItemPrice:    uint64(salePrice),
 						ItemCategory: items.GetItemCat(baseInfo.GetItemid()),
 						ItemRefineLv: baseInfo.GetRefineLv(),
 						Count:        baseInfo.GetCount(),

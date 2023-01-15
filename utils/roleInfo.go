@@ -276,6 +276,12 @@ func (r *RoleInfo) GetMapName() (mapName string) {
 	return mapName
 }
 
+func (r *RoleInfo) GetRoleExp() uint64 {
+	r.Mutex.RLock()
+	defer r.Mutex.RUnlock()
+	return GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_ROLEEXP)
+}
+
 func NewRole() *RoleInfo {
 	role := &RoleInfo{
 		PackItems:     map[Cmd.EPackType]map[string]*Cmd.ItemData{},

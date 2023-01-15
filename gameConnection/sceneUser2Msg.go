@@ -4,6 +4,7 @@ import (
 	"time"
 
 	Cmd "ROMProject/Cmds"
+	notifier "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
@@ -11,6 +12,18 @@ import (
 
 func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []byte) (param proto.Message, err error) {
 	switch cmdParamId {
+	case Cmd.User2Param_value["USER2PARAM_ACTION"]:
+		param = &Cmd.UserActionNtf{}
+		err = proto.Unmarshal(rawData, param)
+		if err == nil {
+			userActionNtf := param.(*Cmd.UserActionNtf)
+			if userActionNtf.GetType() == Cmd.EUserActionType_EUSERACTIONTYPE_DIALOG {
+				if g.Notifier(notifier.NtfType_UserActionDialog) != nil {
+					g.Notifier(notifier.NtfType_UserActionDialog) <- userActionNtf
+				}
+			}
+		}
+
 	case Cmd.User2Param_value["USER2PARAM_CDTIME"]:
 		// TODO handles items cd time
 		param = &Cmd.CDTimeUserCmd{}
@@ -42,32 +55,34 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 		param = &Cmd.UserBuffNineSyncCmd{}
 		err = utils.ParseCmd(rawData, param)
 		buffSync := param.(*Cmd.UserBuffNineSyncCmd)
-		g.Mutex.Lock()
 		if buffSync.GetGuid() == g.Role.GetRoleId() {
 			for _, updateBuff := range buffSync.GetUpdates() {
+				g.Role.Mutex.Lock()
 				g.Role.Buffs[updateBuff.GetId()] = updateBuff
+				g.Role.Mutex.Unlock()
 			}
 
 			for _, delBuff := range buffSync.GetDels() {
+				g.Role.Mutex.Lock()
 				if g.Role.Buffs[delBuff] != nil {
 					delete(g.Role.Buffs, delBuff)
 				}
+				g.Role.Mutex.Unlock()
 			}
 		}
-		g.Mutex.Unlock()
 
 	case Cmd.User2Param_value["USER2PARAM_VAR"]:
 		param = &Cmd.VarUpdate{}
 		err = utils.ParseCmd(rawData, param)
 		userVar := param.(*Cmd.VarUpdate)
-		g.Mutex.Lock()
+		g.Role.Mutex.Lock()
 		for _, uv := range userVar.GetVars() {
 			g.Role.UserVars[uv.GetType()] = uv
 		}
 		for _, av := range userVar.GetAccvars() {
 			g.Role.AccVars[av.GetType()] = av
 		}
-		g.Mutex.Unlock()
+		g.Role.Mutex.Unlock()
 
 	case Cmd.User2Param_value["USER2PARAM_GOTO_LIST"]:
 		param = &Cmd.GoToListUserCmd{}

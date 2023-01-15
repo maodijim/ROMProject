@@ -1,0 +1,32 @@
+zoneId: 10002
+version: "1.0.81"
+authServer: "http://182.92.182.33:9090/gm/user/gameUserLogin"
+region: 3
+# character 1 - 3
+char: 1
+serverId: 2
+langZone: 40
+autoCreateChar: false
+# username: ""
+# password: ""
+# accId: ""
+
+resourceVer: "818808"
+ip: "182.92.34.64"
+device: "android"
+safeDevice: "798763bb30a30eb6d325ca6e4d4dfc0fd57e62b2"
+lang: 40
+authoriz: "0e80c9b2203d164a86ff62b501b78dc38ec90fc4"
+clientVer: "56"
+model: "HUAWEI OXF-AN10"
+phVer: "Android OS 7.1.2 / API-25 ((N2G47H/G955FXXU1AQJ5))"
+platV: "1"
+appPreVer: 35
+ipPort: "182.92.182.33:5678"
+gameServer: 182.92.182.33
+authParams:
+  account: Username
+  password: Password
+
+elasticSearch:
+  urls: []

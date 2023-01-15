@@ -1,12 +1,13 @@
 package main
 
 import (
-	Cmd "ROMProject/Cmds"
-	"github.com/360EntSecGroup-Skylar/excelize/v2"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"strconv"
 	"time"
+
+	Cmd "ROMProject/Cmds"
+	"github.com/360EntSecGroup-Skylar/excelize/v2"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -72,7 +73,7 @@ func (t *TradeExcel) AddRecord(info *Cmd.LogItemInfo, itemName string) {
 	_ = t.file.SetCellValue(t.SheetName, "A"+maxRow, todayDate)
 	_ = t.file.SetCellValue(t.SheetName, "B"+maxRow, itemName)
 	_ = t.file.SetCellValue(t.SheetName, "C"+maxRow, *info.Count)
-	_ = t.file.SetCellValue(t.SheetName, "D"+maxRow, *info.Price*uint64(*info.Count))
+	_ = t.file.SetCellValue(t.SheetName, "D"+maxRow, *info.Price**info.Count)
 	_ = t.file.SetCellValue(t.SheetName, "E"+maxRow, *info.Price)
 	if info.GetLogtype() == Cmd.EOperType_EOperType_NormalSell ||
 		info.GetLogtype() == Cmd.EOperType_EOperType_PublicitySellSuccess {

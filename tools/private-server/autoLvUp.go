@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"flag"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -12,6 +14,7 @@ import (
 	Cmd "ROMProject/Cmds"
 	"ROMProject/config"
 	"ROMProject/gameConnection"
+	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 	log "github.com/sirupsen/logrus"
 )
@@ -21,11 +24,12 @@ const (
 )
 
 var (
-	lvUpChoice       = -1
-	goblinLvUpChoice = -1
-	items            = &utils.ItemsLoader{}
-	g                = &gameConnection.GameConnection{}
-	npcList          = map[string][]int{}
+	lvUpChoice         = -1
+	goblinLvUpChoice   = -1
+	mountainLvUpChoice = -1
+	items              = &utils.ItemsLoader{}
+	g                  = &gameConnection.GameConnection{}
+	npcList            = map[string][]int{}
 	// 北区练级点
 	northUPPos = [][]Cmd.ScenePos{
 		// 右下
@@ -73,7 +77,36 @@ var (
 			g.ParsePos(-27150, 10798, 24148),
 		},
 	}
+	mountainPos = [][]Cmd.ScenePos{
+		// 中下
+		{
+			g.ParsePos(21006, -1524, 3415),
+		},
+		// 中左
+		{
+			g.ParsePos(-9662, -2060, 4689),
+		},
+		// 中右
+		{
+			g.ParsePos(41908, -1223, 27975),
+		},
+		// 右上
+		{
+			g.ParsePos(-39263, 12865, -62454),
+		},
+		// 左下
+		{
+			g.ParsePos(-34175, -9845, -4474),
+		},
+	}
 )
+
+func init() {
+	log.SetFormatter(&log.TextFormatter{
+		FullTimestamp: true,
+		ForceColors:   true,
+	})
+}
 
 type StopAttackCondition struct {
 	JobLevel   uint64
@@ -91,33 +124,35 @@ func southGateScript() {
 		return
 	} else if g.Role.GetJobLevel() >= 10 && g.Role.GetProfession() != Cmd.EProfession_EPROFESSION_NOVICE {
 		log.Warnf("角色已经达到10级并转职")
-		g.ExitMap(gameConnection.MapId_Protera.Uint32())
+		g.ExitMap(gameTypes.MapId_Protera.Uint32())
 		return
 	}
 	g.RunQuestStep(10101, 0, 0, 0)
+	time.Sleep(1 * time.Second)
 	g.RunQuestStep(80000015, 0, 0, 0)
-	time.Sleep(2 * time.Second)
+	time.Sleep(3 * time.Second)
 	g.MoveChartWait(g.ParsePos(-30560, 20, 53584))
+	time.Sleep(2 * time.Second)
 	// g.VisitNpc(2147483836)
-	g.VisitNpcByName("宝雅")
+	_, _ = g.VisitNpcByName("宝雅")
 	time.Sleep(3 * time.Second)
 
 	// 新手礼包任务
 	log.Infof("开始新手礼包任务")
 	g.RunQuestStep(10100, 0, 0, 0)
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 	g.RunQuestStep(10100, 0, 0, 2)
-	time.Sleep(1 * time.Second)
+	time.Sleep(3 * time.Second)
 
 	// 穿新手装备打怪
-	item := g.FindItemByName("百万集结礼包", Cmd.EPackType_EPACKTYPE_MAIN)
+	item := g.FindPackItemByName("百万集结礼包", Cmd.EPackType_EPACKTYPE_MAIN)
 	if item != nil {
 		log.Warnf("使用百万集结礼包")
 		g.UseItem(item.GetGuid(), 1)
 	} else {
 		log.Warnf("没有找到百万集结礼包")
 	}
-	time.Sleep(1 * time.Second)
+	time.Sleep(3 * time.Second)
 	putOnEquip("光明圣徒战靴", Cmd.EEquipPos_EEQUIPPOS_SHOES)
 	putOnEquip("光明圣徒之盾", Cmd.EEquipPos_EEQUIPPOS_SHIELD)
 	putOnEquip("光明圣徒之铠", Cmd.EEquipPos_EEQUIPPOS_ARMOUR)
@@ -145,7 +180,7 @@ func southGateScript() {
 	// 去普隆德拉
 	g.MoveChartWait(g.ParsePos(-7452, 153, 69612))
 
-	g.ExitMapWait(gameConnection.MapId_Protera.Uint32())
+	g.ExitMapWait(gameTypes.MapId_Protera.Uint32())
 }
 
 func pronteraScript() {
@@ -252,12 +287,12 @@ func pronteraScript() {
 	time.Sleep(2 * time.Second)
 
 	// 去转职大厅
-	g.ExitMapWait(gameConnection.MapId_RoomAdvanced.Uint32())
+	g.ExitMapWait(gameTypes.MapId_RoomAdvanced.Uint32())
 	time.Sleep(2 * time.Second)
 }
 
 func jobScript() {
-	if g.Role.GetMapId() != gameConnection.MapId_RoomAdvanced.Uint32() {
+	if g.Role.GetMapId() != gameTypes.MapId_RoomAdvanced.Uint32() {
 		log.Warnf("角色不在转职大厅地图")
 		return
 	} else if g.Role.GetJobLevel() < 10 || g.Role.GetRoleLevel() < 10 {
@@ -267,7 +302,7 @@ func jobScript() {
 		log.Warnf("角色已经是弓箭手了")
 		putOnEquip("百万击破", Cmd.EEquipPos_EEQUIPPOS_HEAD)
 		putOnEquip("圣徒之弓[1]", Cmd.EEquipPos_EEQUIPPOS_WEAPON)
-		g.ExitMapWait(gameConnection.MapId_Protera.Uint32())
+		g.ExitMapWait(gameTypes.MapId_Protera.Uint32())
 		return
 	} else if g.Role.GetProfession() != Cmd.EProfession_EPROFESSION_NOVICE {
 		log.Warnf("角色不是初心者，无法转职")
@@ -324,26 +359,33 @@ func jobScript() {
 		// 清理所有怪物
 		// 第一轮
 		lvUp(StopAttackCondition{NoMonster: true}, "魔化树精")
-		time.Sleep(4 * time.Second)
+		time.Sleep(5 * time.Second)
 		// 第二轮
 		lvUp(StopAttackCondition{NoMonster: true}, "魔化树精")
-		time.Sleep(4 * time.Second)
+		time.Sleep(5 * time.Second)
 
 		// 拉杆回家
 		// g.MoveChartWait(g.ParsePos(-10741, 5732, 3311))
 		err := g.MoveToNpcWait("拉杆")
 		if err != nil {
 			log.Warnf("拉杆失败: %v", err)
+			g.MoveChartWait(g.ParsePos(-10741, 5732, 3311))
 		}
+		time.Sleep(3 * time.Second)
 		// g.VisitNpc(2174823957)
-		_, _ = g.VisitNpcByName("拉杆")
+		_, err = g.VisitNpcByName("拉杆")
+		if err != nil {
+			log.Warnf("拉杆失败: %v", err)
+			g.VisitNpc(2174823957)
+		}
 		g.RunQuestStep(11570001, 0, 0, 0)
 		time.Sleep(1 * time.Second)
 		_, _ = g.VisitNpcByName("拉杆")
 		g.RunQuestStep(11570001, 0, 0, 2)
-		time.Sleep(1 * time.Second)
-		g.ExitMapWait(gameConnection.MapId_RoomAdvanced.Uint32())
 		time.Sleep(3 * time.Second)
+		g.ExitMapWait(gameTypes.MapId_RoomAdvanced.Uint32())
+		g.Reconnect()
+		time.Sleep(10 * time.Second)
 	}
 
 	// 回到转职大厅转职
@@ -352,13 +394,14 @@ func jobScript() {
 	} else {
 		// g.MoveChartWait(g.ParsePos(-2835, 110, -19238))
 		_ = g.MoveToNpcWait("卡巴克")
+		time.Sleep(2 * time.Second)
 		// g.VisitNpc(2147492054)
 		_, _ = g.VisitNpcByName("卡巴克")
 		g.RunQuestStep(11040011, 0, 8, 25)
 		g.QuestRaidCmd(11040011)
 		time.Sleep(1 * time.Second)
 		g.ChangeMap(10042)
-		time.Sleep(2 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 
 	// 转职礼堂
@@ -371,10 +414,10 @@ func jobScript() {
 		g.MoveChart(g.ParsePos(0, 309, 1800))
 		time.Sleep(5 * time.Second)
 		g.MoveChart(g.ParsePos(0, 718, 29500))
-		time.Sleep(8 * time.Second)
+		time.Sleep(9 * time.Second)
 		g.RunQuestStep(11040012, 0, 0, 0)
 		g.RunQuestStep(11040012, 0, 0, 1)
-		time.Sleep(2 * time.Second)
+		time.Sleep(5 * time.Second)
 		err := g.MoveToNpcWait("卡巴克")
 		if err != nil {
 			log.Errorf("卡巴克对话失败: %v", err)
@@ -382,8 +425,9 @@ func jobScript() {
 		_, _ = g.VisitNpcByName("卡巴克")
 		g.RunQuestStep(11140014, 0, 2, 0)
 		time.Sleep(3 * time.Second)
-		g.ExitMapWait(gameConnection.MapId_RoomAdvanced.Uint32())
-		time.Sleep(3 * time.Second)
+		g.ExitMapWait(gameTypes.MapId_RoomAdvanced.Uint32())
+		g.Reconnect()
+		time.Sleep(10 * time.Second)
 	}
 
 	if g.Role.GetMapId() != 1001 {
@@ -429,13 +473,13 @@ func jobScript() {
 	putOnEquip("百万击破", Cmd.EEquipPos_EEQUIPPOS_HEAD)
 	putOnEquip("圣徒之弓[1]", Cmd.EEquipPos_EEQUIPPOS_WEAPON)
 
-	g.ExitMapWait(gameConnection.MapId_Protera.Uint32())
+	g.ExitMapWait(gameTypes.MapId_Protera.Uint32())
 }
 
 func westGate() {
 	if g.Role.GetProfession() != Cmd.EProfession_EPROFESSION_ARCHER {
 		log.Errorf("角色不是弓箭手")
-		g.ExitMapWait(gameConnection.MapId_Protera.Uint32())
+		g.ExitMapWait(gameTypes.MapId_Protera.Uint32())
 		return
 	}
 	if g.GetAtk() > 190 {
@@ -443,16 +487,17 @@ func westGate() {
 		return
 	}
 	if g.Role.GetMapId() != 5 {
-		g.ExitMapWait(gameConnection.MapId_Protera.Uint32())
+		g.ExitMapWait(gameTypes.MapId_Protera.Uint32())
 		time.Sleep(2 * time.Second)
-		g.ExitMapWait(gameConnection.MapId_ProteraWest.Uint32())
-		time.Sleep(3 * time.Second)
+		g.ExitMapWait(gameTypes.MapId_ProteraWest.Uint32())
+		g.Reconnect()
+		time.Sleep(10 * time.Second)
 	}
 	log.Warnf("攻击力不足在西门练练吧")
-	time.Sleep(3 * time.Second)
+
 	g.MoveChartWait(g.ParsePos(-54016, 10133, -17510))
 	lvUp(StopAttackCondition{BaseLevel: 18}, "溜溜猴")
-	g.ExitMapWait(gameConnection.MapId_Protera.Uint32())
+	g.ExitMapWait(gameTypes.MapId_Protera.Uint32())
 	time.Sleep(2 * time.Second)
 }
 
@@ -460,25 +505,28 @@ func northGate() {
 	if g.Role.GetProfession() != Cmd.EProfession_EPROFESSION_ARCHER {
 		log.Errorf("角色不是弓箭手")
 		return
+	} else if g.Role.GetRoleLevel() >= 37 {
+		log.Infof("角色等级已经大于37，不需要再打北门")
+		return
 	}
 	if g.Role.GetMapId() == 1 {
 		log.Warnf("角色在主城地图")
-		g.ExitMapWait(gameConnection.MapId_ProteraRoom1F.Uint32())
+		g.ExitMapWait(gameTypes.MapId_ProteraRoom1F.Uint32())
 		time.Sleep(2 * time.Second)
-		g.ChangeMap(gameConnection.MapId_ProteraRoom1F.Uint32())
-		if g.Role.GetMapId() != gameConnection.MapId_ProteraRoom1F.Uint32() {
+		g.ChangeMap(gameTypes.MapId_ProteraRoom1F.Uint32())
+		if g.Role.GetMapId() != gameTypes.MapId_ProteraRoom1F.Uint32() {
 			log.Warnf("角色不在普隆德拉皇家区1F地图")
 			return
 		} else {
 			log.Infof("角色在普隆德拉皇家区1F地图")
-			g.ExitMapWait(gameConnection.MapId_ProteraNorth.Uint32())
+			g.ExitMapWait(gameTypes.MapId_ProteraNorth.Uint32())
 		}
 	} else if g.Role.GetRoleLevel() >= 37 {
 		log.Errorf("角色等级大于37，不需要再打北门")
 		return
-	} else if g.Role.GetMapId() != gameConnection.MapId_ProteraNorth.Uint32() {
-		g.ExitMapWait(gameConnection.MapId_ProteraNorth.Uint32())
-		g.ChangeMap(gameConnection.MapId_ProteraNorth.Uint32())
+	} else if g.Role.GetMapId() != gameTypes.MapId_ProteraNorth.Uint32() {
+		g.ExitMapWait(gameTypes.MapId_ProteraNorth.Uint32())
+		g.ChangeMap(gameTypes.MapId_ProteraNorth.Uint32())
 	}
 
 	// 随机选择 1 或者 0 , 2, 3
@@ -511,8 +559,8 @@ func goblinForest() {
 	if g.Role.GetRoleLevel() < 37 {
 		log.Errorf("角色等级不足37级")
 		return
-	} else if g.Role.GetMapId() != gameConnection.MapId_GoblinForest.Uint32() {
-		g.ExitMapWait(gameConnection.MapId_GoblinForest.Uint32())
+	} else if g.Role.GetMapId() != gameTypes.MapId_GoblinForest.Uint32() {
+		g.ExitMapWait(gameTypes.MapId_GoblinForest.Uint32())
 		time.Sleep(2 * time.Second)
 	}
 
@@ -521,7 +569,7 @@ func goblinForest() {
 	choice := goblinLvUpChoice
 	if choice < 0 || choice > len(goblinPos)-1 {
 		rand.Seed(time.Now().UnixNano())
-		choice = rand.Intn(2)
+		choice = rand.Intn(len(goblinPos))
 	}
 	switch choice {
 	case 0:
@@ -536,8 +584,42 @@ func goblinForest() {
 	for _, pos := range goblinPos[choice] {
 		g.MoveChartWait(pos)
 	}
-	lvUp(StopAttackCondition{BaseLevel: 50}, "喷射哥布灵")
+	lvUp(StopAttackCondition{BaseLevel: 50}, "喷射哥布灵", "弓箭哥布灵")
+}
 
+func mjolnirMountains() {
+	if g.Role.GetRoleLevel() < 37 {
+		log.Errorf("角色等级不足37级")
+		return
+	} else if g.Role.GetMapId() != gameTypes.MapId_MjolnirMountains.Uint32() {
+		g.ExitMapWait(gameTypes.MapId_MjolnirMountains.Uint32())
+		g.Reconnect()
+		time.Sleep(10 * time.Second)
+	}
+
+	log.Info("在妙勒尼山脉练级")
+
+	choice := mountainLvUpChoice
+	if choice < 0 || choice > len(mountainPos)-1 {
+		rand.Seed(time.Now().UnixNano())
+		choice = rand.Intn(len(mountainPos))
+	}
+	switch choice {
+	case 0:
+		log.Infof("选择练级点 %d, %s %v", choice, "中下", goblinPos[choice][len(goblinPos[choice])-1])
+	case 1:
+		log.Infof("选择练级点 %d, %s %v", choice, "中左", goblinPos[choice][len(goblinPos[choice])-1])
+	case 2:
+		log.Infof("选择练级点 %d, %s %v", choice, "中右", goblinPos[choice][len(goblinPos[choice])-1])
+	case 3:
+		log.Infof("选择练级点 %d, %s %v", choice, "右上", goblinPos[choice][len(goblinPos[choice])-1])
+	case 4:
+		log.Infof("选择练级点 %d, %s %v", choice, "左下", goblinPos[choice][len(goblinPos[choice])-1])
+	}
+	for _, pos := range mountainPos[choice] {
+		g.MoveChartWait(pos)
+	}
+	lvUp(StopAttackCondition{BaseLevel: 50}, "蜂兵")
 }
 
 func putOnEquip(name string, pos Cmd.EEquipPos) {
@@ -568,9 +650,11 @@ func printNearbyNpcs(g *gameConnection.GameConnection) (stopNpc chan bool) {
 						npcList[npc.GetName()] = []int{1, int(*npc.Id)}
 					}
 				}
+				output := "\n"
 				for k, v := range npcList {
-					log.Printf("NPC: %s, 数量: %d", k, v)
+					output += fmt.Sprintf("名字：%s，数量%d\n", k, v[0])
 				}
+				log.Printf("NPC: %s", output)
 			}
 		}
 	}()
@@ -584,12 +668,12 @@ func expBuff() {
 		for {
 			select {
 			case <-ticker.C:
-				item := g.FindItemByName("暖身料理", Cmd.EPackType_EPACKTYPE_MAIN)
+				item := g.FindPackItemByName("暖身料理", Cmd.EPackType_EPACKTYPE_MAIN)
 				if item != nil {
 					log.Infof("使用暖身料理 %d 个", item.GetCount())
 					g.UseItem(item.GetGuid(), item.GetCount())
 				}
-				item = g.FindItemByName("锁链雷锭", Cmd.EPackType_EPACKTYPE_MAIN)
+				item = g.FindPackItemByName("锁链雷锭", Cmd.EPackType_EPACKTYPE_MAIN)
 				if item == nil {
 					log.Warnf("未找到锁链雷锭")
 				} else {
@@ -611,11 +695,11 @@ func expBuff() {
 
 func lvUp(condition StopAttackCondition, monsters ...string) {
 	stopNpc := printNearbyNpcs(g)
-	disable := make(chan bool)
+	disable, cancelAutoAtk := context.WithCancel(context.Background())
 	if condition.Standstill {
 		g.AtkStat.SetStandstill(true)
 	}
-	g.EnableAutoAttack(monsters, disable)
+	g.EnableAutoAttack(disable, monsters...)
 	jlv := g.Role.GetJobLevel()
 	blv := g.Role.GetRoleLevel()
 	ticker := time.NewTicker(15 * time.Second)
@@ -626,6 +710,7 @@ func lvUp(condition StopAttackCondition, monsters ...string) {
 			jlv = g.Role.GetJobLevel()
 			blv = g.Role.GetRoleLevel()
 			log.Infof("现在角色等级: %d, 职业等级: %d", blv, jlv)
+			log.Infof("当前血量: %f %%, 经验: %d", g.GetHpPer()*100, g.Role.GetRoleExp())
 			wanted := condition.NoMonster
 			if condition.NoMonster {
 				counter := 0
@@ -644,7 +729,18 @@ func lvUp(condition StopAttackCondition, monsters ...string) {
 				log.Infof("练级完成")
 				g.AtkStat.SetStandstill(false)
 				stopNpc <- true
-				disable <- true
+				cancelAutoAtk()
+				return
+			}
+			if g.GetHpPer() == 0 {
+				log.Infof("死亡")
+				stopNpc <- true
+				cancelAutoAtk()
+				go func() {
+					g.Reconnect()
+					time.Sleep(5 * time.Second)
+					mjolnirMountains()
+				}()
 				return
 			}
 		}
@@ -739,9 +835,18 @@ func main() {
 			"3 bottom left2\n"+
 			"4 top left\n",
 	)
+	mountainChoice := flag.Int("mountainChoice", -1,
+		"Choice of mountain lv up point: \n"+
+			"0 bottom mid\n"+
+			"1 mid left\n"+
+			"2 mid right\n"+
+			"3 top right\n"+
+			"4 bottom left\n",
+	)
 	flag.Parse()
 	lvUpChoice = *choice
 	goblinLvUpChoice = *goblinChoice
+	mountainLvUpChoice = *mountainChoice
 	if *enablePprof {
 		go func() {
 			log.Println(http.ListenAndServe("localhost:6060", nil))
@@ -755,25 +860,8 @@ func main() {
 		g.DebugMsg = true
 		log.SetLevel(log.DebugLevel)
 	}
-	g.GameServerLogin()
 	g.AddNotifier("INTER_QUESTION")
-	inGameTicker := time.NewTicker(3 * time.Second)
-waitForInGame:
-	for {
-		select {
-		case <-inGameTicker.C:
-			log.Infof("等待角色进入游戏")
-			if g.Role.GetInGame() {
-				log.Infof("角色已进入游戏")
-				inGameTicker.Stop()
-				break waitForInGame
-			}
-		case <-time.After(15 * time.Second):
-			log.Warnf("等待进入游戏超时")
-			inGameTicker.Stop()
-			break waitForInGame
-		}
-	}
+	g.GameServerLogin()
 	_ = g.GetAllPackItems()
 	g.ChangeMap(g.Role.GetMapId())
 	time.Sleep(3 * time.Second)
@@ -786,9 +874,15 @@ waitForInGame:
 	jobScript()
 	putOnEquip("百万击破", Cmd.EEquipPos_EEQUIPPOS_HEAD)
 	putOnEquip("圣徒之弓[1]", Cmd.EEquipPos_EEQUIPPOS_WEAPON)
+	putOnEquip("光明圣徒战靴", Cmd.EEquipPos_EEQUIPPOS_SHOES)
+	putOnEquip("光明圣徒之盾", Cmd.EEquipPos_EEQUIPPOS_SHIELD)
+	putOnEquip("光明圣徒之铠", Cmd.EEquipPos_EEQUIPPOS_ARMOUR)
+	putOnEquip("光明圣徒披风", Cmd.EEquipPos_EEQUIPPOS_ROBE)
+	putOnEquip("圣徒项链", Cmd.EEquipPos_EEQUIPPOS_ACCESSORY1)
+	putOnEquip("圣徒之戒", Cmd.EEquipPos_EEQUIPPOS_ACCESSORY2)
 	westGate()
 	northGate()
-	goblinForest()
-
+	// goblinForest()
+	mjolnirMountains()
 	<-time.After(15 * time.Second)
 }

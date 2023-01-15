@@ -12,14 +12,22 @@ var (
 )
 
 func (g *GameConnection) UseItem(itemGuid string, count uint32) {
-	if count <= 0 {
-		count = 1
-	}
+
 	cmd := &Cmd.ItemUse{
 		Itemguid: &itemGuid,
-		Count:    &count,
+	}
+	if count > 0 {
+		cmd.Count = &count
 	}
 	_ = g.sendProtoCmd(cmd, SceneUserItemCmdId, Cmd.ItemParam_value["ITEMPARAM_ITEMUSE"])
+}
+
+func (g *GameConnection) GetItemCount(itemId uint32, source Cmd.ESource) {
+	cmd := Cmd.GetCountItemCmd{
+		Itemid: &itemId,
+		Source: &source,
+	}
+	_ = g.sendProtoCmd(&cmd, SceneUserItemCmdId, Cmd.ItemParam_value["ITEMPARAM_GETCOUNT"])
 }
 
 func (g *GameConnection) IsQuickSellItem(itemId uint32) bool {
@@ -69,7 +77,7 @@ func (g *GameConnection) EquipItem(guid string, pos Cmd.EEquipPos, oper Cmd.EEqu
 	_ = g.sendProtoCmd(cmd, SceneUserItemCmdId, Cmd.ItemParam_value["ITEMPARAM_EQUIP"])
 }
 
-func (g *GameConnection) FindItemByName(name string, packType Cmd.EPackType) (itemData *Cmd.ItemInfo) {
+func (g *GameConnection) FindPackItemByName(name string, packType Cmd.EPackType) (itemData *Cmd.ItemInfo) {
 	var itemId uint32
 	g.Mutex.RLock()
 	if val, ok := g.ItemsByName[name]; ok {
@@ -93,8 +101,25 @@ func (g *GameConnection) FindItemByName(name string, packType Cmd.EPackType) (it
 	return itemData
 }
 
+func (g *GameConnection) FindPackItemById(itemId uint32, packType Cmd.EPackType) (itemData *Cmd.ItemInfo) {
+	g.Mutex.RLock()
+	defer g.Mutex.RUnlock()
+	packItem := g.Role.GetPackItems()
+	if packItem == nil {
+		return itemData
+	}
+	for _, item := range packItem[packType] {
+		if item.GetBase().GetId() == itemId {
+			itemData = item.GetBase()
+			return itemData
+		}
+	}
+	log.Warnf("item id %d not found", itemId)
+	return itemData
+}
+
 func (g *GameConnection) EquipItemByName(name string, pos Cmd.EEquipPos, oper Cmd.EEquipOper) (err error) {
-	itemInfo := g.FindItemByName(name, Cmd.EPackType_EPACKTYPE_MAIN)
+	itemInfo := g.FindPackItemByName(name, Cmd.EPackType_EPACKTYPE_MAIN)
 	if itemInfo == nil {
 		return errors.New("item not found")
 	}
@@ -123,4 +148,13 @@ func (g *GameConnection) GetItemEquipPos(item *Cmd.ItemInfo) Cmd.EEquipPos {
 		return Cmd.EEquipPos_EEQUIPPOS_SHOES
 	}
 	return Cmd.EEquipPos_EEQUIPPOS_MIN
+}
+
+func (g *GameConnection) UseFlyWing() {
+	item := g.FindPackItemById(5024, Cmd.EPackType_EPACKTYPE_MAIN)
+	if item == nil {
+		log.Warnf("fly wing not found")
+		return
+	}
+	g.UseItem(item.GetGuid(), 1)
 }

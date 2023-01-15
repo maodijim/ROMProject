@@ -1,6 +1,7 @@
 package gameConnection
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"math"
@@ -10,6 +11,7 @@ import (
 	"time"
 
 	Cmd "ROMProject/Cmds"
+	notifier "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 	"github.com/mohae/deepcopy"
 	log "github.com/sirupsen/logrus"
@@ -145,7 +147,7 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 	}
 }
 
-func (g *GameConnection) GetTargetByRange(monsterName []string, srcPos Cmd.ScenePos, targetRange float64) (distDict map[float64]uint64, distanceList []float64) {
+func (g *GameConnection) GetTargetByRange(monsterList []string, srcPos Cmd.ScenePos, targetRange float64) (distDict map[float64]uint64, distanceList []float64) {
 	distDict = map[float64]uint64{}
 	g.Mutex.RLock()
 	mapNpcs := deepcopy.Copy(g.MapNpcs).(map[uint64]*Cmd.MapNpc)
@@ -158,7 +160,7 @@ func (g *GameConnection) GetTargetByRange(monsterName []string, srcPos Cmd.Scene
 		if npc.GetId() < 10000 {
 			continue
 		}
-		if (utils.StrSliceContain(monsterName, "all") || utils.StrSliceContain(monsterName, npc.GetName())) && len(npc.GetAttrs()) != 1 {
+		if (utils.Contains(monsterList, "all") || utils.Contains(monsterList, npc.GetName())) && len(npc.GetAttrs()) != 1 {
 			if npc.GetPos() == nil {
 				continue
 			}
@@ -171,6 +173,25 @@ func (g *GameConnection) GetTargetByRange(monsterName []string, srcPos Cmd.Scene
 	}
 	sort.Float64s(distanceList)
 	return distDict, distanceList
+}
+
+func (g *GameConnection) IsMonsterInRange(monsterList ...string) bool {
+	g.Mutex.RLock()
+	mapNpcs := deepcopy.Copy(g.MapNpcs).(map[uint64]*Cmd.MapNpc)
+	g.Mutex.RUnlock()
+	for _, npc := range mapNpcs {
+		if npc.GetOwner() != 0 {
+			continue
+		}
+		// This is not a monster
+		if npc.GetId() < 10000 {
+			continue
+		}
+		if utils.Contains(monsterList, npc.GetName()) && len(npc.GetAttrs()) != 1 {
+			return true
+		}
+	}
+	return false
 }
 
 func (g *GameConnection) copyTarget(org *Cmd.MapNpc) *Cmd.MapNpc {
@@ -253,24 +274,32 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 	}
 }
 
-func (g *GameConnection) EnableAutoAttack(monsterList []string, disable chan bool) {
+func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...string) {
 	go func() {
 		ticker := time.NewTicker(time.Millisecond * 100)
 		defer ticker.Stop()
 		for {
 			select {
-			case <-disable:
+			case <-ctx.Done():
+				log.Infof("stop auto attack")
+				ticker.Stop()
 				return
 			case <-g.quit:
+				log.Infof("stop auto attack")
+				ticker.Stop()
 				return
 			default:
 				autoSkills := g.GetAutoSkills()
 			skillLoop:
 				for _, skill := range autoSkills {
 					select {
-					case <-disable:
+					case <-ctx.Done():
+						log.Debugf("stop auto attack skill loop")
+						ticker.Stop()
 						return
 					case <-g.quit:
+						log.Debugf("stop auto attack skill loop")
+						ticker.Stop()
 						return
 					case <-ticker.C:
 						skillItem := g.SkillItems[skill.GetId()]
@@ -301,9 +330,11 @@ func (g *GameConnection) EnableAutoAttack(monsterList []string, disable chan boo
 									lastPrint := time.Now().Add(10 * time.Second)
 									for startTime := time.Now(); time.Since(startTime) < 50*time.Second; {
 										select {
-										case <-disable:
+										case <-ctx.Done():
+											ticker.Stop()
 											return
 										case <-g.quit:
+											ticker.Stop()
 											return
 										default:
 											if time.Since(lastPrint) > 10*time.Second {
@@ -435,8 +466,8 @@ func (g *GameConnection) AddAttrPoint(s, a, v, i, d, l uint32) ([]int32, error) 
 		sceneUser2CmdId,
 		Cmd.User2Param_value["USER2PARAM_ADDATTRPOINT"],
 	)
-	<-g.notifier["AddAttrPoint"]
-	g.removeNotifier("AddAttrPoint")
+	<-g.Notifier(notifier.NtfType_AddAttributePoint)
+	g.RemoveNotifier(notifier.NtfType_AddAttributePoint)
 	attrs = []int32{
 		int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_STRPOINT)),
 		int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_AGIPOINT)),

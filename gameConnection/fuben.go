@@ -27,10 +27,10 @@ func (g *GameConnection) GetTeamEXPQueryInfo() (info *Cmd.TeamExpQueryInfoFubenC
 	)
 	res, err := g.waitForResponse("TEAMEXP_QUERY_INFO")
 	if res != nil {
-		g.Mutex.Lock()
+		g.Role.Mutex.Lock()
 		info = res.(*Cmd.TeamExpQueryInfoFubenCmd)
 		g.Role.TeamExpFubenInfo = info
-		g.Mutex.Unlock()
+		g.Role.Mutex.Unlock()
 	}
 	return info, err
 }

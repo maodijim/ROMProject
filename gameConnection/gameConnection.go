@@ -13,12 +13,12 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
 	Cmd "ROMProject/Cmds"
 	"ROMProject/config"
+	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 	"github.com/golang/protobuf/proto"
 
@@ -32,7 +32,7 @@ type authJson struct {
 }
 
 var (
-	cmdQueueInterval    = 30 * time.Millisecond
+	cmdQueueInterval    = 75 * time.Millisecond
 	TradeProtoCmdId     = Cmd.Command_value["RECORD_USER_TRADE_PROTOCMD"]
 	LogInUserProtoCmdId = Cmd.Command_value["LOGIN_USER_PROTOCMD"]
 )
@@ -52,6 +52,7 @@ type GameConnection struct {
 	quit               chan bool
 	shouldQuit         bool
 	enteringMap        bool
+	mails              []*Cmd.MailData
 	inMap              bool
 	tradeDetail        map[uint32]*Cmd.DetailPendingListRecordTradeCmd
 	tradeBrief         map[uint32]*Cmd.BriefPendingListRecordTradeCmd
@@ -74,7 +75,7 @@ type GameConnection struct {
 	BuffItemsByName    map[string]utils.BuffItemByName
 	Items              map[uint32]utils.Items
 	ItemsByName        map[string]utils.ItemsByName
-	notifier           map[string]chan interface{}
+	notifier           map[gameTypes.NotifierType]chan interface{}
 	MonsterItems       map[uint32]utils.MonsterInfo
 	MonsterItemsByName map[string]utils.MonsterInfo
 	AtkStat            AttackMonsterStat
@@ -89,7 +90,7 @@ func (g *GameConnection) SetAuthed(Authed bool) {
 }
 
 const (
-	queryTimeout              = 8 * time.Second
+	queryTimeout              = 3 * time.Second
 	printHeartBeatLogInterval = 60 * time.Second
 	maxRetry                  = 0
 )
@@ -157,8 +158,7 @@ loginLoop:
 		if _, ok := g.AvailableRoles[uint32(g.Configs.Char)]; !ok {
 			// random character name
 			if g.Configs.CharacterName == "" {
-				g.Configs.CharacterName = utils.RandomString(7)
-				g.Configs.CharacterName = strings.ToLower(string(g.Configs.CharacterName[0])) + g.Configs.CharacterName[1:]
+				g.Configs.CharacterName = utils.RandomZhCharacterName(6)
 			}
 			err := g.CreateCharacter(
 				g.Configs.CharacterName,
@@ -183,6 +183,23 @@ loginLoop:
 	}
 	if g.conn != nil && g.Role.GetMapId() != 0 && g.Role.GetInGame() && !g.enteringMap && g.Role.GetLoginResult() == 0 {
 		g.enterGameMap()
+	}
+	g.WaitForInGame()
+}
+
+func (g *GameConnection) WaitForInGame() {
+	ticker := time.NewTicker(2 * time.Second)
+	for {
+		select {
+		case <-ticker.C:
+			if g.Role.GetInGame() {
+				// g.MoveChart(g.Role.GetPos())
+				ticker.Stop()
+				return
+			} else {
+				log.Warn("Waiting for in game")
+			}
+		}
 	}
 }
 
@@ -289,7 +306,6 @@ func (g *GameConnection) Reconnect() {
 		g.enteringMap = false
 		g.Role = utils.NewRole()
 	}
-	g.shouldQuit = false
 	g.GameServerLogin()
 }
 
@@ -379,9 +395,9 @@ func (g *GameConnection) sendCmd(flag, body []byte, delay time.Duration) {
 		newBody = append(newBody[:], body[:]...)
 		time.Sleep(delay)
 	}
-	g.Mutex.Lock()
-	defer g.Mutex.Unlock()
+	// g.Mutex.Lock()
 	g.cmdQueue = append(g.cmdQueue, newBody)
+	// g.Mutex.Unlock()
 }
 
 func (g *GameConnection) sendHandler() {
@@ -705,18 +721,6 @@ func (g *GameConnection) InGameMap() bool {
 	return g.inMap
 }
 
-func (g *GameConnection) AddNotifier(notifierType string) {
-	g.Mutex.Lock()
-	g.notifier[notifierType] = make(chan interface{})
-	g.Mutex.Unlock()
-}
-
-func (g *GameConnection) removeNotifier(notifierType string) {
-	g.Mutex.Lock()
-	g.notifier[notifierType] = nil
-	g.Mutex.Unlock()
-}
-
 func (g *GameConnection) getAccId() (err error) {
 	if g.Configs.Username != "" && g.Configs.Password != "" {
 		res, err := g.httpAuth(g.Configs.AuthServer)
@@ -808,7 +812,7 @@ func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 		ItemsByName:        allItemsByName,
 		MonsterItems:       map[uint32]utils.MonsterInfo{},
 		MonsterItemsByName: map[string]utils.MonsterInfo{},
-		notifier:           map[string]chan interface{}{},
+		notifier:           map[gameTypes.NotifierType]chan interface{}{},
 	}
 	if gc.MonsterItemsByName == nil {
 		gc.MonsterItemsByName = map[string]utils.MonsterInfo{}

@@ -25,11 +25,11 @@
 
 local json = require("dkjson")
 
-require("Table_Buffer")
-tableIn = Table_Buffer
+-- require("Table_Buffer")
+-- tableIn = Table_Buffer
 
--- require("Table_Item")
--- tableIn = Table_Item
+require("Table_Item")
+tableIn = Table_Item
 
 -- require("Table_Monster")
 -- tableIn = Table_Monster

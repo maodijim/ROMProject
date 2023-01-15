@@ -6,6 +6,7 @@ import (
 	"time"
 
 	Cmd "ROMProject/Cmds"
+	notifier "ROMProject/gameConnection/types"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -51,11 +52,11 @@ func (g *GameConnection) WaitForInterQuestion(interId uint32) (inter *Cmd.NewInt
 		case <-time.After(3 * time.Second):
 			if iq != nil {
 				go func() {
-					g.notifier["INTER_QUESTION"] <- iq
+					g.Notifier(notifier.NtfType_InterviewQuestion) <- iq
 				}()
 			}
 			return nil, errors.New(fmt.Sprintf("wait for inter question %d timeout", interId))
-		case note := <-g.notifier["INTER_QUESTION"]:
+		case note := <-g.Notifier(notifier.NtfType_InterviewQuestion):
 			iq = note.(*Cmd.NewInter)
 			if iq.GetInter().GetInterid() == interId {
 				return iq, nil

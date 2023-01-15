@@ -5,6 +5,7 @@ import (
 	"time"
 
 	Cmd "ROMProject/Cmds"
+	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
@@ -14,12 +15,12 @@ var (
 	queryOnce = false
 )
 
-func (g *GameConnection) waitForResponse(notifierType string) (res interface{}, err error) {
+func (g *GameConnection) waitForResponse(notifierType gameTypes.NotifierType) (res interface{}, err error) {
 	start := time.Now()
 	for time.Since(start) < queryTimeout {
 		select {
-		case res = <-g.notifier[notifierType]:
-			g.removeNotifier(notifierType)
+		case res = <-g.Notifier(notifierType):
+			g.RemoveNotifier(notifierType)
 			return res, err
 		default:
 			time.Sleep(time.Second)
@@ -28,7 +29,7 @@ func (g *GameConnection) waitForResponse(notifierType string) (res interface{}, 
 	if time.Since(start) > queryTimeout {
 		err = ErrQueryTimeout
 	}
-	g.removeNotifier(notifierType)
+	g.RemoveNotifier(notifierType)
 	return res, err
 }
 
@@ -45,6 +46,12 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 		var param proto.Message
 		var err error
 		switch cmdId {
+		case Cmd.Command_value["SESSION_USER_MAIL_PROTOCMD"]:
+			_, _ = g.HandleSessionMailMsg(cmdParamId, o)
+
+		case Cmd.Command_value["CENE_BOSS_PROTOCMD"]:
+			_, _ = g.HandleSceneBossMsg(cmdParamId, o)
+
 		case Cmd.Command_value["LOGIN_USER_PROTOCMD"]:
 			_, _ = g.HandleLoginUserCmd(cmdParamId, o)
 
@@ -104,7 +111,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				err = utils.ParseCmd(o, param)
 				packUpdate := param.(*Cmd.PackageUpdate)
 				packType := packUpdate.GetType()
-				g.Mutex.Lock()
+				g.Role.Mutex.Lock()
 				for _, item := range packUpdate.GetUpdateItems() {
 					guid := item.GetBase().GetGuid()
 					if g.Role.PackItems[packType] == nil {
@@ -116,7 +123,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 					guid := item.GetBase().GetGuid()
 					delete(g.Role.PackItems[packType], guid)
 				}
-				g.Mutex.Unlock()
+				g.Role.Mutex.Unlock()
 
 			case Cmd.ItemParam_value["ITEMPARAM_BROWSEPACK"]:
 				param = &Cmd.BrowsePackage{}
@@ -125,9 +132,10 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 			case Cmd.ItemParam_value["ITEMPARAM_PACKAGEITEM"]:
 				param = &Cmd.PackageItem{}
 				err = utils.ParseCmd(o, param)
-				g.Mutex.Lock()
+				g.Role.Mutex.Lock()
 				items := param.(*Cmd.PackageItem)
 				if len(items.GetData()) == 0 {
+					g.Role.Mutex.Unlock()
 					continue
 				} else {
 					if g.Role.PackItems[items.GetType()] == nil {
@@ -137,7 +145,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 						g.Role.PackItems[items.GetType()][data.GetBase().GetGuid()] = data
 					}
 				}
-				g.Mutex.Unlock()
+				g.Role.Mutex.Unlock()
 			}
 
 		case Cmd.Command_value["SCENE_USER_SKILL_PROTOCMD"]:
@@ -196,12 +204,12 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				param = &Cmd.TeamExpQueryInfoFubenCmd{}
 				err = utils.ParseCmd(o, param)
 				queryInfo := param.(*Cmd.TeamExpQueryInfoFubenCmd)
-				if g.notifier["TEAMEXP_QUERY_INFO"] != nil {
-					g.notifier["TEAMEXP_QUERY_INFO"] <- queryInfo
+				if g.Notifier(gameTypes.NtfType_TeamExpQueryInfo) != nil {
+					g.Notifier(gameTypes.NtfType_TeamExpQueryInfo) <- queryInfo
 				} else {
-					g.Mutex.Lock()
+					g.Role.Mutex.Lock()
 					g.Role.TeamExpFubenInfo = queryInfo
-					g.Mutex.Unlock()
+					g.Role.Mutex.Unlock()
 				}
 
 			default:
@@ -258,14 +266,14 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				err = utils.ParseCmd(o, param)
 				// update team prepare list
 				prepMember := param.(*Cmd.UpdatePreInfoMatchCCmd)
-				g.Mutex.Lock()
+				g.Role.Mutex.Lock()
 				if prepMember.GetCharid() != 0 && g.Role.MatchInfos[prepMember.GetEtype()] != nil {
 					g.Role.MatchInfos[prepMember.GetEtype()].PrepedMember = append(
 						g.Role.MatchInfos[prepMember.GetEtype()].PrepedMember,
 						prepMember.Charid,
 					)
 				}
-				g.Mutex.Unlock()
+				g.Role.Mutex.Unlock()
 
 			default:
 				continue
@@ -295,7 +303,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				param = &Cmd.TeamApplyUpdate{}
 				err = utils.ParseCmd(o, param)
 				applyList := param.(*Cmd.TeamApplyUpdate)
-				g.Mutex.Lock()
+				g.Role.Mutex.Lock()
 				for _, apply := range applyList.GetUpdates() {
 					for _, cur := range g.Role.TeamApply {
 						if apply.GetGuid() == cur.GetGuid() {
@@ -317,7 +325,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 						}
 					}
 				}
-				g.Mutex.Unlock()
+				g.Role.Mutex.Unlock()
 
 			case Cmd.TeamParam_value["TEAMPARAM_MEMBERPOSUPDATE"]:
 				param = &Cmd.MemberPosUpdate{}
@@ -348,15 +356,15 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				param = &Cmd.EnterTeam{}
 				err = utils.ParseCmd(o, param)
 				enterT := param.(*Cmd.EnterTeam)
-				g.Mutex.Lock()
+				g.Role.Mutex.Lock()
 				g.Role.TeamData = enterT.Data
-				g.Mutex.Unlock()
+				g.Role.Mutex.Unlock()
 
 			case Cmd.TeamParam_value["TEAMPARAM_QUERYUSERTEAMINFO"]:
 				param = &Cmd.QueryUserTeamInfoTeamCmd{}
 				err = utils.ParseCmd(o, param)
-				if _, ok := g.notifier["TEAMPARAM_QUERYUSERTEAMINFO"]; ok {
-					g.notifier["TEAMPARAM_QUERYUSERTEAMINFO"] <- param.(*Cmd.QueryUserTeamInfoTeamCmd)
+				if g.Notifier(gameTypes.NtfType_TeamParamQueryUserTeamInfo) != nil {
+					g.Notifier(gameTypes.NtfType_TeamParamQueryUserTeamInfo) <- param.(*Cmd.QueryUserTeamInfoTeamCmd)
 				}
 
 			case Cmd.TeamParam_value["TEAMPARAM_MEMBERDATAUPDATE"]:
@@ -364,15 +372,12 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				err = utils.ParseCmd(o, param)
 				mData := param.(*Cmd.MemberDataUpdate)
 				// Update Team member data
-				g.Mutex.Lock()
 				g.updateTeamMemberDatas(mData)
-				g.Mutex.Unlock()
 
 			case Cmd.TeamParam_value["TEAMPARAM_MEMBERUPDATE"]:
 				param = &Cmd.TeamMemberUpdate{}
 				err = utils.ParseCmd(o, param)
 				teamUpdate := param.(*Cmd.TeamMemberUpdate)
-				g.Mutex.Lock()
 				// Add new team member
 				if len(teamUpdate.GetUpdates()) > 0 {
 					for _, member := range teamUpdate.GetUpdates() {
@@ -385,7 +390,6 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 						g.removeTeamMember(del)
 					}
 				}
-				g.Mutex.Unlock()
 
 			default:
 				continue
@@ -397,7 +401,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				param = &Cmd.QuestUpdate{}
 				err = utils.ParseCmd(o, param)
 				questUpdate := param.(*Cmd.QuestUpdate)
-				g.Mutex.Lock()
+				g.Role.Mutex.Lock()
 				for _, quests := range questUpdate.GetItems() {
 					tempQuestList := g.Role.GetQuestList(quests.GetType()).GetList()
 					for _, update := range quests.GetUpdate() {
@@ -421,14 +425,14 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 						g.Role.QuestList[quests.GetType()].List = tempQuestList
 					}
 				}
-				g.Mutex.Unlock()
+				g.Role.Mutex.Unlock()
 
 			case Cmd.QuestParam_value["QUESTPARAM_QUESTLIST"]:
 				param = &Cmd.QuestList{}
 				err = utils.ParseCmd(o, param)
 				ql := param.(*Cmd.QuestList)
-				if g.notifier["QUESTPARAM_QUESTLIST"] != nil {
-					g.notifier["QUESTPARAM_QUESTLIST"] <- ql
+				if g.Notifier(gameTypes.NtfType_QuestList) != nil {
+					g.Notifier(gameTypes.NtfType_QuestList) <- ql
 				} else {
 					g.Role.QuestList[ql.GetType()] = ql
 				}
@@ -441,25 +445,25 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 			case Cmd.PetParam_value["PETPARAM_ADVENTURE_QUERYLIST"]:
 				param = &Cmd.QueryPetAdventureListPetCmd{}
 				err = utils.ParseCmd(o, param)
-				if g.notifier["PETPARAM_ADVENTURE_QUERYLIST"] != nil {
+				if g.Notifier(gameTypes.NtfType_PetAdventureQueryList) != nil {
 					ql := param.(*Cmd.QueryPetAdventureListPetCmd)
-					g.notifier["PETPARAM_ADVENTURE_QUERYLIST"] <- ql
+					g.Notifier(gameTypes.NtfType_PetAdventureQueryList) <- ql
 				}
 
 			case Cmd.PetParam_value["PETPARAM_WORK_QUERYWORKDATA"]:
 				param = &Cmd.QueryPetWorkDataPetCmd{}
 				err = utils.ParseCmd(o, param)
-				if g.notifier["PETPARAM_WORK_QUERYWORKDATA"] != nil {
+				if g.Notifier(gameTypes.NtfType_PetQueryWorkData) != nil {
 					workData := param.(*Cmd.QueryPetWorkDataPetCmd)
-					g.notifier["PETPARAM_WORK_QUERYWORKDATA"] <- workData
+					g.Notifier(gameTypes.NtfType_PetQueryWorkData) <- workData
 				}
 
 			case Cmd.PetParam_value["PETPARAM_ADVENTURE_QUERYBATTLEPET"]:
 				param = &Cmd.QueryBattlePetCmd{}
 				err = utils.ParseCmd(o, param)
-				if g.notifier["PETPARAM_ADVENTURE_QUERYBATTLEPET"] != nil {
+				if g.Notifier(gameTypes.NtfType_PetQueryBattlePet) != nil {
 					battlePet := param.(*Cmd.QueryBattlePetCmd)
-					g.notifier["PETPARAM_ADVENTURE_QUERYBATTLEPET"] <- battlePet
+					g.Notifier(gameTypes.NtfType_PetQueryBattlePet) <- battlePet
 				}
 
 			default:
@@ -470,8 +474,8 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 			case Cmd.SocialityParam_value["SOCIALITYPARAM_FINDUSER"]:
 				param = &Cmd.FindUser{}
 				err = utils.ParseCmd(o, param)
-				if _, ok := g.notifier["SOCIALITYPARAM_FINDUSER"]; ok {
-					g.notifier["SOCIALITYPARAM_FINDUSER"] <- param.(*Cmd.FindUser)
+				if g.Notifier(gameTypes.NtfType_SocialityFindUser) != nil {
+					g.Notifier(gameTypes.NtfType_SocialityFindUser) <- param.(*Cmd.FindUser)
 				}
 
 			default:
@@ -484,18 +488,18 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				param = &Cmd.UserTowerInfoCmd{}
 				err = utils.ParseCmd(o, param)
 				towerInfo := param.(*Cmd.UserTowerInfoCmd)
-				if g.notifier["ETOWERPARAM_USERTOWERINFO"] != nil {
-					g.notifier["ETOWERPARAM_USERTOWERINFO"] <- towerInfo
+				if g.Notifier(gameTypes.NtfType_TowerUserInfo) != nil {
+					g.Notifier(gameTypes.NtfType_TowerUserInfo) <- towerInfo
 				}
-				g.Mutex.Lock()
+				g.Role.Mutex.Lock()
 				g.Role.UserTowerInfo = towerInfo.GetUsertower()
-				g.Mutex.Unlock()
+				g.Role.Mutex.Unlock()
 
 			case Cmd.TowerParam_value["ETOWERPARAM_TEAMTOWERSUMMARY"]:
 				param = &Cmd.TeamTowerSummary{}
 				err = utils.ParseCmd(o, param)
-				if g.notifier["ETOWERPARAM_TEAMTOWERSUMMARY"] != nil {
-					g.notifier["ETOWERPARAM_TEAMTOWERSUMMARY"] <- param.(*Cmd.TeamTowerSummary)
+				if g.Notifier(gameTypes.NtfType_TowerTeamSummary) != nil {
+					g.Notifier(gameTypes.NtfType_TowerTeamSummary) <- param.(*Cmd.TeamTowerSummary)
 				}
 			case Cmd.TowerParam_value["ETOWERPARAM_INVITE"]:
 				go func() {
@@ -510,9 +514,9 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 			case Cmd.InterParam_value["INTERPARAM_NEWINTERLOCUTION"]:
 				param = &Cmd.NewInter{}
 				err = utils.ParseCmd(o, param)
-				if g.notifier["INTER_QUESTION"] != nil {
+				if g.Notifier(gameTypes.NtfType_InterviewQuestion) != nil {
 					go func() {
-						g.notifier["INTER_QUESTION"] <- param.(*Cmd.NewInter)
+						g.Notifier(gameTypes.NtfType_InterviewQuestion) <- param.(*Cmd.NewInter)
 					}()
 				}
 			}
@@ -521,14 +525,14 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 			case Cmd.ShopParam_value["SHOPPARAM_QUERY_SHOP_CONFIG"]:
 				param = &Cmd.QueryShopConfigCmd{}
 				err = utils.ParseCmd(o, param)
-				if g.notifier["SHOPPARAM_QUERY_SHOP_CONFIG"] != nil {
-					g.notifier["SHOPPARAM_QUERY_SHOP_CONFIG"] <- param.(*Cmd.QueryShopConfigCmd)
+				if g.Notifier(gameTypes.NtfType_ShopQueryShopConfig) != nil {
+					g.Notifier(gameTypes.NtfType_ShopQueryShopConfig) <- param.(*Cmd.QueryShopConfigCmd)
 				}
 			case Cmd.ShopParam_value["SHOPPARAM_BUYITEM"]:
 				param = &Cmd.BuyShopItem{}
 				err = utils.ParseCmd(o, param)
-				if g.notifier["SHOPPARAM_BUYITEM"] != nil {
-					g.notifier["SHOPPARAM_BUYITEM"] <- param.(*Cmd.BuyShopItem)
+				if g.Notifier(gameTypes.NtfType_ShopBuyItem) != nil {
+					g.Notifier(gameTypes.NtfType_ShopBuyItem) <- param.(*Cmd.BuyShopItem)
 				}
 			}
 		}

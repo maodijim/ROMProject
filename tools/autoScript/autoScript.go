@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"time"
 
@@ -48,8 +49,8 @@ func main() {
 	gameConnect.GameServerLogin()
 	quit := make(chan bool)
 	gameConnect.CheckForFubenInviteInBackground(quit)
-	disable := make(chan bool)
-	gameConnect.EnableAutoAttack([]string{"all"}, disable)
+	disable, _ := context.WithCancel(context.Background())
+	gameConnect.EnableAutoAttack(disable, "all")
 	// gameConnect.InviteTeamExpFuben()
 	gameConnect.AutoSubmitWantedQuest()
 	go func() {

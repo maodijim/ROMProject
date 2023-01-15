@@ -1,8 +1,11 @@
 package config
 
 import (
+	"bytes"
+	"io"
 	"os"
 
+	"ROMProject/data"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -50,9 +53,37 @@ type ServerConfigs struct {
 	TeamConfig  TeamConfig        `yaml:"team"`
 }
 
+func (s *ServerConfigs) SetTeamLeader(name string) {
+	s.TeamConfig.LeaderName = name
+}
+
+func (s *ServerConfigs) SetFollowTeamLeader(yes bool) {
+	s.TeamConfig.FollowTeamLeader = yes
+}
+
+func parseConfigYaml(r io.Reader, sc *ServerConfigs) error {
+	decoder := yaml.NewDecoder(r)
+	err := decoder.Decode(sc)
+	if err != nil {
+		return err
+	}
+
+	if sc.Region < 1 {
+		sc.Region = 1
+	} else {
+		sc.Region -= 1
+	}
+
+	return nil
+}
+
 func NewServerConfigs(configYaml string) *ServerConfigs {
 	configPath := configYaml
-	config := &ServerConfigs{}
+	configs := &ServerConfigs{}
+	err := parseConfigYaml(bytes.NewReader(data.ConfigYml), configs)
+	if err != nil {
+		log.Fatalf("failed to parse default config yaml: %v", err)
+	}
 	if configYaml == "" {
 		configPath = "config.yml"
 	}
@@ -62,18 +93,11 @@ func NewServerConfigs(configYaml string) *ServerConfigs {
 		log.Exit(2)
 	}
 	defer f.Close()
-	decoder := yaml.NewDecoder(f)
-	err = decoder.Decode(config)
+	err = parseConfigYaml(f, configs)
 	if err != nil {
 		log.Errorf("parse config yaml failed: %s", err)
 		log.Exit(3)
 	}
 
-	if config.Region < 1 {
-		config.Region = 1
-	} else {
-		config.Region -= 1
-	}
-
-	return config
+	return configs
 }

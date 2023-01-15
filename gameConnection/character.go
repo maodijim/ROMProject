@@ -3,6 +3,7 @@ package gameConnection
 import (
 	"fmt"
 	"regexp"
+	"unicode/utf8"
 
 	Cmd "ROMProject/Cmds"
 	"ROMProject/utils"
@@ -122,7 +123,8 @@ func (g *GameConnection) CreateCharacter(roleName string, roleSex, profession, h
 	if roleSex == 0 {
 		roleSex = 1
 	}
-	if len(roleName) < 2 || len(roleName) > 8 {
+	nameLength := utf8.RuneCountInString(roleName)
+	if nameLength < 2 || nameLength > 8 {
 		return fmt.Errorf("角色名长度不符合要求 2-8个字符")
 	}
 	cmd := &Cmd.CreateCharUserCmd{

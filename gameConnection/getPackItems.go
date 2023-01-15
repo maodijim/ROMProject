@@ -49,7 +49,7 @@ func (g *GameConnection) GetPackItem(packType *Cmd.EPackType) (err error) {
 	cmd := &Cmd.PackageItem{
 		Type: packType,
 	}
-	g.sendProtoCmd(
+	_ = g.sendProtoCmd(
 		cmd,
 		Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"],
 		Cmd.ItemParam_value["ITEMPARAM_PACKAGEITEM"],

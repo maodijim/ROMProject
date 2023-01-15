@@ -4,6 +4,7 @@ import (
 	"time"
 
 	Cmd "ROMProject/Cmds"
+	notifier "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
@@ -16,6 +17,15 @@ var (
 func (g *GameConnection) HandleSceneUserProtoCmd(cmdParamId int32, rawData []byte) (err error) {
 	var param proto.Message
 	switch cmdParamId {
+	case Cmd.CmdParam_value["GOTO_USER_CMD"]:
+		param = &Cmd.GoToUserCmd{}
+		err = utils.ParseCmd(rawData, param)
+		goTo := param.(*Cmd.GoToUserCmd)
+		if goTo.GetPos() != nil {
+			g.Role.Pos = goTo.GetPos()
+			log.Infof("%s moved to %v", g.Role.GetRoleName(), g.Role.Pos)
+		}
+
 	case Cmd.CmdParam_value["DELETE_ENTRY_USER_CMD"]:
 		param = &Cmd.DeleteEntryUserCmd{}
 		err = utils.ParseCmd(rawData, param)
@@ -42,14 +52,15 @@ func (g *GameConnection) HandleSceneUserProtoCmd(cmdParamId int32, rawData []byt
 		param = &Cmd.RetMoveUserCmd{}
 		err = utils.ParseCmd(rawData, param)
 		cmd := param.(*Cmd.RetMoveUserCmd)
-		g.Mutex.Lock()
 		if g.Role.FollowUserId != 0 && g.Role.FollowUserId == cmd.GetCharid() {
 			go func() {
 				log.Debugf("following user %d to %v", cmd.GetCharid(), cmd.GetPos())
-				g.MoveChart(*cmd.GetPos())
+				if cmd.GetPos() != nil {
+					g.MoveChart(*cmd.GetPos())
+				}
 			}()
 		}
-		if cmd.GetCharid() == *g.Role.RoleId {
+		if cmd.GetCharid() == g.Role.GetRoleId() {
 			if time.Now().Second()%5 == 0 {
 				log.Infof(
 					"Moving charater %s to position: %v",
@@ -57,13 +68,16 @@ func (g *GameConnection) HandleSceneUserProtoCmd(cmdParamId int32, rawData []byt
 					param.(*Cmd.RetMoveUserCmd).GetPos(),
 				)
 			}
-			g.Role.Pos = cmd.GetPos()
+			g.Role.SetRolePos(cmd.GetPos())
 		} else if g.MapNpcs[cmd.GetCharid()] != nil {
+			g.Mutex.Lock()
 			g.MapNpcs[cmd.GetCharid()].Pos = cmd.GetPos()
+			g.Mutex.Unlock()
 		} else if g.MapUsers[cmd.GetCharid()] != nil {
+			g.Mutex.Lock()
 			g.MapUsers[cmd.GetCharid()].Pos = cmd.GetPos()
+			g.Mutex.Unlock()
 		}
-		g.Mutex.Unlock()
 
 	case Cmd.CmdParam_value["USERPARAM_USERSYNC"]:
 		param = &Cmd.UserSyncCmd{}
@@ -81,8 +95,8 @@ func (g *GameConnection) HandleSceneUserProtoCmd(cmdParamId int32, rawData []byt
 			g.UpdateUserParams(datas, attrs)
 			g.Mutex.Unlock()
 		}
-		if g.notifier["AddAttrPoint"] != nil {
-			g.notifier["AddAttrPoint"] <- true
+		if g.Notifier(notifier.NtfType_AddAttributePoint) != nil {
+			g.Notifier(notifier.NtfType_AddAttributePoint) <- true
 		}
 
 	case Cmd.CmdParam_value["CHANGE_SCENE_USER_CMD"]:
