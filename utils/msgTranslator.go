@@ -127,6 +127,15 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER2_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.User2Param_value["USER2PARAM_DEATH_TRANSFER_LIST"]:
+				param = &Cmd.DeathTransferListCmd{}
+
+			case Cmd.User2Param_value["USER2PARAM_QUERY_ZONESTATUS"]:
+				param = &Cmd.QueryZoneStatusUserCmd{}
+
+			case Cmd.User2Param_value["USER2PARAM_JUMP_ZONE"]:
+				param = &Cmd.JumpZoneUserCmd{}
+
 			case Cmd.User2Param_value["USER2PARAM_PROFESSION_QUERY"]:
 				param = &Cmd.ProfessionQueryUserCmd{}
 
@@ -281,6 +290,12 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.ItemParam_value["ITEMPARAM_PROCESSENCHANT"]:
+				param = &Cmd.ProcessEnchantItemCmd{}
+
+			case Cmd.ItemParam_value["ITEMPARAM_ENCHANT"]:
+				param = &Cmd.EnchantEquip{}
+
 			case Cmd.ItemParam_value["ITEMPARAM_USECOUNT"]:
 				param = &Cmd.UseCountItemCmd{}
 
@@ -346,6 +361,9 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER_MANUAL_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.ManualParam_value["MANUALPARAM_POINTSYNC"]:
+				param = &Cmd.PointSync{}
+
 			case Cmd.ManualParam_value["MANUALPARAM_UPDATE"]:
 				param = &Cmd.ManualUpdate{}
 
@@ -647,6 +665,9 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER_QUEST_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.QuestParam_value["QUESTPARAM_QUERYOTHERDATA"]:
+				param = &Cmd.QueryOtherData{}
+
 			case Cmd.QuestParam_value["QUESTPARAM_QUESTRAIDCMD"]:
 				param = &Cmd.QuestRaidCmd{}
 
@@ -768,6 +789,12 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SESSION_USER_SOCIALITY_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.SocialityParam_value["SOCIALITYPARAM_ADDRELATION"]:
+				param = &Cmd.AddRelation{}
+
+			case Cmd.SocialityParam_value["SOCIALITYPARAM_FRAMESTATUS"]:
+				param = &Cmd.FrameStatusSocialCmd{}
+
 			case Cmd.SocialityParam_value["SOCIALITYPARAM_FINDUSER"]:
 				param = &Cmd.FindUser{}
 

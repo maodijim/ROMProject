@@ -405,9 +405,9 @@ func RandomZhCharacterName(length int) string {
 	var name string
 	lastChar := []string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
 	fourthChar := []string{"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
-	thirdChar := []string{"名", "轩", "汉", "姝", "逸", "宫", "布", "菲", "星", "托"}
-	secChar := []string{"问", "叶", "时", "季", "乐", "月", "荦", "醉", "梦", "生"}
-	firstChar := []string{"明", "猎", "登", "高", "长", "伪", "罗", "净", "空", "竹"}
+	thirdChar := []string{"名", "轩", "汉", "姝", "逸", "宫", "布", "菲", "星", "托", "玖", "葵"}
+	secChar := []string{"问", "叶", "时", "季", "乐", "月", "荦", "醉", "梦", "生", "彼", "斐"}
+	firstChar := []string{"明", "猎", "登", "高", "长", "伪", "罗", "净", "空", "竹", "黎", "佩"}
 	rand.Seed(time.Now().UnixNano())
 	name += firstChar[rand.Intn(len(firstChar))]
 	rand.Seed(time.Now().UnixNano())
@@ -423,4 +423,24 @@ func RandomZhCharacterName(length int) string {
 
 func GetAttrPointReq(currentPoint int32) int32 {
 	return int32(math.Floor(float64(currentPoint)/9) + 2)
+}
+
+func GetMapKeys[K comparable, V any](m map[K]V) []K {
+	keys := make([]K, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+func RevertMap[K comparable, V comparable](m map[K]V) map[V]K {
+	newMap := make(map[V]K)
+	for k, v := range m {
+		newMap[v] = k
+	}
+	return newMap
+}
+
+func PosEqual(pos1, pos2 Cmd.ScenePos) bool {
+	return pos1.GetX() == pos2.GetX() && pos1.GetY() == pos2.GetY() && pos1.GetZ() == pos2.GetZ()
 }

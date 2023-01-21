@@ -176,14 +176,23 @@ loginLoop:
 			time.Sleep(3 * time.Second)
 		}
 	}
-
 	if g.IsAuthed() && g.conn != nil {
 		g.SelectRole()
-		time.Sleep(1 * time.Second)
 	}
-	if g.conn != nil && g.Role.GetMapId() != 0 && g.Role.GetInGame() && !g.enteringMap && g.Role.GetLoginResult() == 0 {
-		g.enterGameMap()
+	enterMapTick := time.NewTicker(2 * time.Second)
+	defer enterMapTick.Stop()
+enterMapLoop:
+	for {
+		select {
+		case <-enterMapTick.C:
+			if g.conn != nil && g.Role.GetMapId() != 0 && g.Role.GetInGame() && !g.enteringMap && g.Role.GetLoginResult() == 0 {
+				g.enterGameMap()
+				break enterMapLoop
+			}
+			log.Infof("Waiting for enter map")
+		}
 	}
+
 	g.WaitForInGame()
 }
 
@@ -193,7 +202,8 @@ func (g *GameConnection) WaitForInGame() {
 		select {
 		case <-ticker.C:
 			if g.Role.GetInGame() {
-				// g.MoveChart(g.Role.GetPos())
+				// If not moved strange things will happen
+				g.MoveChart(g.Role.GetPos())
 				ticker.Stop()
 				return
 			} else {
@@ -304,7 +314,8 @@ func (g *GameConnection) Reconnect() {
 	if g.conn != nil {
 		g.Close()
 		g.enteringMap = false
-		g.Role = utils.NewRole()
+		roleOptions := utils.RoleTeamOption(g.Configs.TeamConfig)
+		g.Role = utils.NewRole(roleOptions)
 	}
 	g.GameServerLogin()
 }
@@ -343,7 +354,7 @@ func (g *GameConnection) httpAuth(authHost string) (*authJson, error) {
 		}
 	}
 	req.URL.RawQuery = q.Encode()
-	log.Printf("Sending request to: %s", req.URL.String())
+	log.Debugf("Sending request to: %s", req.URL.String())
 	res, err := client.Do(req)
 	if err != nil {
 		log.Fatalf("failed to request %s: %s", req.URL.String(), err)
@@ -438,9 +449,10 @@ func (g *GameConnection) getServerTimeUserCmd(curTime uint64, timeZone int32, pa
 	if curTime > 0 {
 		pb.Time = &curTime
 	}
-	if timeZone > 0 {
-		pb.TimeZone = &timeZone
-	}
+
+	// if timeZone > 0 {
+	// 	pb.TimeZone = &timeZone
+	// }
 	return pb
 }
 
@@ -454,7 +466,7 @@ func (g *GameConnection) getReqLoginUserCmd(zId, serverId, language, langZone, c
 		// Ip:            &ip,
 		// Device:        &device,
 		Language: &language,
-		Deviceid: &deviceId,
+		// Deviceid: &deviceId,
 		// Clientversion: &clientVer,
 		Timestamp: &timestamp,
 		// Langzone:      &langZone,
@@ -490,6 +502,8 @@ func (g *GameConnection) enterGameMap() {
 		return
 	}
 	g.ChangeMap(g.Role.GetMapId())
+	// If not moved strange things will happen
+	g.MoveChart(g.Role.GetPos())
 }
 
 func (g *GameConnection) QueryCat(catId uint32) (results *Cmd.BriefPendingListRecordTradeCmd) {
@@ -695,18 +709,18 @@ func (g *GameConnection) doSelectRole() {
 	}
 	_ = g.sendProtoCmd(cmd, sceneUser2CmdId, Cmd.User2Param_value["USER2PARAM_NEW_SET_OPTION"])
 
-	k := "0000"
-	cp := uint32(13510102)
+	// k := "0000"
+	// cp := uint32(13510102)
 	rid := g.Role.GetRoleId()
 	cmd1 := &Cmd.SelectRoleUserCmd{
-		Id:       &rid,
-		Deviceid: &g.Configs.DeviceId,
+		Id:        &rid,
+		Deviceid:  &g.Configs.DeviceId,
 		ExtraData: &Cmd.ExtraData{
-			System: &g.Configs.Device,
-			Model:  &g.Configs.Model,
+			// System: &g.Configs.Device,
+			// Model:  &g.Configs.Model,
 		},
-		Pushkey:  &k,
-		Clickpos: &cp,
+		// Pushkey:  &k,
+		// Clickpos: &cp,
 	}
 	log.Infof("sending select role command: %v", cmd1)
 	_ = g.sendProtoCmd(cmd1, LogInUserProtoCmdId, Cmd.LoginCmdParam_value["SELECT_ROLE_USER_CMD"])
@@ -785,10 +799,10 @@ func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 	if items != nil && items.ItemsByName != nil {
 		allItemsByName = items.ItemsByName
 	}
-
+	roleOption := utils.RoleTeamOption(config.TeamConfig)
 	gc := &GameConnection{
 		Configs:            config,
-		Role:               utils.NewRole(),
+		Role:               utils.NewRole(roleOption),
 		AvailableRoles:     map[uint32]*utils.RoleInfo{},
 		currentIndex:       1,
 		tradeBrief:         map[uint32]*Cmd.BriefPendingListRecordTradeCmd{},

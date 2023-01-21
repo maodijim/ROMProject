@@ -77,7 +77,16 @@ func (g *GameConnection) EquipItem(guid string, pos Cmd.EEquipPos, oper Cmd.EEqu
 	_ = g.sendProtoCmd(cmd, SceneUserItemCmdId, Cmd.ItemParam_value["ITEMPARAM_EQUIP"])
 }
 
-func (g *GameConnection) FindPackItemByName(name string, packType Cmd.EPackType) (itemData *Cmd.ItemInfo) {
+func (g *GameConnection) FindItemNameById(itemId uint32) string {
+	g.Mutex.RLock()
+	defer g.Mutex.RUnlock()
+	if val, ok := g.Items[itemId]; ok {
+		return val.NameZh
+	}
+	return ""
+}
+
+func (g *GameConnection) FindPackItemByName(name string, packType Cmd.EPackType) (itemData *Cmd.ItemData) {
 	var itemId uint32
 	g.Mutex.RLock()
 	if val, ok := g.ItemsByName[name]; ok {
@@ -87,13 +96,15 @@ func (g *GameConnection) FindPackItemByName(name string, packType Cmd.EPackType)
 			break
 		}
 	}
+	g.Mutex.RUnlock()
 	if itemId == 0 {
 		log.Warnf("item name for id %s not found", name)
 	}
 	items := g.Role.GetPackItems()
+	g.Mutex.RLock()
 	for _, item := range items[packType] {
 		if item.GetBase().GetId() == itemId {
-			itemData = item.GetBase()
+			itemData = item
 			break
 		}
 	}
@@ -101,7 +112,7 @@ func (g *GameConnection) FindPackItemByName(name string, packType Cmd.EPackType)
 	return itemData
 }
 
-func (g *GameConnection) FindPackItemById(itemId uint32, packType Cmd.EPackType) (itemData *Cmd.ItemInfo) {
+func (g *GameConnection) FindPackItemById(itemId uint32, packType Cmd.EPackType) (itemData *Cmd.ItemData) {
 	g.Mutex.RLock()
 	defer g.Mutex.RUnlock()
 	packItem := g.Role.GetPackItems()
@@ -110,7 +121,7 @@ func (g *GameConnection) FindPackItemById(itemId uint32, packType Cmd.EPackType)
 	}
 	for _, item := range packItem[packType] {
 		if item.GetBase().GetId() == itemId {
-			itemData = item.GetBase()
+			itemData = item
 			return itemData
 		}
 	}
@@ -119,7 +130,7 @@ func (g *GameConnection) FindPackItemById(itemId uint32, packType Cmd.EPackType)
 }
 
 func (g *GameConnection) EquipItemByName(name string, pos Cmd.EEquipPos, oper Cmd.EEquipOper) (err error) {
-	itemInfo := g.FindPackItemByName(name, Cmd.EPackType_EPACKTYPE_MAIN)
+	itemInfo := g.FindPackItemByName(name, Cmd.EPackType_EPACKTYPE_MAIN).GetBase()
 	if itemInfo == nil {
 		return errors.New("item not found")
 	}
@@ -128,6 +139,20 @@ func (g *GameConnection) EquipItemByName(name string, pos Cmd.EEquipPos, oper Cm
 	}
 	g.EquipItem(itemInfo.GetGuid(), pos, oper)
 	return nil
+}
+
+func (g *GameConnection) FindPackItemByGuid(guid string, packType Cmd.EPackType) (itemData *Cmd.ItemData) {
+	packItem := g.Role.GetPackItemsByType(packType)
+	if packItem == nil {
+		return itemData
+	}
+	for _, item := range packItem {
+		if item.GetBase().GetGuid() == guid {
+			itemData = item
+			return itemData
+		}
+	}
+	return itemData
 }
 
 func (g *GameConnection) GetItemEquipPos(item *Cmd.ItemInfo) Cmd.EEquipPos {
@@ -156,5 +181,5 @@ func (g *GameConnection) UseFlyWing() {
 		log.Warnf("fly wing not found")
 		return
 	}
-	g.UseItem(item.GetGuid(), 1)
+	g.UseItem(item.GetBase().GetGuid(), 1)
 }

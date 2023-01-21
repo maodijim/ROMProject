@@ -22,6 +22,12 @@ func (g *GameConnection) GetMainPackItems() (err error) {
 	return err
 }
 
+func (g *GameConnection) GetEquipPackItems() (err error) {
+	packType := Cmd.EPackType_EPACKTYPE_EQUIP
+	err = g.GetPackItem(&packType)
+	return err
+}
+
 func (g *GameConnection) GetTempMainPackItems() (err error) {
 	packTypes := []Cmd.EPackType{
 		Cmd.EPackType_EPACKTYPE_TEMP_MAIN,
@@ -36,6 +42,7 @@ func (g *GameConnection) GetTempMainPackItems() (err error) {
 func (g *GameConnection) GetAllPackItems() (err error) {
 	packTypes := []Cmd.EPackType{
 		Cmd.EPackType_EPACKTYPE_MAIN,
+		Cmd.EPackType_EPACKTYPE_EQUIP,
 		// Cmd.EPackType_EPACKTYPE_STORE,
 		Cmd.EPackType_EPACKTYPE_PERSONAL_STORE,
 	}

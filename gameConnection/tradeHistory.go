@@ -133,14 +133,14 @@ func (g *GameConnection) takeTradeLog(tradeLog *Cmd.LogItemInfo) {
 			tradeLog.GetLogtype() == Cmd.EOperType_EOperType_PublicitySellSuccess {
 			log.Infof("卖出 %d个%s 赚取 %d zeny",
 				tradeLog.GetCount(),
-				g.Items[tradeLog.GetItemid()],
+				g.Items[tradeLog.GetItemid()].NameZh,
 				tradeLog.GetGetmoney(),
 			)
 		} else {
 			log.Infof("取回从%s购买的物品 %d个%s 花费 %d zeny",
 				tradeLog.GetNameInfo().GetName(),
 				tradeLog.GetCount(),
-				g.Items[tradeLog.GetItemid()],
+				g.Items[tradeLog.GetItemid()].NameZh,
 				tradeLog.GetCostmoney(),
 			)
 		}
@@ -152,7 +152,7 @@ func (g *GameConnection) takeTradeLog(tradeLog *Cmd.LogItemInfo) {
 func (g *GameConnection) takeFailedMoney(tradeLog *Cmd.LogItemInfo) {
 	if tradeLog.GetLogtype() == Cmd.EOperType_EOperType_PublicityBuyFail &&
 		tradeLog.GetStatus() == Cmd.ETakeStatus_ETakeStatus_CanTakeGive {
-		log.Infof("取回抢购失败 %d个%s %d zeny", tradeLog.GetFailcount(), g.Items[tradeLog.GetItemid()], tradeLog.GetRetmoney())
+		log.Infof("取回抢购失败 %d个%s %d zeny", tradeLog.GetFailcount(), g.Items[tradeLog.GetItemid()].NameZh, tradeLog.GetRetmoney())
 		g.TakeLogTrade(tradeLog.GetId(), tradeLog.GetLogtype())
 		newSilver := g.Role.GetSilver() + uint64(tradeLog.GetRetmoney())
 		g.Role.Silver = &newSilver

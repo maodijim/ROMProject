@@ -15,7 +15,12 @@ const (
 	MapId_ToyFactory1F     MapId = 49
 	MapId_PoringIsland     MapId = 52
 	MapId_Yuno             MapId = 63
+	MapId_EinbrochField    MapId = 65
+	MapId_MagmaDungeon1F   MapId = 66
+	MapId_MagmaDungeon2F   MapId = 67
+	MapId_MagmaDungeon3F   MapId = 68
 	MapId_RoomAdvanced     MapId = 1001
+	MapId_RoyalCooking     MapId = 1061
 )
 
 func (m MapId) Uint32() uint32 {

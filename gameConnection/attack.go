@@ -236,7 +236,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 		moveToTargetLoop:
 			for {
 				select {
-				case <-time.After(100 * time.Millisecond):
+				case <-time.After(75 * time.Millisecond):
 					// oldDistance := distance
 					target, ok = g.GetMapNpcs()[closestId]
 					if !ok {
@@ -276,7 +276,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 
 func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...string) {
 	go func() {
-		ticker := time.NewTicker(time.Millisecond * 100)
+		ticker := time.NewTicker(time.Millisecond * 75)
 		defer ticker.Stop()
 		for {
 			select {
@@ -377,7 +377,8 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 								}
 								time.Sleep(time.Duration(math.Max(delay, 0.1)*1000) * time.Millisecond)
 							}
-						} else if skillItem.Camps == CampsEnemy {
+						}
+						if skillItem.Camps == CampsEnemy {
 							// 这是攻击技能
 							g.AttackClosestByName(skill.GetId(), monsterList)
 						}
@@ -393,7 +394,7 @@ func (g *GameConnection) GetAttackRange(skillId uint32) (atkRange float64) {
 	atkRange, _ = strconv.ParseFloat(skillItem.LaunchRange, 64)
 	if skillItem.NameZh == "普通攻击" {
 		// 无限星辰
-		if g.Role.Buffs[131080] != nil {
+		if g.Role.GetBuffById(131080) != nil {
 			atkRange += float64(g.Role.SkillItems[13234].GetExtralv()) * 0.1
 		}
 	}

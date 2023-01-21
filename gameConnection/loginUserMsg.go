@@ -32,7 +32,8 @@ func (g *GameConnection) HandleLoginUserCmd(cmdParamId int32, rawData []byte) (p
 			if char.GetId() == 0 {
 				continue
 			}
-			role := utils.NewRole()
+			roleOption := utils.RoleTeamOption(g.Configs.TeamConfig)
+			role := utils.NewRole(roleOption)
 			role.SetRoleId(char.GetId())
 			role.SetRoleName(char.GetName())
 			role.SetSequence(char.GetSequence())

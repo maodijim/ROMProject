@@ -24,12 +24,13 @@ const (
 )
 
 var (
-	lvUpChoice         = -1
-	goblinLvUpChoice   = -1
-	mountainLvUpChoice = -1
-	items              = &utils.ItemsLoader{}
-	g                  = &gameConnection.GameConnection{}
-	npcList            = map[string][]int{}
+	disable, cancelAutoAtk = context.WithCancel(context.Background())
+	lvUpChoice             = -1
+	goblinLvUpChoice       = -1
+	mountainLvUpChoice     = -1
+	items                  = &utils.ItemsLoader{}
+	g                      = &gameConnection.GameConnection{}
+	npcList                = map[string][]int{}
 	// 北区练级点
 	northUPPos = [][]Cmd.ScenePos{
 		// 右下
@@ -82,16 +83,13 @@ var (
 		{
 			g.ParsePos(21006, -1524, 3415),
 		},
-		// 中左
-		{
-			g.ParsePos(-9662, -2060, 4689),
-		},
 		// 中右
 		{
 			g.ParsePos(41908, -1223, 27975),
 		},
 		// 右上
 		{
+			g.ParsePos(21006, -1524, 3415),
 			g.ParsePos(-39263, 12865, -62454),
 		},
 		// 左下
@@ -148,7 +146,7 @@ func southGateScript() {
 	item := g.FindPackItemByName("百万集结礼包", Cmd.EPackType_EPACKTYPE_MAIN)
 	if item != nil {
 		log.Warnf("使用百万集结礼包")
-		g.UseItem(item.GetGuid(), 1)
+		g.UseItem(item.GetBase().GetGuid(), 1)
 	} else {
 		log.Warnf("没有找到百万集结礼包")
 	}
@@ -163,7 +161,7 @@ func southGateScript() {
 	g.MoveChartWait(g.ParsePos(10129, 34, 3834))
 
 	// 打怪
-	lvUp(StopAttackCondition{BaseLevel: 10, JobLevel: 10, NoMonster: false}, "绿棉虫")
+	lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 10, JobLevel: 10, NoMonster: false}, "绿棉虫")
 
 	// 接转职任务
 	log.Infof("开始接转职任务")
@@ -358,10 +356,12 @@ func jobScript() {
 		g.MoveChartWait(g.ParsePos(-3377, 5732, 3193))
 		// 清理所有怪物
 		// 第一轮
-		lvUp(StopAttackCondition{NoMonster: true}, "魔化树精")
+		disable, cancelAutoAtk = context.WithCancel(context.Background())
+		lvUp(disable, cancelAutoAtk, StopAttackCondition{NoMonster: true}, "魔化树精")
 		time.Sleep(5 * time.Second)
 		// 第二轮
-		lvUp(StopAttackCondition{NoMonster: true}, "魔化树精")
+		disable, cancelAutoAtk = context.WithCancel(context.Background())
+		lvUp(disable, cancelAutoAtk, StopAttackCondition{NoMonster: true}, "魔化树精")
 		time.Sleep(5 * time.Second)
 
 		// 拉杆回家
@@ -496,7 +496,7 @@ func westGate() {
 	log.Warnf("攻击力不足在西门练练吧")
 
 	g.MoveChartWait(g.ParsePos(-54016, 10133, -17510))
-	lvUp(StopAttackCondition{BaseLevel: 18}, "溜溜猴")
+	lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 18}, "溜溜猴")
 	g.ExitMapWait(gameTypes.MapId_Protera.Uint32())
 	time.Sleep(2 * time.Second)
 }
@@ -551,7 +551,7 @@ func northGate() {
 		g.MoveChartWait(pos)
 	}
 
-	lvUp(StopAttackCondition{BaseLevel: 37}, "森灵")
+	lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 37}, "森灵")
 	time.Sleep(2 * time.Second)
 }
 
@@ -584,7 +584,7 @@ func goblinForest() {
 	for _, pos := range goblinPos[choice] {
 		g.MoveChartWait(pos)
 	}
-	lvUp(StopAttackCondition{BaseLevel: 50}, "喷射哥布灵", "弓箭哥布灵")
+	lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 50}, "喷射哥布灵", "弓箭哥布灵")
 }
 
 func mjolnirMountains() {
@@ -608,18 +608,49 @@ func mjolnirMountains() {
 	case 0:
 		log.Infof("选择练级点 %d, %s %v", choice, "中下", goblinPos[choice][len(goblinPos[choice])-1])
 	case 1:
-		log.Infof("选择练级点 %d, %s %v", choice, "中左", goblinPos[choice][len(goblinPos[choice])-1])
-	case 2:
 		log.Infof("选择练级点 %d, %s %v", choice, "中右", goblinPos[choice][len(goblinPos[choice])-1])
-	case 3:
+	case 2:
 		log.Infof("选择练级点 %d, %s %v", choice, "右上", goblinPos[choice][len(goblinPos[choice])-1])
-	case 4:
+	case 3:
 		log.Infof("选择练级点 %d, %s %v", choice, "左下", goblinPos[choice][len(goblinPos[choice])-1])
 	}
 	for _, pos := range mountainPos[choice] {
 		g.MoveChartWait(pos)
 	}
-	lvUp(StopAttackCondition{BaseLevel: 50}, "蜂兵")
+	go func() {
+		ticker := time.NewTicker(10 * time.Second)
+		goBackTicker := time.NewTicker(5 * time.Minute)
+		startPos := g.Role.GetPos()
+		lastPosUpdate := time.Now()
+		for {
+			select {
+			case <-goBackTicker.C:
+				log.Infof("5分钟后回到起始点")
+				cancelAutoAtk()
+				for _, pos := range mountainPos[choice] {
+					g.MoveChartWait(pos)
+				}
+				disable, cancelAutoAtk = context.WithCancel(context.Background())
+				lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 50}, "蜂兵")
+			case <-ticker.C:
+				if !g.Role.IsEqualPos(startPos) {
+					lastPosUpdate = time.Now()
+					startPos = g.Role.GetPos()
+				}
+				if time.Since(lastPosUpdate) > 60*time.Second {
+					log.Infof("角色卡住了, 重新进入地图")
+					cancelAutoAtk()
+					for _, pos := range mountainPos[choice] {
+						g.MoveChartWait(pos)
+					}
+					disable, cancelAutoAtk = context.WithCancel(context.Background())
+					lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 50}, "蜂兵")
+				}
+			}
+		}
+	}()
+
+	lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 50}, "蜂兵")
 }
 
 func putOnEquip(name string, pos Cmd.EEquipPos) {
@@ -635,7 +666,7 @@ func printNearbyNpcs(g *gameConnection.GameConnection) (stopNpc chan bool) {
 	log.Printf("Nearby NPCs:")
 	stopNpc = make(chan bool)
 	go func() {
-		ticker := time.NewTicker(6 * time.Second)
+		ticker := time.NewTicker(10 * time.Second)
 		defer ticker.Stop()
 		for {
 			select {
@@ -670,22 +701,22 @@ func expBuff() {
 			case <-ticker.C:
 				item := g.FindPackItemByName("暖身料理", Cmd.EPackType_EPACKTYPE_MAIN)
 				if item != nil {
-					log.Infof("使用暖身料理 %d 个", item.GetCount())
-					g.UseItem(item.GetGuid(), item.GetCount())
+					log.Infof("使用暖身料理 %d 个", item.GetBase().GetCount())
+					g.UseItem(item.GetBase().GetGuid(), item.GetBase().GetCount())
 				}
 				item = g.FindPackItemByName("锁链雷锭", Cmd.EPackType_EPACKTYPE_MAIN)
 				if item == nil {
 					log.Warnf("未找到锁链雷锭")
 				} else {
-					log.Infof("背包还有锁链雷锭 %d 个", item.GetCount())
+					log.Infof("背包还有锁链雷锭 %d 个", item.GetBase().GetCount())
 					hasBuff := g.GetBuffNameByRegex("锁链雷锭")
 					if hasBuff != "" {
 						log.Warnf("已经有锁链经验buff了")
 						continue
 					}
 					log.Infof("使用锁链雷锭")
-					g.UseItem(item.GetGuid(), 1)
-					log.Infof("还剩下 %d 个锁链雷锭", item.GetCount()-1)
+					g.UseItem(item.GetBase().GetGuid(), 1)
+					log.Infof("还剩下 %d 个锁链雷锭", item.GetBase().GetCount()-1)
 				}
 			}
 		}
@@ -693,9 +724,8 @@ func expBuff() {
 
 }
 
-func lvUp(condition StopAttackCondition, monsters ...string) {
+func lvUp(disable context.Context, cancelAutoAtk context.CancelFunc, condition StopAttackCondition, monsters ...string) {
 	stopNpc := printNearbyNpcs(g)
-	disable, cancelAutoAtk := context.WithCancel(context.Background())
 	if condition.Standstill {
 		g.AtkStat.SetStandstill(true)
 	}
@@ -706,6 +736,10 @@ func lvUp(condition StopAttackCondition, monsters ...string) {
 	defer ticker.Stop()
 	for {
 		select {
+		case <-disable.Done():
+			log.Infof("停止练级")
+			stopNpc <- true
+			cancelAutoAtk()
 		case <-ticker.C:
 			jlv = g.Role.GetJobLevel()
 			blv = g.Role.GetRoleLevel()
@@ -739,6 +773,7 @@ func lvUp(condition StopAttackCondition, monsters ...string) {
 				go func() {
 					g.Reconnect()
 					time.Sleep(5 * time.Second)
+
 					mjolnirMountains()
 				}()
 				return

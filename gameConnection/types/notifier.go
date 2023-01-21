@@ -19,4 +19,6 @@ const (
 	NtfType_ShopQueryShopConfig        NotifierType = "SHOPPARAM_QUERY_SHOP_CONFIG"
 	NtfType_ShopBuyItem                NotifierType = "SHOPPARAM_BUYITEM"
 	NtfType_UserActionDialog           NotifierType = "EUSERACTIONTYPE_DIALOG"
+	NtfType_User2QueryZoneStatus       NotifierType = "USER2PARAM_QUERY_ZONESTATUS"
+	NtfType_UserItemPickup             NotifierType = "ITEM_PICKUP"
 )

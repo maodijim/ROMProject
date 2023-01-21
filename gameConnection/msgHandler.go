@@ -304,17 +304,15 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				err = utils.ParseCmd(o, param)
 				applyList := param.(*Cmd.TeamApplyUpdate)
 				g.Role.Mutex.Lock()
+
 				for _, apply := range applyList.GetUpdates() {
-					for _, cur := range g.Role.TeamApply {
-						if apply.GetGuid() == cur.GetGuid() {
-							cur = apply
+					if utils.Contains(g.Role.AllowedTeamApply, apply.GetName()) {
+						g.AcceptTeamApply(apply.GetGuid())
+					} else if g.Role.AcceptAllTeamInvite {
+						go func() {
+							time.Sleep(time.Second * 3)
 							g.AcceptTeamApply(apply.GetGuid())
-						} else if g.Role.AcceptAllTeamInvite {
-							go func() {
-								time.Sleep(time.Second * 5)
-								g.AcceptTeamApply(apply.GetGuid())
-							}()
-						}
+						}()
 					}
 					g.Role.TeamApply = append(g.Role.TeamApply, apply)
 				}
@@ -332,7 +330,9 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				err = utils.ParseCmd(o, param)
 				memberPos := param.(*Cmd.MemberPosUpdate)
 				if memberPos.GetId() != 0 {
+					g.Role.Mutex.Lock()
 					g.Role.TeamMemberPos[memberPos.GetId()] = memberPos
+					g.Role.Mutex.Unlock()
 				}
 
 			case Cmd.TeamParam_value["TEAMPARAM_INVITEMEMBER"]:

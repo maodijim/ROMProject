@@ -5,6 +5,8 @@ import (
 	"time"
 
 	Cmd "ROMProject/Cmds"
+	"ROMProject/config"
+	"github.com/mohae/deepcopy"
 )
 
 type MatchDetail struct {
@@ -40,6 +42,7 @@ type RoleInfo struct {
 	Buffs               map[uint32]*Cmd.BufferData
 	TeamData            *Cmd.TeamData
 	TeamApply           []*Cmd.TeamApply
+	AllowedTeamApply    []string
 	TeamMemberPos       map[uint64]*Cmd.MemberPosUpdate
 	CDs                 map[uint32]time.Time
 	UserVars            map[Cmd.EVarType]*Cmd.Var
@@ -81,7 +84,14 @@ func (r *RoleInfo) GetTotalPoint() int32 {
 }
 
 func (r *RoleInfo) GetPackItems() map[Cmd.EPackType]map[string]*Cmd.ItemData {
-	return r.PackItems
+	r.Mutex.RLock()
+	defer r.Mutex.RUnlock()
+	return deepcopy.Copy(r.PackItems).(map[Cmd.EPackType]map[string]*Cmd.ItemData)
+}
+func (r *RoleInfo) GetPackItemsByType(packType Cmd.EPackType) map[string]*Cmd.ItemData {
+	r.Mutex.RLock()
+	defer r.Mutex.RUnlock()
+	return deepcopy.Copy(r.PackItems[packType]).(map[string]*Cmd.ItemData)
 }
 
 func (r *RoleInfo) GetSilver() uint64 {
@@ -209,6 +219,16 @@ func (r *RoleInfo) GetInGame() bool {
 	return false
 }
 
+func (r *RoleInfo) GetBuffById(buffId uint32) *Cmd.BufferData {
+	r.Mutex.RLock()
+	defer r.Mutex.RUnlock()
+	buff, ok := r.Buffs[buffId]
+	if ok {
+		return buff
+	}
+	return nil
+}
+
 func (r *RoleInfo) GetAuthConfirm() bool {
 	if r.AuthConfirm != nil {
 		return *r.AuthConfirm
@@ -282,7 +302,29 @@ func (r *RoleInfo) GetRoleExp() uint64 {
 	return GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_ROLEEXP)
 }
 
-func NewRole() *RoleInfo {
+func (r *RoleInfo) IsEqualPos(pos Cmd.ScenePos) bool {
+	if r.Pos == nil {
+		if pos.GetX() == r.Pos.GetX() && pos.GetY() == r.Pos.GetY() && pos.GetZ() == r.Pos.GetZ() {
+			return true
+		}
+	}
+	return false
+}
+
+type RoleOption func(*RoleInfo)
+
+func RoleTeamOption(teamConfig config.TeamConfig) RoleOption {
+	return func(r *RoleInfo) {
+		if teamConfig.AutoAccept() {
+			r.AcceptAllTeamInvite = true
+		}
+		if len(teamConfig.AllowedTeamMembers) > 0 {
+			r.AllowedTeamApply = teamConfig.AllowedTeamMembers
+		}
+	}
+}
+
+func NewRole(options ...RoleOption) *RoleInfo {
 	role := &RoleInfo{
 		PackItems:     map[Cmd.EPackType]map[string]*Cmd.ItemData{},
 		SkillItems:    map[uint32]*Cmd.SkillItem{},
@@ -294,6 +336,9 @@ func NewRole() *RoleInfo {
 		UserVars:      map[Cmd.EVarType]*Cmd.Var{},
 		AccVars:       map[Cmd.EAccVarType]*Cmd.AccVar{},
 		QuestList:     map[Cmd.EQuestList]*Cmd.QuestList{},
+	}
+	for _, o := range options {
+		o(role)
 	}
 	return role
 }

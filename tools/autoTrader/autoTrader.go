@@ -374,13 +374,14 @@ func buyZeny(gameConnect *gameConnection.GameConnection) {
 		zenyNeeded = zenyNeeded - gameConnect.Role.GetSilver()
 		log.Infof("缺 %d zeny", zenyNeeded)
 		zenyPackNeeded := uint64(math.Ceil(float64(zenyNeeded) / 10000000))
-		maxPack := gameConnect.Role.GetLottery() / (15 * 10000)
+		zenyPackCost := uint32(36666)
+		maxPack := gameConnect.Role.GetLottery() / uint64(zenyPackCost)
 		if zenyPackNeeded > maxPack {
 			log.Warnf(
-				"购买 %d zeny 需要 %d 个 1kw zeny 包 %d萬貓幣，角色只有%d貓幣",
+				"购买 %d zeny 需要 %d 个 1kw zeny 包 %f.2萬貓幣，角色只有%d貓幣",
 				zenyNeeded,
 				zenyPackNeeded,
-				zenyPackNeeded*15,
+				float64(zenyPackNeeded)*float64(zenyPackCost)/10000,
 				gameConnect.Role.GetLottery(),
 			)
 			zenyPackNeeded = uint64(math.Min(float64(zenyPackNeeded), float64(maxPack)))
@@ -391,15 +392,15 @@ func buyZeny(gameConnect *gameConnection.GameConnection) {
 			return
 		}
 		for _, shopItem := range shopItems.GetGoods() {
-			if shopItem.GetMoneycount() == 150000 {
+			if shopItem.GetMoneycount() == zenyPackCost {
 				// This is zeny pack
 				log.Infof("购买 %d 个 1kw zeny 包", zenyPackNeeded)
 				gameConnect.BuyShopItem(shopItem, uint32(zenyPackNeeded))
 				time.Sleep(1000 * time.Millisecond)
 				zenyItem := gameConnect.FindPackItemByName("10,000,000 Zeny", Cmd.EPackType_EPACKTYPE_MAIN)
 				if zenyItem != nil {
-					log.Infof("使用10,000,000 Zeny %d 个", zenyItem.GetCount())
-					gameConnect.UseItem(zenyItem.GetGuid(), zenyItem.GetCount())
+					log.Infof("使用10,000,000 Zeny %d 个", zenyItem.GetBase().GetCount())
+					gameConnect.UseItem(zenyItem.GetBase().GetGuid(), zenyItem.GetBase().GetCount())
 				}
 				break
 			}

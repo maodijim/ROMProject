@@ -53,23 +53,6 @@ func main() {
 
 func start() {
 	g.GameServerLogin()
-	inGameTicker := time.NewTicker(2 * time.Second)
-waitForInGame:
-	for {
-		select {
-		case <-inGameTicker.C:
-			log.Infof("等待角色进入游戏")
-			if g.Role.GetInGame() {
-				log.Infof("角色已进入游戏")
-				inGameTicker.Stop()
-				break waitForInGame
-			}
-		case <-time.After(15 * time.Second):
-			log.Warnf("等待进入游戏超时")
-			inGameTicker.Stop()
-			break waitForInGame
-		}
-	}
 	_ = g.GetAllPackItems()
 	g.ChangeMap(g.Role.GetMapId())
 
@@ -101,7 +84,7 @@ waitForInGame:
 				}
 			case <-buyFlyWingTicker.C:
 				wingCount := g.FindPackItemById(5024, Cmd.EPackType_EPACKTYPE_MAIN)
-				if wingCount != nil && wingCount.GetCount() < 1000 {
+				if wingCount != nil && wingCount.GetBase().GetCount() < 1000 {
 					shopConfig, err := g.QueryShopConfig(gameTypes.ShopType_Item, 1)
 					if err != nil {
 						log.Errorf("查询商店配置失败 %s", err)
@@ -124,8 +107,8 @@ waitForInGame:
 		curSockCount = getSockCount()
 		log.Infof("挂机获得圣诞袜子数量: %d; 现在有袜子: %d", curSockCount-startSockCount, curSockCount)
 		// g.ExitMapWait(gameConnection.MapId_Yuno.Uint32())
-		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*3)
-		log.Infof("开始休息打怪 3分钟")
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*1)
+		log.Infof("开始休息打怪 1分钟")
 		g.EnableAutoAttack(ctx, "玩具士兵", "玩具士兵★", "玩偶熊")
 	rest:
 		for {
@@ -143,16 +126,16 @@ waitForInGame:
 func useFlyWing() {
 	g.UseFlyWing()
 	item := g.FindPackItemById(5024, Cmd.EPackType_EPACKTYPE_MAIN)
-	if item != nil && item.GetCount() > 0 {
+	if item != nil && item.GetBase().GetCount() > 0 {
 
-		log.Infof("使用苍蝇翅膀 还有%d个", item.GetCount())
+		log.Infof("使用苍蝇翅膀 还有%d个", item.GetBase().GetCount())
 
 		go func() {
 			for {
 				select {
 				case <-time.After(time.Second * 1):
-					newCount := g.FindPackItemById(5024, Cmd.EPackType_EPACKTYPE_MAIN).GetCount()
-					if newCount == item.GetCount() {
+					newCount := g.FindPackItemById(5024, Cmd.EPackType_EPACKTYPE_MAIN).GetBase().GetCount()
+					if newCount == item.GetBase().GetCount() {
 						if flyWingNotFoundCount > 10 {
 							log.Warnf("使用苍蝇翅膀失败怀疑卡住了重连")
 							flyWingNotFoundCount = 0
@@ -172,7 +155,7 @@ func useFlyWing() {
 }
 
 func findMonster() {
-	max := 30
+	max := 60
 	for count := 0; count < max; count++ {
 		if count == max-1 {
 			log.Warnf("累计%d次翅膀找不到怪物休息一下", max)
@@ -180,21 +163,14 @@ func findMonster() {
 		}
 		disableAttack, cancelAttack := context.WithCancel(context.Background())
 		defer cancelAttack()
-		ticker := time.NewTicker(10 * time.Second)
+		ticker := time.NewTicker(12 * time.Second)
 		useFlyWing()
 		monster := []string{"玩具士兵★"}
 		stuckCount := time.Now()
+		g.EnableAutoAttack(disableAttack, monster...)
 	fightLoop:
 		for {
 			select {
-			case <-time.After(5 * time.Second):
-				if !g.IsMonsterInRange(monster...) {
-					log.Warnf("找不到怪物")
-					ticker.Stop()
-					cancelAttack()
-					break fightLoop
-				}
-				g.EnableAutoAttack(disableAttack, monster...)
 			case <-ticker.C:
 				if !g.IsMonsterInRange(monster...) {
 					log.Warnf("找不到怪物")
@@ -216,5 +192,5 @@ func findMonster() {
 
 func getSockCount() uint32 {
 	iData := g.FindPackItemByName("圣诞袜子", Cmd.EPackType_EPACKTYPE_MAIN)
-	return iData.GetCount()
+	return iData.GetBase().GetCount()
 }

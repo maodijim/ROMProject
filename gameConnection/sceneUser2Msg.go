@@ -12,9 +12,17 @@ import (
 
 func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []byte) (param proto.Message, err error) {
 	switch cmdParamId {
+	case Cmd.User2Param_value["USER2PARAM_QUERY_ZONESTATUS"]:
+		param = &Cmd.QueryZoneStatusUserCmd{}
+		err = utils.ParseCmd(rawData, param)
+
+		if g.Notifier(notifier.NtfType_User2QueryZoneStatus) != nil {
+			g.Notifier(notifier.NtfType_User2QueryZoneStatus) <- param
+		}
+
 	case Cmd.User2Param_value["USER2PARAM_ACTION"]:
 		param = &Cmd.UserActionNtf{}
-		err = proto.Unmarshal(rawData, param)
+		err = utils.ParseCmd(rawData, param)
 		if err == nil {
 			userActionNtf := param.(*Cmd.UserActionNtf)
 			if userActionNtf.GetType() == Cmd.EUserActionType_EUSERACTIONTYPE_DIALOG {

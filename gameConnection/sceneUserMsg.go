@@ -109,6 +109,7 @@ func (g *GameConnection) HandleSceneUserProtoCmd(cmdParamId int32, rawData []byt
 			g.MapUsers = map[uint64]*Cmd.MapUser{}
 			g.Role.SetMapId(changeScene.GetMapID())
 			g.Role.SetMapName(changeScene.GetMapName())
+			g.inMap = true
 		}
 		if changeScene != nil {
 			g.Role.SetRolePos(changeScene.GetPos())
@@ -116,7 +117,6 @@ func (g *GameConnection) HandleSceneUserProtoCmd(cmdParamId int32, rawData []byt
 			g.Role.InGame = &inGame
 			if g.ShouldChangeScene {
 				go func() {
-					time.Sleep(time.Second)
 					g.ChangeMap(g.Role.GetMapId())
 				}()
 

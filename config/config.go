@@ -14,13 +14,25 @@ type EsConfig struct {
 	Urls []string `yaml:"urls"`
 }
 
+type EnchantConfig struct {
+	EnchantType     string           `yaml:"enchantType"`
+	EnchantEquipPos string           `yaml:"enchantEquipPos"`
+	Condition       EnchantCondition `yaml:"condition"`
+}
+
+type EnchantCondition struct {
+	Attributes []string `yaml:"attributes"`
+	Extras     []string `yaml:"extras"`
+}
+
 type ServerConfigs struct {
 	AuthServer     string `yaml:"authServer"`
 	ZoneId         uint32 `yaml:"zoneId"`
 	Char           uint   `yaml:"char"`
 	AutoCreateChar bool   `yaml:"autoCreateChar"`
 	// if not set, use random string during auto create char
-	CharacterName string `yaml:"characterName"`
+	CharacterName string        `yaml:"characterName"`
+	EnchantConfig EnchantConfig `yaml:"enchantConfig"`
 	// Username and password for login if accId is not set
 	Username    string            `yaml:"username"`
 	Password    string            `yaml:"password"`

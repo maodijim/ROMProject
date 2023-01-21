@@ -15,7 +15,7 @@ func (g *GameConnection) MoveChart(pos Cmd.ScenePos) {
 	cmd := &Cmd.ReqMoveUserCmd{
 		Target: &pos,
 	}
-	g.sendProtoCmd(
+	_ = g.sendProtoCmd(
 		cmd,
 		Cmd.Command_value["SCENE_USER_PROTOCMD"],
 		Cmd.CmdParam_value["REQ_MOVE_USER_CMD"],
@@ -85,14 +85,17 @@ func (g *GameConnection) ChangeMap(mId uint32) {
 	}
 	log.Infof("%s is sending change scene cmd: %v", g.Role.GetRoleName(), cmd)
 	_ = g.sendProtoCmd(cmd, 5, 23)
-	g.enteringMap = true
-	g.inMap = true
+	g.enteringMap = false
+	g.inMap = false
+	// If not moved strange things will happen
+	// g.MoveChart(g.Role.GetPos())
 }
 
 func (g *GameConnection) ExitMap(targetMapId uint32) {
 	cmd := &Cmd.GoToExitPosUserCmd{
 		Mapid: &targetMapId,
 	}
+	g.inMap = false
 	_ = g.sendProtoCmd(cmd, sceneUserCmdId, Cmd.CmdParam_value["GOTO_EXIT_POS_USER_CMD"])
 	time.Sleep(2 * time.Second)
 	g.ChangeMap(targetMapId)

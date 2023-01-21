@@ -57,7 +57,7 @@ func GetPosAwayFromTarget(src Cmd.ScenePos, target Cmd.ScenePos, disToTarget flo
 		angle = float64(int32(angleY)%90) + (angleY - float64(int32(angleY)))
 	}
 
-	targetPos := GetDistanceXZ(src, target)
+	targetPos := GetDistanceXYZ(src, target)
 	disFromX := int32(math.Ceil(math.Cos(DegreeToRadian(angle)) * (targetPos - disToTarget)))
 	disFromZ := int32(math.Ceil(math.Sin(DegreeToRadian(angle)) * (targetPos - disToTarget)))
 	var x, z int32

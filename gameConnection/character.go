@@ -3,9 +3,11 @@ package gameConnection
 import (
 	"fmt"
 	"regexp"
+	"time"
 	"unicode/utf8"
 
 	Cmd "ROMProject/Cmds"
+	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 	log "github.com/sirupsen/logrus"
 )
@@ -39,7 +41,7 @@ func (g *GameConnection) GetAtkRange(skillId uint32) uint32 {
 }
 
 func (g *GameConnection) GetBuffNameByRegex(searchRegex string) (buffName string) {
-	g.Mutex.RLock()
+	g.Role.Mutex.RLock()
 	for _, curBuff := range g.Role.Buffs {
 		re := regexp.MustCompile(searchRegex)
 		search := re.Find([]byte(g.BuffItems[curBuff.GetId()].BuffName))
@@ -47,7 +49,7 @@ func (g *GameConnection) GetBuffNameByRegex(searchRegex string) (buffName string
 			buffName = string(search)
 		}
 	}
-	g.Mutex.RUnlock()
+	g.Role.Mutex.RUnlock()
 	return buffName
 }
 
@@ -163,6 +165,41 @@ func (g *GameConnection) PickupMapItem(mapItem *Cmd.AddMapItem) {
 				sceneUser2CmdId,
 				Cmd.User2Param_value["USER2PARAM_PICKUP_ITEM"],
 			)
+			if g.Notifier(gameTypes.NtfType_UserItemPickup) != nil {
+				g.Notifier(gameTypes.NtfType_UserItemPickup) <- item
+			}
 		}
 	}
+}
+
+func (g *GameConnection) QueryZoneStatus() *Cmd.QueryZoneStatusUserCmd {
+	cmd := Cmd.QueryZoneStatusUserCmd{}
+	g.AddNotifier(gameTypes.NtfType_User2QueryZoneStatus)
+	_ = g.sendProtoCmd(&cmd,
+		sceneUser2CmdId,
+		Cmd.User2Param_value["USER2PARAM_QUERY_ZONESTATUS"],
+	)
+	response, err := g.waitForResponse(gameTypes.NtfType_User2QueryZoneStatus)
+	if err != nil {
+		return nil
+	}
+	zoneStatus := response.(*Cmd.QueryZoneStatusUserCmd)
+	return zoneStatus
+}
+
+func (g *GameConnection) JumpZone(zoneId uint32, npcId uint64) {
+	if npcId == 0 {
+		// In EP 5.0 the NPC is in MapId_IzludeIsland x:4182 y:7086 z:10633
+		npcId = 2147484433
+	}
+	cmd := Cmd.JumpZoneUserCmd{
+		Npcid:  &npcId,
+		Zoneid: &zoneId,
+	}
+	_ = g.sendProtoCmd(&cmd,
+		sceneUser2CmdId,
+		Cmd.User2Param_value["USER2PARAM_JUMP_ZONE"],
+	)
+	g.ChangeMap(g.Role.GetMapId())
+	time.Sleep(8 * time.Second)
 }
