@@ -22,13 +22,23 @@ def parse_enum(key, val):
     elif is_enum_val_descriptor(val):
         ks = key.split("_")
         enum_name = ks[0]
-        enum_val = "_".join(ks[1:-1])
+        val_start_point = 1
+        if enum.get(enum_name, None) is None:
+            enum_name = ks[0] + "_" + ks[1]
+            val_start_point += 1
+        enum_val = "_".join(ks[val_start_point:-1])
         cur_vals = enum.get(enum_name, dict())
         cur_vals[enum_val] = dict()
     elif is_enum_field_val(key):
-        field_name = key.split(".")[-1]
-        enum_name = key.split("_")[0]
-        enum_val = "_".join(key.split("_")[1:-1])
+        split_dot_parts = key.split(".")
+        split_parts = split_dot_parts[0].split("_")
+        field_name = split_dot_parts[-1]
+        enum_name = split_parts[0]
+        val_start_point = 1
+        if enum.get(enum_name, None) is None:
+            enum_name = split_parts[0] + "_" + split_parts[1]
+            val_start_point += 1
+        enum_val = "_".join(split_parts[val_start_point:-1])
         enum.get(enum_name, dict()).get(enum_val, dict())[field_name] = val.strip('"')
 
 
@@ -43,8 +53,11 @@ def parse_message(key, val):
             messages.get(message_name, dict())["fields"] = {field_name: dict()}
         messages.get(message_name, dict())["fields"][field_name] = dict()
     elif is_message_field(key):
-        field_name = key.split(".")[-1]
-        message_name = key.split(".")[0].split("_")[0]
+        split_parts = key.split(".")
+        if len(split_parts) < 2:
+            return
+        field_name = split_parts[-1]
+        message_name = split_parts[0].split("_")[0]
         messages.get(message_name, dict())[field_name] = val.strip('"')
     elif is_message_field_val(key):
         field_name = "_".join(key.split(".")[0].split("_")[1:-1])
@@ -56,6 +69,8 @@ def parse_message(key, val):
 
 def get_enum(enum_name, number):
     for _, v in enum.get(enum_name, dict()).items():
+        if type(v) != dict:
+            continue
         if v.get("number") == number:
             return v.get("name")
     return ""
@@ -93,11 +108,18 @@ def is_message_field_descriptor(val):
 
 def is_enum_field(key, val):
     if re.match(r'.*?.(name|full_name|values)', key) and "ENUM" not in key and "FIELD" not in key:
-        name = key.split(".")[0]
-        field = key.split(".")[1]
-        if enum.get(name, dict()):
-            enum[name][field] = val.strip('"')
-            return True
+        try:
+            split_parts = key.split(".")
+            name = split_parts[0]
+            if len(split_parts) < 2:
+                return False
+            field = split_parts[1]
+            if enum.get(name, dict()):
+                enum[name][field] = val.strip('"')
+                return True
+        except Exception as e:
+            print(e)
+            print("parsing {} {} failed".format(key, val))
     return False
 
 
@@ -120,6 +142,7 @@ def is_message_field_val(key):
 
 
 def parse_lua(lua):
+    line_num = 1
     for line in lua.splitlines():
         if has_key_value(line):
             key, val = kv_pattern.match(line).groups()
@@ -127,6 +150,8 @@ def parse_lua(lua):
                 parse_enum(key, val)
             elif is_message_field_descriptor(val) or is_message_descriptor(val) or is_message_field(key) or is_message_field_val(key):
                 parse_message(key, val)
+        line_num += 1
+    print("parsed {} lines".format(line_num))
 
     # print(json.dumps(messages, indent=4))
     # print(json.dumps(enum, indent=4))
@@ -176,9 +201,13 @@ package Cmd;
         result += "}\n\n"
 
     for enum_name, enum_val in enum.items():
+        if enum_val.get("name", None) is None:
+            continue
         result +=("enum {} {{".format(enum_val["name"]))
         for enum_val_name, enum_val_val in enum_val.items():
             if type(enum_val_val) == dict:
+                if enum_val_val.get("name", None) is None or enum_val_val.get("number", None) is None:
+                    continue
                 result += "\n\t{} = {};".format(enum_val_val["name"], enum_val_val["number"])
         result += "\n}\n\n"
     print(result)
