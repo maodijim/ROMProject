@@ -7,6 +7,7 @@ import (
 
 	Cmd "ROMProject/Cmds"
 	"ROMProject/config"
+	gameTypes "ROMProject/gameConnection/types"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -296,12 +297,12 @@ func (g *GameConnection) QueryTeamInfo(charId uint64) (teamInfo *Cmd.QueryUserTe
 	cmd := &Cmd.QueryUserTeamInfoTeamCmd{
 		Charid: &charId,
 	}
-	g.AddNotifier("TEAMPARAM_QUERYUSERTEAMINFO")
-	g.sendProtoCmd(cmd,
+	g.AddNotifier(gameTypes.NtfType_TeamParamQueryUserTeamInfo)
+	_ = g.sendProtoCmd(cmd,
 		TeamProtoCmdId,
 		Cmd.TeamParam_value["TEAMPARAM_QUERYUSERTEAMINFO"],
 	)
-	res, err := g.waitForResponse("TEAMPARAM_QUERYUSERTEAMINFO")
+	res, err := g.waitForResponse(gameTypes.NtfType_TeamParamQueryUserTeamInfo)
 	if err != nil {
 		log.Errorf("failed to query team info: %s", err)
 	}
@@ -326,7 +327,7 @@ func (g *GameConnection) AutoCreateJoinTeam(teamConfig config.TeamConfig) {
 		return
 	}
 	var userSocData *Cmd.SocialData
-	if strings.Contains(g.Role.GetRoleName(), teamConfig.GetLeaderName()) {
+	if teamConfig.GetLeaderName() != "" && strings.Contains(g.Role.GetRoleName(), teamConfig.GetLeaderName()) {
 		log.Infof("创建新队伍")
 		g.CreateTeam(DefaultTeamType)
 	} else {
@@ -339,11 +340,21 @@ func (g *GameConnection) AutoCreateJoinTeam(teamConfig config.TeamConfig) {
 			} else {
 				log.Warnf("user %s not found", teamConfig.GetLeaderName())
 				if *teamConfig.GetLeaderId() != 0 {
-					log.Infof("尝试加入用户ID%d队伍", teamConfig.GetLeaderId())
+					log.Infof("尝试加入用户ID %d队伍", *teamConfig.GetLeaderId())
 					userSocData = &Cmd.SocialData{
 						Guid: teamConfig.GetLeaderId(),
 					}
 				}
+			}
+		} else {
+			if *teamConfig.GetLeaderId() != 0 {
+				log.Infof("尝试加入用户ID %d队伍", *teamConfig.GetLeaderId())
+				userSocData = &Cmd.SocialData{
+					Guid: teamConfig.GetLeaderId(),
+				}
+			} else {
+				log.Warnf("no leader name or id")
+				return
 			}
 		}
 		teamInfo := g.QueryTeamInfo(userSocData.GetGuid())

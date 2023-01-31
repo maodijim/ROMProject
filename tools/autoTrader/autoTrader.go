@@ -15,7 +15,7 @@ import (
 )
 
 const (
-	traderVer     = "0.1.6"
+	traderVer     = "0.1.7"
 	pointDiscount = 0.75
 	MaxSellItems  = 8
 )
@@ -79,11 +79,11 @@ func main() {
 }
 
 func autoTrade(gameConnect *gameConnection.GameConnection, purchaseConfig *PurchaseConfig) {
-	gameConnect.GameServerLogin()
+	if !gameConnect.IsTCPConnected() {
+		gameConnect.GameServerLogin()
+	}
 
 	// gameConnect.ChangeMap(uint32(1))
-	// 获取书包和个人仓库的道具
-	_ = gameConnect.GetAllPackItems()
 	mails := gameConnect.GetMails()
 	log.Infof("邮件数量: %d", len(mails))
 	// 获取邮件
@@ -163,7 +163,10 @@ func autoTrade(gameConnect *gameConnection.GameConnection, purchaseConfig *Purch
 			}
 		}
 	}
-	gameConnect.Close()
+
+	if purchaseConfig.LogOut {
+		gameConnect.Close()
+	}
 }
 
 // buy item from exchange
@@ -269,8 +272,19 @@ func tradeItem(gameConnect *gameConnection.GameConnection, tradeHistory *Cmd.MyT
 		buyNum = math.Min(float64(purchaseCount), float64(itemCounts-pendingCount))
 	}
 
+	if mismatches, err := pItem.CompareRefineLv(itemInfo); len(mismatches) > 0 || err != nil {
+		for _, _ = range mismatches {
+			log.Infof("交易所 %s 精炼等级 %d 设定购买等级 %s 跳过购买",
+				itemName,
+				itemInfo.GetRefineLv(),
+				pItem.RefineLv,
+			)
+		}
+		return
+	}
+
 	if uint64(itemCurPrice) < pItem.MaxPurchasePrice && buyNum > 0 {
-		log.Infof("购买 %d个%s 交易所有%d个", uint32(buyNum), itemName, itemInfo.GetCount())
+		log.Infof("购买 %d个%s 交易所有%d个 价格: %d", uint32(buyNum), itemName, itemInfo.GetCount(), itemCurPrice)
 		result, _ := gameConnect.BuyItem(uint32(buyNum), itemInfo)
 		log.Infof("购买结果: %v", result)
 		if result.Ret != nil && result.GetRet() == Cmd.ETRADE_RET_CODE_ETRADE_RET_CODE_SUCCESS {

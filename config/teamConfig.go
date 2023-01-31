@@ -15,6 +15,9 @@ func (c *TeamConfig) GetLeaderName() string {
 }
 
 func (c *TeamConfig) GetLeaderId() *uint64 {
+	if c.LeaderId == nil {
+		return new(uint64)
+	}
 	return c.LeaderId
 }
 

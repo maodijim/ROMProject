@@ -23,7 +23,7 @@ func (g *GameConnection) HandleSceneUserProtoCmd(cmdParamId int32, rawData []byt
 		goTo := param.(*Cmd.GoToUserCmd)
 		if goTo.GetPos() != nil {
 			g.Role.Pos = goTo.GetPos()
-			log.Infof("%s moved to %v", g.Role.GetRoleName(), g.Role.Pos)
+			log.Debugf("%s moved to %v", g.Role.GetRoleName(), g.Role.Pos)
 		}
 
 	case Cmd.CmdParam_value["DELETE_ENTRY_USER_CMD"]:
@@ -62,7 +62,7 @@ func (g *GameConnection) HandleSceneUserProtoCmd(cmdParamId int32, rawData []byt
 		}
 		if cmd.GetCharid() == g.Role.GetRoleId() {
 			if time.Now().Second()%5 == 0 {
-				log.Infof(
+				log.Debugf(
 					"Moving charater %s to position: %v",
 					g.Role.GetRoleName(),
 					param.(*Cmd.RetMoveUserCmd).GetPos(),
@@ -104,7 +104,7 @@ func (g *GameConnection) HandleSceneUserProtoCmd(cmdParamId int32, rawData []byt
 		err = utils.ParseCmd(rawData, param)
 		changeScene := param.(*Cmd.ChangeSceneUserCmd)
 		if changeScene.GetMapID() != 0 {
-			log.Infof("Moving %s to %v", g.Role.GetRoleName(), changeScene)
+			log.Infof("Moving %s to map %v", g.Role.GetRoleName(), changeScene)
 			g.MapNpcs = map[uint64]*Cmd.MapNpc{}
 			g.MapUsers = map[uint64]*Cmd.MapUser{}
 			g.Role.SetMapId(changeScene.GetMapID())

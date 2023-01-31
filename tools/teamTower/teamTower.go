@@ -4,6 +4,8 @@ import (
 	"flag"
 	"os"
 	"path"
+	"regexp"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -41,18 +43,16 @@ func worker(wg *sync.WaitGroup, cPath string, skills map[uint32]utils.SkillItem,
 		conf.SetTeamLeader(teamLeaderName)
 		conf.SetFollowTeamLeader(true)
 	}
-	gameConnect := gameConnection.NewConnection(conf, skills, items)
-	gameConnect.ShouldChangeScene = true
+	g := gameConnection.NewConnection(conf, skills, items)
+	g.ShouldChangeScene = true
 	if enableDebug {
-		gameConnect.DebugMsg = enableDebug
+		g.DebugMsg = enableDebug
 		log.SetLevel(log.DebugLevel)
 	}
 	log.Infof("worker for %s ready", cPath)
-	gameConnect.GameServerLogin()
-	_ = gameConnect.GetMainPackItems()
-	_ = gameConnect.GetTempMainPackItems()
-	gameConnect.DailySignIn()
-	mails := gameConnect.GetMails()
+	g.GameServerLogin()
+	g.DailySignIn()
+	mails := g.GetMails()
 	log.Infof("邮件数量: %d", len(mails))
 	// 获取邮件
 	for _, mail := range mails {
@@ -60,68 +60,135 @@ func worker(wg *sync.WaitGroup, cPath string, skills map[uint32]utils.SkillItem,
 			attachs := mail.GetAttach().GetAttachs()
 			log.Infof("邮件有附件: %s", attachs)
 			log.Infof("收取邮件 标题：%s 发送人：%s 内容：%s", mail.GetTitle(), mail.GetSender(), mail.GetMsg())
-			gameConnect.GetMailAttachment(mail.GetId())
+			g.GetMailAttachment(mail.GetId())
 		}
 	}
-	if targetZone != 0 {
+
+	if targetZone != 0 && !IsInTower(g) {
 		log.Infof("换线中...")
-		if gameConnect.Role.GetMapId() != gameConnection2.MapId_IzludeIsland.Uint32() {
-			gameConnect.ExitMapWait(gameConnection2.MapId_IzludeIsland.Uint32())
-			gameConnect.Reconnect()
+		if g.Role.GetMapId() != gameConnection2.MapId_IzludeIsland.Uint32() {
+			g.ExitMapWait(gameConnection2.MapId_IzludeIsland.Uint32())
+			g.Reconnect()
+			g.ChangeMap(gameConnection2.MapId_IzludeIsland.Uint32())
 		}
-		gameConnect.MoveChartWait(gameConnect.ParsePos(4182, 7086, 10633))
-		err := gameConnect.MoveToNpcWait("世界线传送师")
+		g.MoveChartWait(g.ParsePos(4182, 7086, 10633))
+		err := g.MoveToNpcWait("世界线传送师")
 		if err != nil {
-			log.Fatalf("换线失败: %s", err)
+			log.Errorf("换线失败: %s", err)
 			return
 		}
-		_, err = gameConnect.VisitNpcByName("世界线传送师")
+		_, err = g.VisitNpcByName("世界线传送师")
 		if err != nil {
-			log.Fatalf("换线失败: %s", err)
+			log.Errorf("换线失败: %s", err)
 		}
-		gameConnect.QueryZoneStatus()
-		gameConnect.JumpZone(targetZone, 0)
+		g.QueryZoneStatus()
+		g.JumpZone(targetZone, 0)
 	}
 	startTime := time.Now()
 	for time.Since(startTime) < maxTowerTime {
-		roleName := gameConnect.Role.GetRoleName()
-		if gameConnect.Role.TeamData != nil {
-			if !strings.HasPrefix(gameConnect.GetTeamLeaderName(false), gameConnect.Configs.TeamConfig.GetLeaderName()) {
+		roleName := g.Role.GetRoleName()
+		if g.Role.UserTowerInfo != nil {
+			curLayer := g.Role.UserTowerInfo.GetCurmaxlayer()
+			if curLayer >= 100 {
+				log.Infof("%s 完成了100层塔", g.Role.GetRoleName())
+				g.QuickSellItems()
+				time.Sleep(time.Second * 2)
+				log.Infof("回收 %d 件在临时背包道具", len(g.Role.PackItems[Cmd.EPackType_EPACKTYPE_TEMP_MAIN]))
+				g.GetTempItems()
+				time.Sleep(time.Second * 2)
+				buyTreeBranchBag(g)
+				time.Sleep(15 * time.Second)
+				return
+			}
+		}
+		if g.Role.TeamData != nil {
+			var leaderNameInTeam bool
+			if g.Configs.TeamConfig.GetLeaderName() != "" {
+				leaderNameInTeam = strings.HasPrefix(g.GetTeamLeaderName(false), g.Configs.TeamConfig.GetLeaderName())
+			}
+			leaderIdInTeam := false
+			if g.GetTeamLeaderData(false) != nil {
+				leaderIdInTeam = g.GetTeamLeaderData(false).GetGuid() == *g.Configs.TeamConfig.GetLeaderId()
+			}
+			if !leaderNameInTeam && !leaderIdInTeam {
 				log.Infof("队长不在队伍里 退出队伍")
-				gameConnect.ExitTeam()
+				g.ExitTeam()
 				time.Sleep(5 * time.Second)
 				continue
-			} else {
-				if gameConnect.Role.UserTowerInfo != nil {
-					curLayer := gameConnect.Role.UserTowerInfo.GetCurmaxlayer()
-					if curLayer >= 100 {
-						log.Infof("完成了100层塔")
-						gameConnect.QuickSellItems()
-						time.Sleep(time.Second * 2)
-						log.Infof("回收 %d 件在临时背包道具", len(gameConnect.Role.PackItems[Cmd.EPackType_EPACKTYPE_TEMP_MAIN]))
-						gameConnect.GetTempItems()
-						time.Sleep(30 * time.Second)
-						return
-					}
-				}
 			}
-			if strings.HasPrefix(gameConnect.Role.GetMapName(), "无限塔") || strings.HasPrefix(gameConnect.Role.GetMapName(), "恩德勒斯塔") {
-				log.Infof("%s 在塔里 %s", roleName, gameConnect.Role.GetMapName())
-				if gameConnect.Configs.TeamConfig.FollowTeamLeader && gameConnect.Role.FollowUserId != gameConnect.GetTeamLeader(false) {
-					gameConnect.Role.FollowUserId = gameConnect.GetTeamLeader(false)
+			if IsInTower(g) {
+				log.Infof("%s 在塔里 %s", roleName, g.Role.GetMapName())
+				if g.Configs.TeamConfig.FollowTeamLeader {
+					if getCurrentLayer(g.Role.GetMapName())%10 == 0 {
+						log.Infof("当前层是10的倍数，停止跟随队长%s", g.Role.GetRoleName())
+						g.Role.FollowUserId = 0
+					} else if g.Role.FollowUserId != g.GetTeamLeader(false) {
+						g.Role.FollowUserId = g.GetTeamLeader(false)
+					}
+
 				}
 				// leaderMapId := utils.GetMemberDataByType(gameConnect.GetTeamLeaderData(false).GetDatas(), Cmd.EMemberData_EMEMBERDATA_MAPID)
 				// if uint32(leaderMapId) != gameConnect.Role.GetMapId() {
 				// 	log.Infof("队长离开了地图 %s 离开副本", roleName)
 				// 	gameConnect.ExitMapWait(31)
 				// }
-				time.Sleep(15 * time.Second)
+				time.Sleep(10 * time.Second)
 				continue
 			}
-		} else if gameConnect.Role.TeamData == nil {
-			log.Infof("%s 申请加入%s队伍", roleName, gameConnect.Configs.TeamConfig.GetLeaderName())
-			gameConnect.AutoCreateJoinTeam(gameConnect.Configs.TeamConfig)
+		} else if g.Role.TeamData == nil {
+			log.Infof("%s 申请加入%s队伍", roleName, g.Configs.TeamConfig.GetLeaderName())
+			g.AutoCreateJoinTeam(g.Configs.TeamConfig)
 			time.Sleep(10 * time.Second)
+		}
+	}
+}
+
+func IsInTower(gameConnect *gameConnection.GameConnection) bool {
+	return strings.HasPrefix(gameConnect.Role.GetMapName(), "无限塔") || strings.HasPrefix(gameConnect.Role.GetMapName(), "恩德勒斯塔")
+}
+
+func getCurrentLayer(mapName string) uint32 {
+	re := regexp.MustCompile("[0-9]+")
+	layer := re.FindAllString(mapName, -1)
+	if len(layer) == 0 {
+		return 0
+	}
+	parseUint, err := strconv.ParseUint(layer[0], 10, 32)
+	if err != nil {
+		return 0
+	}
+	return uint32(parseUint)
+}
+
+func buyTreeBranchBag(g *gameConnection.GameConnection) {
+	if g.Role.GetLottery() < 40000 {
+		log.Infof("猫币不足买树枝礼包")
+		return
+	}
+	shopItems, err := g.QueryShopConfig(gameConnection2.ShopType_Lottery, 1)
+	for {
+		if err != nil {
+			log.Infof("查询商店失败重试")
+			time.Sleep(2 * time.Second)
+			shopItems, err = g.QueryShopConfig(gameConnection2.ShopType_Lottery, 1)
+		} else {
+			break
+		}
+	}
+	for _, shopItem := range shopItems.GetGoods() {
+		if g.FindItemNameById(shopItem.GetItemid()) == "神秘树枝福袋" {
+			log.Infof("买树枝福袋")
+			time.Sleep(1 * time.Second)
+			g.BuyShopItem(shopItem, shopItem.GetMaxcount())
+		} else if g.FindItemNameById(shopItem.GetItemid()) == "每日礼包" {
+			log.Infof("买每日礼包")
+			time.Sleep(1 * time.Second)
+			g.BuyShopItem(shopItem, 1)
+			item := g.FindPackItemByName("每日礼包", Cmd.EPackType_EPACKTYPE_MAIN)
+			if item != nil {
+				log.Infof("使用每日礼包")
+				g.UseItem(item.GetBase().GetGuid(), item.GetBase().GetCount())
+			}
 		}
 	}
 }

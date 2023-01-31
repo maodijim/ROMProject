@@ -10,6 +10,7 @@ var (
 		"SESSION_USER_MAIL_PROTOCMD":      Cmd.MailParam_name,
 		"SCENE_USER_TIP_PROTOCMD":         Cmd.TipParam_name,
 		"MATCHC_PROTOCMD":                 Cmd.MatchCParam_name,
+		"SESSION_USER_GUILD_PROTOCMD":     Cmd.GuildParam_name,
 		"FUBEN_PROTOCMD":                  Cmd.FuBenParam_name,
 		"USERSHOW_PROTOCMD":               Cmd.EUserShowParam_name,
 		"INTERACT_PROTOCMD":               Cmd.InteractParam_name,

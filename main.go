@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	dev_version = "v0.0.5"
+	dev_version = "v0.0.7"
 )
 
 type tradeItem struct {
@@ -135,6 +135,7 @@ func main() {
 
 			1045, // 时装
 			1052, // 限定特典
+			1020, // 坐騎
 		}
 
 		for {
@@ -231,7 +232,7 @@ func main() {
 			}
 
 			if gameConnect.Role.GetInGame() {
-				sleepFor := utils.RandomSleepTime(*sleepInterval, 500)
+				sleepFor := utils.RandomSleepTime(*sleepInterval, 100)
 				log.Infof("sleeping for %d seconds", sleepFor)
 				time.Sleep(time.Duration(sleepFor) * time.Second)
 			} else {

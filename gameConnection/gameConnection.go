@@ -92,7 +92,7 @@ func (g *GameConnection) SetAuthed(Authed bool) {
 const (
 	queryTimeout              = 3 * time.Second
 	printHeartBeatLogInterval = 60 * time.Second
-	maxRetry                  = 0
+	maxRetry                  = 1
 )
 
 var (
@@ -108,6 +108,7 @@ func (g *GameConnection) GameServerLogin() {
 			log.Fatalf("get accId failed: %v", err)
 		}
 	}
+	log.Infof("Account Id: %d", g.Configs.AccId)
 	go g.sendHandler()
 	g.connectGameServer()
 	g.sendReqUserLoginParamCmd()
@@ -725,6 +726,7 @@ func (g *GameConnection) doSelectRole() {
 	log.Infof("sending select role command: %v", cmd1)
 	_ = g.sendProtoCmd(cmd1, LogInUserProtoCmdId, Cmd.LoginCmdParam_value["SELECT_ROLE_USER_CMD"])
 	g.Role.SetRoleSelected(true)
+	_ = g.GetAllPackItems()
 }
 
 func (g *GameConnection) IsEnteringGameMap() bool {

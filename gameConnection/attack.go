@@ -33,9 +33,10 @@ var (
 )
 
 type AttackMonsterStat struct {
-	lastAttack time.Time
-	lock       sync.RWMutex
-	Standstill bool
+	lastAttack      time.Time
+	lock            sync.RWMutex
+	Standstill      bool
+	CurrentTargetId uint64
 }
 
 func (a *AttackMonsterStat) IsStandstill() bool {
@@ -56,6 +57,18 @@ func (a *AttackMonsterStat) SetLastAttack(t time.Time) {
 	a.lock.Lock()
 	defer a.lock.Unlock()
 	a.lastAttack = t
+}
+
+func (a *AttackMonsterStat) SetCurrentTargetId(targetId uint64) {
+	a.lock.Lock()
+	defer a.lock.Unlock()
+	a.CurrentTargetId = targetId
+}
+
+func (a *AttackMonsterStat) GetCurrentTargetId() uint64 {
+	a.lock.RLock()
+	defer a.lock.RUnlock()
+	return a.CurrentTargetId
 }
 
 func (g *GameConnection) SkillCmd(skillId uint32, data *Cmd.PhaseData, random1 bool) {
@@ -145,6 +158,7 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 		g.SkillCmd(skillId, pData, false)
 		g.AtkStat.SetLastAttack(time.Now())
 	}
+	g.AtkStat.SetCurrentTargetId(target.GetId())
 }
 
 func (g *GameConnection) GetTargetByRange(monsterList []string, srcPos Cmd.ScenePos, targetRange float64) (distDict map[float64]uint64, distanceList []float64) {
@@ -208,8 +222,10 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 		closestId := distDict[distanceList[0]]
 		target, ok := g.GetMapNpcs()[closestId]
 		if !ok {
+			g.AtkStat.SetCurrentTargetId(0)
 			return
 		}
+		g.AtkStat.SetCurrentTargetId(target.GetId())
 		skillRange := g.GetAttackRange(skillId)
 		launchSkillDis := skillRange * utils.AtkRangeScale
 		var launchSkillPos Cmd.ScenePos
@@ -233,10 +249,11 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 				lastMove = time.Now()
 				g.MoveChart(launchSkillPos)
 			}
+			after := time.After(75 * time.Millisecond)
 		moveToTargetLoop:
 			for {
 				select {
-				case <-time.After(75 * time.Millisecond):
+				case <-after:
 					// oldDistance := distance
 					target, ok = g.GetMapNpcs()[closestId]
 					if !ok {
@@ -268,6 +285,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 			g.AttackTarget(skillId, target)
 			if g.GetMapNpcs()[closestId].Id == nil {
 				log.Warnf("target %s is killed", target.GetName())
+				g.AtkStat.SetCurrentTargetId(0)
 				return
 			}
 		}
@@ -282,10 +300,12 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 			select {
 			case <-ctx.Done():
 				log.Infof("stop auto attack")
+				g.AtkStat.SetCurrentTargetId(0)
 				ticker.Stop()
 				return
 			case <-g.quit:
 				log.Infof("stop auto attack")
+				g.AtkStat.SetCurrentTargetId(0)
 				ticker.Stop()
 				return
 			default:
@@ -295,10 +315,12 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 					select {
 					case <-ctx.Done():
 						log.Debugf("stop auto attack skill loop")
+						g.AtkStat.SetCurrentTargetId(0)
 						ticker.Stop()
 						return
 					case <-g.quit:
 						log.Debugf("stop auto attack skill loop")
+						g.AtkStat.SetCurrentTargetId(0)
 						ticker.Stop()
 						return
 					case <-ticker.C:

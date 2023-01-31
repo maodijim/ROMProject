@@ -21,4 +21,5 @@ const (
 	NtfType_UserActionDialog           NotifierType = "EUSERACTIONTYPE_DIALOG"
 	NtfType_User2QueryZoneStatus       NotifierType = "USER2PARAM_QUERY_ZONESTATUS"
 	NtfType_UserItemPickup             NotifierType = "ITEM_PICKUP"
+	NtfType_SysMsg                     NotifierType = "USER2PARAM_SYSMSG"
 )

@@ -19,7 +19,7 @@ var (
 	g                     *gameConnection.GameConnection
 	fightCtx, fightCancel = context.WithCancel(context.Background())
 	flyWingUseCount       = 0
-	maxFlyWingUseCount    = 25
+	maxFlyWingUseCount    = 20
 	fightStar             = false
 	pickupCount           = uint32(0)
 	maxPickupCount        = uint32(100)
@@ -60,7 +60,6 @@ func main() {
 
 func start() {
 	g.GameServerLogin()
-	_ = g.GetAllPackItems()
 	g.ChangeMap(g.Role.GetMapId())
 
 	if g.Role.GetMapId() != gameTypes.MapId_MagmaDungeon1F.Uint32() {
@@ -72,15 +71,20 @@ func start() {
 	getNotification(spawnNotification)
 	ticker := time.NewTicker(time.Second * 10)
 	lavaGemCount = getLavaGemCount()
+	targetId := uint64(0)
 	go func() {
 		for {
-			if lastPos.GetY() == 0 {
-				lastPos = g.Role.GetPos()
-			} else if utils.PosEqual(lastPos, g.Role.GetPos()) && time.Since(lastPosUpdate) > time.Second*30 {
+			if targetId != 0 && g.AtkStat.GetCurrentTargetId() == targetId && time.Since(lastPosUpdate) > time.Second*30 {
 				log.Infof("卡住了")
+				g.AtkStat.SetCurrentTargetId(0)
+				targetId = 0
 				useFlyWing()
-			} else {
-				lastPos = g.Role.GetPos()
+			} else if targetId == 0 && time.Since(lastPosUpdate) > time.Second*60 {
+				log.Infof("没有目标卡住了")
+				useFlyWing()
+				lastPosUpdate = time.Now()
+			} else if g.AtkStat.GetCurrentTargetId() != targetId {
+				targetId = g.AtkStat.GetCurrentTargetId()
 				lastPosUpdate = time.Now()
 			}
 			time.Sleep(time.Second * 5)
@@ -107,7 +111,6 @@ func start() {
 			pickupCount = 0
 			fighting = false
 			fightCancel()
-			buyFlyWing()
 		flyLoop:
 			for {
 				if g.IsMonsterInRange("爆炎小恶魔★") && !fightStar {
@@ -129,6 +132,7 @@ func start() {
 				}
 				time.Sleep(time.Millisecond * 1000)
 			}
+			buyFlyWing()
 			fightStar = false
 			fightCancel()
 		}
@@ -189,9 +193,10 @@ func useFlyWing() {
 	item := g.FindPackItemById(5024, Cmd.EPackType_EPACKTYPE_MAIN)
 	if item != nil && item.GetBase().GetCount() > 0 {
 		log.Infof("使用苍蝇翅膀 还有%d个", item.GetBase().GetCount())
+	} else {
+		log.Warn("没有找到苍蝇翅膀")
+		_ = g.GetMainPackItems()
 	}
-	log.Infof("没有找到苍蝇翅膀")
-	_ = g.GetAllPackItems()
 }
 
 func buyFlyWing() {

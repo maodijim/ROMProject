@@ -212,6 +212,9 @@ func GetTimeNow(inMili bool) int64 {
 
 func RandomSleepTime(max, min int) int {
 	rand.Seed(time.Now().UnixNano())
+	if max < min {
+		max = min
+	}
 	return rand.Intn(max-min+1) + min
 }
 

@@ -121,7 +121,7 @@ func (g *GameConnection) InviteTeamExpFuben() {
 					}
 					if g.Role.TeamData == nil {
 						log.Warnf("%s没有组队 跳过申请生态研究所副本", g.Role.GetRoleName())
-						g.AutoCreateJoinTeam(g.Configs.TeamConfig.GetLeaderName())
+						g.AutoCreateJoinTeam(g.Configs.TeamConfig)
 						time.Sleep(15 * time.Second)
 						continue
 					}

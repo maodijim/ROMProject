@@ -16,21 +16,17 @@ var (
 )
 
 func (g *GameConnection) waitForResponse(notifierType gameTypes.NotifierType) (res interface{}, err error) {
-	start := time.Now()
-	for time.Since(start) < queryTimeout {
+	for {
 		select {
+		case <-time.After(queryTimeout):
+			g.RemoveNotifier(notifierType)
+			err = ErrQueryTimeout
+			return res, err
 		case res = <-g.Notifier(notifierType):
 			g.RemoveNotifier(notifierType)
 			return res, err
-		default:
-			time.Sleep(time.Second)
 		}
 	}
-	if time.Since(start) > queryTimeout {
-		err = ErrQueryTimeout
-	}
-	g.RemoveNotifier(notifierType)
-	return res, err
 }
 
 func (g *GameConnection) HandleMsg(output [][]byte) {
@@ -364,7 +360,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				param = &Cmd.QueryUserTeamInfoTeamCmd{}
 				err = utils.ParseCmd(o, param)
 				if g.Notifier(gameTypes.NtfType_TeamParamQueryUserTeamInfo) != nil {
-					g.Notifier(gameTypes.NtfType_TeamParamQueryUserTeamInfo) <- param.(*Cmd.QueryUserTeamInfoTeamCmd)
+					g.Notifier(gameTypes.NtfType_TeamParamQueryUserTeamInfo) <- param
 				}
 
 			case Cmd.TeamParam_value["TEAMPARAM_MEMBERDATAUPDATE"]:

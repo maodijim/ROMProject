@@ -11,6 +11,7 @@ items:
     maxExchangeCount: 9000000   # 交易所库存超过这个数量也会卖出  注意: 价格或者数量其中一个达到都会上架卖出
     minSellPrice: 0             # 最低出售金额
     leaveMinCount:              # 最低保有量 只在买有效 （防止公示）
+    refineLv: ">2"                  # 精炼等级支持 >, <, >=, <=, =, != 只在买有效
 #  - itemName: 铠甲碎片
 #    purchaseCount: 100
 #    maxPurchasePrice: 1100

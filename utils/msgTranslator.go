@@ -935,6 +935,29 @@ func TranslateMsg(output [][]byte) {
 			}
 			err = ParseCmd(o, param)
 			PrintTranslateMsgResult(cmdParamName, err, param)
+		} else if cmdId == Cmd.Command_value["SESSION_USER_GUILD_PROTOCMD"] {
+			switch cmdParamId {
+			case Cmd.GuildParam_value["GUILDPARAM_FRAME_STATUS"]:
+				param = &Cmd.FrameStatusGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_ENTERGUILDTERRITORY"]:
+				param = &Cmd.EnterTerritoryGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_QUERYPACK"]:
+				param = &Cmd.QueryPackGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_APPLYGUILD"]:
+				param = &Cmd.ApplyGuildGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_GUILDLIST"]:
+				param = &Cmd.QueryGuildListGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_MEMBERDATAUPDATE"]:
+				param = &Cmd.GuildMemberDataUpdate{}
+			case Cmd.GuildParam_value["GUILDPARAM_ENTERGUILD"]:
+				param = &Cmd.EnterGuildGuildCmd{}
+
+			default:
+				log.Infof("没有parsing")
+				continue
+			}
+			err = ParseCmd(o, param)
+			PrintTranslateMsgResult(cmdParamName, err, param)
 		}
 	}
 }

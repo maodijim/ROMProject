@@ -12,6 +12,13 @@ import (
 
 func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []byte) (param proto.Message, err error) {
 	switch cmdParamId {
+	case Cmd.User2Param_value["USER2PARAM_SYSMSG"]:
+		param = &Cmd.SysMsg{}
+		err = utils.ParseCmd(rawData, param)
+		if g.Notifier(notifier.NtfType_SysMsg) != nil {
+			g.Notifier(notifier.NtfType_SysMsg) <- param
+		}
+
 	case Cmd.User2Param_value["USER2PARAM_QUERY_ZONESTATUS"]:
 		param = &Cmd.QueryZoneStatusUserCmd{}
 		err = utils.ParseCmd(rawData, param)

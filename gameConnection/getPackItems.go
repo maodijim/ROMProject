@@ -1,6 +1,7 @@
 package gameConnection
 
 import (
+	"sync"
 	"time"
 
 	Cmd "ROMProject/Cmds"
@@ -45,10 +46,22 @@ func (g *GameConnection) GetAllPackItems() (err error) {
 		Cmd.EPackType_EPACKTYPE_EQUIP,
 		// Cmd.EPackType_EPACKTYPE_STORE,
 		Cmd.EPackType_EPACKTYPE_PERSONAL_STORE,
+		Cmd.EPackType_EPACKTYPE_FOOD,
+		Cmd.EPackType_EPACKTYPE_PET,
+		Cmd.EPackType_EPACKTYPE_QUEST,
 	}
-	for _, pType := range packTypes {
-		err = g.GetPackItem(&pType)
+	wg := sync.WaitGroup{}
+	for range packTypes {
+		wg.Add(1)
 	}
+	for i, pType := range packTypes {
+		go func(packType Cmd.EPackType, i int) {
+			time.Sleep(time.Duration(i) * 250 * time.Millisecond)
+			err = g.GetPackItem(&packType)
+			wg.Done()
+		}(pType, i)
+	}
+	wg.Wait()
 	return err
 }
 

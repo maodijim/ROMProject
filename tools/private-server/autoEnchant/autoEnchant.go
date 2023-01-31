@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	ver = "0.0.2"
+	ver = "0.0.4"
 )
 
 var (
@@ -63,6 +63,8 @@ var (
 		Cmd.EAttrType_EATTRTYPE_SLEEPDEF:   "睡眠抵抗",
 		Cmd.EAttrType_EATTRTYPE_CHAOSDEF:   "恐惧抵抗",
 		Cmd.EAttrType_EATTRTYPE_CURSEDEF:   "诅咒抵抗",
+		Cmd.EAttrType_EATTRTYPE_SLOWDEF:    "减速抵抗",
+		Cmd.EAttrType_EATTRTYPE_BLINDDEF:   "致盲抵抗",
 	}
 	AttrMap        = utils.RevertMap(AttrZhMap)
 	EnchantTypeMap = map[string]Cmd.EEnchantType{
@@ -70,14 +72,14 @@ var (
 		"中级": Cmd.EEnchantType_EENCHANTTYPE_MEDIUM,
 		"低级": Cmd.EEnchantType_EENCHANTTYPE_PRIMARY,
 	}
-	EnchantEquipPosMap = map[string]Cmd.EEquipType{
-		"武器":  Cmd.EEquipType_EEQUIPTYPE_WEAPON,
-		"副手":  Cmd.EEquipType_EEQUIPTYPE_SHIELD,
-		"盔甲":  Cmd.EEquipType_EEQUIPTYPE_ARMOUR,
-		"鞋子":  Cmd.EEquipType_EEQUIPTYPE_SHOES,
-		"披风":  Cmd.EEquipType_EEQUIPTYPE_ROBE,
-		"饰品1": Cmd.EEquipType_EEQUIPTYPE_ACCESSORY,
-		"饰品2": Cmd.EEquipType_EEQUIPTYPE_ACCESSORY,
+	EnchantEquipPosMap = map[string][]Cmd.EEquipType{
+		"武器":  {Cmd.EEquipType_EEQUIPTYPE_WEAPON},
+		"副手":  {Cmd.EEquipType_EEQUIPTYPE_SHIELD, Cmd.EEquipType_EEQUIPTYPE_BRACELET},
+		"盔甲":  {Cmd.EEquipType_EEQUIPTYPE_ARMOUR},
+		"鞋子":  {Cmd.EEquipType_EEQUIPTYPE_SHOES},
+		"披风":  {Cmd.EEquipType_EEQUIPTYPE_ROBE},
+		"饰品1": {Cmd.EEquipType_EEQUIPTYPE_ACCESSORY},
+		"饰品2": {Cmd.EEquipType_EEQUIPTYPE_ACCESSORY},
 	}
 	g *gameConnection.GameConnection
 )
@@ -103,7 +105,7 @@ func main() {
 	log.Infof("自动附魔版本 %s", ver)
 	configPath := flag.String("config", "config.yml", "配置文件路径")
 	enableDebug := flag.Bool("debug", false, "是否开启调试模式")
-	speed := flag.Uint("speed", 500, "附魔速度，单位毫秒")
+	speed := flag.Uint("speed", 1000, "附魔速度，单位毫秒")
 	autoSave := flag.Bool("autoSave", false, "是否自动保存 (默认不保存)")
 	flag.Parse()
 	items := utils.NewItemsLoader("", "", "")
@@ -228,7 +230,7 @@ func getTargetItem() *Cmd.ItemData {
 	equipItems := g.Role.GetPackItemsByType(Cmd.EPackType_EPACKTYPE_EQUIP)
 	var targetEquip *Cmd.ItemData
 	for _, item := range equipItems {
-		if item.GetBase().GetEquipType() == EnchantEquipPosMap[g.Configs.EnchantConfig.EnchantEquipPos] {
+		if utils.Contains(EnchantEquipPosMap[g.Configs.EnchantConfig.EnchantEquipPos], item.GetBase().GetEquipType()) {
 			if g.Configs.EnchantConfig.EnchantEquipPos == "饰品1" && item.GetBase().GetIndex() != 5 {
 				continue
 			} else if g.Configs.EnchantConfig.EnchantEquipPos == "饰品2" && item.GetBase().GetIndex() != 6 {

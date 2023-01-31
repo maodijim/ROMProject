@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	autoLvVer = "v0.0.1"
+	autoLvVer = "v0.0.3"
 )
 
 var (
@@ -93,9 +93,9 @@ var (
 			g.ParsePos(-39263, 12865, -62454),
 		},
 		// 左下
-		{
-			g.ParsePos(-34175, -9845, -4474),
-		},
+		// {
+		// 	g.ParsePos(-34175, -9845, -4474),
+		// },
 	}
 )
 
@@ -467,7 +467,11 @@ func jobScript() {
 		g.RunQuestStep(400040001, 0, 0, 0)
 		g.RunQuestStep(400040001, 0, 0, 3)
 		g.RunQuestStep(400040001, 0, 3, 3)
+	}
 
+	if g.Role.GetProfession() == Cmd.EProfession_EPROFESSION_NOVICE {
+		g.ExitMapWait(gameTypes.MapId_ProteraSouth.Uint32())
+		log.Fatalf("還是初心者转职失敗, 返回南門")
 	}
 
 	putOnEquip("百万击破", Cmd.EEquipPos_EEQUIPPOS_HEAD)
@@ -617,40 +621,58 @@ func mjolnirMountains() {
 	for _, pos := range mountainPos[choice] {
 		g.MoveChartWait(pos)
 	}
-	go func() {
-		ticker := time.NewTicker(10 * time.Second)
-		goBackTicker := time.NewTicker(5 * time.Minute)
-		startPos := g.Role.GetPos()
-		lastPosUpdate := time.Now()
-		for {
-			select {
-			case <-goBackTicker.C:
-				log.Infof("5分钟后回到起始点")
+	ticker := time.NewTicker(10 * time.Second)
+	goBackTicker := time.NewTicker(5 * time.Minute)
+	startPos := g.Role.GetPos()
+	lastPosUpdate := time.Now()
+	for {
+		select {
+		case <-time.After(1 * time.Second):
+			if g.Role.GetRoleLevel() < 50 {
+				lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 50}, "蜂兵")
+			} else if g.Role.GetRoleLevel() < 60 {
+				choice = rand.Intn(len(mountainPos) - 1)
+				lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 60}, "噬人花")
+			}
+		case <-goBackTicker.C:
+			log.Infof("5分钟后回到起始点")
+			cancelAutoAtk()
+			for _, pos := range mountainPos[choice] {
+				g.MoveChartWait(pos)
+			}
+			disable, cancelAutoAtk = context.WithCancel(context.Background())
+			if g.Role.GetRoleLevel() < 50 {
+				lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 50}, "蜂兵")
+			} else if g.Role.GetRoleLevel() < 60 {
+				lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 60}, "噬人花")
+			}
+		case <-ticker.C:
+			if g.Role.GetRoleLevel() >= 60 {
+				log.Infof("角色等级达到60级")
+				ticker.Stop()
+				goBackTicker.Stop()
+				cancelAutoAtk()
+				return
+			}
+			if !g.Role.IsEqualPos(startPos) {
+				lastPosUpdate = time.Now()
+				startPos = g.Role.GetPos()
+			}
+			if time.Since(lastPosUpdate) > 60*time.Second {
+				log.Infof("角色卡住了, 重新进入地图")
 				cancelAutoAtk()
 				for _, pos := range mountainPos[choice] {
 					g.MoveChartWait(pos)
 				}
 				disable, cancelAutoAtk = context.WithCancel(context.Background())
-				lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 50}, "蜂兵")
-			case <-ticker.C:
-				if !g.Role.IsEqualPos(startPos) {
-					lastPosUpdate = time.Now()
-					startPos = g.Role.GetPos()
-				}
-				if time.Since(lastPosUpdate) > 60*time.Second {
-					log.Infof("角色卡住了, 重新进入地图")
-					cancelAutoAtk()
-					for _, pos := range mountainPos[choice] {
-						g.MoveChartWait(pos)
-					}
-					disable, cancelAutoAtk = context.WithCancel(context.Background())
+				if g.Role.GetRoleLevel() < 50 {
 					lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 50}, "蜂兵")
+				} else if g.Role.GetRoleLevel() < 60 {
+					lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 60}, "噬人花")
 				}
 			}
 		}
-	}()
-
-	lvUp(disable, cancelAutoAtk, StopAttackCondition{BaseLevel: 50}, "蜂兵")
+	}
 }
 
 func putOnEquip(name string, pos Cmd.EEquipPos) {
@@ -725,6 +747,29 @@ func expBuff() {
 }
 
 func lvUp(disable context.Context, cancelAutoAtk context.CancelFunc, condition StopAttackCondition, monsters ...string) {
+	go func() {
+		targetId := g.AtkStat.GetCurrentTargetId()
+		lastPosUpdate := time.Now()
+		ticker := time.NewTicker(5 * time.Second)
+		for {
+			select {
+			case <-disable.Done():
+				ticker.Stop()
+				return
+			case <-ticker.C:
+				if targetId != 0 && g.AtkStat.GetCurrentTargetId() == targetId && time.Since(lastPosUpdate) > time.Second*30 {
+					log.Infof("卡住了")
+					useFlyWing()
+				} else if targetId == 0 && time.Since(lastPosUpdate) > time.Second*60 {
+					log.Infof("没有目标卡住了")
+					useFlyWing()
+				} else if g.AtkStat.GetCurrentTargetId() != targetId {
+					targetId = g.AtkStat.GetCurrentTargetId()
+					lastPosUpdate = time.Now()
+				}
+			}
+		}
+	}()
 	stopNpc := printNearbyNpcs(g)
 	if condition.Standstill {
 		g.AtkStat.SetStandstill(true)
@@ -740,6 +785,7 @@ func lvUp(disable context.Context, cancelAutoAtk context.CancelFunc, condition S
 			log.Infof("停止练级")
 			stopNpc <- true
 			cancelAutoAtk()
+			return
 		case <-ticker.C:
 			jlv = g.Role.GetJobLevel()
 			blv = g.Role.GetRoleLevel()
@@ -764,7 +810,6 @@ func lvUp(disable context.Context, cancelAutoAtk context.CancelFunc, condition S
 				g.AtkStat.SetStandstill(false)
 				stopNpc <- true
 				cancelAutoAtk()
-				return
 			}
 			if g.GetHpPer() == 0 {
 				log.Infof("死亡")
@@ -776,7 +821,6 @@ func lvUp(disable context.Context, cancelAutoAtk context.CancelFunc, condition S
 
 					mjolnirMountains()
 				}()
-				return
 			}
 		}
 	}
@@ -795,8 +839,10 @@ func AutoAttrPoint() {
 					var err error
 					if g.Role.GetRoleLevel() >= 35 {
 						attrs, err = g.AddAttrPoint(0, 1, 0, 0, 0, 0)
-					} else {
+					} else if g.Role.GetRoleLevel() < 35 || g.Role.GetRoleLevel() >= 50 {
 						attrs, err = g.AddAttrPoint(0, 0, 0, 0, 1, 0)
+					} else {
+						attrs, err = g.AddAttrPoint(0, 0, 0, 0, 1, 2)
 					}
 					if err != nil {
 						log.Warnf("自动分配属性点失败: %s", err.Error())
@@ -845,6 +891,37 @@ func AutoSkillLearn() {
 	}()
 }
 
+func useFlyWing() {
+	g.UseFlyWing()
+	item := g.FindPackItemById(5024, Cmd.EPackType_EPACKTYPE_MAIN)
+	if item != nil && item.GetBase().GetCount() > 0 {
+		log.Infof("使用苍蝇翅膀 还有%d个", item.GetBase().GetCount())
+		if item.GetBase().GetCount() < 10 {
+			buyFlyWing()
+		}
+	} else {
+		log.Warn("没有找到苍蝇翅膀")
+		_ = g.GetAllPackItems()
+	}
+}
+
+func buyFlyWing() {
+	if item := g.FindPackItemByName("苍蝇翅膀", Cmd.EPackType_EPACKTYPE_MAIN); item == nil || item.GetBase().GetCount() > 1000 {
+		return
+	}
+	shopConfig, err := g.QueryShopConfig(gameTypes.ShopType_Item, 1)
+	if err != nil {
+		log.Errorf("查询商店配置失败 %s", err)
+		return
+	}
+	for _, item := range shopConfig.GetGoods() {
+		if item.GetItemid() == 5024 {
+			log.Infof("购买10苍蝇翅膀")
+			g.BuyShopItem(item, 10)
+		}
+	}
+}
+
 func main() {
 	log.Infof("ROM auto level up version: %s", autoLvVer)
 	confFile := flag.String("configPath", "config.yml", "Game Server Configuration Yaml Path")
@@ -875,8 +952,7 @@ func main() {
 			"0 bottom mid\n"+
 			"1 mid left\n"+
 			"2 mid right\n"+
-			"3 top right\n"+
-			"4 bottom left\n",
+			"3 top right\n",
 	)
 	flag.Parse()
 	lvUpChoice = *choice
@@ -897,7 +973,6 @@ func main() {
 	}
 	g.AddNotifier("INTER_QUESTION")
 	g.GameServerLogin()
-	_ = g.GetAllPackItems()
 	g.ChangeMap(g.Role.GetMapId())
 	time.Sleep(3 * time.Second)
 
