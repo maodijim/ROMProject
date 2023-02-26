@@ -110,7 +110,7 @@ func worker(wg *sync.WaitGroup, cPath string, skills map[uint32]utils.SkillItem,
 			if g.GetTeamLeaderData(false) != nil {
 				leaderIdInTeam = g.GetTeamLeaderData(false).GetGuid() == *g.Configs.TeamConfig.GetLeaderId()
 			}
-			if !leaderNameInTeam && !leaderIdInTeam {
+			if !leaderNameInTeam && !leaderIdInTeam && !IsInTower(g) {
 				log.Infof("队长不在队伍里 退出队伍")
 				g.ExitTeam()
 				time.Sleep(5 * time.Second)
