@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	csVer = "v0.0.1"
+	csVer = "v0.0.2"
 )
 
 var (
@@ -109,7 +109,7 @@ func start() {
 		// g.ExitMapWait(gameConnection.MapId_Yuno.Uint32())
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute*1)
 		log.Infof("开始休息打怪 1分钟")
-		g.EnableAutoAttack(ctx, "玩具士兵", "玩具士兵★", "玩偶熊")
+		g.EnableAutoAttack(ctx, "玩具士兵", "玩具士兵★")
 	rest:
 		for {
 			select {

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"flag"
 	"math"
+	"os"
+	"sync"
 	"time"
 
 	Cmd "ROMProject/Cmds"
@@ -26,6 +28,7 @@ var (
 	excelFile       *TradeExcel
 	shouldReconnect = false
 	zenyNeeded      = uint64(1000000)
+	debug           = false
 )
 
 func init() {
@@ -43,37 +46,75 @@ func main() {
 	buffFile := flag.String("buffPath", "", "Buff Json Path")
 	purchaseItemYml := flag.String("purchaseItems", "purchaseItems.yml", "yaml file of the list of items to purchase")
 	enableDebug := flag.Bool("debug", false, "Enable Debugging")
+	workerCount := flag.Uint("workerCount", 5, "Number of workers to run")
 	zn := flag.Uint64("zeny", 100000, "Zeny needed to do trading")
 	flag.Parse()
 	zenyNeeded = *zn
+	debug = *enableDebug
 	items = utils.NewItemsLoader(*itemFile, *buffFile, "")
-	conf := config.NewServerConfigs(*confFile)
-	purchaseConfig := PurchaseConfigParser(*purchaseItemYml)
 	excelFile = NewTradeExcel("", "Sheet1")
-	gameConnect := gameConnection.NewConnection(conf, nil, items)
-	if *enableDebug {
-		gameConnect.DebugMsg = *enableDebug
-		log.SetLevel(log.DebugLevel)
+	wg := &sync.WaitGroup{}
+	confChan := make(chan *config.ServerConfigs, *workerCount)
+	for i := uint(0); i < *workerCount; i++ {
+		wg.Add(1)
+		go worker(wg, *purchaseItemYml, confChan)
 	}
-	ticker := time.Tick(time.Duration(purchaseConfig.BuyInterval) * time.Second)
-	initRun := time.After(1 * time.Second)
-	for {
-		select {
-		case <-initRun:
-			// 交易所购买
-			purchaseConfig = PurchaseConfigParser(*purchaseItemYml)
-			autoTrade(gameConnect, purchaseConfig)
-			if purchaseConfig.BuyInterval > 0 {
-				log.Infof("等待 %d秒", purchaseConfig.BuyInterval)
-			} else {
-				log.Infof("交易完成")
-				log.Exit(0)
+	stat, err := os.Stat(*confFile)
+	if err != nil {
+		log.Error(err)
+		return
+	}
+	if stat.IsDir() {
+		fi, _ := os.ReadDir(*confFile)
+		for _, file := range fi {
+			if file.IsDir() {
+				continue
 			}
-		case <-ticker:
-			// 交易所购买
-			purchaseConfig = PurchaseConfigParser(*purchaseItemYml)
-			autoTrade(gameConnect, purchaseConfig)
-			log.Infof("等待 %d秒", purchaseConfig.BuyInterval)
+			conf := config.NewServerConfigs(*confFile + "/" + file.Name())
+			confChan <- conf
+		}
+	} else {
+		conf := config.NewServerConfigs(*confFile)
+		confChan <- conf
+	}
+	wg.Wait()
+}
+
+func worker(wg *sync.WaitGroup, purchaseItemYml string, confChan chan *config.ServerConfigs) {
+	defer wg.Done()
+	for conf := range confChan {
+		gameConnect := gameConnection.NewConnection(conf, nil, items)
+		purchaseConfig := PurchaseConfigParser(purchaseItemYml)
+		if debug {
+			gameConnect.DebugMsg = debug
+			log.SetLevel(log.DebugLevel)
+		}
+		ticker := time.NewTicker(
+			time.Duration(math.Max(float64(purchaseConfig.BuyInterval), 10)) * time.Second)
+		initRun := time.After(1 * time.Second)
+	buyLoop:
+		for {
+			select {
+			case <-initRun:
+				// 交易所购买
+				purchaseConfig = PurchaseConfigParser(purchaseItemYml)
+				autoTrade(gameConnect, purchaseConfig)
+				if purchaseConfig.BuyInterval > 0 {
+					log.Infof("等待 %d秒", purchaseConfig.BuyInterval)
+				} else {
+					log.Infof("交易完成")
+					break buyLoop
+				}
+			case <-ticker.C:
+				// 交易所购买
+				if purchaseConfig.BuyInterval <= 0 {
+					ticker.Stop()
+					break buyLoop
+				}
+				purchaseConfig = PurchaseConfigParser(purchaseItemYml)
+				autoTrade(gameConnect, purchaseConfig)
+				log.Infof("等待 %d秒", purchaseConfig.BuyInterval)
+			}
 		}
 	}
 }

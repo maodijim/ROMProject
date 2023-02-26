@@ -205,6 +205,10 @@ func (g *GameConnection) WaitForInGame() {
 			if g.Role.GetInGame() {
 				// If not moved strange things will happen
 				g.MoveChart(g.Role.GetPos())
+				if g.Configs.AuthPass != "" {
+					log.Infof("sending auth pass")
+					g.AuthConfirm(g.Configs.AuthPass)
+				}
 				ticker.Stop()
 				return
 			} else {

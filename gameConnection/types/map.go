@@ -20,6 +20,10 @@ const (
 	MapId_MagmaDungeon1F   MapId = 66
 	MapId_MagmaDungeon2F   MapId = 67
 	MapId_MagmaDungeon3F   MapId = 68
+	MapId_Niflheim         MapId = 70
+	MapId_MistyForest      MapId = 71
+	MapId_Skellington      MapId = 72
+	MapId_Hamelin          MapId = 73
 	MapId_RoomAdvanced     MapId = 1001
 	MapId_RoyalCooking     MapId = 1061
 	MapId_Guild            MapId = 10001
