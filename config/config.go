@@ -27,6 +27,7 @@ type EnchantCondition struct {
 
 type ServerConfigs struct {
 	AuthServer     string `yaml:"authServer"`
+	AuthPass       string `yaml:"authPass"`
 	ZoneId         uint32 `yaml:"zoneId"`
 	Char           uint   `yaml:"char"`
 	AutoCreateChar bool   `yaml:"autoCreateChar"`
