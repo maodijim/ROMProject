@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	ver = "0.0.4"
+	ver = "0.1.0"
 )
 
 var (
@@ -73,15 +73,32 @@ var (
 		"低级": Cmd.EEnchantType_EENCHANTTYPE_PRIMARY,
 	}
 	EnchantEquipPosMap = map[string][]Cmd.EEquipType{
-		"武器":  {Cmd.EEquipType_EEQUIPTYPE_WEAPON},
-		"副手":  {Cmd.EEquipType_EEQUIPTYPE_SHIELD, Cmd.EEquipType_EEQUIPTYPE_BRACELET},
+		"武器": {Cmd.EEquipType_EEQUIPTYPE_WEAPON},
+		"副手": {
+			Cmd.EEquipType_EEQUIPTYPE_SHIELD,
+			Cmd.EEquipType_EEQUIPTYPE_BRACELET,
+			Cmd.EEquipType_EEQUIPTYPE_EIKON,
+			Cmd.EEquipType_EEQUIPTYPE_HANDBRACELET,
+			// Cmd.EEquipType_EEQUIPTYPE_PEARL,
+		},
 		"盔甲":  {Cmd.EEquipType_EEQUIPTYPE_ARMOUR},
 		"鞋子":  {Cmd.EEquipType_EEQUIPTYPE_SHOES},
 		"披风":  {Cmd.EEquipType_EEQUIPTYPE_ROBE},
 		"饰品1": {Cmd.EEquipType_EEQUIPTYPE_ACCESSORY},
 		"饰品2": {Cmd.EEquipType_EEQUIPTYPE_ACCESSORY},
+		"头饰":  {Cmd.EEquipType_EEQUIPTYPE_HEAD},
+		"背部":  {Cmd.EEquipType_EEQUIPTYPE_BACK},
+		"尾部":  {Cmd.EEquipType_EEQUIPTYPE_TAIL},
+		"脸部":  {Cmd.EEquipType_EEQUIPTYPE_FACE},
+		"嘴部":  {Cmd.EEquipType_EEQUIPTYPE_MOUTH},
 	}
-	g *gameConnection.GameConnection
+	g            *gameConnection.GameConnection
+	allowRoleIds = []uint64{
+		// 100100000223,
+		// 100100001314,
+		// 100100000612,
+		// 100100001397,
+	}
 )
 
 func init() {
@@ -105,7 +122,7 @@ func main() {
 	log.Infof("自动附魔版本 %s", ver)
 	configPath := flag.String("config", "config.yml", "配置文件路径")
 	enableDebug := flag.Bool("debug", false, "是否开启调试模式")
-	speed := flag.Uint("speed", 1000, "附魔速度，单位毫秒")
+	speed := flag.Uint("speed", 850, "附魔速度，单位毫秒")
 	autoSave := flag.Bool("autoSave", false, "是否自动保存 (默认不保存)")
 	flag.Parse()
 	items := utils.NewItemsLoader("", "", "")
@@ -117,6 +134,10 @@ func main() {
 		log.SetLevel(log.DebugLevel)
 	}
 	g.GameServerLogin()
+
+	if len(allowRoleIds) > 0 && !utils.Contains(allowRoleIds, g.Role.GetRoleId()) {
+		log.Fatalf("当前角色不在允许列表中，退出")
+	}
 
 	_ = g.GetAllPackItems()
 
