@@ -28,7 +28,7 @@ var (
 	lastPosUpdate         = time.Now()
 	lastPos               Cmd.ScenePos
 	flyMutex              *sync.Mutex
-	flyMutexWait          = float64(6500)
+	flyMutexWait          = float64(7000)
 )
 
 func init() {
@@ -141,7 +141,7 @@ func start() {
 
 func fightDevil(ctx context.Context) {
 	fighting = true
-	g.EnableAutoAttack(ctx, "爆炎小恶魔 ")
+	g.EnableAutoAttack(ctx, "爆炎小恶魔 ", "爆炎小恶魔★")
 }
 
 func fightDevilStar() {
