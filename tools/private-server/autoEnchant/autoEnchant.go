@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	ver = "0.1.0"
+	ver = "0.1.1"
 )
 
 var (
@@ -104,7 +104,6 @@ var (
 func init() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,
-		ForceColors:   true,
 	})
 	logFile := "autoEnchant.log"
 	var mw io.Writer
@@ -176,7 +175,7 @@ func main() {
 	time.Sleep(5 * time.Second)
 	count := 1
 	for {
-		if g.EnchantContains(targetEquip.GetBase().GetGuid(), &targetEnchant) {
+		if g.EnchantContains(targetEquip.GetBase().GetGuid(), &targetEnchant) && *autoSave {
 			enchantMap := enchantToZh(targetEquip.GetEnchant())
 			log.Infof("已经有附魔要求的属性 %s", fumoStr(enchantMap))
 			break
