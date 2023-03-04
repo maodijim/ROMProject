@@ -43,6 +43,7 @@ type PurchaseItem struct {
 	MinSellPrice     uint64 `yaml:"minSellPrice"`
 	LeaveMinCount    uint32 `yaml:"leaveMinCount"`
 	RefineLv         string `yaml:"refineLv"`
+	DamageEquip      bool   `yaml:"damageEquip"`
 }
 
 func (p *PurchaseItem) GetLeaveMinCount() uint32 {
@@ -109,7 +110,7 @@ func (p *PurchaseItem) CompareRefineLv(info *Cmd.TradeItemBaseInfo) (mismatches 
 }
 
 func (p *PurchaseItem) ParseRefineLv() (compare []string, lv []uint32, err error) {
-	re, err := regexp.Compile(`([><!=])=?\s?(\d)`)
+	re, err := regexp.Compile(`([><!=]+)=?\s?(\d)`)
 	if err != nil {
 		return compare, lv, err
 	}

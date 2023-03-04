@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	traderVer     = "0.1.7"
+	traderVer     = "0.1.8"
 	pointDiscount = 0.75
 	MaxSellItems  = 8
 )
@@ -313,7 +313,7 @@ func tradeItem(gameConnect *gameConnection.GameConnection, tradeHistory *Cmd.MyT
 		buyNum = math.Min(float64(purchaseCount), float64(itemCounts-pendingCount))
 	}
 
-	if mismatches, err := pItem.CompareRefineLv(itemInfo); len(mismatches) > 0 || err != nil {
+	if mismatches, err := pItem.CompareRefineLv(itemInfo); itemInfo.GetItemData() != nil && (len(mismatches) > 0 || err != nil) {
 		for _, _ = range mismatches {
 			log.Infof("交易所 %s 精炼等级 %d 设定购买等级 %s 跳过购买",
 				itemName,
@@ -324,14 +324,21 @@ func tradeItem(gameConnect *gameConnection.GameConnection, tradeHistory *Cmd.MyT
 		return
 	}
 
+	if itemInfo.GetItemData().GetEquip().GetRefinelv() > 0 && itemInfo.GetItemData().GetEquip().GetDamage() != pItem.DamageEquip {
+		log.Infof("交易所 %s 是破损 %t 设定购买破损 %t 跳过购买",
+			itemName,
+			itemInfo.GetItemData().GetEquip().GetDamage(),
+			pItem.DamageEquip,
+		)
+		return
+	}
+
 	if uint64(itemCurPrice) < pItem.MaxPurchasePrice && buyNum > 0 {
 		log.Infof("购买 %d个%s 交易所有%d个 价格: %d", uint32(buyNum), itemName, itemInfo.GetCount(), itemCurPrice)
 		result, _ := gameConnect.BuyItem(uint32(buyNum), itemInfo)
 		log.Infof("购买结果: %v", result)
 		if result.Ret != nil && result.GetRet() == Cmd.ETRADE_RET_CODE_ETRADE_RET_CODE_SUCCESS {
-			silverInBag := gameConnect.Role.GetSilver() - uint64(buyNum)*uint64(itemCurPrice)
-			gameConnect.Role.Silver = &silverInBag
-			log.Infof("角色剩余 %d zeny", silverInBag)
+			log.Infof("角色剩余 %d zeny", gameConnect.Role.GetSilver())
 		}
 	} else if buyNum == 0 {
 		log.Infof("已经申请购入所有交易所 %s", itemName)
@@ -450,7 +457,10 @@ func buyZeny(gameConnect *gameConnection.GameConnection) {
 			if shopItem.GetMoneycount() == zenyPackCost {
 				// This is zeny pack
 				log.Infof("购买 %d 个 1kw zeny 包", zenyPackNeeded)
-				gameConnect.BuyShopItem(shopItem, uint32(zenyPackNeeded))
+				for i := uint64(0); i < zenyPackNeeded; i++ {
+					gameConnect.BuyShopItem(shopItem, 1)
+					time.Sleep(500 * time.Millisecond)
+				}
 				time.Sleep(1000 * time.Millisecond)
 				zenyItem := gameConnect.FindPackItemByName("10,000,000 Zeny", Cmd.EPackType_EPACKTYPE_MAIN)
 				if zenyItem != nil {
