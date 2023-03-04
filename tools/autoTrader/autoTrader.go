@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	traderVer     = "0.1.8"
+	traderVer     = "0.1.9"
 	pointDiscount = 0.75
 	MaxSellItems  = 8
 )
