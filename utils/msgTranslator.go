@@ -127,6 +127,9 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER2_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.User2Param_value["USER2PARAM_SERVANT_GROWTH"]:
+				param = &Cmd.GrowthServantUserCmd{}
+
 			case Cmd.User2Param_value["USER2PARAM_DEATH_TRANSFER_LIST"]:
 				param = &Cmd.DeathTransferListCmd{}
 
@@ -937,6 +940,16 @@ func TranslateMsg(output [][]byte) {
 			PrintTranslateMsgResult(cmdParamName, err, param)
 		} else if cmdId == Cmd.Command_value["SESSION_USER_GUILD_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.GuildParam_value["GUILDPARAM_UPDATEDONATEITEM"]:
+				param = &Cmd.UpdateDonateItemGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_UPDATEDONATEITEM"]:
+				param = &Cmd.UpdateDonateItemGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_DONATELIST"]:
+				param = &Cmd.DonateListGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_GUILDDATAUPDATE"]:
+				param = &Cmd.GuildDataUpdateGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_PACKUPDATE"]:
+				param = &Cmd.PackUpdateGuildCmd{}
 			case Cmd.GuildParam_value["GUILDPARAM_FRAME_STATUS"]:
 				param = &Cmd.FrameStatusGuildCmd{}
 			case Cmd.GuildParam_value["GUILDPARAM_ENTERGUILDTERRITORY"]:
