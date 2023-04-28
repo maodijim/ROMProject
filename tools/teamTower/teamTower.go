@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	teamTowerVer = "0.0.3"
+	teamTowerVer = "0.0.4"
 	maxTowerTime = time.Minute * 75
 )
 
@@ -122,17 +122,25 @@ func worker(wg *sync.WaitGroup, cPath string, skills map[uint32]utils.SkillItem,
 					if getCurrentLayer(g.Role.GetMapName())%10 == 0 {
 						log.Infof("当前层是10的倍数，停止跟随队长%s", g.Role.GetRoleName())
 						g.Role.FollowUserId = 0
+					} else if getCurrentLayer(g.Role.GetMapName())%10 == 1 {
+						log.Infof("当前层是10的倍数+1，移动到传送点%s", g.Role.GetRoleName())
+						g.Role.FollowUserId = 0
+						// 等待客户端东西加载完毕
+						time.Sleep(4 * time.Second)
+						// 无限塔传送点
+						g.MoveChart(g.ParsePos(-58187, 7981, 12800))
+						time.Sleep(5 * time.Second)
+						g.Role.FollowUserId = g.GetTeamLeader(false)
 					} else if g.Role.FollowUserId != g.GetTeamLeader(false) {
 						g.Role.FollowUserId = g.GetTeamLeader(false)
 					}
-
 				}
 				// leaderMapId := utils.GetMemberDataByType(gameConnect.GetTeamLeaderData(false).GetDatas(), Cmd.EMemberData_EMEMBERDATA_MAPID)
 				// if uint32(leaderMapId) != gameConnect.Role.GetMapId() {
 				// 	log.Infof("队长离开了地图 %s 离开副本", roleName)
 				// 	gameConnect.ExitMapWait(31)
 				// }
-				time.Sleep(10 * time.Second)
+				time.Sleep(5 * time.Second)
 				continue
 			}
 		} else if g.Role.TeamData == nil {
@@ -209,7 +217,10 @@ func main() {
 	items := utils.NewItemsLoader(*exchangeItemFile, *buffFile, *itemFile)
 	skills := utils.NewSkillParser(*skillJson)
 
-	fi, _ := os.Stat(*confFile)
+	fi, err := os.Stat(*confFile)
+	if err != nil {
+		log.Fatalf("failed to read configuration file %s: %s", *confFile, err)
+	}
 	var wg sync.WaitGroup
 	switch mode := fi.Mode(); {
 	case mode.IsDir():
