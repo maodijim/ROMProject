@@ -18,6 +18,7 @@ func (g *GameConnection) HandleLoginUserCmd(cmdParamId int32, rawData []byte) (p
 		param = &Cmd.RealAuthorizeUserCmd{}
 		err = proto.Unmarshal(rawData[2:], param)
 		g.SetAuthed(param.(*Cmd.RealAuthorizeUserCmd).GetAuthorized())
+		// g.SetAuthed(true)
 
 	case Cmd.LoginCmdParam_value["HEART_BEAT_USER_CMD"]:
 		param = &Cmd.HeartBeatUserCmd{}

@@ -8,11 +8,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -365,12 +365,18 @@ func (g *GameConnection) httpAuth(authHost string) (*authJson, error) {
 		log.Fatalf("failed to request %s: %s", req.URL.String(), err)
 	}
 	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
+	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		log.Fatalf("%s", err)
 	}
 	result := &authJson{}
 	err = json.Unmarshal(body, result)
+	if err != nil {
+		if res.StatusCode == 200 {
+			result.Data = strings.TrimSpace(string(body))
+			err = nil
+		}
+	}
 	return result, err
 }
 
@@ -692,9 +698,16 @@ func (g *GameConnection) sendReqUserLoginParamCmd() {
 }
 
 func (g *GameConnection) SelectRole() {
-	if len(g.AvailableRoles) == 0 {
-		log.Error("no available roles")
-		return
+	// retry 3 times
+	roleMaxRetry := 3
+	for retry := 0; retry < roleMaxRetry; retry++ {
+		if len(g.AvailableRoles) == 0 {
+			log.Error("no available roles waiting")
+			if retry >= roleMaxRetry-1 {
+				return
+			}
+			time.Sleep(1 * time.Second)
+		}
 	}
 	role, ok := g.AvailableRoles[uint32(g.Configs.Char)]
 	if !ok {
@@ -748,7 +761,11 @@ func (g *GameConnection) getAccId() (err error) {
 			err = fmt.Errorf("failed to login to auth server for user %s: %w", g.Configs.Username, err)
 			return err
 		}
-		g.Configs.AccId, _ = strconv.ParseUint(res.Data, 10, 64)
+		g.Configs.AccId, err = strconv.ParseUint(res.Data, 10, 64)
+		if err != nil {
+			err = fmt.Errorf("failed to parse account id %s: %w", res.Data, err)
+			return err
+		}
 	} else {
 		err = fmt.Errorf("no account id nor username and password provided for login: %w", err)
 	}
