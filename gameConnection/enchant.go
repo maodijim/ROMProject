@@ -101,6 +101,8 @@ func (g *GameConnection) EnchantPreviewContains(equipGuid string, preview *Encha
 							if attrNow.GetType() == targetAttr.GetType() {
 								if attrNow.GetValue() < targetAttr.GetValue() {
 									return true
+								} else if attr.GetValue() > attrNow.GetValue() {
+									return true
 								} else {
 									return false
 								}
@@ -121,6 +123,8 @@ func (g *GameConnection) EnchantPreviewContains(equipGuid string, preview *Encha
 						for _, attrNow := range attrsNow {
 							if attrNow.GetType() == targetAttr.GetType() {
 								if attrNow.GetValue() < targetAttr.GetValue() {
+									return true
+								} else if attr.GetValue() > attrNow.GetValue() {
 									return true
 								} else {
 									return false
