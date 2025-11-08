@@ -161,7 +161,7 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.PutShortcut{}
 
 			case Cmd.User2Param_value["USER2PARAM_SIGNIN"]:
-				param = &Cmd.SignInUserCmd{}
+				// param = &Cmd.SignInUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_SERVANT_RECEIVE"]:
 				param = &Cmd.ReceiveServantUserCmd{}
@@ -182,13 +182,13 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.GoMapFollowUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_GAMEHEALTH_UPDATE"]:
-				param = &Cmd.UpdateGameHealthLevelUserCmd{}
+				// param = &Cmd.UpdateGameHealthLevelUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_PRESETCHATMSG"]:
 				param = &Cmd.PresetMsgCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_PRESTIGE_NTF"]:
-				param = &Cmd.PrestigeNtfUserCmd{}
+				// param = &Cmd.PrestigeNtfUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_GOTO_GEAR"]:
 				param = &Cmd.GoToGearUserCmd{}
@@ -206,7 +206,7 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.CheatTagStatUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_READYTOMAP"]:
-				param = &Cmd.ReadyToMapUserCmd{}
+				// param = &Cmd.ReadyToMapUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_CDTIME"]:
 				param = &Cmd.CDTimeUserCmd{}
@@ -254,10 +254,10 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.SysMsg{}
 
 			case Cmd.User2Param_value["USER2PARAM_SERVER_INFO_NTF"]:
-				param = &Cmd.ServerInfoNtf{}
+				// param = &Cmd.ServerInfoNtf{}
 
 			case Cmd.User2Param_value["USER2PARAM_SIGNIN_NTF"]:
-				param = &Cmd.SignInNtfUserCmd{}
+				// param = &Cmd.SignInNtfUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_ACTION"]:
 				param = &Cmd.UserActionNtf{}
@@ -380,7 +380,7 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.QueryVersion{}
 
 			case Cmd.ManualParam_value["MANUALPARAM_NPCZONE"]:
-				param = &Cmd.NpcZoneDataManualCmd{}
+				// param = &Cmd.NpcZoneDataManualCmd{}
 
 			case Cmd.ManualParam_value["MANUALPARAM_QUERYDATA"]:
 				param = &Cmd.QueryManualData{}
@@ -578,7 +578,7 @@ func TranslateMsg(output [][]byte) {
 		} else if cmdId == Cmd.Command_value["CHAT_PROTOCMD"] {
 			switch cmdParamId {
 			case Cmd.ChatParam_value["CHATPARAM_SYSTEM_BARRAGE"]:
-				param = &Cmd.SystemBarrageChatCmd{}
+				// param = &Cmd.SystemBarrageChatCmd{}
 
 			case Cmd.ChatParam_value["CHATPARAM_CHAT"]:
 				param = &Cmd.ChatCmd{}
@@ -706,16 +706,16 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.MonsterCountUserCmd{}
 
 			case Cmd.FuBenParam_value["BEGIN_FIRE_FUBENCMD"]:
-				param = &Cmd.BeginFireFubenCmd{}
+				// param = &Cmd.BeginFireFubenCmd{}
 
 			case Cmd.FuBenParam_value["START_STAGE_USER_CMD"]:
 				param = &Cmd.StartStageUserCmd{}
 
 			case Cmd.FuBenParam_value["EXIT_RAID_CMD"]:
-				param = &Cmd.ExitMapFubenCmd{}
+				// param = &Cmd.ExitMapFubenCmd{}
 
 			case Cmd.FuBenParam_value["TEAMEXP_RAID_REPORT"]:
-				param = &Cmd.TeamExpReportFubenCmd{}
+				// param = &Cmd.TeamExpReportFubenCmd{}
 
 			case Cmd.FuBenParam_value["FUBEN_STEP_SYNC"]:
 				param = &Cmd.FubenStepSyncCmd{}
@@ -724,7 +724,7 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.TrackFuBenUserCmd{}
 
 			case Cmd.FuBenParam_value["TEAMEXP_QUERY_INFO"]:
-				param = &Cmd.TeamExpQueryInfoFubenCmd{}
+				// param = &Cmd.TeamExpQueryInfoFubenCmd{}
 
 			case Cmd.FuBenParam_value["FUBEN_CLEAR_SYNC"]:
 				param = &Cmd.FuBenClearInfoCmd{}
@@ -819,7 +819,7 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.EggRestorePetCmd{}
 
 			case Cmd.PetParam_value["PETPARAM_CAT_SKILLOPTION"]:
-				param = &Cmd.CatSkillOptionPetCmd{}
+				// param = &Cmd.CatSkillOptionPetCmd{}
 
 			case Cmd.PetParam_value["PETPARAM_WORK_GETREWARD"]:
 				param = &Cmd.GetPetWorkRewardPetCmd{}

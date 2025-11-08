@@ -8,6 +8,7 @@ import (
 	Cmd "ROMProject/Cmds"
 	"ROMProject/config"
 	gameTypes "ROMProject/gameConnection/types"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -275,7 +276,7 @@ func (g *GameConnection) CreateTeam(teamType uint32) {
 		if teamType == 0 {
 			teamType = DefaultTeamType
 		}
-		desc := "自由队伍"
+		// desc := "自由队伍"
 		teamName := fmt.Sprintf("%s_的队伍", g.Role.GetRoleName())
 		accept := Cmd.EAutoType_EAUTOTYPE_GUILDFRIEND
 		cmd := &Cmd.CreateTeam{
@@ -284,7 +285,7 @@ func (g *GameConnection) CreateTeam(teamType uint32) {
 			Type:       &teamType,
 			Autoaccept: &accept,
 			Name:       &teamName,
-			Desc:       &desc,
+			// Desc:       &desc,
 		}
 		g.sendProtoCmd(cmd,
 			TeamProtoCmdId,

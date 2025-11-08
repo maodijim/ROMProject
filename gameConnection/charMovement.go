@@ -7,6 +7,7 @@ import (
 
 	Cmd "ROMProject/Cmds"
 	"ROMProject/utils"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -36,7 +37,7 @@ func (g *GameConnection) MoveChartWait(pos Cmd.ScenePos) bool {
 	cmd := &Cmd.ReqMoveUserCmd{
 		Target: &pos,
 	}
-	g.sendProtoCmd(
+	_ = g.sendProtoCmd(
 		cmd,
 		Cmd.Command_value["SCENE_USER_PROTOCMD"],
 		Cmd.CmdParam_value["REQ_MOVE_USER_CMD"],
@@ -62,6 +63,11 @@ loop:
 				break loop
 			} else {
 				count += 1
+				_ = g.sendProtoCmd(
+					cmd,
+					Cmd.Command_value["SCENE_USER_PROTOCMD"],
+					Cmd.CmdParam_value["REQ_MOVE_USER_CMD"],
+				)
 			}
 		}
 	}
@@ -88,7 +94,7 @@ func (g *GameConnection) ChangeMap(mId uint32) {
 	g.enteringMap = false
 	g.inMap = false
 	// If not moved strange things will happen
-	// g.MoveChart(g.Role.GetPos())
+	g.MoveChart(g.Role.GetPos())
 }
 
 func (g *GameConnection) ExitMap(targetMapId uint32) {
@@ -126,4 +132,19 @@ func (g *GameConnection) MoveToNpcWait(npcName string) error {
 		}
 	}
 	return fmt.Errorf("npc %s not found", npcName)
+}
+
+func (g *GameConnection) GoToGear(mapId uint32) error {
+	cmd := &Cmd.GoToGearUserCmd{
+		Mapid: &mapId,
+	}
+	err := g.sendProtoCmd(
+		cmd,
+		Cmd.Command_value["SCENE_USER2_PROTOCMD"],
+		Cmd.User2Param_value["USER2PARAM_GOTO_GEAR"],
+	)
+	if err != nil {
+		return err
+	}
+	return nil
 }

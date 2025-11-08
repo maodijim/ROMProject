@@ -15,6 +15,7 @@ import (
 	"ROMProject/gameConnection"
 	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
+
 	"github.com/manifoldco/promptui"
 	log "github.com/sirupsen/logrus"
 )
@@ -132,6 +133,7 @@ func main() {
 		g.DebugMsg = true
 		log.SetLevel(log.DebugLevel)
 	}
+	g.ShouldChangeScene = true
 	g.GameServerLogin()
 
 	if len(allowRoleIds) > 0 && !utils.Contains(allowRoleIds, g.Role.GetRoleId()) {
@@ -143,13 +145,15 @@ func main() {
 	if g.Role.GetMapId() != gameTypes.MapId_Geffen.Uint32() {
 		log.Warnf("当前地图不是积芬，飞去积芬中...")
 		time.Sleep(time.Second * 5)
-		g.ExitMapWait(gameTypes.MapId_Yuno.Uint32())
-		g.ExitMapWait(gameTypes.MapId_Geffen.Uint32())
+		// g.ExitMapWait(gameTypes.MapId_Yuno.Uint32())
+		// g.ExitMapWait(gameTypes.MapId_Geffen.Uint32())
+		_ = g.GoToGear(gameTypes.MapId_Geffen.Uint32())
+		g.ChangeMap(gameTypes.MapId_Geffen.Uint32())
 	}
 	time.Sleep(time.Second * 3)
 	log.Infof("寻找猫小友中...")
 	// 猫小友附近
-	g.MoveChartWait(g.ParsePos(12824, 2912, 37016))
+	g.MoveChartWait(g.ParsePos(10739, 2970, 38585))
 	err := g.MoveToNpcWait("猫小友")
 	if err != nil {
 		log.Errorf("没有找到猫小友%s", err)

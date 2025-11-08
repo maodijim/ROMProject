@@ -6,6 +6,7 @@ import (
 
 	Cmd "ROMProject/Cmds"
 	"ROMProject/config"
+
 	"github.com/mohae/deepcopy"
 )
 
@@ -35,22 +36,22 @@ type RoleInfo struct {
 	SkillItems          map[uint32]*Cmd.SkillItem
 	Sequence            *uint32
 	AutoSkills          map[uint32]*Cmd.SkillItem
-	TeamExpFubenInfo    *Cmd.TeamExpQueryInfoFubenCmd
-	MatchInfos          map[Cmd.EPvpType]*MatchDetail
-	UserAttrs           []*Cmd.UserAttr
-	UserDatas           []*Cmd.UserData
-	Buffs               map[uint32]*Cmd.BufferData
-	TeamData            *Cmd.TeamData
-	TeamApply           []*Cmd.TeamApply
-	AllowedTeamApply    []string
-	TeamMemberPos       map[uint64]*Cmd.MemberPosUpdate
-	CDs                 map[uint32]time.Time
-	UserVars            map[Cmd.EVarType]*Cmd.Var
-	AccVars             map[Cmd.EAccVarType]*Cmd.AccVar
-	QuestList           map[Cmd.EQuestList]*Cmd.QuestList
-	UserTowerInfo       *Cmd.UserTowerInfo
-	FollowUserId        uint64
-	DailySignIn         *Cmd.SignInNtfUserCmd
+	// TeamExpFubenInfo    *Cmd.TeamExpQueryInfoFubenCmd
+	MatchInfos       map[Cmd.EPvpType]*MatchDetail
+	UserAttrs        []*Cmd.UserAttr
+	UserDatas        []*Cmd.UserData
+	Buffs            map[uint32]*Cmd.BufferData
+	TeamData         *Cmd.TeamData
+	TeamApply        []*Cmd.TeamApply
+	AllowedTeamApply []string
+	TeamMemberPos    map[uint64]*Cmd.MemberPosUpdate
+	CDs              map[uint32]time.Time
+	UserVars         map[Cmd.EVarType]*Cmd.Var
+	AccVars          map[Cmd.EAccVarType]*Cmd.AccVar
+	QuestList        map[Cmd.EQuestList]*Cmd.QuestList
+	UserTowerInfo    *Cmd.UserTowerInfo
+	FollowUserId     uint64
+	// DailySignIn         *Cmd.SignInNtfUserCmd
 }
 
 func (r *RoleInfo) SetSkillCd(skillId uint32, cd time.Time) {

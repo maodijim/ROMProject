@@ -6,8 +6,8 @@ import (
 	Cmd "ROMProject/Cmds"
 	notifier "ROMProject/gameConnection/types"
 	"ROMProject/utils"
+
 	"github.com/golang/protobuf/proto"
-	log "github.com/sirupsen/logrus"
 )
 
 func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []byte) (param proto.Message, err error) {
@@ -44,11 +44,11 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 		param = &Cmd.CDTimeUserCmd{}
 		err = utils.ParseCmd(rawData, param)
 
-	case Cmd.User2Param_value["USER2PARAM_SIGNIN_NTF"]:
-		param = &Cmd.SignInNtfUserCmd{}
-		err = utils.ParseCmd(rawData, param)
-		dailySign := param.(*Cmd.SignInNtfUserCmd)
-		g.Role.DailySignIn = dailySign
+	// case Cmd.User2Param_value["USER2PARAM_SIGNIN_NTF"]:
+	// 	param = &Cmd.SignInNtfUserCmd{}
+	// 	err = utils.ParseCmd(rawData, param)
+	// 	dailySign := param.(*Cmd.SignInNtfUserCmd)
+	// 	g.Role.DailySignIn = dailySign
 
 	case Cmd.User2Param_value["USER2PARAM_SERVANT_RECOMMEND"]:
 		param = &Cmd.RecommendServantUserCmd{}
@@ -94,9 +94,9 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 		for _, uv := range userVar.GetVars() {
 			g.Role.UserVars[uv.GetType()] = uv
 		}
-		for _, av := range userVar.GetAccvars() {
-			g.Role.AccVars[av.GetType()] = av
-		}
+		// for _, av := range userVar.GetAccvars() {
+		// 	g.Role.AccVars[av.GetType()] = av
+		// }
 		g.Role.Mutex.Unlock()
 
 	case Cmd.User2Param_value["USER2PARAM_GOTO_LIST"]:
@@ -104,15 +104,15 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 		err = utils.ParseCmd(rawData, param)
 		g.GotoList = param.(*Cmd.GoToListUserCmd)
 
-	case Cmd.User2Param_value["USER2PARAM_READYTOMAP"]:
-		param = &Cmd.ReadyToMapUserCmd{}
-		err = utils.ParseCmd(rawData, param)
-		rMap := param.(*Cmd.ReadyToMapUserCmd)
-		if rMap.GetMapID() != 0 {
-			log.Debugf("Ready to move to map ID: %d", rMap.GetMapID())
-			g.SetEnteringMap()
-			g.Role.MapId = rMap.MapID
-		}
+	// case Cmd.User2Param_value["USER2PARAM_READYTOMAP"]:
+	// 	param = &Cmd.ReadyToMapUserCmd{}
+	// 	err = utils.ParseCmd(rawData, param)
+	// 	rMap := param.(*Cmd.ReadyToMapUserCmd)
+	// 	if rMap.GetMapID() != 0 {
+	// 		log.Debugf("Ready to move to map ID: %d", rMap.GetMapID())
+	// 		g.SetEnteringMap()
+	// 		g.Role.MapId = rMap.MapID
+	// 	}
 
 	case Cmd.User2Param_value["USER2PARAM_NPCDATASYNC"]:
 		param = &Cmd.NpcDataSync{}
@@ -154,6 +154,14 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 		if len(param.(*Cmd.QueryMapArea).Areas) > 0 {
 			g.Role.SetMapId(param.(*Cmd.QueryMapArea).GetAreas()[0])
 		}
+
+	case Cmd.User2Param_value["USER2PARAM_EFFECT"]:
+		param = &Cmd.EffectUserCmd{}
+		err = utils.ParseCmd(rawData, param)
+		if g.Notifier(notifier.NtfType_EffectUser) != nil {
+			g.Notifier(notifier.NtfType_EffectUser) <- param
+		}
 	}
+
 	return param, err
 }

@@ -3287,11 +3287,11 @@ type BlobUser struct {
 	// follower id
 	Followerid *uint64 `protobuf:"varint,14,opt,name=followerid,def=0" json:"followerid,omitempty"`
 	// levelup time
-	Leveluptime *uint32 `protobuf:"varint,15,opt,name=leveluptime,def=0" json:"leveluptime,omitempty"`
-	Lastsmapid *uint32  `protobuf:"varint,16,opt,name=lastsmapid,def=0" json:"lastsmapid,omitempty"`
-	Sx         *float32 `protobuf:"fixed32,17,opt,name=sx,def=0" json:"sx,omitempty"`
-	Sy         *float32 `protobuf:"fixed32,18,opt,name=sy,def=0" json:"sy,omitempty"`
-	Sz         *float32 `protobuf:"fixed32,19,opt,name=sz,def=0" json:"sz,omitempty"`
+	Leveluptime *uint32  `protobuf:"varint,15,opt,name=leveluptime,def=0" json:"leveluptime,omitempty"`
+	Lastsmapid  *uint32  `protobuf:"varint,16,opt,name=lastsmapid,def=0" json:"lastsmapid,omitempty"`
+	Sx          *float32 `protobuf:"fixed32,17,opt,name=sx,def=0" json:"sx,omitempty"`
+	Sy          *float32 `protobuf:"fixed32,18,opt,name=sy,def=0" json:"sy,omitempty"`
+	Sz          *float32 `protobuf:"fixed32,19,opt,name=sz,def=0" json:"sz,omitempty"`
 	// heal count
 	Healcount *uint32 `protobuf:"varint,20,opt,name=healcount,def=0" json:"healcount,omitempty"`
 	// zeny
@@ -3300,8 +3300,8 @@ type BlobUser struct {
 	// pvp coin
 	PvpCoin *uint32 `protobuf:"varint,23,opt,name=pvp_coin,json=pvpCoin,def=0" json:"pvp_coin,omitempty"`
 	// contribute
-	Con     *uint32 `protobuf:"varint,24,opt,name=con,def=0" json:"con,omitempty"`
-	Coninit *bool   `protobuf:"varint,25,opt,name=coninit,def=0" json:"coninit,omitempty"`
+	Con                  *uint32 `protobuf:"varint,24,opt,name=con,def=0" json:"con,omitempty"`
+	Coninit              *bool   `protobuf:"varint,25,opt,name=coninit,def=0" json:"coninit,omitempty"`
 	ChargeZeny           *uint64 `protobuf:"varint,26,opt,name=charge_zeny,json=chargeZeny" json:"charge_zeny,omitempty"`
 	ChargeLottery        *uint32 `protobuf:"varint,27,opt,name=charge_lottery,json=chargeLottery" json:"charge_lottery,omitempty"`
 	LotteryCoin          *uint32 `protobuf:"varint,28,opt,name=lottery_coin,json=lotteryCoin,def=0" json:"lottery_coin,omitempty"`

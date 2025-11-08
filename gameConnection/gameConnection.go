@@ -20,6 +20,7 @@ import (
 	"ROMProject/config"
 	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
+
 	"github.com/golang/protobuf/proto"
 
 	log "github.com/sirupsen/logrus"
@@ -514,7 +515,7 @@ func (g *GameConnection) enterGameMap() {
 	}
 	g.ChangeMap(g.Role.GetMapId())
 	// If not moved strange things will happen
-	g.MoveChart(g.Role.GetPos())
+	// g.MoveChart(g.Role.GetPos())
 }
 
 func (g *GameConnection) QueryCat(catId uint32) (results *Cmd.BriefPendingListRecordTradeCmd) {
@@ -691,8 +692,9 @@ func (g *GameConnection) SendReqUserLoginCmd(timeStamp uint32) {
 }
 
 func (g *GameConnection) sendReqUserLoginParamCmd() {
-	reqLoginParamCmd := Cmd.ReqLoginUserCmd{
+	reqLoginParamCmd := Cmd.ReqLoginParamUserCmd{
 		Accid: &g.Configs.AccId,
+		Pwd:   &g.Configs.Password,
 	}
 	_ = g.sendProtoCmd(&reqLoginParamCmd, LogInUserProtoCmdId, Cmd.LoginCmdParam_value["REQ_LOGIN_PARAM_USER_CMD"])
 }

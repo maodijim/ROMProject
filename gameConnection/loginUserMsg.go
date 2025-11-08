@@ -3,6 +3,7 @@ package gameConnection
 import (
 	Cmd "ROMProject/Cmds"
 	"ROMProject/utils"
+
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 )
@@ -61,6 +62,7 @@ func (g *GameConnection) HandleLoginUserCmd(cmdParamId int32, rawData []byte) (p
 				log.Warn("account is NOT authorized to trade and perform certain actions")
 			} else {
 				log.Info("account is authorized to trade and perform certain actions")
+				g.Authed = true
 			}
 		}
 
