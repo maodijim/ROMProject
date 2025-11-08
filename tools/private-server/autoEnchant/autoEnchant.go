@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	ver = "0.1.2"
+	ver = "0.1.3"
 )
 
 var (
@@ -123,10 +123,10 @@ func main() {
 	configPath := flag.String("config", "config.yml", "配置文件路径")
 	enableDebug := flag.Bool("debug", false, "是否开启调试模式")
 	speed := flag.Uint("speed", 850, "附魔速度，单位毫秒")
-	autoSave := flag.Bool("autoSave", false, "是否自动保存 (默认不保存)")
 	flag.Parse()
 	items := utils.NewItemsLoader("", "", "")
 	conf := config.NewServerConfigs(*configPath)
+	autoSave := conf.EnchantConfig.AutoSave
 	skills := utils.NewSkillParser("")
 	g = gameConnection.NewConnection(conf, skills, items).LoadMonster("")
 	if *enableDebug {
@@ -179,7 +179,7 @@ func main() {
 	time.Sleep(5 * time.Second)
 	count := 1
 	for {
-		if g.EnchantContains(targetEquip.GetBase().GetGuid(), &targetEnchant) && *autoSave {
+		if g.EnchantContains(targetEquip.GetBase().GetGuid(), &targetEnchant) && autoSave {
 			enchantMap := enchantToZh(targetEquip.GetEnchant())
 			log.Infof("已经有附魔要求的属性 %s", fumoStr(enchantMap))
 			break
@@ -202,7 +202,7 @@ func main() {
 			targetEquip.GetBase().GetGuid(),
 			&targetEnchant,
 		)
-		if shouldSave && *autoSave {
+		if shouldSave && autoSave {
 			log.Infof("自動保存附魔属性")
 			g.EnchantSave(targetEquip.GetBase().GetGuid())
 			time.Sleep(time.Second * 2)

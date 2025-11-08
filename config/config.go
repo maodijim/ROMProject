@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"ROMProject/data"
+
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -15,6 +16,7 @@ type EsConfig struct {
 }
 
 type EnchantConfig struct {
+	AutoSave        bool             `yaml:"autoSave"`
 	EnchantType     string           `yaml:"enchantType"`
 	EnchantEquipPos string           `yaml:"enchantEquipPos"`
 	Condition       EnchantCondition `yaml:"condition"`

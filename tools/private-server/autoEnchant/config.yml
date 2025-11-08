@@ -18,6 +18,8 @@ authPass: ""
 #accId: 1058764751661694976
 
 enchantConfig:
+  # 是否自动保存附魔结果 true (保存) 或 false (不保存)
+  autoSave: false
 #  # 附魔等级: 高级, 中级, 低级
   enchantType: 高级
 #  # 要附魔的装备位置(选一): 武器, 副手, 盔甲, 斗篷, 鞋子,
