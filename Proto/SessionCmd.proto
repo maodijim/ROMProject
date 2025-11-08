@@ -1,0 +1,1027 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+import "SceneUser.proto";
+import "SceneItem.proto";
+import "SessionMail.proto";
+import "ChatCmd.proto";
+import "SceneUser2.proto";
+import "SystemCmd.proto";
+import "RecordTrade.proto";
+import "GuildSCmd.proto";
+import "ActivityEvent.proto";
+import "Var.proto";
+
+enum SessionParam
+{
+  MAP_REG_SESSIONCMD = 1;
+  CREATE_RAIDMAP_SESSIONCMD = 2;
+  DELETE_DMAP_SESSIONCMD = 3;
+  CHANGE_SCENE_SESSIONCMD = 4;
+  CHANGE_SCENE_RESULT_SESSIONCMD = 5;
+  CMDPARAM_USER_DATA_SYNC = 6;
+  GOTO_USER_MAP_SESSIONCMD = 9;
+  LOAD_LUA_SESSIONCMD = 10;
+  CHAT_MSG = 11;
+  TOWERINFO_UPDATE = 13;
+  TOWER_MONSTERKILL = 15;
+  CMDPARAM_SEND_MAIL = 19;
+  SESSIONPARAM_GET_MAILATTACH = 20;
+  CMDPARAM_SCENEUSERCMD = 21;
+  CMDPARAM_FOLLOWERIDCHECK = 22;
+  CMDPARAM_EVENT = 23;
+  CMDPARAM_SET_GLOBL_DAILY = 24;
+  CMDPARAM_SEALTIMER = 25;
+  DEL_SCENE_IMAGE = 26;
+  CMDPARAM_SET_SEAL = 27;
+  CMDPARAM_REFRESH_QUEST = 28;
+  CMDPARAM_INVITE_HANDS  = 29;
+  SESSIONPARAM_USERLOGIN_NTF = 31;
+  CMDPARAM_REFRESH_TOWER = 32;
+
+  SESSIONPARAM_NOTIFY_LOGIN = 33;
+  SESSIONPARAM_ERR_SET_USERDATA = 34;
+  SESSIONPARAM_CHANGESCENE = 35;
+  SESSIONPARAM_REGMAPFAIL = 36;
+  SESSIONPARAM_REGMAPOK = 37;
+  SESSIONPARAM_FORWARDUSER = 38;
+  SESSIONPARAM_FORWARDUSERSCENE = 39;
+  SESSIONPARAM_FORWARDUSERSESSION = 40;
+  SESSIONPARAM_FORWARDUSERSCENESVR = 41;
+
+  SESSIONPARAM_ENTERGUILD = 50;
+
+  SESSIONPARAM_SYNC_DOJO = 52;
+
+  SESSIONPARAM_CHARGE = 54;
+
+  SESSIONPARAM_GM_GAG = 55;
+  SESSIONPARAM_GM_LOCK = 56;
+
+  SESSIONPARAM_ITEMIMAGE = 59;
+
+  SESSIONPARAM_FERRIS_INVITE = 60;
+  SESSIONPARAM_FERRIS_READYENTER = 61;
+
+  SESSIONPARAM_ACTIVITY_TESTANDSET = 62;
+  SESSIONPARAM_ACTIVITY_STATUS = 63;
+
+  SESSIONPARAM_CHANGE_TEAM = 64;
+
+  SESSIONPARAM_FORWARD_REGION = 65;
+  SESSIONPARAM_BREAK_HAND = 66;
+  SESSIONPARAM_ACTIVITY_STOP = 67;
+  SESSIONPARAM_WANTED_INFO_SYNC = 68;
+  SESSIONPARAM_ZONE_QUERYSTATUS = 69;
+  CMDPARAM_SEND_MAIL_FROM_SCENE = 70;
+  SESSIONPARAM_GET_TRADELOG = 71;
+  EXEC_GM_CMD_SESSIONCMD = 72;
+  SESSIONPARAM_QUEST_RAID_CLOSE = 73;
+
+  SESSIONPARAM_GUILDRAID_CLOSE = 74;
+  SESSIONPARAM_SYNC_AUTHORIZE = 75;
+  SESSIONPARAM_DELETE_AUTHORIZE = 76;
+  SESSIONPARAM_GO_BACK = 77;
+  SESSIONPARAM_WANTED_QUEST_FINISH = 78;
+
+  SESSIONPARAM_ADD_OFFLINE_ITEM = 79;
+  SESSIONPARAM_UPDATE_OPERACTIVITY = 81;
+  SESSIONPARAM_SYNC_SHOP = 82;
+  SESSIONPARAM_LOVELETTER_USE = 85;
+  SESSIONPARAM_LOVELETTER_SEND = 86;
+  SESSIONPARAM_UPDATE_ACTIVITYEVENT = 87;
+  SESSIONPARAM_ACTIVITYEVENT_NTF = 88;
+  SESSIONPARAM_USE_ITEMCODE = 89;
+  SESSIONPARAM_REQ_USED_ITEMCODE = 90;
+
+  SESSIONPARAM_GLOBALACTIVITY_START = 91;
+  SESSIONPARAM_GLOBALACTIVITY_STOP = 92;
+
+  SESSIONPARAM_REQ_LOTTERY_GIVE = 93;
+  SESSIONPARAM_OPERATE_REWARD = 95;
+  SESSIONPARAM_NOTIFY_ACTIVITY = 96;
+  SESSIONPARAM_WANTED_QUEST_SET_CD = 97;
+  SESSIONPARAM_GIVE_REWARD = 98;
+  SESSIONPARAM_SYNC_WORLD_LEVEL = 99;
+  SESSIONPARAM_USER_QUOTA_OPER = 100;
+
+  SESSIONPARAM_USER_VAR_SYNC = 101;
+  SESSIONPARAM_USER_ENTERSCENE = 102;
+}
+
+message RaidMapData
+{
+  optional uint32 raidid = 1;
+  optional uint32 index = 2;
+  optional uint64 charid = 3;
+  optional uint64 guildid = 4;
+  optional uint32 guildlv = 5;
+  optional uint64 teamid = 6;
+  optional uint32 restrict = 7;
+  repeated uint64 memberlist = 8;
+  optional ScenePos imagecenter = 9;
+  optional uint32 imagerange = 10;
+  optional ScenePos enterpos = 11;
+
+  optional uint32 sealid = 12 [ default = 0 ];
+  optional uint32 follow = 13 [ default = 0 ];
+  optional uint32 dojoid = 14 [ default = 0 ];
+  optional uint32 layer = 15 [ default = 0 ];
+  optional uint32 guildraidindex = 16 [ default = 0 ];
+  optional uint64 roomid = 17; 
+  optional GuildInfo guildinfo = 18;
+  optional uint32 npcid = 19;   //绝对领域特效npcid   
+  optional uint32 nomonsterlayer = 20 [ default = 0 ];
+}
+
+// scene -> session
+message MapRegSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = MAP_REG_SESSIONCMD ];
+  optional uint32 mapid = 3;
+  optional string mapname = 4;
+  optional string scenename = 5;
+  optional RaidMapData data = 6;
+}
+
+// Scene <=> Session
+message CreateRaidMapSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CREATE_RAIDMAP_SESSIONCMD ];
+  optional RaidMapData data = 3;
+}
+
+// Scene <=> Session
+message DeleteDMapSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = DELETE_DMAP_SESSIONCMD ];
+  optional uint32 mapid = 3;
+}
+
+// Scene => Session 切换地图
+message ChangeSceneSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CHANGE_SCENE_SESSIONCMD ];
+  optional uint32 mapid = 3;
+  repeated uint64 charid = 4;
+  optional ScenePos pos = 5;
+}
+
+// Session => Scene 切换地图返回
+message ChangeSceneResultSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CHANGE_SCENE_RESULT_SESSIONCMD ];
+  optional uint32 mapid = 3;
+  optional uint64 charid = 4;
+  //optional string mapname = 5;
+  optional ScenePos pos = 6;
+}
+
+// scene -> session
+message UserDataSync
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CMDPARAM_USER_DATA_SYNC ];
+
+  optional uint64 id = 3 [ default = 0 ];
+
+  optional float x = 4 [ default = 0 ];
+  optional float y = 5 [ default = 0 ];
+  optional float z = 6 [ default = 0 ];
+
+  repeated UserData datas = 7;
+  repeated UserAttr attrs = 8;
+}
+
+// scene -> session
+// 到目标玩家所在地图
+message GoToUserMapSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = GOTO_USER_MAP_SESSIONCMD ];
+
+  optional uint64 targetuserid = 3 [ default = 0 ];
+  optional uint64 gotouserid = 4 [ default = 0 ];
+}
+
+message LoadLuaSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = LOAD_LUA_SESSIONCMD ];
+
+  optional string table = 3;
+  optional string lua = 4;
+  optional string log = 5;
+  optional uint32 serverid = 6;
+  optional bool  allzone = 7 [ default = true];   //默认所有线
+  optional EComLoadType load_type = 8;
+}
+
+message ExecGMCmdSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = EXEC_GM_CMD_SESSIONCMD ];
+
+  optional uint32 serverid = 3;
+  optional string gmcmd = 4;
+  optional bool  allzone = 5 [ default = true];   //默认所有线
+}
+
+// session -> scene
+message TowerLayer
+{
+  optional uint32 layer = 1 [ default = 0 ];
+  repeated uint32 curmonsterids = 3;
+}
+message TowerInfo
+{
+  optional uint32 maxlayer = 1 [ default = 0 ];
+  //optional uint32 cleartime = 2 [ default = 0 ];
+
+  repeated uint32 killmonsters = 3;
+  repeated TowerLayer layers = 4;
+}
+message SceneTowerUpdate
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = TOWERINFO_UPDATE ];
+
+  optional TowerInfo info = 3;
+}
+
+// scene -> session
+message TowerMonsterKill
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = TOWER_MONSTERKILL ];
+
+  optional uint32 monsterid = 3 [ default = 0 ];
+}
+
+// social->session : send mail
+message SendMail
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CMDPARAM_SEND_MAIL ];
+
+  optional MailData data = 3;
+}
+
+// session -> scene
+message SessionSceneUserCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CMDPARAM_SCENEUSERCMD ];
+  optional uint64 userid = 3 [ default = 0 ];
+  optional bytes cmddata = 4;
+}
+
+enum EGetMailOpt
+{
+  EGetMailOpt_Normal = 0;
+  EGetMailOpt_LotteryGive = 1;        //扭蛋赠送
+  EGetMailOpt_LotteryGive_Auto = 2;   //扭蛋赠送自动领取
+}
+
+// session -> scene : get reward
+message GetMailAttachSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_GET_MAILATTACH ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 mailid = 4 [ default = 0 ];
+  optional uint32 msgid = 5 [ default = 0 ];
+  repeated ItemInfo items = 6;
+  repeated ItemData itemDatas = 7;
+  optional string groupid = 8;
+  optional EGetMailOpt opt = 9;
+}
+
+// scene <-> session : followerid check
+message FollowerIDCheck
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CMDPARAM_FOLLOWERIDCHECK ];
+
+  optional uint64 userid = 3 [ default = 0 ];
+  optional uint64 followid = 4 [ default = 0 ];
+  optional EFollowType etype = 5 [ default = EFOLLOWTYPE_MIN ];
+}
+
+// session -> scene : event
+enum EEventType
+{
+  EEVENTTYPE_MIN = 0;
+  EEVENTTYPE_SOCIALAPPLY_ADD = 1;
+  EEVENTTYPE_MAX = 5;
+}
+message Event
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CMDPARAM_EVENT ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+  optional EEventType type = 4 [ default = EEVENTTYPE_MIN ];
+  repeated uint64 params = 5;
+}
+
+// scene -> session : chat
+message ChatMsgSession
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CHAT_MSG ];
+
+  repeated uint64 targetid = 3;
+  optional string msg = 4;
+  optional EGameChatChannel channel = 5 [default = ECHAT_CHANNEL_MIN ];
+  optional uint64 selfid = 6 [ default = 0 ];
+  optional bytes voice = 7;
+  optional uint32 voicetime = 8 [ default = 0 ];
+  optional bool blink = 9 [ default = false ];
+
+  optional uint32 msgid = 10 [ default = 0 ];
+  optional bool msgover = 11 [ default = false ];
+
+  optional BarrageMsgChatCmd barrage = 12;
+}
+
+// scene <-> session : set globl daily
+message SetGlobalDaily
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CMDPARAM_SET_GLOBL_DAILY ];
+  optional uint32 value = 3 [ default = 0 ];
+}
+
+//sence -> session : gm quest refresh
+message RefreshQuest
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CMDPARAM_REFRESH_QUEST ];
+  optional uint32 value = 3 [ default = 0 ];
+}
+
+// session -> scene : query seal timer
+message QuerySealTimer
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CMDPARAM_SEALTIMER ];
+  required uint64 userid = 3 [ default = 0 ];
+  required uint64 teamid = 4 [ default = 0 ];
+}
+
+// scene <-> session : del scene image
+enum ESceneImageType
+{
+  ESCENEIMAGE_MIN      = 0;
+  ESCENEIMAGE_SEAL     = 1;
+  ESCENEIMAGE_MAX      = 2;
+}
+
+message DelSceneImage
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = DEL_SCENE_IMAGE ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+  optional uint32 realscene = 4 [ default = 0 ];
+  optional ESceneImageType etype = 5 [ default = ESCENEIMAGE_MIN ];
+  optional uint32 raid = 6 [ default = 0 ];
+}
+
+enum ESetSealStatus
+{
+  ESETSEALSTATUS_MIN = 0;
+  ESETSEALSTATUS_BEGIN = 1;
+  ESETSEALSTATUS_FINISH = 2;
+  ESETSEALSTATUS_FAIL = 3;
+  ESETSEALSTATUS_CREATE = 4;
+  ESETSEALSTATUS_SETPOS = 5;
+  ESETSEALSTATUS_ABANDON = 6;
+  ESETSEALSTATUS_INVALID = 7;
+}
+
+// scene <-> session
+message SetTeamSeal
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CMDPARAM_SET_SEAL ];
+
+  optional uint32 sealid = 3 [ default = 0 ];
+  optional uint64 teamid = 4 [ default = 0 ];
+  optional uint32 mapid = 5 [ default = 0 ];
+
+  optional ESetSealStatus estatus = 6 [ default = ESETSEALSTATUS_MIN ];
+  optional ScenePos pos = 7;
+
+  optional uint64 leaderid = 8 [ default = 0 ];
+  repeated uint64 teamers = 9;
+}
+
+//message InviteHandsSessionCmd
+//{
+//  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+//  optional SessionParam param = 2 [ default = CMDPARAM_INVITE_HANDS ];
+
+//  optional uint64 charid = 3 [ default = 0 ];
+//  optional uint64 otherid = 4 [ default = 0 ];
+//}
+
+// session -> scene : user login ntf
+message UserLoginNtfSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_USERLOGIN_NTF ];
+  optional uint64 charid = 3 [ default = 0 ];
+  optional string servername = 4;
+}
+
+//sence -> session : gm tower monster refresh 
+message RefreshTower
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CMDPARAM_REFRESH_TOWER ];
+}
+
+// scene <-> session : notify login
+message NotifyLoginSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_NOTIFY_LOGIN ];
+
+  optional uint64 id = 3 [ default = 0 ];
+  optional uint64 accid = 4 [ default = 0 ];
+  optional uint32 mapid = 5 [ default = 0 ];
+
+  optional bool ischangescene = 6 [ default = false ];
+
+  optional string name = 7;
+  optional string gatename = 8;
+  optional string phone = 9;
+
+  optional bool ignorepwd = 10;
+  optional uint32 language = 11;
+  optional bool realauthorized = 12;
+  optional uint32 maxbaselv = 13;
+}
+
+// session -> scene : err set userdata
+message ErrSetUserDataSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_ERR_SET_USERDATA ];
+
+  optional uint64 id = 3 [ default = 0 ];
+}
+
+// record -> session : change scene
+message ChangeSceneSingleSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_CHANGESCENE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 mapid = 4 [ default = 0 ];
+}
+
+// session -> scene : reg map fail
+message RegMapFailSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_REGMAPFAIL ];
+
+  optional uint32 mapid = 3 [ default = 0 ];
+}
+
+// session -> scene : reg map ok
+message RegMapOKSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_REGMAPOK ];
+
+  optional uint32 mapid = 3 [ default = 0 ];
+}
+
+// scene -> session : forward user
+message ForwardUserSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_FORWARDUSER ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional bytes data = 4;
+}
+
+// scene <-> session : forward user scene
+message ForwardUserSceneSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_FORWARDUSERSCENE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional bytes data = 4;
+}
+
+// scene -> session : forward user session
+message ForwardUserSessionSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_FORWARDUSERSESSION ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional bytes data = 4;
+}
+
+// scene <-> session : forward user scene server
+message ForwardUserSceneSvrSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_FORWARDUSERSCENESVR ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional bytes data = 4;
+}
+
+// scene -> session : enter territory
+message EnterGuildTerritorySessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_ENTERGUILD ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 targetid = 4 [ default = 0 ];
+}
+
+// session ->scene
+message SyncDojoSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_SYNC_DOJO ];
+  optional uint64 teamguid = 3;
+  optional uint32 dojoid = 4;         //道场id
+  optional uint64 sponsorid = 5;
+  optional bool  isopen = 6;
+  optional uint64 guildid = 7;    //公会id
+  optional bool del = 8 [default = false ];
+}
+
+// session -> scene : charge
+message ChargeSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_CHARGE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional float charge = 4 [ default = 0 ];
+  optional uint32 itemid = 5;
+  optional uint32 count = 6;
+  optional string source = 7;
+  optional string orderid = 8;
+  optional uint32 dataid = 9;
+}
+
+// session -> scene : gag
+message GagSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_GM_GAG ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 time = 4 [ default = 0 ];
+  optional string reason = 5;
+}
+
+// session -> scene : lock
+message LockSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_GM_LOCK ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 time = 4 [ default = 0 ];
+  optional string reason = 5;
+  optional bool account = 6 [ default  = false ];
+}
+
+// scene -> session : 
+message IteamImageSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_ITEMIMAGE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 teamid = 4 [ default = 0 ];
+
+}
+
+// scene <-> session : ferris invite
+message FerrisInviteSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_FERRIS_INVITE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 targetid = 4 [ default = 0 ];
+  optional uint32 msgid = 5 [ default = 0 ];
+  optional uint32 id = 6 [ default = 1 ];
+}
+
+// scene <-> session : enter ferris ready
+message EnterFerrisReadySessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_FERRIS_READYENTER ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 msgid = 4 [ default = 0 ];
+  optional uint32 id = 5 [ default = 1 ];
+}
+
+// scene <-> session : query user
+message ActivityTestAndSetSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_ACTIVITY_TESTANDSET ];
+
+  optional uint32 id = 3;
+  optional uint64 uid = 4;         //activity uid
+  optional uint32 mapid = 5;
+  optional uint32 starttime = 6;
+  optional uint64 charid = 7; 
+  optional uint32 ret = 8 ;       //1 ok 0 error 
+}
+
+// session -> scene : active act
+message ActivityStatusSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_ACTIVITY_STATUS ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  optional uint32 mapid = 4 [ default = 0 ];
+  optional bool start = 5 [ default = false ];
+}
+
+// session -> scene(without user) : user in/out team
+message ChangeTeamSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_CHANGE_TEAM ];
+
+  optional bool join = 3 [ default = true ];
+  optional uint64 userid = 4 [ default = 0 ];
+  optional uint64 teamid = 5 [ default = 0 ];
+}
+
+// session -> scene(without user) : user in/out team
+message ForwardRegionSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_FORWARD_REGION ];
+
+  optional uint32 region_type = 3;
+  optional bytes data = 4;
+  optional uint32 len = 5;
+}
+
+message BreakHandSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_BREAK_HAND ];
+
+  optional uint64 userid = 3 [ default = 0 ];
+}
+
+// scene -> session : stop activity
+message ActivityStopSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_ACTIVITY_STOP ];
+
+  optional uint32 id = 3;
+  optional uint64 uid = 4;         //activity uid
+  optional uint32 mapid = 5;
+}
+
+// session -> scene : wanted info sync
+message WantedInfoSyncSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_WANTED_INFO_SYNC ];
+
+  optional bool active = 3 [ default = false ];
+  optional uint32 maxcount = 4 [ default = 0 ];
+}
+
+// scene <-> session : query zone status
+message QueryZoneStatusSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_ZONE_QUERYSTATUS ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  repeated ZoneInfo infos = 4;
+}
+
+// scene -> session : send mail
+message SendMailFromScene
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = CMDPARAM_SEND_MAIL_FROM_SCENE ];
+
+  optional MailData data = 3;
+}
+
+// session <-> scene : get trade reward
+message GetTradeLogSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_GET_TRADELOG ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 id = 4 [ default = 0 ];
+  optional EOperType logtype = 5;
+  optional ItemInfo item = 6;
+  optional ItemData itemData = 7; 
+  optional bool  success = 8 ;
+
+  optional uint32 sell_item_id = 9;     //出售的物品id，场景记录用
+  optional uint64 sell_price = 10;
+  optional uint32 sell_count = 11;
+  optional uint32 refine_lv = 12;
+
+  optional uint32 ret_cost = 13;        //自动下架额外返回的zeny
+  optional ETradeType trade_type = 14;  //交易类型
+  optional uint64 tax = 15;             //卖出商品所交税
+  optional uint64 quota = 16;           //解锁额度
+}
+
+// scene -> session -> scene
+message QuestRaidCloseSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_QUEST_RAID_CLOSE ];
+
+  optional uint64 userid = 3 [ default = 0 ];
+  optional uint32 raidid = 4 [ default = 0 ];
+}
+
+// session -> scene
+message AuthorizeInfoSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_SYNC_AUTHORIZE];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional bool ignorepwd = 4 [ default = false ];
+}
+
+// scene -> session
+message GuildRaidCloseSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_GUILDRAID_CLOSE ];
+
+  optional uint32 mapid = 3 [ default = 0 ];
+  optional uint32 curmapindex = 4 [ default = 0 ];
+  optional uint64 guildid = 5 [ default = 0 ];
+  optional uint64 teamid = 6 [ default = 0 ];
+}
+
+// scene -> session
+message DeletePwdSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_DELETE_AUTHORIZE];
+
+  optional uint64 charid = 3 [ default = 0 ];
+}
+
+// session -> scene
+message GoBackSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_GO_BACK ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+}
+
+// scene <-> session
+message WantedQuestFinishCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_WANTED_QUEST_FINISH ];
+
+  optional uint64 leaderid = 3 [ default = 0 ];
+  optional uint64 teammateid = 4 [ default = 0 ];
+}
+
+// session -> scene
+message AddOfflineItemSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_ADD_OFFLINE_ITEM];
+
+  optional uint64 charid = 3 [ default = 0];
+  optional ItemData data = 4;
+}
+
+
+// gzoneserver <-> session
+message UpdateOperActivitySessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_UPDATE_OPERACTIVITY ];
+}
+
+
+message SessionShopData
+{
+  repeated uint32 old = 1;
+  optional uint32 now = 2;
+}
+
+message SyncShopSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_SYNC_SHOP];
+
+  optional uint32 item = 3;
+}
+
+// gzoneserver -> session
+message UpdateActivityEventSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_UPDATE_ACTIVITYEVENT ];
+}
+
+// session -> scene
+message ActivityEventNtfSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_ACTIVITYEVENT_NTF ];
+
+  repeated ActivityEventInfo infos = 3;
+}
+
+// session -> scene
+message LoveLetterSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_LOVELETTER_USE];
+
+  optional uint64 charid = 3 [ default = 0];
+  optional string itemguid = 4;
+  optional uint64 targets = 5 [ default = 0 ];
+  optional string content = 6;
+  optional ELetterType type = 7 [ default = ELETTERTYPE_CHRISTMAS ];
+}
+
+message LoveLetterSendSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_LOVELETTER_SEND];
+
+  optional uint64 charid = 3 [ default = 0];
+  optional string sendname = 4;
+  optional string content = 5;
+  optional ELetterType type = 6 [ default = ELETTERTYPE_CHRISTMAS ];
+}
+
+message UseItemCodeSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_USE_ITEMCODE];
+
+  optional uint64 charid = 3 [ default = 0];
+  optional string guid = 4;
+  optional uint32 itemid = 5;
+  optional uint32 type = 7 [ default = 0 ];
+  //res
+  optional string code = 6;
+}
+
+message ReqUsedItemCodeSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_REQ_USED_ITEMCODE];
+  optional uint64 charid = 3 [ default = 0];
+  repeated string guid = 4;
+  optional uint32 type = 5 [ default = 0 ];
+}
+
+message GlobalActivityStartSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_GLOBALACTIVITY_START ];
+
+  optional uint32 id = 3 [ default = 0 ];
+}
+
+message GlobalActivityStopSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_GLOBALACTIVITY_STOP ];
+
+  optional uint32 id = 4 [ default = 0 ];
+}
+
+// session -> scene
+message ReqLotteryGiveSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_REQ_LOTTERY_GIVE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional LotteryGiveInfo iteminfo = 4;
+}
+
+// scene -> session
+message SyncOperateRewardSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_OPERATE_REWARD ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 var = 4 [ default = 0 ];
+}
+// session -> scene
+message NotifyActivitySessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_NOTIFY_ACTIVITY ];
+
+  optional uint32 actid = 3 [ default = 0 ];
+  optional bool open = 4 [ default = true ];
+}
+
+// session <-> scene
+message GiveRewardSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_GIVE_REWARD ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 rewardid = 4 [ default = 0 ];
+  optional uint32 buffid = 5 [ default = 0 ];
+}
+
+message WantedQuestSetCDSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_WANTED_QUEST_SET_CD ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 time = 4 [ default = 0 ];
+}
+
+// session -> scene
+message UserQuotaOperSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_USER_QUOTA_OPER ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 quota = 4 [ default = 0 ];
+  optional EUserQuotaOper oper = 5 [ default = EUSERQUOTAOPER_MIN ];
+  optional EQuotaType type = 6 [ default = EQuotaType_U_Give_Trade];
+}
+
+// stat -> session -> scene
+message SyncWorldLevelSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_SYNC_WORLD_LEVEL];
+
+  optional uint64 charid = 3 [default = 0];
+  optional uint32 base_worldlevel = 4 [default = 0];
+  optional uint32 job_worldlevel = 5 [default = 0];
+}
+
+// scene -> session
+message UserEnterSceneSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_USER_ENTERSCENE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+}
+
+// scene->session
+message SyncUserVarSessionCmd
+{
+  optional Command cmd = 1 [ default = SESSION_PROTOCMD ];
+  optional SessionParam param = 2 [ default = SESSIONPARAM_USER_VAR_SYNC ];
+
+  required uint64 charid = 3;
+  repeated Var vars = 4;
+}
+

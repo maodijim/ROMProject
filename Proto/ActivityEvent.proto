@@ -1,0 +1,278 @@
+package Cmd;
+
+import "xCmd.proto";
+import "SceneItem.proto";
+import "GuildCmd.proto";
+import "SessionShop.proto";
+
+enum ActivityEventParam
+{
+  ACTIVITYEVENTPARAM_NTF = 1;
+  ACTIVITYEVENTPARAM_USER_DATA_NTF = 2;
+  ACTIVITYEVENTPARAM_NTF_EVENT_CNT = 3;
+}
+
+message AEReward
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 count = 2 [ default = 0 ];
+  optional uint32 weight = 3 [ default = 0 ];
+  optional uint32 minlayer = 4 [ default = 0 ]; // 最小无限塔层数
+  optional uint32 maxlayer = 5 [ default = 0 ]; // 最大无限塔层数
+  repeated uint32 difficultys = 6; // 卡牌副本难度
+}
+
+message AEMapPos
+{
+  repeated float pos = 1;
+  optional float range = 2 [ default = 0 ];
+}
+
+message AEMap
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional string desc = 2;
+  repeated AEMapPos coord = 3;
+}
+
+message AEFreeTransferInfo
+{
+  repeated uint32 mapids = 1; // 所有免费传送地图id
+  optional bool allfree = 2 [ default = false ]; // 全部免费则mapids为空
+  repeated uint32 teammapids = 3; // 组队传送,所有免费传送地图id
+  optional bool teamallfree = 4 [ default = false ]; // 组队传送,全部免费则teammapids为空
+  optional bool storefree = 5 [ default = false ]; // 仓库免费
+}
+
+// 召唤怪物
+message AESummonInfo
+{
+  optional uint32 monsterid = 1 [ default = 0 ];
+  optional uint32 count = 2 [ default = 0 ];
+  optional bool revive = 3 [ default = false ];
+  optional bool iscreate = 4 [ default = false ]; // 是否是创建怪物, 为true时, 下面的参数有效
+  optional string namezh = 5;
+  optional string nameen = 6;
+  optional string icon = 7;
+  optional string type = 8; // 暂无用
+  optional string zone = 9; // 区域, 暂无用
+  optional string race = 10; //  种族
+  optional string nature = 11; // 属性
+  optional string shape = 12; // 体型
+  optional uint32 body = 13 [ default = 0 ]; // 身体
+  optional uint32 jobexp = 14 [ default = 0 ]; // job经验
+  optional uint32 baseexp = 15 [ default = 0 ]; // base经验
+  optional float str = 16 [ default = 0 ]; // 力量
+  optional float dex = 17 [ default = 0 ]; // 灵巧
+  optional float inte = 18 [ default = 0 ]; // 智力
+  optional float vit = 19 [ default = 0 ]; // 体质
+  optional float agi = 20 [ default = 0 ]; // 敏捷
+  optional float luk = 21 [ default = 0 ]; // 幸运
+  optional float atk = 22 [ default = 0 ]; // 物理攻击
+  optional float matk = 23 [ default = 0 ]; // 魔法攻击
+  optional float def = 24 [ default = 0 ]; // 物理防御
+  optional float mdef = 25 [ default = 0 ]; // 魔法防御
+  optional float hp = 26 [ default = 0 ]; // 生命值
+  optional float hit = 27 [ default = 0 ]; // 命中
+  optional float flee = 28 [ default = 0 ]; // 闪避
+  optional float movespd = 29 [ default = 0 ]; // 移动速度
+  optional float movespdrate = 30 [ default = 0 ]; // 移动倍率
+  optional float scale = 31 [ default = 0 ]; // 缩放
+  optional uint32 normalskill = 32 [ default = 0 ]; // 普通技能
+  optional uint32 rewardid = 33 [ default = 0 ]; // 奖励id
+  repeated AEReward rewards = 34;
+  repeated AEMap map = 35;
+}
+
+// 额外/翻倍奖励
+enum EAERewardMode
+{
+  EAEREWARDMODE_MIN = 0;
+  EAEREWARDMODE_LABORATORY = 1;
+  EAEREWARDMODE_WANTEDQUEST = 2;
+  EAEREWARDMODE_SEAL = 3;
+  EAEREWARDMODE_GUILD_DONATE = 4;
+  EAEREWARDMODE_TOWER = 5;
+  EAEREWARDMODE_GUILDRAID = 6;
+  EAEREWARDMODE_GUILDDOJO = 7;
+  EAEREWARDMODE_PVECARD = 8;
+}
+
+// 额外奖励
+message AERewardExtraInfo
+{
+  repeated AEReward rewards = 1; // 奖励
+  optional uint32 finishcount = 2 [ default = 0 ];
+  optional uint32 daylimit = 3 [ default = 0 ];
+  optional bool acclimit = 4 [ default = false ];
+}
+
+// 原有奖励翻倍
+message AERewardMultipleInfo
+{
+  optional uint32 multiple = 1 [ default = 1 ]; // 倍率
+  optional uint32 finishcount = 2 [ default = 0 ];
+  optional uint32 daylimit = 3 [ default = 0 ];
+  optional bool acclimit = 4 [ default = false ];
+}
+
+message AERewardInfo
+{
+  optional EAERewardMode mode = 1 [ default = EAEREWARDMODE_MIN ];
+  optional AERewardExtraInfo extrareward = 2;
+  optional AERewardMultipleInfo multiplereward = 3;
+  optional uint32 extratimes = 4 [ default = 0 ]; // 新增次数
+}
+
+enum ECoinType
+{
+  ECoinType_Min = 0;
+  ECoinType_Coin = 1;
+  ECoinType_Ticket = 2;
+}
+
+enum EUserType
+{
+  EUserType_Char = 1;
+  EUserType_Acc = 2;
+}
+
+message AELotteryDiscount
+{
+  optional ELotteryType lotterytype = 1;      //扭蛋机类型
+  optional ECoinType cointype = 2;            //折扣货币类型
+  optional EUserType usertype = 3;            //适用对象
+  optional uint32 discount = 4;               //折扣，70表示7折
+  optional uint32 count = 5;                  //
+  optional uint32 yearmonth = 7;              //折扣年月，201701
+}
+
+message AELotteryNpc
+{
+  optional ELotteryType lotterytype = 1;      //扭蛋机类型
+  repeated AEMap map = 2;
+}
+
+message AEUrl
+{
+  optional uint32 language = 1 [ default = 0 ];
+  optional string url = 2;
+}
+
+message AELotteryBanner
+{
+  optional ELotteryType lotterytype = 1;      //扭蛋机类型
+  optional string path = 2;                   //图片地址(非空时优先使用,否则取urls)
+  repeated AEUrl urls = 3;                    //图片地址(按语言区分)
+}
+
+message AEGuildBuildingSubmitInfo
+{
+  repeated EGuildBuilding types = 1;
+  optional uint32 minlv = 2 [ default = 0 ]; // 匹配最小建筑等级
+  optional uint32 maxlv = 3 [ default = 0 ]; // 匹配最大建筑等级
+  optional uint32 submitinc = 4 [ default = 0 ]; // 提交材料增幅, 例:10表示增加10%
+  optional uint32 rewardinc = 5 [ default = 0 ]; // 提交后获得奖励增幅, 例:10表示增加10%
+}
+
+message AEShopInfo
+{
+  repeated ShopItem items = 1;
+}
+
+message ActivityEventInfo
+{
+  optional uint64 id = 1 [ default = 0 ];
+  optional uint64 begintime = 2 [ default = 0 ];
+  optional uint64 endtime = 3 [ default = 0 ];
+  optional EActivityEventType type = 4;
+  optional AEFreeTransferInfo freetransferinfo = 5;
+  optional AESummonInfo summoninfo = 6;
+  optional AERewardInfo rewardinfo = 7;
+  optional AEResetInfo resetinfo = 8;
+  optional AELotteryDiscount lotterydiscount = 9;
+  optional AELotteryNpc lotterynpc = 10;
+  optional AELotteryBanner lotterybanner = 11;
+  optional AEGuildBuildingSubmitInfo gbuildingsubmitinfo = 12;
+  optional AEShopInfo shopinfo = 13;
+}
+
+message AEResetInfo
+{
+  optional EAERewardMode mode = 1 [ default = EAEREWARDMODE_MIN ];
+  optional uint32 times = 2 [ default = 0 ]; // 重置次数
+}
+
+message AERewardItem
+{
+  optional EAERewardMode mode = 1 [ default = EAEREWARDMODE_MIN ]; // 玩法
+  optional uint32 daycount = 2 [ default = 0 ]; // 每日获得额外奖励次数
+  optional uint64 acclimitcharid = 3 [ default = 0 ]; // 额外奖励, 账号限制开启时, 限制的charid
+  optional uint32 multipledaycount = 4 [ default = 0 ]; // 每日翻倍次数
+  optional uint64 multipleacclimitcharid = 5 [ default = 0 ]; // 翻倍, 账号限制开启时, 限制的charid
+}
+
+enum EActivityEventType
+{
+  EACTIVITYEVENTTYPE_MIN = 0;
+  EACTIVITYEVENTTYPE_FREE_TRANSFER = 1; // 免费地图传送
+  EACTIVITYEVENTTYPE_SUMMON = 2;        // 召唤
+  EACTIVITYEVENTTYPE_REWARD = 3;        // 额外/翻倍奖励
+  EACTIVITYEVENTTYPE_RESETTIME = 4;     // 修改重置次数
+  EACTIVITYEVENTTYPE_LOTTERY_DISCOUNT = 5;      // 扭蛋折扣
+  EACTIVITYEVENTTYPE_LOTTERY_NPC = 6;           // 扭蛋NPC开关
+  EACTIVITYEVENTTYPE_LOTTERY_BANNER = 7;        // 扭蛋BANNER
+  EACTIVITYEVENTTYPE_GUILD_BUILDING_SUBMIT = 8;     // 公会建筑提交材料增益
+  EACTIVITYEVENTTYPE_SHOP = 9;          // 商店商品调整
+  EACTIVITYEVENTTYPE_MAX = 10;
+}
+
+// 用于同步前端
+message ActivityEvent
+{
+  optional EActivityEventType type = 1 [ default = EACTIVITYEVENTTYPE_MIN ];
+  optional uint64 begintime = 2 [ default = 0 ];
+  optional uint64 endtime = 3 [ default = 0 ];
+
+  // 具体活动内容, 根据类型需要扩展
+  optional AEFreeTransferInfo freetransfer = 4;
+  repeated AERewardInfo reward = 5;
+  repeated AEResetInfo resetinfo = 6;
+  optional AELotteryDiscount lotterydiscount = 7;
+  optional AELotteryBanner lotterybanner = 8;
+  optional uint64 id = 9;
+  optional AEGuildBuildingSubmitInfo gbuildingsubmit = 10;
+}
+
+message ActivityEventNtf
+{
+  optional Command cmd = 1 [ default = ACTIVITY_EVENT_PROTOCMD ];
+  optional ActivityEventParam param = 2 [ default = ACTIVITYEVENTPARAM_NTF ];
+
+  repeated ActivityEvent events = 3;
+}
+
+message ActivityEventUserDataNtf
+{
+  optional Command cmd = 1 [ default = ACTIVITY_EVENT_PROTOCMD ];
+  optional ActivityEventParam param = 2 [ default = ACTIVITYEVENTPARAM_USER_DATA_NTF ];
+
+  repeated AERewardItem rewarditems = 3;
+}
+
+message ActivityEventCnt
+{
+  optional EActivityEventType type = 1 [ default = EACTIVITYEVENTTYPE_MIN ];
+  optional uint64 id = 2;
+  optional uint32 count = 3;    
+}
+
+message ActivityEventNtfEventCntCmd
+{
+  optional Command cmd = 1 [ default = ACTIVITY_EVENT_PROTOCMD ];
+  optional ActivityEventParam param = 2 [ default = ACTIVITYEVENTPARAM_NTF_EVENT_CNT ];
+
+  repeated ActivityEventCnt cnt = 3;
+}
+
+

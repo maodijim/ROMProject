@@ -1,0 +1,167 @@
+package Cmd;
+
+import "xCmd.proto";
+
+enum AchieveParam
+{
+  ACHIEVEPARAM_QUERY_USERRESUME = 1;
+  ACHIEVEPARAM_QUERY_ACHDATA = 2;
+  ACHIEVEPARAM_NEW_ACHNTF = 3;
+  ACHIEVEPARAM_REWARD_GET = 4;
+}
+
+// user resume
+message MaxInfo
+{
+  optional uint32 type = 1 [ default = 0 ];
+  optional uint64 charid = 2 [ default = 0 ];
+  optional string name = 3;
+}
+message UserResume
+{
+  optional uint32 createtime = 1 [ default = 0 ];
+  optional uint32 logintime = 2 [ default = 0 ];
+
+  optional uint32 bepro_1_time = 3 [ default = 0 ];
+  optional uint32 bepro_2_time = 4 [ default = 0 ];
+  optional uint32 bepro_3_time = 5 [ default = 0 ];
+
+  optional uint64 walk_distance = 6 [ default = 0 ];
+
+  optional string max_team = 7;
+  optional string max_hand = 8;
+  optional string max_wheel = 9;
+  optional string max_chat = 10;
+
+  repeated string max_teams = 11;
+  repeated string max_hands = 12;
+  repeated string max_wheels = 13;
+  repeated string max_chats = 14;
+  repeated string max_music = 15;
+  repeated string max_save = 16;
+  repeated string max_besave = 17;
+}
+
+// achieve data
+enum EAchieveType
+{
+  EACHIEVETYPE_MIN = 0;
+  EACHIEVETYPE_USER = 1100000;
+  EACHIEVETYPE_SOCIAL = 1200000;
+  EACHIEVETYPE_ADVENTURE = 1300000;
+  EACHIEVETYPE_BATTLE = 1400000;
+  EACHIEVETYPE_DRAMA = 1450000;
+  EACHIEVETYPE_ACTIVITY = 1500000;
+  EACHIEVETYPE_OTHER = 1600000;
+  EACHIEVETYPE_MAX = 1600001;
+}
+
+enum EAchieveSubType
+{
+  EACHIEVESUBTYPE_MIN = 0;
+  EACHIEVESUBTYPE_LEVELUP = 1101000;
+  EACHIEVESUBTYPE_ATTR = 1102000;
+  EACHIEVESUBTYPE_PROFESSION = 1103000;
+  EACHIEVESUBTYPE_FRIEND = 1201000;
+  EACHIEVESUBTYPE_SOCIAL = 1202000;
+  EACHIEVESUBTYPE_GUILD = 1203000;
+  EACHIEVESUBTYPE_PET = 1204000;
+  EACHIEVESUBTYPE_FOOD = 1205000;
+  EACHIEVESUBTYPE_TUTOR = 1206000;
+  EACHIEVESUBTYPE_WEDDING = 1207000;
+  EACHIEVESUBTYPE_MAP = 1301000;
+  EACHIEVESUBTYPE_SCENERY = 1302000;
+  EACHIEVESUBTYPE_MONSTER_PHOTO = 1303000;
+  EACHIEVESUBTYPE_NPC = 1304000;
+  EACHIEVESUBTYPE_PORTRAIT = 1305000;
+  EACHIEVESUBTYPE_TITLE = 1306000;
+  EACHIEVESUBTYPE_MONSTER_KILL = 1401000;
+  EACHIEVESUBTYPE_HELP = 1402000;
+  EACHIEVESUBTYPE_CAT = 1403000;
+  EACHIEVESUBTYPE_DEAD = 1404000;
+  EACHIEVESUBTYPE_PVP = 1405000;
+  EACHIEVESUBTYPE_CCRAST = 1451000;
+  EACHIEVESUBTYPE_QUEST = 1452000;
+  EACHIEVESUBTYPE_TOY = 1453000;
+  EACHIEVESUBTYPE_TOYFACTORY = 1454000;
+  EACHIEVESUBTYPE_TIANJIN = 1454100;
+  EACHIEVESUBTYPE_YUNO = 1454200;
+  EACHIEVESUBTYPE_DEADCITY = 1454300;
+  EACHIEVESUBTYPE_DRAMA_OTHER = 1455000;
+  EACHIEVESUBTYPE_BCAT = 1501000;
+  EACHIEVESUBTYPE_LINK = 1502000;
+  EACHIEVESUBTYPE_EQUIP = 1601000;
+  EACHIEVESUBTYPE_DAILY = 1602000;
+  EACHIEVESUBTYPE_CONSUME = 1603000;
+  EACHIEVESUBTYPE_FUNC = 1604000;
+  EACHIEVESUBTYPE_MAX = 4444001;
+}
+
+message AchieveQuest
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional string name = 2;
+
+  repeated AchieveQuest pre = 3;
+}
+
+message AchieveItem
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 process = 2 [ default = 0 ];
+  optional uint32 finishtime = 3 [ default = 0 ];
+
+  repeated uint64 params = 4;
+  repeated AchieveQuest quests = 6;
+
+  optional bool reward_get = 5 [ default = false ];
+}
+message AchieveSubData
+{
+  optional EAchieveSubType type = 1 [ default = EACHIEVESUBTYPE_MIN ];
+  repeated AchieveItem items = 2;
+}
+message AchieveData
+{
+  optional EAchieveType type = 1 [ default = EACHIEVETYPE_MIN ];
+  repeated AchieveSubData datas = 2;
+}
+
+// client <-> scene : query user resume
+message QueryUserResumeAchCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ACHIEVE_PROTOCMD ];
+  optional AchieveParam param = 2 [ default = ACHIEVEPARAM_QUERY_USERRESUME ];
+
+  optional UserResume data = 3;
+}
+
+// client <-> scene : query achieve data
+message QueryAchieveDataAchCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ACHIEVE_PROTOCMD ];
+  optional AchieveParam param = 2 [ default = ACHIEVEPARAM_QUERY_ACHDATA ];
+
+  optional EAchieveType type = 3 [ default = EACHIEVETYPE_MIN ];
+  repeated AchieveItem items = 4;
+}
+
+// scene -> client : new ach ntf
+message NewAchieveNtfAchCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ACHIEVE_PROTOCMD ];
+  optional AchieveParam param = 2 [ default = ACHIEVEPARAM_NEW_ACHNTF ];
+
+  optional EAchieveType type = 3 [ default = EACHIEVETYPE_MIN ];
+  repeated AchieveItem items = 4;
+}
+
+// client <-> scene : reward get
+message RewardGetAchCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ACHIEVE_PROTOCMD ];
+  optional AchieveParam param = 2 [ default = ACHIEVEPARAM_REWARD_GET ];
+
+  optional uint32 id = 3 [ default = 0 ];
+}
+

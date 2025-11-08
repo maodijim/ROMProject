@@ -1,0 +1,88 @@
+package Cmd;
+
+import "xCmd.proto";
+
+enum AuguryParam
+{
+  AUGURYPARAM_INVITE = 1;
+  AUGURYPARAM_INVITE_REPLY = 2;
+  AUGURYPARAM_CHAT = 3;
+  AUGURYPARAM_TITLE = 4;
+  AUGURYPARAM_ANSWER = 5;
+  AUGURYPARAM_QUIT = 6;
+}
+
+enum EAuguryType
+{
+ EAUGURYTYPE_LOVE_SEASON = 1;  //恋爱的季节
+ EAUGURYTYPE_STAR_GUIDE = 2;   //星座的指引
+ EAUGURYTYPE_ADVENTURE = 3;    //冒险的极意
+ EAUGURYTYPE_VALENTINE = 4;    //老的占卜
+ EAUGURYTYPE_ACTIVITY = 5;     //活动占卜
+}
+
+message AuguryInvite
+{
+  optional Command cmd = 1 [ default = SCENE_USER_AUGURY_PROTOCMD ];
+  optional AuguryParam param = 2 [ default = AUGURYPARAM_INVITE ];
+
+  optional uint64 inviterid = 3;
+  optional string invitername = 4;   
+  optional uint64 npcguid = 5;
+  optional EAuguryType type = 6;
+  optional bool isextra = 7;        //是否使用额外次数
+}
+enum EReplyType
+{
+  EReplyType_Agree = 1;
+  EReplyType_Refuse = 2;   
+}
+
+message AuguryInviteReply
+{
+  optional Command cmd = 1 [ default = SCENE_USER_AUGURY_PROTOCMD ];
+  optional AuguryParam param = 2 [ default = AUGURYPARAM_INVITE_REPLY ];
+
+  optional EReplyType type = 3 [ default = EReplyType_Refuse ];
+  optional uint64 inviterid = 4;
+  optional uint64 npcguid = 5;
+  optional EAuguryType augurytype = 6;
+  optional bool isextra = 7;
+}
+
+message AuguryChat
+{
+  optional Command cmd = 1 [ default = SCENE_USER_AUGURY_PROTOCMD ];
+  optional AuguryParam param = 2 [ default = AUGURYPARAM_CHAT ];
+
+  optional string content = 3;
+  optional string sender = 4;
+}
+
+message AuguryTitle
+{
+  optional Command cmd = 1 [ default = SCENE_USER_AUGURY_PROTOCMD ];
+  optional AuguryParam param = 2 [ default = AUGURYPARAM_TITLE ];
+
+  optional uint32 titleid = 3 ;
+  optional EAuguryType type = 4;
+  optional uint32 subtableid = 5;
+}
+
+message AuguryAnswer
+{
+  optional Command cmd = 1 [ default = SCENE_USER_AUGURY_PROTOCMD ];
+  optional AuguryParam param = 2 [ default = AUGURYPARAM_ANSWER ];
+
+  optional uint32 titleid = 3;
+  optional uint32 answer = 4;   //1:第一个答案 2:第二个答案 
+  optional uint64 answerid = 5;  //回答者的角色id
+}
+
+message AuguryQuit
+{
+  optional Command cmd = 1 [ default = SCENE_USER_AUGURY_PROTOCMD ];
+  optional AuguryParam param = 2 [ default = AUGURYPARAM_QUIT ];
+}
+
+

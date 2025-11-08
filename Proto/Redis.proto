@@ -1,0 +1,24 @@
+package Cmd;
+
+enum ERedisParam
+{
+  EREDISPARAM_TEST = 1;
+}
+
+message RedisItemTest
+{
+  optional uint32 num = 1 [ default = 0 ];
+  optional string str = 2;
+}
+message RedisTest
+{
+  optional uint32 number = 1 [ default = 0 ];
+  optional string str = 2;
+
+  repeated uint32 numbers = 3;
+  repeated string strs = 4;
+
+  optional RedisItemTest item = 5;
+  repeated RedisItemTest items = 6;
+}
+

@@ -1,0 +1,1317 @@
+package Cmd;
+
+import "xCmd.proto";
+import "SceneItem.proto";
+
+enum LogParam
+{
+  LOGIN_LOG_CMD = 1;
+  ACCOUNT_LOG_CMD = 2;
+  CREATE_LOG_CMD =3;
+  CHANGE_FLAG_LOG_CMD = 4;
+  CHARGE_LOG_CMD = 5;
+  EVENT_LOG_CMD = 6;
+  INCOME_LOG_CMD = 7;
+  CONSUME_LOG_CMD = 8;
+  ITEM_LOG_CMD = 9;
+  PROPS_LOG_CMD = 10;
+  TRANSACTION_LOG_CMD = 11;
+  CHAT_LOG_CMD = 12;
+  LEVEL_LOG_CMD = 13;
+  ONLINE_LOG_CMD = 14;
+  SNAPSHOT_LOG_CMD = 15;
+  CHECKPOINT_LOG_CMD = 16;
+  RANK_LOG_CMD = 17;
+  QUERY_CHAT_LOG_CMD = 18;          //聊天记录查询
+
+  CARD_LOG_CMD = 30;
+  EQUIP_LOG_CMD = 31;
+  HAND_LOG_CMD = 32;
+  SOCIAL_LOG_CMD = 33;
+  QUEST_LOG_CMD = 34;
+  COMPLETE_LOG_CMD = 35;
+  BUY_LOG_CMD = 36;
+  MANUAL_LOG_CMD = 37;
+  KILL_LOG_CMD = 38;
+  CHANGE_LOG_CMD = 39;
+  ITEMOPER_LOG_CMD = 40;
+  EQUIPUP_LOG_CMD = 41;
+  TOWER_LOG_CMD = 42;
+
+  REWARD_LOG_CMD = 43; //
+  MAIL_LOG_CMD = 44; //
+  DOJO_LOG_CMD = 45; //
+  ENCHANT_LOG_CMD = 46; //
+  GUILDPRAY_LOG_CMD = 47; //公会祈祷   
+  USESKILL_LOG_CMD = 48;
+  ACTIVE_LOG_CMD = 49;
+  TRADE_LOG_CMD = 50;
+  DELETE_CHAR_LOG_CMD = 51;
+  COMPOSE_LOG_CMD = 52;  
+  JUMPZONE_LOG_CMD = 53;     
+  TEAM_LOG_CMD = 54;      
+  TRADE_ADJUST_PRICE_LOG_CMD = 55;      
+  TRADE_PRICE_LOG_CMD = 56;    
+  PET_CHANGE_LOG_CMD = 57;        
+  PET_ADVENTURE_LOG_CMD = 58;      
+  INACTIVE_USER_LOG_CMD = 60;      
+  TRADE_UNTAKE_LOG_CMD = 59;       
+  CREDIT_LOG_CMD = 61;
+  TRADE_GIVE_LOG_CMD = 62;  
+  QUOTA_LOG_CMD = 63;
+  GUILD_ITEM_LOG_CMD = 64;
+}
+
+message LoginLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = LOGIN_LOG_CMD ];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint32 hid = 5;
+  optional string account = 6;
+  optional uint64 pid = 7;
+  optional uint32 time = 8;
+  optional string ip = 9;
+  optional uint32 type = 10;
+  optional uint32 ispay = 11;
+  optional uint32 level = 12;
+  optional uint32 vip = 13;
+  repeated uint32 mark = 14;
+  optional string sign = 15;
+  optional string device = 16;
+  optional uint32 guest = 17;
+  optional string mac = 18;
+  optional string agent = 19;
+  optional uint32 mapid = 20;    //new add
+  optional uint32 onlinetime = 21; //登出才赋值，本次登录在线时长单位秒
+  optional uint32 teamtimelen = 22;  
+  optional uint32 isnew = 23;
+  optional string logid = 24;
+  optional uint32 zoneid = 25;
+}
+
+//创建账户
+message AccountLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = ACCOUNT_LOG_CMD ];
+
+  optional uint32 cid = 3;
+  optional uint32 sid = 4;
+  optional string account = 5;
+  optional uint32 time = 6;
+  optional string ip = 7;
+  optional uint32 guest = 8;
+  optional string device = 9;
+  optional string mac = 10;
+  optional string source = 11;  //广告编号，没有留空
+  optional string agent = 12;
+    optional string logid = 13;
+}
+
+message CreateLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = CREATE_LOG_CMD ];
+
+  optional uint32 cid = 3;
+  optional uint32 sid = 4;
+  optional string account = 5;
+  optional uint64 pid = 6;
+  optional uint32 time = 7;
+  optional string ip = 8;
+  optional string name = 9;
+  optional uint32 guest = 10;
+  optional string device = 11;
+  optional string mac = 12;
+  optional string source = 13;  //广告编号，没有留空
+  optional string agent = 14;
+  optional uint32 gender = 15;      //new add
+  optional uint32 hair = 16;        //new add 
+  optional uint32 haircolor = 17;   //new add
+  optional string logid = 18;
+}
+
+//flag :profession,user_name,guild_name,safe_pwd
+
+
+//玩家属性发生变化
+message ChangeFlagLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = CHANGE_FLAG_LOG_CMD ];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint64 pid = 5;
+  optional uint32 time = 6;
+  optional string falg = 7;		//属性标记 "name"
+  optional string from = 8;
+  optional string to = 9;
+  optional uint64 param1= 10;   //new add what who
+  optional string logid = 11;
+}
+
+//充值日志
+message ChargeLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = CHARGE_LOG_CMD ];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint32 hid = 5;		//合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;
+  optional uint32 time = 8;
+  optional string ip = 9;
+  optional string oid = 10;
+  optional string type = 11;
+  optional uint32 level = 12;
+  optional float amount = 13;
+  optional uint32 coins = 14;
+  repeated uint32  mark = 15;
+  optional string name = 16;
+  optional string device = 17;
+  optional uint32 ctime = 18;
+  optional string currency = 19;
+  optional string provider = 20;
+  optional uint32 itemid = 21;
+  optional string logid = 22;
+}
+
+//玩家操作事件日志
+message EventLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = EVENT_LOG_CMD ];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint32 hid = 5;		//合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;
+  optional uint32 time = 8;
+  optional double microtime = 9;
+  optional uint64 eid = 10;
+  optional uint32 ispay = 11;
+  optional uint32 type = 12;
+  optional uint32 subtype = 13;
+  optional uint32 count = 14;
+  repeated uint32  mark = 15;
+  optional string logid = 16;
+}
+
+//游戏币获取日志
+message IncomeLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = INCOME_LOG_CMD ];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint32 hid = 5;		//合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;
+  optional uint32 time = 8;
+  optional double microtime = 9;
+  optional uint64 eid = 10;
+  optional uint32 ispay = 11;
+  optional uint64 value = 12;
+  optional uint32 coin_type = 13;
+  optional uint32 type = 14;
+  optional uint64 after = 15;
+  repeated uint32  mark = 16;
+  optional string logid = 17;
+  optional uint32 source = 18;
+  optional uint32 count = 19;
+}
+
+
+//游戏币消耗日志
+message ConsumeLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = CONSUME_LOG_CMD ];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint32 hid = 5;		//合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;
+  optional uint32 time = 8;
+  optional double microtime = 9;
+  optional uint64 eid = 10;
+  optional uint32 ispay = 11;
+  optional uint64 value = 12;
+  optional uint32 coin_type = 13;
+  optional uint32 type = 14;
+  optional uint64 after = 15;
+  repeated uint32  mark = 16;
+  optional string logid = 17;
+  optional uint32 kind = 18; 
+  optional uint32 source = 19; 
+  optional uint32 count = 20;
+  optional uint64 chargecount = 21;
+  optional uint64 remaincharge = 22;
+}
+
+
+//物品获取日志
+message ItemLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = ITEM_LOG_CMD ];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint32 hid = 5;		//合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;
+  optional uint64 eid = 8;
+  optional uint32 time = 9;
+  optional double microtime = 10;
+  optional string logid = 11;
+  optional uint32 ispay = 12;
+  optional uint32 type = 13;
+  optional uint32 itemid = 14;
+  optional uint32 value = 15;
+  optional uint64 from_pid = 16;
+  optional uint32 after = 17;
+  optional uint32 amount = 18;
+  optional uint32 amount2 = 19;
+  repeated uint32  mark = 20;
+  optional uint32 source = 21;
+  optional uint32 count = 22;
+}
+
+//物品使用日志
+message PropsLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = PROPS_LOG_CMD ];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint32 hid = 5;		//合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;
+  optional uint64 eid = 8;
+  optional uint32 time = 9;
+  optional double microtime = 10;
+  optional string logid = 11;
+  optional uint32 ispay = 12;
+  optional uint32 itemid = 13;
+  optional uint32 value = 14;
+  optional uint32 type = 15;
+  optional uint32 after = 16;
+  repeated uint32  mark = 17;
+  optional uint32 source = 18;
+  optional uint32 count = 19;
+  optional string iteminfo =20;
+}
+
+//交易日志
+message TransactionLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = TRANSACTION_LOG_CMD ];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint32 hid = 5;		//合区服id
+  optional string from_account = 6;
+  optional uint64 from_pid = 7;
+  optional string to_account = 8;
+  optional uint64 to_pid = 9;
+  optional uint64 eid = 10;
+  optional uint32 time = 11;
+  optional uint32 ispay = 12;
+  optional uint32 itemid = 13;
+  optional uint32 value = 14;
+  repeated uint32  mark = 15;
+  optional uint32 fee = 16;
+  optional uint32 fee2 = 17;
+  optional string logid = 18;
+}
+
+enum EChatType
+{
+  ECHATTYPE_STR = 0;
+  ECHATTYPE_VOICE = 1;  
+}
+
+//聊天日志
+message ChatLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default =  CHAT_LOG_CMD];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint32 hid = 5;		//合区服id
+  optional string from_account = 6;
+  optional string from_name = 7;
+  optional uint64 from_pid = 8;
+  optional string to_account = 9;
+  optional string to_name = 10;
+  optional uint64 to_pid = 11;
+  optional uint32 type = 12;
+  optional uint32 time = 13;
+  optional uint32 ispay = 14;
+  optional string content = 15;
+//  optional bytes content = 15;
+  optional uint32 vip = 16;
+  optional uint32 level = 17;
+  optional uint64 eid = 18;
+  optional EChatType chattype = 19;  //0:字符串聊天 1：语音聊天
+  optional uint32 voicelen = 20;   //语音聊天时长
+  optional string logid = 21;
+}
+
+//等级升级日志
+message LevelLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = LEVEL_LOG_CMD];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint32 hid = 5;		//合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;
+  optional uint32 time = 8;
+  optional uint32 from = 9;
+  optional uint32 to = 10;
+  optional uint32 ispay = 11;
+  optional uint32 type = 12;
+  repeated uint32  mark = 13;
+  optional string logid = 14;
+  optional uint32 costtime = 15;  //升级花费时间
+}
+
+message OnlineLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default =  ONLINE_LOG_CMD];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint32 time = 5;		//time 必须是分钟的整数时间 10:00:30 -》10:00:00
+  optional uint32 count_all = 6;
+  optional uint32 count_web = 7;
+  optional uint32 count_client = 8;
+  optional uint32 count_ios = 9;
+  optional uint32 count_android = 10;
+  optional string logid = 11;
+  optional uint32 lineid = 12;      //线id
+
+}
+
+//每月付费玩家快照数据接口 TODO
+message SnapshotLogCmd
+{
+
+}
+
+//关卡通过日志
+message CheckpointLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = CHECKPOINT_LOG_CMD ];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint32 hid = 5;		//合服的区ID
+  optional string account = 6;
+  optional uint64 pid = 7;
+  optional uint64 eid = 8;
+  optional uint32 time = 9;		
+  optional uint32 type = 10;
+  optional uint32 cpid = 11;
+  optional uint32 result = 12;
+  optional uint32 star = 13;
+  optional uint32 ispay = 14;
+  optional uint32 vip = 15;
+  optional string logid = 16;
+  optional uint32 isfirst = 17;
+}
+
+//排行榜日志
+message RankLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default =  RANK_LOG_CMD];
+
+  optional uint32 cid = 3;		//渠道id
+  optional uint32 sid = 4;		//区唯一ID
+  optional uint32 hid = 5;		//合服的区ID
+  optional uint32 type = 6;		//排行类型id
+  optional uint64 pid = 7;
+  optional uint32 value = 8;		
+  optional uint32 date = 9;		//20160101 
+  optional uint32 time = 10;
+  optional string logid = 11;
+}
+
+//
+message ChatSearchCond
+{
+  optional uint64 who = 1;
+  optional uint32 fromtime = 2;       //闭区间 [ ]
+  optional uint32 totime = 3;
+  optional EChatType  chattype = 4;   //0 字符串聊天 1语音聊天    
+}
+
+message ChatLogRes
+{ 
+  optional uint64 sendid = 1;
+  optional string sendname = 2;
+  optional uint64 recvid = 3;
+  optional string recvname = 4;
+  optional uint32 createtime = 5;
+
+  optional string content = 6;
+  optional uint32 voicelen = 7;    //语音时长 秒
+
+}
+
+message QueryChatLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = QUERY_CHAT_LOG_CMD];
+  optional ChatSearchCond cond = 3;
+  repeated ChatLogRes res = 4;
+}
+
+
+//new add 
+
+// 
+message ChangeLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = CHANGE_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;
+  optional uint32 etype = 11;
+
+  optional uint32 flag = 12;       //
+  optional string from = 13;
+  optional string to = 14;
+  optional uint64 param1= 15;   
+  repeated uint32  mark = 16;
+  optional string logid = 17;
+}
+
+//装备相关
+message EquipLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = EQUIP_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional uint32 type = 12;          //类型 1：穿上装备 2：脱下装备 3:transfer
+  optional uint32 old_equipid = 13;
+  optional string old_equipgid = 14;
+  optional uint32 old_strengthlv = 15;      
+  optional uint32 old_refinelv = 16;
+  optional int32   old_isdamage = 17;
+  optional uint32 new_equipid = 18;     
+  optional string new_equipgid = 19;
+  optional uint32 new_strengthlv = 20;  
+  optional uint32 new_refinelv = 21;   
+  optional int32   new_isdamage = 22;
+
+  repeated uint32  mark = 23;
+  optional string logid = 24;
+}
+
+
+//插卡
+message CardLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = CARD_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;
+  optional uint32 etype = 11;
+
+  optional uint32 equipid = 13;
+  optional string equipgid = 14;
+  optional uint32 type = 15;      //1插卡，2卸卡
+  optional uint32 cardid = 16;
+  optional string cardgid = 17;
+  optional uint32 useslot = 18;   //已经使用的卡槽数
+  optional uint32 maxslot = 19;   //总卡槽数
+
+  repeated uint32  mark = 20;
+  optional string logid = 21;
+}
+
+
+//装备加强相关
+message EquipUpLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = EQUIPUP_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional uint32 type = 12;        //1：强化 2：精炼
+  optional uint32 equipid = 13;
+  optional string equipguid = 14;
+  optional uint32 count = 15;       //
+  optional uint32 old_lv = 16;
+  optional uint32 new_lv = 17;   
+  
+  optional int32 isfail = 18;
+  optional string cost_money = 19;
+  optional string cost_item = 20; 
+  optional int32 isdamage = 21;    //是否损坏
+
+  repeated uint32  mark = 22;
+  optional string logid = 23;
+}
+
+//牵手组队、公会、好友等社交
+message SocailLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = SOCIAL_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional uint32 type = 12;      
+  optional uint64 inid = 13;
+  optional uint64 otherid = 14;
+  optional uint64 param1 = 15;
+  optional uint64 param2 = 16;
+
+  repeated uint32  mark = 18;
+  optional string logid = 19;
+}
+
+//任务相关
+message QuestLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = QUEST_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional uint64 questid = 12;
+  optional uint32 type = 13;    //1:开始 2：完成 3：召唤 4：访问npc  5:reward
+  optional uint64 targetid = 14;
+  optional uint32 baseexp = 15;
+  optional uint32 jobexp = 16;
+  optional string rewarditem = 17;    //2001,10;20002,20;
+  optional uint32 level = 18;    
+  repeated uint32  mark = 19;
+  optional string logid = 20;
+  optional uint32 lineid = 21;      //线id
+}
+
+//冒险手册相关
+message ManualLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = MANUAL_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional uint32 type = 12;    //1:经验 2：称号 3：技能
+  optional uint32 by = 13;      //途径 1:魔物点击 2：头饰点击 3：卡片点击 4：npc点击  5：景点点击
+  optional uint64 what = 14;    //魔物名字id、头饰id、称号id、技能id等
+  optional uint64 param1 = 15;  // 获得经验数量
+
+  repeated uint32  mark = 18;
+  optional string logid = 19;
+}
+
+//完成活动相关
+message CompleteLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = COMPLETE_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional uint32 type = 12;          // 1:看板任务 2：无限塔 3：封印 4：抗击魔潮 5：研究所
+  optional uint64 targetid  = 13;
+  optional uint32 today_count = 14;   //今日完成次数
+  optional uint32 reward_type = 15;   //1: base exp 2:乐园币
+  optional uint32 reward_count = 16;
+  optional uint32 level = 17;
+  repeated uint32  mark = 18;
+  optional string logid = 19;
+}
+
+message TowerLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = TOWER_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional uint32 type = 12;        // 1：完成 2：离开  
+  optional uint32 curLayer  = 13;   // 当前层
+  optional uint32 maxLayer = 14;    // 完成的最大层
+  optional uint64 teamId = 15;
+  optional uint32 level = 16;
+  repeated uint32  mark = 18;
+  optional string logid = 19;
+}
+
+
+//道具操作相关
+message ItemOperLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = ITEMOPER_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional uint32 type = 12;          // 1:拾取道具 2：使用唱片
+  optional uint32 itemid  = 13;
+  optional uint32 count = 14;     
+  repeated uint32  mark = 15;
+  optional string logid = 16;
+}
+
+//击杀相关
+message KillLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = KILL_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional uint32 monsterid  = 12;    
+  optional uint64 monstergid  = 13;    
+  optional uint32 monstergroup = 14;
+  optional uint32 baseexp = 15;
+  optional uint32 jobexp = 16;
+  optional int32 ismvp = 17; 
+  repeated uint32  mark = 18;
+  optional uint32 type = 19;    //魔物类型 1:monster 2:mini 3:mvp
+  optional uint32 level = 20;   //玩家等级
+  optional uint32 killtype = 21;  //击杀类型 1：人杀怪 2：怪杀人
+  optional string logid = 22;
+  optional uint32 lineid = 23;      //线id
+
+}
+
+//
+message RewardLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = REWARD_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional uint32 id  = 12;    
+  optional uint32 profession  = 13;    
+  optional string rewarditem = 14;
+
+  repeated uint32  mark = 15;
+  optional string logid = 16;
+}
+
+//
+message MailLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = MAIL_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;       //etype = 64 新增邮件 52 领取邮件
+
+  optional uint64 id  = 12;    
+  optional uint64 sysid  = 13;
+  optional uint32 mailtype = 14;  
+  optional string title = 15;  
+  optional string rewarditem = 16;
+
+  repeated uint32  mark = 17;
+  optional string logid = 18;
+}
+
+//道场
+message DojoLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = DOJO_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional uint32 dojoid  = 12;    
+  optional uint32 mapid  = 13;    
+  optional uint32 passtype = 14;
+  optional uint32 level = 15;
+  repeated uint32  mark = 16;
+  optional string logid = 17;
+}
+
+//附魔
+message EnchantLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = ENCHANT_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional string equipguid  = 12;    
+  optional uint32 itemid = 23;
+  optional uint32 enchanttype   = 13;    
+  optional string oldattr = 14;
+  optional string newattr = 15;
+  optional string oldbufid = 16;   
+  optional string newbufid = 17;   
+  optional uint32 costitemid = 18;   
+  optional uint32 costitemcount = 19;  
+  optional uint32 costmoney = 20; 
+
+  repeated uint32  mark = 21;
+  optional string logid = 22;
+  //23 used by itemid
+}
+
+
+
+//公会祈祷相关
+message GuildPrayLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = GUILDPRAY_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional uint32 prayid  = 12;    
+  optional uint32 addattr  = 13;    
+  optional uint32 costitem = 14;
+  optional uint32 costmoney = 15;
+  optional uint32 costcon = 16;   //消耗贡献
+
+  repeated uint32  mark = 17;
+  optional string logid = 18;
+}
+
+//使用技能
+message UseSkillLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = USESKILL_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+
+  optional uint32 skillid  = 12;
+  optional string logid = 13;    
+}
+
+//激活
+message ActiveLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = ACTIVE_LOG_CMD ];
+
+  optional string channel = 3;      
+  optional string cdkey = 4;        
+  optional string account = 5;
+  optional uint32 time = 6;
+  optional string logid = 7;
+}
+
+//交易所
+message TradeLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = TRADE_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;    
+  optional uint64 pid = 5;        //chaid
+  optional uint32 time = 6;
+
+  optional uint32 type  = 7;    
+  optional uint32 itemid = 8;
+  optional uint32 count = 9;
+  optional uint32 price = 10;
+  optional uint32 tax = 11;
+  optional uint32 moneycount = 12;
+  optional string iteminfo = 13;
+  optional uint64 otherid = 14;
+  optional string logid = 15;
+  optional string strotherid = 16;
+  optional uint64 spend_quota = 17 [ default = 0 ];
+}
+
+message DeleteCharLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = DELETE_CHAR_LOG_CMD ];
+
+  optional uint32 cid = 3;
+  optional uint32 sid = 4;
+  optional string account = 5;
+  optional uint64 pid = 6;
+  optional uint32 time = 7;
+  optional uint64 eid = 8;     
+  optional uint32 etype = 9;
+  optional string logid = 10;
+}
+
+message ComposeLogCmd     //装备合成分解
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = COMPOSE_LOG_CMD ];
+
+  optional uint32 cid = 3;
+  optional uint32 sid = 4;
+  optional string account = 5;
+  optional uint64 pid = 6;
+  optional uint32 time = 7;
+  optional uint64 eid = 8;     
+  optional uint32 etype = 9;
+  optional uint32 itemid = 10;
+  optional string itemguid = 11;
+  optional string cost = 12;
+  optional string logid = 13;
+}
+
+message JumpzoneLogCmd     //装备合成分解
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = JUMPZONE_LOG_CMD ];
+
+  optional uint32 cid = 3;
+  optional uint32 sid = 4;
+  optional string account = 5;
+  optional uint64 pid = 6;
+  optional uint32 time = 7;
+  optional uint64 eid = 8;     
+  optional uint32 etype = 9;
+  optional uint32 oldzoneid = 10;
+  optional uint32 newzoneid = 11;
+  optional uint32 isfirst = 12;
+  optional string cost = 13;
+  optional string logid = 14;
+}
+
+//组队
+message TeamLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = TEAM_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;        //区唯一ID
+  optional uint32 hid = 5;        //合区服id
+  optional string account = 6;
+  optional uint64 pid = 7;        //chaid
+  optional uint32 ispay = 8;
+  optional uint32 time = 9;
+  optional uint64 eid = 10;     
+  optional uint32 etype = 11;
+  optional uint64 inid = 12;
+  optional uint64 otherid = 13;
+  optional string logid = 14;
+}
+
+
+//交易所调价
+enum EPriceStatus
+{
+  EPriceStatus_NoChange = 0;
+  EPriceStatus_Up = 1;
+  EPriceStatus_Down = 2;
+  EPriceStatus_Bottom = 3;
+  EPriceStatus_Premium = 4;
+  EPriceStatus_MaxPrice = 5;
+}
+
+message TradeAdjustPriceLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = TRADE_ADJUST_PRICE_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;    
+  optional uint64 pid = 5;        //chaid
+  optional uint32 time = 6;
+
+  optional uint32 item_id = 7;  
+  optional uint32 t = 8;      //周期
+  optional uint32 k = 9;      //库存
+  optional uint32 sold_count = 10;
+  optional uint32 kt = 11;
+  optional uint32 qk = 12;
+  optional float r = 13;
+  optional float up_ratio = 14;
+  optional float down_ratio = 15;
+  optional float new_price = 16;
+  optional float old_price = 17;
+  optional uint32 last_time = 18;
+  optional EPriceStatus status  =19; 
+  optional string logid = 20;
+  optional uint32 real_price = 21;
+}
+
+//交易所价格
+message TradePriceLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = TRADE_PRICE_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;    
+  optional uint64 pid = 5;        //chaid
+  optional uint32 time = 6;
+
+  optional uint32 item_id =7 ;
+  optional uint32 k = 8 ;
+  optional float price = 9;
+  optional string logid = 10;
+}
+
+//宠物变化
+enum EPetChangeType
+{
+  EPetChangeType_Lv = 1;
+  EPetChangeType_Good = 2;    //好感度
+  EPetChangeType_Skill = 3;  
+}
+
+message PetChangeLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = PET_CHANGE_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;    
+  optional string account = 16;
+  optional uint64 pid = 5;        //chaid
+  optional uint32 time = 6;
+  optional uint64 eid = 7;     
+  optional uint32 etype = 8;
+
+  optional EPetChangeType type=9;
+  optional uint32 monsterid = 10;    //宠物类型
+  optional string name = 11;
+  optional uint32 before = 12;
+  optional uint32 after = 13;
+  optional string skill_before = 14;    //技能id,lv;
+  optional string skill_after = 15;    //技能id,lv;
+  optional string logid = 17;
+}
+
+enum EPetAdventureLogType
+{
+  EPetAdventureLogType_Start = 1;
+  EPetAdventureLogType_Take = 2; 
+}
+
+//宠物冒险
+message PetAdventureLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = PET_ADVENTURE_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;  
+  optional string account = 13;  
+  optional uint64 pid = 5;        //chaid
+  optional uint32 time = 6;
+  optional uint64 eid = 7;     
+  optional uint32 etype = 8;
+
+  optional EPetAdventureLogType type=9;
+  optional uint32 id = 10;     //冒险id    //Pet_Adventure表
+  optional string names = 11;  //宠物名字
+  optional uint32 cond = 12;  //满足条件个数
+  optional string logid = 14;
+}
+
+//宠物冒险
+message InactiveUserLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = INACTIVE_USER_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;  
+  optional string account = 5;  
+  optional uint64 pid = 6;        //chaid
+  optional uint32 time = 7;
+
+  optional string name = 8;
+  optional uint32 job = 9;
+  optional uint32 level = 10;
+  optional uint64 left_zeny = 11;
+  optional uint32 mapid = 12;
+  optional uint32 create_time = 14;
+  optional uint32 send_count = 15; 
+  optional string logid = 16;
+  optional uint64 guildid = 17;
+}
+
+//交易所未领取zeny统计
+message TradeUntakeLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = TRADE_UNTAKE_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;    
+  optional uint64 pid = 5;        //chaid
+  optional uint32 time = 6;
+
+  optional string name  = 7;
+  optional uint64 zeny = 8;        //未领取的zeny总和
+  optional string guildname = 9;
+  optional string logid = 11;
+}
+
+
+enum ECreditType
+{
+  ECreditType_Add = 1;      //增加
+  ECreditType_Dec = 2;      //减少
+  ECreditType_Set = 3;      //设置
+}
+
+message CreditLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = CREDIT_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;    
+  optional uint64 pid = 5;        //chaid
+  optional uint32 time = 6;
+
+  optional string name  = 7;
+  optional ECreditType type  = 8;
+  optional uint64 before = 9;        
+  optional uint64 after = 10;
+  optional string logid = 11;
+}
+
+
+//交易所赠送日志
+enum EGiveEvent
+{
+  EGiveEvent_Give = 1;
+  EGiveEvent_Accept = 2; 
+  EGiveEvent_Refuse = 3;
+}
+
+enum ELogGiveType
+{
+  ELogGiveType_Trade = 0;          // 交易所赠送
+  ELogGiveType_Lottery = 1;        // 扭蛋赠送
+}
+
+message TradeGiveLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = TRADE_GIVE_LOG_CMD ];
+
+  optional uint32 cid = 3;        //渠道id
+  optional uint32 sid = 4;    
+  optional uint64 pid = 5;        //chaid
+  optional uint32 time = 6;
+
+  optional EGiveEvent event  = 7;    
+  optional uint32 itemid = 8;
+  optional uint64 quota = 9;      //额度
+  optional string iteminfo = 10;
+  optional uint64 otherid = 11;   //被赠送人
+  optional string logid = 12;
+  optional string name = 13; // 赠送人昵称
+  optional string othername = 14; // 被赠送人昵称
+  optional uint32 givetime = 15; // 赠送时间
+  optional ELogGiveType givetype = 16; // 赠送类型
+  optional uint32 itemcount = 17; // 道具数量
+}
+
+enum EQuotaOptType
+{
+  EQuotaOptType_Add = 1;        // 额度增加
+  EQuotaOptType_Sub = 2;        // 额度扣除
+  EQuotaOptType_Lock = 3;       // 额度冻结
+  EQuotaOptType_Unlock = 4;     // 额度解冻
+}
+
+message QuotaLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = QUOTA_LOG_CMD ];
+
+  optional uint32 cid = 3;		// 渠道id
+  optional uint32 sid = 4;		// 区唯一ID
+  optional string account = 5;
+  optional uint64 pid = 6;      // charid
+  optional uint32 time = 7;
+  optional string logid = 8;
+
+  optional EQuotaOptType opttype = 9; // 操作类型
+  optional EQuotaType quotatype = 10; // 变化来源
+  optional uint64 changed = 11;       // 额度变化值
+  optional uint64 quota = 12;         // 变化后剩余额度
+  optional uint64 lock = 13;          // 变化后剩余冻结的额度
+}
+
+// 公会物品变化日志
+message GuildItemLogCmd
+{
+  optional Command cmd = 1 [ default = LOG_PROTOCMD ];
+  optional LogParam param = 2 [ default = GUILD_ITEM_LOG_CMD ];
+
+  optional uint32 cid = 3;      // 平台id
+  optional uint32 sid = 4;      // 区id
+  optional uint64 gid = 5;      // 公会id
+  optional uint32 time = 6;
+  optional string logid = 7;
+
+  optional uint32 itemid = 8;   // 道具id
+  optional int64 changed = 9;   // 变化量
+  optional uint32 count = 10;   // 变化后的数量
+  optional uint32 type = 11;    // 变化来源,由source+1000得到
+}

@@ -1,0 +1,256 @@
+package Cmd;
+
+import "xCmd.proto";
+enum FoodParam
+{
+  FOODPARAM_COOK_STATE_NTF = 1;
+  FOODPARAM_PREPARECOOK = 2;
+  FOODPARAM_SELECT_COOKTYPE = 3;
+  FOODPARAM_START_COOK = 4;
+  FOODPARAM_PUT_FOOD = 5;
+  FOODPARAM_EDIT_FOOD_POWER = 6;
+  FOODPARAM_EAT_PROGRESS_NTF = 7;
+  FOODPARAM_QUERY_FOOD_NPC_INFO = 8;
+  FOODPARAM_START_EAT = 9;
+  FOODPARAM_STOP_EAT = 10; 
+  FOODPARAM_FOOD_INFO_NTF = 11;
+  FOODPARAM_UNLOCK_RECIPE_NTF = 12;
+  FOODPARAM_QUERY_FOOD_DATA = 13;
+  FOODPARAM_NEW_FOOD_DATA_NTF = 14;
+  FOODPARAM_CLICK_FOOD_MANUAL_DATA = 15;
+  FOODPARAM_UPDATE_FOOD_INFO_NTF = 16;
+}
+
+enum ECookType
+{
+  ECOOKTYPE_MIN = 0;   //
+  ECOOKTYPE_JIANCHAO = 1;   //煎炒
+  ECOOKTYPE_BARBECUE = 2;   //烧烤
+  ECOOKTYPE_SOUP = 3;       //汤
+  ECOOKTYPE_DESSERT = 4;    //点心生煎  
+  ECOOKTYPE_MAX = 5;      
+}
+
+enum ECookState
+{
+  ECOOKSTATE_NONE = 0;
+  ECOOKSTATE_PREPAREING = 1;      //准备中  
+  ECOOKSTATE_COOKING = 2;         //制作中，进度     
+  ECOOKSTATE_COMPLETE = 3;        //完成，附带结果成功，失败
+}
+
+
+message CookStateMsg
+{  
+  optional ECookState state = 1;
+  optional ECookType cooktype = 2;  //烹饪方式
+  optional uint32 progress = 3;     //制作中的进度，百分制，1表示百分之一。
+  optional bool success = 4;        //制作是否成功
+  repeated uint32 foodid = 5;
+}
+
+//server -> client :通知玩家烹饪状态，九屏
+message CookStateNtf
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_COOK_STATE_NTF ];
+  optional CookStateMsg state = 3; 
+  optional uint64 charid = 4;
+}
+
+// client <-> scene:烹饪准备
+message PrepareCook
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_PREPARECOOK ];
+  optional bool start = 3  [ default = true ];
+}
+
+// client -> scene:
+message SelectCookType
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_SELECT_COOKTYPE ];
+  optional ECookType cooktype = 3;
+}
+
+message BriefItemInfo
+{
+  optional string guid = 1;
+  optional uint32 itemid = 2;
+  optional uint32 num = 3;
+}
+
+// client -> scene:
+message StartCook
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_START_COOK ];
+  optional ECookType cooktype = 3;
+  repeated BriefItemInfo material = 4;      //食材
+  optional uint32 recipe = 5;               //食谱 暂时弃用 
+  optional bool skipanimation = 6 [ default = false ];  
+  repeated uint32 recipes = 7;     //匹配到的食谱
+}
+
+enum EEatPower
+{
+  EEATPOWR_SELF = 1;
+  EEATPOWR_TEAM = 2;
+  EEATPOWR_ALL = 3;
+}
+
+//摆放
+message PutFood
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_PUT_FOOD ];
+  optional string foodguid = 3;
+  optional EEatPower power = 4;
+  optional uint32 foodnum = 5;  //放置料理数量
+  optional bool peteat = 6 [ default = false ]; //本次放置是否宠物享用
+}
+
+//编辑权限
+message EditFoodPower
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_EDIT_FOOD_POWER ];
+  optional uint64 npcguid = 3;
+  optional EEatPower power = 4;
+}
+
+message FoodItemInfo2
+{
+  optional uint32 itemid = 1;
+  optional uint32 invalid_time = 2;      //失效时间戳   
+}
+
+//点击场景npc料理的展示信息
+message QueryFoodNpcInfo
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_QUERY_FOOD_NPC_INFO ];
+  optional uint64 npcguid = 3;
+  optional uint32 eating_people = 4;      //多少人在吃
+  optional uint32 itemid = 5; 
+  optional uint64 ownerid = 6;                  //主人id
+  optional uint32 itemnum = 7;   //料理数量
+}
+
+message StartEat
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_START_EAT ];
+  optional uint64 npcguid = 3;
+  optional bool pet = 4 [ default = false ];
+  optional uint32 eatnum = 5;   //吃的数量
+}
+
+message StopEat
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_STOP_EAT ];
+  optional uint64 npcguid = 3;
+}
+
+//server -> client :通知料理被吃的进度
+message EatProgressNtf
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_EAT_PROGRESS_NTF ];
+  optional uint32 progress = 3; 
+  optional uint64 npcguid = 4;
+}
+
+message FoodInfoNtf
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_FOOD_INFO_NTF ];
+
+  repeated uint32 recipeids = 3;                //解锁的食谱
+  repeated uint32 last_cooked_foods = 4;  //最近烹饪的料理
+  repeated FoodItemInfo2 eat_foods = 5;          //目前正在吃的料理
+}
+
+message UpdateFoodInfo
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_UPDATE_FOOD_INFO_NTF ];
+
+  repeated uint32 last_cooked_foods = 4;        //最近烹饪的料理
+  repeated FoodItemInfo2 eat_foods = 5;          //目前正在吃的料理
+  repeated uint32 del_eat_foods = 6;
+}
+
+message UnlockRecipeNtf
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_UNLOCK_RECIPE_NTF ];
+
+  optional uint32 recipe = 3;                   //食谱
+}
+
+// achieve data
+enum EFoodDataType
+{
+  EFOODDATATYPE_MIN = 0;
+  EFOODDATATYPE_MATERIAL = 1;
+  EFOODDATATYPE_FOODCOOK = 2;
+  EFOODDATATYPE_FOODTASTE = 3;
+  EFOODDATATYPE_MAX = 4;
+}
+
+enum EFoodStatus
+{
+  EFOODSTATUS_MIN = 0;
+  EFOODSTATUS_ADD = 1;
+  EFOODSTATUS_CLICKED = 2;
+  EFOODSTATUS_MAX = 3;  
+}
+
+message FoodSubData
+{
+  optional EFoodStatus status = 1;
+  optional uint32 itemid = 2 [ default = 0 ];
+  optional uint32 exp = 3 [ default = 0 ];
+  optional uint32 level = 4 [ default = 0 ];
+}
+
+message FoodManualData
+{
+  optional EFoodDataType type = 1 [ default = EFOODDATATYPE_MIN ];
+  repeated FoodSubData datas = 2;
+}
+
+// client <-> scene : query food data
+message QueryFoodManualData
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_QUERY_FOOD_DATA ];
+
+  optional uint32 cookerexp = 3;        //厨师经验
+  optional uint32 cookerlv = 4;         //厨师等级
+  optional uint32 tasterexp = 5;        //美食家经验
+  optional uint32 tasterlv = 6;         //美食家等级
+  repeated FoodManualData items = 7;
+}
+
+// scene -> client : new ntf
+message NewFoodDataNtf
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_NEW_FOOD_DATA_NTF ];  
+
+  repeated FoodManualData items = 3;
+}
+
+// client <-> client : 点击冒险手册加号
+message ClickFoodManualData
+{
+  optional Command cmd = 1 [ default = SCENE_USER_FOOD_PROTOCMD ];
+  optional FoodParam param = 2 [ default = FOODPARAM_CLICK_FOOD_MANUAL_DATA ];  
+
+  optional EFoodDataType type = 3;
+  optional uint32 itemid = 4;
+}

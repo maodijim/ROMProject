@@ -1,0 +1,527 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+import "SceneQuest.proto";
+
+enum TeamParam
+{
+  TEAMPARAM_TEAMLIST = 1;
+  TEAMPARAM_DATAUPDATE = 2;
+  TEAMPARAM_MEMBERUPDATE = 3;
+  TEAMPARAM_APPLYUPDATE = 4;
+  TEAMPARAM_CREATETEAM = 5;
+  TEAMPARAM_INVITEMEMBER = 6;
+  TEAMPARAM_PROCESSINVITE = 7;
+  TEAMPARAM_MEMBERAPPLY = 8;
+  TEAMPARAM_PROCESSAPPLY = 9;
+  TEAMPARAM_KICKMEMBER = 10;
+  TEAMPARAM_EXCHANGELEADER = 11;
+  TEAMPARAM_EXITTEAM = 12;
+  TEAMPARAM_ENTERTEAM = 13;
+  TEAMPARAM_MEMBERPOSUPDATE = 14;
+  TEAMPARAM_MEMBERDATAUPDATE = 15;
+  TEAMPARAM_LOCKTARGET = 16;
+  TEAMPARAM_SUMMON = 17;
+  TEAMPARAM_CLEARAPPLYLIST = 18;
+  TEAMPARAM_QUICKENTER = 19;
+  TEAMPARAM_SETOPTION = 20;
+  TEAMPARAM_QUERYUSERTEAMINFO = 21;
+  TEAMPARAM_SETMEMBEROPTION = 22;
+  TEAMPARAM_QUERYWANTEDQUEST = 23;
+  TEAMPARAM_UPDATEWANTEDQUEST = 24;
+  TEAMPARAM_ACCEPTHELPWANTED = 25;
+  TEAMPARAM_UPDATEHELPWANTED = 26;
+  TEAMPARAM_QUERYHELPWANTED = 27;
+  TEAMPARAM_QUERYMEMBERCAT = 28;
+  TEAMPARAM_MEMBERCAT_UPDATE = 29;
+}
+
+// guild global data
+enum ETeamGlobal
+{
+  ETEAMGLOBAL_LISTCOUNT_PERPAGE = 20;
+}
+
+// team member
+enum ETeamJob
+{
+  ETEAMJOB_MIN = 0;
+  ETEAMJOB_LEADER = 1;
+  ETEAMJOB_MEMBER = 2;
+  ETEAMJOB_APPLY = 3;
+  ETEAMJOB_TEMPLEADER = 4;
+  ETEAMJOB_MAX = 5;
+}
+enum EMemberData
+{
+  EMEMBERDATA_MIN = 0;
+  EMEMBERDATA_BASELEVEL = 1;
+  EMEMBERDATA_PROFESSION = 2;
+  EMEMBERDATA_MAPID = 3;
+  EMEMBERDATA_PORTRAIT = 4;
+  EMEMBERDATA_FRAME = 5;
+  EMEMBERDATA_RAIDID = 6;
+  EMEMBERDATA_OFFLINE = 7;
+  EMEMBERDATA_HP = 8;
+  EMEMBERDATA_MAXHP = 9;
+  EMEMBERDATA_SP = 10;
+  EMEMBERDATA_MAXSP = 11;
+  EMEMBERDATA_JOB = 12;
+  EMEMBERDATA_TARGETID = 13;
+  EMEMBERDATA_JOINHANDID = 14;
+  EMEMBERDATA_BODY          = 15;
+  EMEMBERDATA_HEAD          = 16;
+  EMEMBERDATA_BACK          = 17;
+  EMEMBERDATA_FACE          = 18;
+  EMEMBERDATA_TAIL          = 19;
+  EMEMBERDATA_HAIR          = 20;
+  EMEMBERDATA_HAIRCOLOR     = 21;
+  EMEMBERDATA_CLOTHCOLOR    = 22;
+  EMEMBERDATA_LEFTHAND      = 23;
+  EMEMBERDATA_RIGHTHAND     = 24;
+  EMEMBERDATA_GUILDID = 25;
+  EMEMBERDATA_GUILDNAME = 26;
+  EMEMBERDATA_GENDER = 27;
+  EMEMBERDATA_BLINK = 28;
+  EMEMBERDATA_ZONEID = 29;
+  EMEMBERDATA_AUTOFOLLOW = 30;
+  EMEMBERDATA_EYE = 31;
+  EMEMBERDATA_NAME = 32;
+  EMEMBERDATA_MOUTH = 33;
+  EMEMBERDATA_CAT = 34;
+  EMEMBERDATA_RELIVETIME = 35;
+  EMEMBERDATA_EXPIRETIME = 36;
+  EMEMBERDATA_CAT_OWNER = 37;
+  EMEMBERDATA_ENTERTIME = 38;
+  EMEMBERDATA_GUILDRAIDINDEX = 39;
+  EMEMBERDATA_ENSEMBLESKILL = 40;
+  EMEMBERDATA_MAX = 41;
+};
+message MemberData
+{
+  optional EMemberData type = 1 [ default = EMEMBERDATA_MIN ];
+  optional uint64 value = 2 [ default = 0 ];
+  optional string data = 3;
+  repeated uint64 values = 4;
+}
+message TeamMember
+{
+  optional uint64 guid = 1 [ default = 0 ];
+  optional string name = 2;
+
+  repeated MemberData datas = 3;
+  optional uint32 accid = 4;
+}
+
+message BlobTeamMember
+{
+  repeated TeamMember members = 1;
+}
+
+message TeamMemberHelpQuest
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  repeated uint32 helpquest = 2;
+}
+message TeamMemberWantedQuest
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 acceptquest = 2 [ default = 0 ];
+  optional uint32 acceptstep = 3 [ default = 0 ];
+}
+
+message BlobTeamWanted
+{
+  repeated TeamMemberWantedQuest memberquest = 1;
+  repeated TeamMemberHelpQuest memberhelp = 2;
+}
+
+// team apply
+message TeamApply
+{
+  optional uint64 guid = 1 [ default = 0 ];
+  optional uint32 zoneid = 5 [ default = 0 ];
+  optional uint32 time = 2 [ default = 0 ];
+  optional string name = 3;
+
+  repeated MemberData datas = 4;
+  optional uint32 accid = 6;
+}
+
+message BlobTeamApply
+{
+  repeated TeamApply applys = 1;
+}
+
+message TeamSealData
+{
+  optional uint32 seal = 1 [ default = 0 ];
+  optional uint32 zoneid = 3 [ default = 0 ];
+  optional ScenePos pos = 2;
+  optional uint64 teamid = 4 [ default = 0 ];
+  optional uint32 lastonlinetime = 5 [ default = 0 ];
+}
+
+// team data
+enum EAutoType
+{
+  EAUTOTYPE_CLOSE = 0;
+  EAUTOTYPE_ALL = 1;
+  EAUTOTYPE_GUILDFRIEND = 2;
+  EAUTOTYPE_MAX = 3;
+}
+enum ETeamData
+{
+  ETEAMDATA_MIN = 0;
+  ETEAMDATA_TYPE = 1;
+  ETEAMDATA_MINLV = 2;
+  ETEAMDATA_MAXLV = 3;
+  ETEAMDATA_OVERTIME = 4;
+  ETEAMDATA_AUTOACCEPT = 5;
+  ETEAMDATA_MEMBERCOUNT = 6;
+  ETEAMDATA_PICKUP_MODE = 7;
+  ETEAMDATA_MEMBER = 8;
+  ETEAMDATA_HELPWANTED = 9;
+  ETEAMDATA_MAX = 10;
+}
+message TeamSummaryItem
+{
+  optional ETeamData type = 1 [ default = ETEAMDATA_MIN ];
+  optional uint64 value = 2 [ default = 0 ];
+}
+message TeamData
+{
+  optional uint64 guid = 1 [ default = 0 ];
+  optional uint32 zoneid = 8 [ default = 0 ];
+  optional string name = 2;
+
+  repeated TeamSummaryItem items = 3;
+  repeated TeamMember members = 4;
+  repeated TeamApply applys = 5;
+  optional TeamSealData seal = 6;
+}
+
+// client <-> session : team list
+message TeamList
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_TEAMLIST ];
+
+  optional uint32 type = 3 [ default = 0 ];
+  optional uint32 page = 4 [ default = 0 ];
+  optional uint32 lv = 5 [ default = 0 ];
+
+  repeated TeamData list = 6;
+}
+
+// session -> client : update data
+message TeamDataUpdate
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_DATAUPDATE ];
+
+  optional string name = 3;
+  repeated TeamSummaryItem datas = 4;
+}
+
+// session -> client : member update
+message TeamMemberUpdate
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_MEMBERUPDATE ];
+
+  repeated TeamMember updates = 3;
+  repeated uint64 deletes = 4;
+}
+
+// session -> client : apply update
+message TeamApplyUpdate
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_APPLYUPDATE ];
+
+  repeated TeamApply updates = 3;
+  repeated uint64 deletes = 4;
+}
+
+// client -> session : create team
+message CreateTeam
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_CREATETEAM ];
+
+  optional uint32 minlv = 3 [ default = 0 ];
+  optional uint32 maxlv = 4 [ default = 0 ];
+  optional uint32 type = 5 [ default = 0 ];
+
+  optional EAutoType autoaccept = 6 [ default = EAUTOTYPE_CLOSE ];
+
+  optional string name = 7;
+}
+
+// client <-> session : invite member
+message InviteMember
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_INVITEMEMBER ];
+
+  optional uint64 userguid = 3 [ default = 0 ];
+  optional uint32 catid = 4 [ default = 0 ];
+
+  optional string teamname = 5;
+  optional string username = 6;
+}
+
+// client -> session : process invite
+enum ETeamInviteType
+{
+  ETEAMINVITETYPE_MIN = 0;
+  ETEAMINVITETYPE_AGREE = 1;
+  ETEAMINVITETYPE_DISAGREE = 2;
+  ETEAMINVITETYPE_MAX = 3;
+}
+message ProcessTeamInvite
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_PROCESSINVITE ];
+
+  optional ETeamInviteType type = 3 [ default = ETEAMINVITETYPE_MIN ];
+  optional uint64 userguid = 4 [ default = 0 ];
+}
+
+// client -> session : apply
+message TeamMemberApply
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_MEMBERAPPLY ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+}
+
+// client -> session : process apply
+enum ETeamApplyType
+{
+  ETEAMAPPLYTYPE_MIN = 0;
+  ETEAMAPPLYTYPE_AGREE = 1;
+  ETEAMAPPLYTYPE_DISAGREE = 2;
+  ETEAMAPPLYTYPE_MAX = 3;
+}
+message ProcessTeamApply
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_PROCESSAPPLY ];
+
+  optional ETeamApplyType type = 3 [ default = ETEAMAPPLYTYPE_MIN ];
+  optional uint64 userguid = 4 [ default = 0 ];
+}
+
+// client -> session : kick member
+message KickMember
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_KICKMEMBER ];
+
+  optional uint64 userid = 3 [ default = 0 ];
+  optional uint64 catid = 4 [ default = 0 ];
+}
+
+// client -> session : exchange leader
+message ExchangeLeader
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_EXCHANGELEADER ];
+
+  optional uint64 userid = 4 [ default = 0 ];
+}
+
+// client -> session : exit team
+message ExitTeam
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_EXITTEAM ];
+
+  optional uint64 teamid = 3 [ default = 0 ];
+}
+
+// session -> client : enter team
+message EnterTeam
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_ENTERTEAM ];
+
+  optional TeamData data = 3;
+}
+
+// session -> client : member pos update
+message MemberPosUpdate
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_MEMBERPOSUPDATE ];
+
+  optional uint64 id = 3 [ default = 0 ];
+
+  optional ScenePos pos = 4;
+}
+
+// session -> client : member data update
+message MemberDataUpdate
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_MEMBERDATAUPDATE ];
+
+  optional uint64 id = 3 [ default = 0 ];
+
+  repeated MemberData members = 4;
+}
+
+// client -> session : lock target
+message LockTarget
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_LOCKTARGET ];
+
+  optional uint64 targetid = 3 [ default = 0 ];
+}
+
+// client <-> session : summon
+message TeamSummon
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_SUMMON ];
+
+  optional uint32 raidid = 3 [ default = 0 ];
+}
+
+// client -> session : clear apply list
+message ClearApplyList
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_CLEARAPPLYLIST ];
+}
+
+// client <-> session : quick enter
+message QuickEnter
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_QUICKENTER ];
+
+  optional uint32 type = 3 [ default = 0 ];
+  optional uint32 time = 4 [ default = 0 ];
+
+  optional bool set = 5 [ default = false ];
+}
+
+// client -> session : set option
+message SetTeamOption
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_SETOPTION ];
+
+  optional string name = 3;
+  repeated TeamSummaryItem items = 4;
+}
+
+// client <-> session : query user team info
+message QueryUserTeamInfoTeamCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_QUERYUSERTEAMINFO ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+
+  // ret
+  optional uint64 teamid = 4 [ default = 0 ];
+}
+
+// client <-> social : set member option
+message SetMemberOptionTeamCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_SETMEMBEROPTION ];
+
+  optional bool autofollow = 3 [ default = false ];
+}
+
+// client <-> team : query wanted quest
+message MemberWantedQuest
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 questid = 2 [ default = 0 ];
+  optional EQuestAction action = 3 [ default = EQUESTACTION_MIN ];
+  optional uint32 step = 4 [ default = 0 ];
+  optional QuestStep questdata = 5;
+}
+message QuestWantedQuestTeamCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_QUERYWANTEDQUEST ];
+
+  repeated MemberWantedQuest quests = 3;
+}
+
+// team -> client : update wanted quest
+message UpdateWantedQuestTeamCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_UPDATEWANTEDQUEST ];
+
+  optional MemberWantedQuest quest = 3;
+}
+
+// client -> team : accept or abandon help wanted quest
+message AcceptHelpWantedTeamCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_ACCEPTHELPWANTED ];
+
+  optional uint32 questid = 3 [ default = 0 ];
+  optional bool isabandon = 4 [ default = false ];
+}
+
+// team -> client : update help wanted quest
+message UpdateHelpWantedTeamCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_UPDATEHELPWANTED ];
+
+  repeated uint32 addlist = 3;
+  repeated uint32 dellist = 4;
+}
+
+// team -> client : send all help wanted quest
+message QueryHelpWantedTeamCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_QUERYHELPWANTED ];
+
+  repeated uint32 questids = 3;
+}
+
+// client -> team : query member cat
+message MemberCat
+{
+  optional uint64 ownerid = 1 [ default = 0 ];
+  optional uint64 id = 2 [ default = 0 ];
+  optional uint32 catid = 3 [ default = 0 ];
+  optional uint32 relivetime = 4 [ default = 0 ];
+  optional uint32 lv = 5 [ default = 0 ];
+  optional uint32 expiretime = 6 [ default = 0 ];
+  optional string name = 7;
+}
+message QueryMemberCatTeamCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_QUERYMEMBERCAT ];
+}
+
+// team -> client : member cat update
+message MemberCatUpdateTeam
+{
+  optional Command cmd = 1 [ default = SESSION_USER_TEAM_PROTOCMD ];
+  optional TeamParam param = 2 [ default = TEAMPARAM_MEMBERCAT_UPDATE ];
+
+  repeated MemberCat updates = 3;
+  repeated MemberCat dels = 4;
+}
+

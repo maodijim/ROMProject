@@ -1,0 +1,489 @@
+package Cmd;
+
+import "xCmd.proto";
+import "SessionTeam.proto";
+import "ProtoCommon.proto";
+import "SceneUser.proto";
+
+enum MatchCParam
+{
+  MATCHCPARAM_REQ_MY_ROOM = 1;            //获取自己的房间信息
+  MATCHCPARAM_REQ_ROOM_LIST = 2;          //获取相应类型的房间列表，以及刷新
+  MATCHCPARAM_REQ_ROOM_DETAIL = 3;        //请求房间详细信息
+  MATCHCPARAM_JOIN_ROOM = 4;              //加入房间或者创建房间  
+  MATCHCPARAM_LEAVE_ROOM = 5;             //离开房间  
+
+  MATCHCPARAM_NTF_ROOM_STATE = 7;         //房间状态通知
+  MATCHCPARAM_NTF_FIGHTING_STATE = 8;     //打斗状态通知
+
+
+  MATCHCPARAM_JOIN_FIGHTING = 9;          //战斗已经开始其他玩家加入战斗  
+  MATCHCPARAM_COMBO_KILL = 10;            //连击
+
+  MATCHCPARAM_REV_CHALLENGE = 11;         //接受方队长收到挑战
+  MATCHCPARAM_KICK_TEAM = 12;             //踢出报名
+  MATCHCPARAM_FIGHT_CONFIRM = 13;         //进入战斗确认
+
+  MATCHCPARAM_PVP_RESULT = 14;            //pvp结果
+
+  MATCHCPARAM_PVP_MEMBERUPDATE = 15;      //房间组队人员变化通知
+
+  MATCHCPARAM_PVP_MEMBERDATAUPDATE = 16;  //队员详细信息变化通知
+  MATCHCPARAM_NTF_MATCHINFO = 17;         //玩家上线告知客户端匹配信息
+  MATCHCPARAM_GOD_ENDTIME = 18; 
+  MATCHCPARAM_NTF_RANK_CHANGE = 19;       //推送排名变化
+  MATCHCPARAM_OPEN_GLOBAL_SHOP_PANEL = 20;       //打开全服shop面板
+
+  MATCHCPARAM_TUTOR_MATCHNTF = 21;
+  MATCHCPARAM_TUTOR_MATCHRESPONSE = 22;
+
+  MATCHCPARAM_TEAMPWS_PREPARE_LIST = 23;    //组队排位赛准备界面
+  MATCHCPARAM_TEAMPWS_PREPARE_UPDATE = 24;  //组队排位赛准备完成或取消准备
+  MATCHCPARAM_TEAMPWS_QUERY_RANK = 25;      //组队排位赛排名列表
+  MATCHCPARAM_TEAMPWS_QUERY_TEAMINFO = 26;  //组队排位赛, 请求玩家队伍数据
+}
+
+enum EPvpType
+{
+  EPVPTYPE_MIN = 0;
+  EPVPTYPE_LLH = 1;             //溜溜猴
+  EPVPTYPE_SMZL = 2;            //沙漠之狼
+  EPVPTYPE_HLJS = 3;            //华丽金属
+  EPVPTYPE_POLLY = 4;           //波利乱斗
+  EPVPTYPE_MVP = 5;             //mvp竞争战
+  EPVPTYPE_SUGVG = 6;           //公会战决战
+  EPVPTYPE_TUTOR = 7;           //导师匹配
+  EPVPTYPE_TEAMPWS = 8;         //组队排位赛
+  EPVPTYPE_TEAMPWS_RELAX = 9;   //组队排位赛,休闲模式
+}
+
+enum ERoomState
+{
+  EROOMSTATE_WAIT_JOIN = 1;        //等待加入
+  EROOMSTATE_MATCH_SUCCESS = 2;    //匹配成功，10s后进入战斗准备
+  EROOMSTATE_READY_FOR_FIGHT = 3;  //10s 战斗准备
+  EROOMSTATE_FIGHTING = 4;         //战斗中
+  EROOMSTATE_END = 5;              //结束   
+}
+
+enum EPvpResult
+{
+  EPVPRESULT_MIN = 0;
+  EPVPRESULT_SUCCESS = 1;
+  EPVPRESULT_FAIL = 2;
+  EPVPRESULT_TIE = 3;   //平局  
+}
+
+message MatchTeamData
+{
+  optional uint64 teamid = 1 [ default = 0 ];
+  optional uint32 zoneid = 8 [ default = 0 ];
+  optional string name = 2;
+  optional uint32 index = 3;
+  repeated TeamMember members = 4;
+}
+
+message RoomDetailInfo
+{
+  optional EPvpType type = 1;
+  optional ERoomState state = 2; 
+  optional uint64 roomid = 3;
+  optional string name = 4;
+
+  //
+  repeated MatchTeamData team_datas = 5;
+}
+
+message RoomBriefInfo
+{
+  optional EPvpType type = 1;
+  optional ERoomState state = 2; 
+  optional uint64 roomid = 3;
+  optional string name = 4;
+  optional uint32 raidid = 5;           //mapraid 对应的id
+//llh
+  optional uint32 player_num =6;
+
+//hljs
+  optional uint32 num1 = 7;
+  optional uint32 num2 = 8;
+  optional uint32 num3 = 9; 
+
+//smzl
+  optional uint32 zoneid = 10;        //查看的队伍来自哪个线
+}
+
+message ReqMyRoomMatchCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_REQ_MY_ROOM ];
+  optional EPvpType type = 3;
+//res 
+  optional RoomBriefInfo brief_info = 4;
+}
+
+message ReqRoomListCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_REQ_ROOM_LIST ];
+  optional EPvpType type = 3;
+  repeated uint64 roomids = 4;              //请求刷新制定房间的信息
+  repeated RoomBriefInfo room_lists = 5;  
+}
+
+message ReqRoomDetailCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_REQ_ROOM_DETAIL ];
+  optional EPvpType type = 3;
+  optional uint64 roomid = 4;
+
+  optional RoomDetailInfo datail_info = 5;
+}
+
+message JoinRoomUser
+{
+  optional uint64 charid = 1;
+  optional string name = 2;
+}
+
+message TutorMatcher
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 zoneid = 2 [ default = 0 ];
+  optional bool findtutor = 3 [ default = false ];
+  optional EGender gender = 4 [ default = EGENDER_MIN ];
+  optional EGender selfgender = 5 [ default = EGENDER_MIN ];
+
+  repeated UserData datas = 6;
+  repeated uint64 blackids = 7;
+}
+
+message JoinRoomCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_JOIN_ROOM ];
+  optional EPvpType type = 3;
+
+  optional uint64 roomid = 4;       //0表示创建房间，非0表示加入
+  optional string name = 5;         //创建的房间名字
+  optional bool  isquick = 6;       //是否是快速加入    
+
+
+//session server fill 
+  optional uint64 teamid = 7;
+  repeated uint64 teammember = 8;   //队友
+
+//
+  optional bool ret = 9;            //成功true失败false
+  optional uint64 guildid = 10;     //公会id, 决战使用
+  repeated JoinRoomUser users = 11; //一起加入房间的玩家信息,队友等
+  optional TutorMatcher matcher = 12;
+}
+
+message LeaveRoomCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_LEAVE_ROOM ];
+  optional EPvpType type = 3;
+
+  optional uint64 roomid = 4;   
+  optional uint64 teamid = 5 [ default = 0 ];
+}
+
+message NtfRoomStateCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_NTF_ROOM_STATE ];
+  optional EPvpType pvp_type = 3;
+  optional uint64 roomid = 4;
+  optional ERoomState state = 5; 
+  optional uint32 endtime = 6;     //进入华丽金属战斗倒计时截止时间戳
+}
+
+message NtfFightStatCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_NTF_FIGHTING_STATE ];
+  optional EPvpType pvp_type = 3;
+
+  optional uint32 starttime = 4;            //战斗开始时间
+
+//llh
+  optional uint32 player_num = 5;           //当前人数
+  optional uint64 score = 6;                //个人积分
+
+//smzl
+  optional uint64 my_teamscore = 10;        //我方积分
+  optional uint64 enemy_teamscore = 11;     //敌方积分
+
+//hljs
+  optional uint32 remain_hp = 15;           //剩余血量，百分比
+
+  optional uint32 myrank = 16;
+
+}
+
+message JoinFightingCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_JOIN_FIGHTING ];
+  optional EPvpType type = 3;
+  optional uint64 roomid = 4;     
+
+  optional bool ret = 5;
+}
+
+message ComboNotifyCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_COMBO_KILL];
+  optional uint32 comboNum = 3;
+}
+
+enum EMatchReply
+{
+  EMATCHREPLY_AGREE = 1;
+  EMATCHREPLY_REFUSE = 2;   
+}
+
+message RevChallengeCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_REV_CHALLENGE ];
+  optional EPvpType type = 3;
+  optional uint64 roomid = 4; 
+
+  optional string challenger = 5;         //挑战者的队伍名
+  optional uint32 challenger_zoneid = 6;  //挑战者队伍线
+  repeated TeamMember members = 7;        //队友的信息展示
+
+  optional EMatchReply reply= 8;          
+}
+
+message KickTeamCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_KICK_TEAM ];
+  optional EPvpType type = 3;
+  optional uint64 roomid = 4; 
+
+  optional uint64 zoneid = 5;   
+  optional uint64 teamid = 6;    
+}
+
+message FightConfirmCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_FIGHT_CONFIRM ];
+  optional EPvpType type = 3;
+  optional uint64 roomid = 4; 
+
+//res
+  optional uint64 teamid = 5;   
+  optional EMatchReply reply= 6;
+  optional string challenger = 7;     //挑战者队伍名字
+}
+
+message RankInfo
+{
+ optional uint64 charid = 1;
+ optional uint32 index = 2;
+ optional uint32 rank = 3;   //排名
+ optional string name = 4;
+}
+
+message RewardInfo
+{
+  optional uint32 itemid = 1;
+  optional uint32 count = 2;  
+}
+
+message PvpResultCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_PVP_RESULT ];
+  required EPvpType type = 3;
+  required EPvpResult result = 4;
+  repeated RankInfo rank = 5;       //排名信息
+  repeated RewardInfo  reward = 6;  //奖励信息
+  optional uint32 apple = 7;        //获得的金苹果数量
+}
+
+
+message MatchTeamMemUpdateInfo
+{
+  optional uint32 zoneid = 3;
+  optional uint64 teamid = 4;
+  optional uint64 roomid = 5;
+  optional bool isfirst = 6;                //是否是第一次同步所有玩家
+  repeated TeamMember updates = 7;
+  repeated uint64 deletes = 8;
+  optional uint32 index = 9;                //位置索引
+  optional string teamname = 10;
+}
+
+// matchser -> client : member update    //同步队伍人员变化
+message PvpTeamMemberUpdateCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_PVP_MEMBERUPDATE ];
+
+  optional MatchTeamMemUpdateInfo data = 3;
+
+}
+
+message MatchTeamMemDataUpdateInfo
+{
+  optional uint32 zoneid = 3;
+  optional uint64 teamid = 4;
+  optional uint64 charid = 5;
+  optional uint64 roomid = 6;
+  repeated MemberData members = 7;
+}
+
+// matchser -> client: member update    //同步队员具体信息变化,上下线，队长变化
+message PvpMemberDataUpdateCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_PVP_MEMBERDATAUPDATE ];
+
+  optional MatchTeamMemDataUpdateInfo data = 3;
+}
+
+message NtfMatchInfoCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_NTF_MATCHINFO ];
+  optional EPvpType etype = 3 [ default = EPVPTYPE_POLLY ];
+  optional bool ismatch = 4 [ default = false ];
+  optional bool isfight = 5 [ default = false ];
+}
+
+// matchser -> client:            //波利乱斗无敌结束时间
+message GodEndTimeCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_GOD_ENDTIME ];
+  optional uint32 endtime = 3;
+}
+
+message RankNameInfo
+{
+  optional string name = 1;
+  optional uint32 apple = 2;  
+}
+
+// matchser -> client:           
+message NtfRankChangeCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_NTF_RANK_CHANGE ];
+  repeated RankNameInfo ranks = 3;
+}
+
+// matchser -> client:           
+message OpenGlobalShopPanelCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_OPEN_GLOBAL_SHOP_PANEL ];
+  optional bool open = 3;
+}
+
+// matcher -> client : match status notify
+enum ETutorMatch
+{
+  ETUTORMATCH_MIN = 0;
+  ETUTORMATCH_START = 1;
+  ETUTORMATCH_MATCH = 2;
+  ETUTORMATCH_AGREE = 3;
+  ETUTORMATCH_REFUSE = 4;
+  ETUTORMATCH_STOP = 5;
+  ETUTORMATCH_RESTART = 6;
+  ETUTORMATCH_MAX = 7;
+}
+message TutorMatchResultNtfMatchCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_TUTOR_MATCHNTF ];
+
+  optional TutorMatcher target = 3;
+  optional ETutorMatch status = 4 [ default = ETUTORMATCH_MIN ];
+}
+
+// client -> match : response match
+message TutorMatchResponseMatchCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_TUTOR_MATCHRESPONSE ];
+
+  optional ETutorMatch status = 3 [ default = ETUTORMATCH_MIN ];
+}
+
+message TeamPwsPreInfo
+{
+  repeated uint64 charids = 1;
+}
+
+// match -> client : sync ready list
+message TeamPwsPreInfoMatchCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_TEAMPWS_PREPARE_LIST ];
+  repeated TeamPwsPreInfo teaminfos = 3;
+  optional EPvpType etype = 4 [ default = EPVPTYPE_TEAMPWS ];
+}
+
+// match <-> client, be ready
+message UpdatePreInfoMatchCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_TEAMPWS_PREPARE_UPDATE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional EPvpType etype = 4 [ default = EPVPTYPE_MIN ];
+}
+
+enum ETeamPwsRank
+{
+  ETEAMPWSRANK_EXCELLENT = 1;
+  ETEAMPWSRANK_SUPER = 2;
+  ETEAMPWSRANK_GOOD = 3;
+  ETEAMPWSRANK_NORMAL = 4;
+  ETEAMPWSRANK_NONE = 5; // 不显示
+}
+
+message TeamPwsRankInfo
+{
+  optional string name = 1;
+  optional UserPortraitData portrait = 2;
+  optional uint32 rank = 3;
+  optional uint32 score = 4;
+  optional ETeamPwsRank erank = 5;
+  optional EProfession profession = 6;
+}
+
+// match -> client 排名列表
+message QueryTeamPwsRankMatchCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_TEAMPWS_QUERY_RANK ];
+  repeated TeamPwsRankInfo rankinfo = 3;
+}
+
+message TeamPwsUserInfo
+{
+  optional uint64 charid = 1;
+  optional uint32 score = 2 [ default = 0 ];
+  optional ETeamPwsRank erank = 3 [ default = ETEAMPWSRANK_NONE ];
+}
+
+// session<->client 查看队伍信息
+message QueryTeamPwsTeamInfoMatchCCmd
+{
+  optional Command cmd = 1 [ default = MATCHC_PROTOCMD ];
+  optional MatchCParam param = 2 [ default = MATCHCPARAM_TEAMPWS_QUERY_TEAMINFO ];
+  repeated TeamPwsUserInfo userinfos = 3;
+  optional uint32 myrank = 4 [ default = 0 ];
+}
+

@@ -1,0 +1,110 @@
+package Cmd;
+
+import "xCmd.proto";
+//enum Command
+//{
+//  CMD_SYSTEM = 255;
+//}
+
+message IpPort
+{
+  optional string ip = 1;
+  optional uint32 port = 2;
+}
+
+enum SystemParam
+{
+  HEART_BEAT_SYSCMD = 1;
+  VERIFY_CONN_SYSCMD = 2;
+  SERVER_LIST_SYSCMD = 3;
+  SERVER_INIT_OK_SYSCMD = 4;
+  SERVER_TIME_SYSCMD = 5;
+  REGIST_REGION_SYSCMD = 6;
+  COMMON_RELOAD_SYSCMD = 7;
+  INFO_PROXY_SYSCMD = 8;
+  REGIST_PROXY_SYSCMD = 9;
+}
+
+message HeartBeatSystemCmd
+{
+  optional Command cmd = 1 [ default = SYSTEM_PROTOCMD ];
+  optional SystemParam param = 2 [ default = HEART_BEAT_SYSCMD ];
+}
+
+message VerifyConnSystemCmd
+{
+  optional Command cmd = 1 [ default = SYSTEM_PROTOCMD ];
+  optional SystemParam param = 2 [ default = VERIFY_CONN_SYSCMD ];
+  optional string type = 3;
+  optional string name = 4;
+  optional bool ret = 5;
+}
+
+message ServerListSystemCmd
+{
+  optional Command cmd = 1 [ default = SYSTEM_PROTOCMD ];
+  optional SystemParam param = 2 [ default = SERVER_LIST_SYSCMD ];
+  message Item
+  {
+    optional string type = 1;
+    optional string name = 2;
+    optional string ip = 3;
+    optional uint32 port = 4;
+  }
+  repeated Item list = 3;
+}
+
+message ServerInitOkConnSystemCmd
+{
+  optional Command cmd = 1 [ default = SYSTEM_PROTOCMD ];
+  optional SystemParam param = 2 [ default = SERVER_INIT_OK_SYSCMD ];
+  optional string name = 3;
+}
+
+message ServerTimeSystemCmd
+{
+  optional Command cmd = 1 [ default = SYSTEM_PROTOCMD ];
+  optional SystemParam param = 2 [ default = SERVER_TIME_SYSCMD ];
+  optional uint32 adjust = 3;
+}
+
+message RegistRegionSystemCmd
+{
+  optional Command cmd = 1 [ default = SYSTEM_PROTOCMD ];
+  optional SystemParam param = 2 [ default = REGIST_REGION_SYSCMD ];
+
+  optional uint32 zoneid = 3;
+  optional uint32 regiontype = 4;
+  optional uint32 servertype = 5;
+  optional uint32 client = 6;
+}
+
+enum EComLoadType 
+{
+  EComLoadType_None = 0;
+  EComLoadType_Lua = 1;           //重加载commonlua
+  EComLoadType_BranchConfig = 2;  //重加载BranchConfig
+  EComLoadType_Db = 3;            //重加载数据库
+}
+message CommonReloadSystemCmd
+{
+  optional Command cmd = 1 [ default = SYSTEM_PROTOCMD ];
+  optional SystemParam param = 2 [ default = COMMON_RELOAD_SYSCMD ];
+  optional EComLoadType type = 3;
+}
+
+message InfoProxySystemCmd
+{
+  optional Command cmd = 1 [ default = SYSTEM_PROTOCMD ];
+  optional SystemParam param = 2 [ default = INFO_PROXY_SYSCMD ];
+  optional string proxyid = 3;
+  optional uint32 tasknum = 4;
+}
+
+message RegistProxySystemCmd
+{
+  optional Command cmd = 1 [ default = SYSTEM_PROTOCMD ];
+  optional SystemParam param = 2 [ default = REGIST_PROXY_SYSCMD ];
+
+  optional string proxyid = 3;
+}

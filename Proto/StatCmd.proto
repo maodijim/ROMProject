@@ -1,0 +1,138 @@
+package Cmd;
+
+import "xCmd.proto";
+import "SceneItem.proto";
+import "RecordTrade.proto";
+import "RecordCmd.proto";
+import "ProtoCommon.proto";
+
+enum StatParam
+{
+  TEST_STAT_CMD = 1;
+  STAT_CMD = 2;  //统计日志
+  LOG_TRADE_TO_STAT = 3;
+  STAT_KILL_MONSTER = 4;
+  STAT_DAY_GET_ZENY_COUNT = 5;
+  STAT_CUR_LEVEL = 6;
+  REQ_WORLD_LEVEL = 7;
+  STAT_PET_WEAR_USECOUNT = 8;
+}
+
+message TestStatCmd
+{
+  optional Command cmd = 1 [ default = STAT_PROTOCMD ];
+  optional StatParam param = 2 [ default = TEST_STAT_CMD ];
+}
+
+
+ //统计
+message StatCmd
+{
+  optional Command cmd = 1 [ default = STAT_PROTOCMD ];
+  optional StatParam param = 2 [ default = STAT_CMD ];
+
+  optional uint32 type = 3;        
+  optional uint64 key = 4;
+  optional uint64 subkey = 5;
+  optional uint64 subkey2 = 6 [ default = 0];
+  optional uint32 level = 7;
+  optional uint64 value1 = 8;
+  optional uint64 value2 = 9;
+  optional bool isfloat = 11 [ default = false ];
+}
+
+enum ETradeListType
+{
+  ETRADE_ITEM_INFO = 1;
+  ETRADE_PENDING_LIST = 2;
+  ETRADE_SALED_LIST = 3;
+  ETRADE_BUYED_LIST = 4;
+}
+
+// tradeserver->statserver : write mysql
+message TradeToStatLogCmd
+{
+  optional Command cmd = 1 [ default = STAT_PROTOCMD ];
+  optional StatParam param = 2 [ default = LOG_TRADE_TO_STAT ];
+
+  required EOperType eType = 3;
+  optional uint32 itemid = 4 [ default = 0 ];
+  optional uint32 price = 5 [ default = 0 ];
+  optional uint32 count = 6 [ default = 0 ];
+  optional uint64 sellerid = 7 [ default = 0 ];
+  optional uint64 buyerid = 8 [ default = 0 ];
+  optional uint32 pendingtime = 9 [ default = 0 ];
+  optional uint32 tradetime = 10 [ default = 0 ];
+  optional uint32 refinelv = 11 [ default = 0 ];
+
+  optional ItemData itemdata = 12;
+
+  optional string buyername = 13;
+  required ETradeListType elisttype = 14;
+}
+
+// 玩家一天一分钟杀怪最多数量统计
+message KillMonsterNumStatCmd
+{
+  optional Command cmd = 1 [ default = STAT_PROTOCMD ];
+  optional StatParam param = 2 [ default = STAT_KILL_MONSTER ];
+  required uint64 userid = 3;
+  repeated StatKillMonster killmonster = 4;
+  optional uint32 zoneid = 5 [ default = 0 ];
+  optional uint32 professionid = 6 [ default = 0 ];
+}
+
+
+// 玩家当天获得的zeny数量
+message DayGetZenyCountCmd
+{
+  optional Command cmd = 1 [ default = STAT_PROTOCMD ];
+  optional StatParam param = 2 [ default = STAT_DAY_GET_ZENY_COUNT ];
+  required uint64 userid = 3;
+  optional string username = 4;
+  optional uint32 baselv = 5;
+  optional uint32 joblv = 6;
+  optional uint32 profession = 7;
+  optional uint64 normal_zeny = 8;
+  optional uint64 charge_zeny = 9;
+}
+
+// 玩家当前的等级
+message StatCurLevel
+{
+  optional Command cmd = 1 [ default = STAT_PROTOCMD ];
+  optional StatParam param = 2 [ default = STAT_CUR_LEVEL ];
+
+  required uint64 userid = 3;
+  optional uint32 last_offlinetime = 4;
+  optional uint32 last_baselv = 5;
+  optional uint32 last_joblv = 6;
+  optional uint32 cur_time = 7;
+  optional uint32 cur_baselv = 8;
+  optional uint32 cur_joblv = 9;
+}
+
+// 请求世界等级 session->stat
+message ReqWorldLevelCmd
+{
+  optional Command cmd = 1 [ default = STAT_PROTOCMD ];
+  optional StatParam param = 2 [ default = REQ_WORLD_LEVEL ];
+  optional uint32 zoneid = 3;
+}
+
+// 宠物装扮使用次数统计
+message PetWear
+{
+  optional uint64 charid = 1 [ default = 0 ];
+
+  repeated EQualityType types = 2;
+  repeated uint32 counts = 3;
+}
+message PetWearUseCountStatCmd
+{
+  optional Command cmd = 1 [ default = STAT_PROTOCMD ];
+  optional StatParam param = 2 [ default = STAT_PET_WEAR_USECOUNT ];
+
+  repeated PetWear wears = 3;
+}
+

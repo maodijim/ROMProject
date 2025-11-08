@@ -1,0 +1,528 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+
+enum CmdParam
+{
+  USERPARAM_USERSYNC = 1;
+  USERPARAM_GMCOMMAND = 3;
+  USERPARAM_PROFESSIONEXCHANGE = 4;
+
+  MAIN_USER_DATA_USER_CMD = 11;
+  REQ_MOVE_USER_CMD = 15;
+  RET_MOVE_USER_CMD = 16;
+  SYS_TIME_USER_CMD = 17;
+  DELETE_ENTRY_USER_CMD = 18;
+  CHANGE_BODY_USER_CMD = 22;
+  CHANGE_SCENE_USER_CMD = 23;
+  FUNCTION_NPC_LIST_USER_CMD = 25;
+  DELETE_STATIC_ENTRY_USER_CMD = 26;
+  SKILL_BROADCAST_USER_CMD = 27;
+  USE_SKILL_USER_CMD = 28;
+  CHANT_SKILL_USER_CMD = 29;
+  BREAK_CHANT_SKILL_USER_CMD = 30;
+  BROADCAST_SKILL_USER_CMD = 31;
+
+  // title
+  TITLE_NEWTITLE = 34;
+  TITLE_REQDATA = 35;
+  TITLE_ACTIVE = 36;
+
+  MAP_OBJECT_DATA = 38;
+  CD_TIME_USER_CMD = 39;
+
+  RELIVE_USER_CMD = 41;
+  GOTO_USER_CMD = 42;
+  RECONNECTION_POS_USER_CMD = 43;
+
+  USER_FACE_CMD = 45;
+  EXIT_POS_USER_CMD = 46;
+
+  TEST_SKILL_BROADCAST_USER_CMD = 47;
+  GOTO_EXIT_POS_USER_CMD = 48;
+  GOTO_RANDOM_POS_USER_CMD = 49;
+}
+
+// scene -> client user sync
+message UserAttr
+{
+  required EAttrType type = 1 [ default = EATTRTYPE_MIN ];
+  required int32 value = 2 [ default = 0 ];
+}
+message UserAttrSvr
+{
+  optional EAttrType type = 1 [ default = EATTRTYPE_MIN ];
+  optional float value = 2 [ default = 0 ];
+}
+message UserData
+{
+  required EUserDataType type = 1 [ default = EUSERDATATYPE_MIN ];
+  required uint64 value = 2 [ default = 0 ];
+  optional bytes data = 3;
+}
+
+enum EUserSyncType
+{
+  EUSERSYNCTYPE_MIN = 1;
+  EUSERSYNCTYPE_INIT = 2;
+  EUSERSYNCTYPE_SYNC = 3;
+  EUSERSYNCTYPE_MAX = 4;
+}
+message UserSyncCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = USERPARAM_USERSYNC ];
+
+  optional EUserSyncType type = 3 [ default = EUSERSYNCTYPE_MIN ];
+
+  repeated UserAttr attrs = 4;
+  repeated UserData datas = 5;
+  repeated UserAttr pointattrs = 6;
+}
+
+enum MessageType
+{
+  MESSAGETYPE_MIN = 0;
+  MESSAGETYPE_TEST = 1;
+  MESSAGETYPE_MAX = 2;
+}
+message UserMessageCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional uint32 param = 2 [ default = 200 ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  optional MessageType type = 4 [ default = MESSAGETYPE_MIN ];
+  optional string addstr = 5;
+
+}
+// client -> scene : gm command
+message UserGMCommand
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional uint32 param = 2 [ default = 3 ];
+
+  optional string command = 3;
+}
+
+// client -> scene : exchange profession
+message UserProfessionExchange
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional uint32 param = 2 [ default = 4 ];
+
+  optional EProfession profession = 3 [ default = EPROFESSION_MIN ];
+}
+
+message UserTest
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional uint32 param = 2 [ default = 10 ];
+
+  //optional uint32 a = 3 [ default = 100 ];
+  repeated UserAttr attrs = 3;
+  //repeated UserData datas = 5;
+  //optional UserUpdateData data = 5;
+}
+
+message UserFaceCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional uint32 param = 2 [ default = 200 ];
+
+  optional uint32 id = 3 [ default = 0 ];
+}
+
+message MainUserData
+{
+  optional uint64 id = 1;
+  optional string name = 2;
+  optional uint32 male = 3;
+  optional uint32 body = 4;
+  optional uint32 hair = 5;
+  optional uint32 rightHand = 6;
+  optional uint32 profession = 7;
+  optional uint32 accessory = 8;
+  optional uint32 wing = 9;
+}
+
+message MainUserDataUserCmd 
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = MAIN_USER_DATA_USER_CMD ];
+  optional MainUserData data = 3;
+}
+
+//message MapUserData
+//{
+//  optional uint64 id = 1; 
+//  optional string name = 2;
+//  optional ScenePos pos = 3;
+//  optional uint32 moveSpd = 4;
+//  optional uint32 male = 5;
+
+//  optional uint32 body = 6;
+//  optional uint32 hair = 7;
+//  optional uint32 righthand = 8;
+//  optional uint32 profession = 9;
+//  optional uint32 accessory = 10;
+//  optional uint32 wing = 11;
+
+//  optional uint32 titleid = 12;
+
+//  repeated uint32 statelist = 13;
+//  optional ScenePos dest = 14;
+//} 
+
+//message AddMapUserUserCmd
+//{
+//  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+//  optional CmdParam param = 2 [ default = ADD_MAPUSER_USER_CMD ];
+
+//  repeated MapUserData list = 3;
+//}
+
+//message Rotation
+//{
+ // optional int32 x = 1;
+  //optional int32 y = 2;
+  //optional int32 z = 3;
+ // optional int32 w = 4;
+//}
+
+//message MapNpcData
+//{
+  //optional uint64 id = 1; 
+  //optional string name = 2;
+  //optional ScenePos pos = 3;
+  //optional uint32 npcID = 4;
+  //optional uint32 moveSpd = 5;
+  //repeated uint32 statelist = 6;
+  //optional uint32 scale = 7;
+  //optional Rotation rotation = 8;
+  //optional ScenePos dest = 9;
+
+  //repeated UserAttr attrs = 10;
+//}
+
+//message AddMapNpcUserCmd
+//{
+  //optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  //optional CmdParam param = 2 [ default = ADD_MAPNPC_USER_CMD ];
+
+  //repeated MapNpcData list = 3;
+//}
+
+//message MapItemData
+//{
+//  optional uint64 guid = 1 [ default = 0 ];
+//  optional uint32 id = 2 [ default = 0 ];
+//  optional uint32 time = 3 [ default = 0 ];
+
+//  optional ScenePos pos = 4;
+//  repeated uint64 owner = 5;
+//}
+
+//message AddMapItemUserCmd
+//{
+//  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+//  optional CmdParam param = 2 [ default = ADD_MAPITEM_USER_CMD ];
+
+//  repeated MapItemData list = 3;
+//}
+
+message ReqMoveUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = REQ_MOVE_USER_CMD ];
+
+  optional ScenePos target = 3;
+}
+
+message RetMoveUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = RET_MOVE_USER_CMD ];
+
+  optional uint64 charid = 3;
+  optional ScenePos pos = 4;
+}
+
+message SynTimeUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = SYS_TIME_USER_CMD ];
+
+  optional uint64 serverTime = 3;
+}
+
+message DeleteEntryUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = DELETE_ENTRY_USER_CMD ];
+
+  repeated uint64 list = 3;
+  optional uint32 fadeout = 4 [ default = 0 ];//ms
+  optional uint32 delay_del = 5 [ default = 0 ];//ms
+}
+
+message ChangeBodyUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = CHANGE_BODY_USER_CMD ];
+
+  required uint64 charid = 3;
+  optional uint32 male = 4;
+  optional uint32 body = 5;
+  optional uint32 hair = 6;
+  optional uint32 rightHand = 7;
+  optional uint32 profession = 8;
+  optional uint32 accessory = 9;
+  optional uint32 wing = 10;
+}
+
+message ChangeSceneUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = CHANGE_SCENE_USER_CMD ];
+
+  optional uint32 mapID = 3;
+  optional string mapName = 4;
+  optional ScenePos pos = 5;
+  optional uint32 dmapID = 6;
+  optional uint32 preview = 7;
+  repeated uint32 invisiblexit = 8;
+  optional uint32 imageid = 9;
+}
+
+message FunNpcData
+{
+  required uint32 npcid = 1;
+  required uint64 tempid = 2;
+  required ScenePos pos = 3;
+}  
+
+message FuntionNpcListUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = FUNCTION_NPC_LIST_USER_CMD ];
+
+  repeated FunNpcData list = 3;
+}
+
+message GUID
+{
+  required uint32 zoneID = 1;
+  required uint32 time = 2;
+  required uint32 mapID = 3;
+  required uint32 index = 4;
+}
+
+message DeleteStaticEntryUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = DELETE_STATIC_ENTRY_USER_CMD ];
+
+  repeated GUID list = 3;
+}
+
+enum DamageType
+{
+  DAMAGE_TYPE_INVALID = -5;
+  DAMAGE_TYPE_CAIJI = -1;
+  DAMAGE_TYPE_NONE = 0;
+  DAMAGE_TYPE_NORMAL = 1;
+  DAMAGE_TYPE_CRITICAL = 2;
+  DAMAGE_TYPE_MISS = 3;
+  DAMAGE_TYPE_HEAL = 4;
+  DAMAGE_TYPE_IMMUNE = 5;
+  DAMAGE_TYPE_BARRIER = 6;
+  DAMAGE_TYPE_NORMALSP = 8;
+  DAMAGE_TYPE_TREATSP = 9;
+  DAMAGE_TYPE_AUTOBLOCK = 10;
+  DAMAGE_TYPE_WEAPONBLOCK = 11;
+}
+
+message ShareDamTarget
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional int32 damage = 2 [ default = 0 ];
+  optional int32 type = 3 [ default = 1 ];
+}
+
+message HitedTarget
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional int32 damage = 2 [ default = 0 ];
+  optional int32 type = 3 [ default = 1 ];
+  repeated ShareDamTarget shareTargets = 4;
+}
+
+message PhaseData
+{
+  optional int32 number = 1 [ default = 0 ];
+  optional ScenePos pos = 2;
+  repeated HitedTarget hitedTargets = 3;
+  optional int32 dir = 5 [ default = 0 ];
+}
+
+message SkillBroadcastUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = SKILL_BROADCAST_USER_CMD ];
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 skillID = 4 [ default = 0 ];
+  optional int32 petid = 5 [ default = 0 ];
+  optional PhaseData data = 6;
+  optional uint32 random = 7 [ default = 0 ];
+  optional uint32 chanttime = 8 [ default = 0 ];
+}
+
+message TestUint64
+{
+  required int32 i = 1;
+  optional uint64 j = 2;
+  optional int32 k = 3;
+}
+
+message TestSkillBroadcastUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = TEST_SKILL_BROADCAST_USER_CMD ];
+  required int32 i = 3;
+  repeated TestUint64 list = 4;
+}
+
+message UseSkillUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = USE_SKILL_USER_CMD ];
+  optional uint64 tid = 3;
+  optional uint32 skillID = 4;
+  optional ScenePos pos = 5;
+}
+
+// 吟唱 server->client
+message ChantSkillUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = CHANT_SKILL_USER_CMD ];
+  optional uint64 tid = 3;    // 攻击目标
+  optional uint32 skillID = 4;
+  optional ScenePos pos = 5;
+  optional uint64 attid = 6;  // 攻击者
+}
+
+// 打断吟唱 server->client
+message BreakChantSkillUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = BREAK_CHANT_SKILL_USER_CMD ];
+  optional uint64 attid = 3;  // 攻击者
+  optional uint32 skillID = 4;
+}
+
+// 广播技能 server->client
+message BroadcastSkillUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = BROADCAST_SKILL_USER_CMD ];
+  optional uint64 attid = 3;  // 攻击者
+  optional uint32 skillID = 4;
+  optional ScenePos pos = 5;
+  optional uint64 tid = 6;  // 目标
+}
+
+//message NpcDieCmd
+//{
+//  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+//  optional CmdParam param = 2 [ default = NPC_DIE ];
+
+//  optional uint64 id = 3 [ default = 0];
+//}
+
+// scene -> client : action notify
+//enum EUserActionType
+//{
+//  EUSERACTIONTYPE_MIN = 0;
+//  EUSERACTIONTYPE_LEVELUP = 1;
+//  EUSERACTIONTYPE_ADDHP = 2;
+//  EUSERACTIONTYPE_REFINE = 3;
+//  EUSERACTIONTYPE_MAX = 4;
+//}
+//message UserActionNtf
+//{
+//  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+//  optional CmdParam param = 2 [ default = USER_ACTION_BROADCAST ];
+
+//  optional uint64 charid = 3 [ default = 0 ];
+//  optional uint32 value = 4 [ default = 0 ];
+//  optional EUserActionType type = 5 [ default = EUSERACTIONTYPE_MIN ];
+//}
+
+
+//message ChangeHpUserCmd
+//{
+//  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+//  optional CmdParam param = 2 [ default = CHANGE_HP_USER_CMD ];
+
+//  optional uint64 charid = 3;
+//  optional int64 hp = 4;
+//}
+
+// client <-> scene : get map object data
+message MapObjectData
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = MAP_OBJECT_DATA ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+  repeated UserAttr attrs = 4;
+}
+
+message ReliveUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = RELIVE_USER_CMD ];
+
+  optional uint32 type = 3;
+}
+
+message GoToUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = GOTO_USER_CMD ];
+
+  optional ScenePos pos = 3;
+  optional uint64 charid = 4 [ default = 0 ];
+  optional bool isgomap = 5 [ default = false ];
+}
+
+// client->server
+message ReconnectionPosUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = RECONNECTION_POS_USER_CMD ];
+
+  optional ScenePos pos = 3;
+}
+
+// client->server
+message GoToExitPosUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = GOTO_EXIT_POS_USER_CMD ];
+
+  optional uint32 mapid = 3;
+}
+
+// client->server
+message GoToRandomPosUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
+  optional CmdParam param = 2 [ default = GOTO_RANDOM_POS_USER_CMD ];
+
+  optional uint32 mapid = 3;
+  optional ScenePos pos = 4;
+}

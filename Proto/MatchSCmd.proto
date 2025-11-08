@@ -1,0 +1,536 @@
+package Cmd;
+
+import "xCmd.proto";
+import "MatchCCmd.proto";
+import "SceneMap.proto";
+import "SceneUser2.proto";
+import "ProtoCommon.proto";
+
+enum MatchSParam
+{
+  MATCHSPARAM_SESSION_FORWARD_CCMD_MATCH = 1;     //client -> session ->matchserver
+  MATCHSPARAM_SESSION_FORWARD_SCMD_MATCH = 2;     //scene ->session -> matchserver
+  MATCHSPARAM_SESSION_FORWARD_MATCH_SCENE = 3;    //match ->session -> scene
+  MATCHSPARAM_SESSION_FORWARD_MATCH_TEAM = 4;     //matcheserver -> session ->teamserver
+  MATCHSPARAM_SESSION_FORWARD_TEAM_MATCH = 5;     //teamserver -> session ->matchserver
+
+
+  MATCHSPARAM_REG_PVP_ZONE = 13;                   //注册zoneid
+
+  MATCHSPARAM_ENTER_PVP_MAP = 14;                 //通知scene进入副本
+
+  MATCHSPARAM_LOAD_LUA = 15;
+
+  MATCHSPARAM_LEAVE_PVP_MAP = 16;                 //玩家离开pvp场景
+
+
+  MATCHSPARAM_NTF_JOIN_ROOM = 17;                 //队长创建或者加入房间
+  MATCHSPARAM_NTF_LEAVE_ROOM = 18;                //离开房间 matchserver -> teamserver
+
+  MATCHSPARAM_CREATE_TEAM = 19;                   //TeamServer 创建队伍返回
+
+  MATCHSPARAM_PVP_MEMBERUPDATE = 20;
+  MATCHSPARAM_PVP_MEMBERDATAUPDATE = 21;
+  MATCHSPARAM_APPLY_TEAM = 22;                    //加入队伍
+  MATCHSPARAM_SYNC_TEAM_INFO = 23;                //同步队伍信息到场景
+  MATCHSPARAM_SYNC_RAIDSCENE = 24;                //同步斗技场副本开关   session -> match
+  MATCHSPARAM_KICK_TEAM = 25;                     //玩家从队伍踢掉
+  MATCHSPARAM_KICK_USER = 26;                     //将某个玩家从pvp踢出
+  MATCHSPARAM_RESET_PVP = 27;                     //清除所有匹配队伍、房间
+  MATCHSPARAM_SWITCH_PVP = 28;                    //关闭打斗场
+  MATCHSPARAM_POLLY_ACTIVITY = 29;
+  MATCHSPARAM_CHECK_CAN_BUY = 30;                 //检测可否购买
+  MATCHSPARAM_ADD_BUY_CNT = 31;                   //增加购买次数
+  MATCHSPARAM_QUERY_SOLD_CNT = 32;                //请求出售数量 
+  MATCHSPARAM_SYNC_ROOMINFO = 33;                 //match->session->scene, 同步房间信息到副本,用于副本控制
+
+  MATCHSPARAM_SUPERGVG_JOIN = 34;                 //公会战决战,公会参战
+  MATCHSPARAM_SUPERGVG_RET = 35;                  //match->guild, 匹配结果
+  MATCHSPARAM_CLEAR_MVPCD = 36;                   //scene->session->match, 清除报名mvp竞争战的CD
+
+  MATCHSPARAM_TUTOR_OPT = 37;
+  MATCHSPARAM_TUTOR_BLACK_UPDATE = 40;
+  MATCHSPARAM_USER_BOOTH_REQ = 38;                //scene->match 请求摆摊／收摊
+  MATCHSPARAM_USER_BOOTH_NTF = 39;                //match->scene 通知摆摊／收摊
+  MATCHSPARAM_JOIN_TEAMPWS = 41;                  //session->team->macth, 加入组队排位赛
+  MATCHSPARAM_LEAVE_TEAMPWS = 42;                 //team<->match, 离开组队排位赛
+  MATCHSPARAM_SCENE_GM_TEST = 43;                 //gm, scene->match, 测试用
+
+  MATCHSPARAM_UPDATE_SCORE = 44;                  //更新积分scene->match
+  MATCHSPARAM_SYNC_SCORE = 45;                    //上线同步积分match->session
+  MATCHSPARAM_USER_FORCE_LEAVE = 46;              //玩家自己离开看队伍, scene->match : 添加惩罚
+
+  MATCHSPARAM_CONFIRM_TEAMMATCH = 47;             //match->team, 标记匹配类型
+}
+
+//client -> session -> matchserver
+message SessionForwardCCmdMatch
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_SESSION_FORWARD_CCMD_MATCH];   
+  optional uint64 charid = 3;
+  optional uint32 zoneid = 4;
+  optional bytes data = 5;
+  optional uint32 len = 6;
+}
+
+//scene->sessionserver->matchserver
+message SessionForwardSCmdMatch
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_SESSION_FORWARD_SCMD_MATCH ];   
+  optional uint64 charid = 3;
+  optional uint32 zoneid = 4;
+  optional string name = 5;
+  optional bytes data = 6;
+  optional uint32 len = 7;
+}
+
+//match->sessionserver->sceneserver
+message SessionForwardMatchScene
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_SESSION_FORWARD_MATCH_SCENE ];   
+  optional uint64 charid = 3;
+  optional bytes data = 4;
+  optional uint32 len = 5;
+}
+
+//matchserver -> session -> teamserver
+message SessionForwardMatchTeam
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_SESSION_FORWARD_MATCH_TEAM ];   
+  optional bytes data = 3;
+  optional uint32 len = 4;
+}
+
+//matchserver -> session -> teamserver
+message SessionForwardTeamMatch
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_SESSION_FORWARD_TEAM_MATCH ];   
+  optional bytes data = 3;
+  optional uint32 len = 4;
+}
+
+//scene->sessionserver->matchserver
+message RegPvpZoneMatch
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_REG_PVP_ZONE ];   
+  optional uint32 category = 3;    
+  optional uint32 zoneid = 4; 
+}
+
+//matchserver->scene
+message EnterPvpMapSCmdMatch
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_ENTER_PVP_MAP ];   
+  optional uint32 dest_zoneid = 3;
+  optional uint32 raidid = 4;         //Map Raid 表id
+  optional uint64 room_guid = 5;      //匹配房间的guid
+  optional uint64 charid = 6;   
+  optional uint32 colorindex = 7; 
+}
+
+//matchserver <->scene
+message LeavePvpMap
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_LEAVE_PVP_MAP ];   
+  optional uint64 roomid = 3;       //匹配房间的guid
+  optional uint64 charid = 4; 
+  optional uint32 originzoneid = 5;   
+}
+
+
+//matchserver <->scene
+message NtfJoinRoom
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_NTF_JOIN_ROOM ];   
+  optional uint64 roomid = 3;    
+  optional uint64 charid = 4;    
+  optional uint64 teamid = 5;
+  optional bool success = 6;
+}
+
+//matchserver <->scene
+message NtfLeaveRoom
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_NTF_LEAVE_ROOM ];   
+  optional uint64 roomid = 3;    
+  optional uint64 teamid = 4;
+}
+
+message CreateTeamMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_CREATE_TEAM];   
+
+  optional uint64 teamid = 3;
+  optional uint64 roomid = 4;
+  optional uint64 charid = 5;
+  optional string name = 6;
+  optional uint32 zoneid = 7;
+  //res
+  optional uint64 new_teamid = 8;
+  optional EPvpType pvptype = 9;
+}
+
+
+// teamserver -> matchser  : member update    //同步队伍人员变化
+message PvpTeamMemberUpdateSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_PVP_MEMBERUPDATE ];
+  optional MatchTeamMemUpdateInfo data = 3;
+}
+
+// teamserver -> matchser : member update    //同步队员具体信息变化,上下线，队长变化
+message PvpMemberDataUpdateSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_PVP_MEMBERDATAUPDATE ];
+  optional MatchTeamMemDataUpdateInfo data = 3;
+}
+
+message ApplyTeamMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_APPLY_TEAM];   
+
+  optional uint64 teamid = 3;
+  optional uint64 charid = 5;
+  optional uint32 zoneid = 7;
+}
+
+message SyncTeamInfoMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_SYNC_TEAM_INFO];   
+
+  optional uint64 teamid = 3;
+  optional uint64 charid = 4;
+  optional uint32 index = 5;
+}
+
+message SyncRaidSceneMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_SYNC_RAIDSCENE];   
+  
+  optional uint64 roomid = 3;  
+  optional bool open = 4;        //true open  false close
+  optional uint32 sceneid = 5;
+  optional uint32 count = 6;      //溜溜猴人数
+  optional uint32 zoneid = 7;
+}
+
+message SuperGvgRoomData
+{
+  optional uint64 guildid = 1 [ default = 0 ];
+  optional uint32 color = 2 [ default = 0 ];
+  optional string guildname = 3;
+  optional string guildicon = 4;
+  optional uint32 firecount = 5;
+  optional uint32 firescore = 6;
+}
+
+message TeamPwsUserCurScore
+{
+  optional uint64 charid = 1;
+  optional uint32 score = 2;
+}
+
+message TeamPwsRoomData
+{
+  optional uint64 teamid = 1;
+  optional uint32 color = 2;
+  repeated TeamPwsUserCurScore users = 3;
+}
+
+// match -> session -> scene
+message SyncRoomSceneMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_SYNC_ROOMINFO];
+
+  optional uint64 roomid = 3;
+  optional uint32 sceneid = 4;
+  optional uint32 zoneid = 5;
+
+  optional uint32 roomsize = 6 [ default = 0 ]; //参与匹配的队伍等数量
+  repeated SuperGvgRoomData sugvgdata = 7;
+  optional uint32 level = 8 [ default = 0 ];   //房间等级
+  optional uint32 raidtime = 9 [ default = 0 ]; //副本时间戳
+  repeated TeamPwsRoomData pwsdata = 10;
+  optional EPvpType pvptype = 11 [ default = EPVPTYPE_MIN ];
+}
+
+message KickTeamMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_KICK_TEAM];   
+
+  optional uint64 teamid = 3;
+  optional uint64 charid = 5;
+  optional uint64 roomid = 6;
+  optional uint32 zoneid = 7;
+}
+
+// scene -> match
+message KickUserFromPvpMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_KICK_USER];
+
+  required uint64 charid = 3;
+  required uint32 zoneid = 4;
+}
+
+// scene -> match :reset pvp
+message ResetPvpMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_RESET_PVP];
+}
+
+// scene -> match :open/close pvp
+message SwitchPvpMathcSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_SWITCH_PVP];
+
+  optional bool open = 3 [ default = false ];
+  required EPvpType etype = 4;
+}
+
+// session -> match       //通知匹配服活动开启还是结束
+message ActivityMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_POLLY_ACTIVITY];
+  optional bool open = 3;
+  optional EPvpType etype = 4 [ default = EPVPTYPE_POLLY ];
+  optional bool server_restart = 5 [ default = false ];
+}
+
+
+// scene -> match         //检测可否购买
+message CheckCanBuyMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_CHECK_CAN_BUY];
+  optional uint32 id = 3 [ default = 0 ];
+  optional uint32 count = 4 [ default = 0 ];
+  optional uint32 price = 5 [ default = 0 ]; // 对应moneyid
+  optional uint32 price2 = 6 [ default = 0 ]; // 对应moneyid2
+  optional bool success = 7;      
+  optional uint64 charid = 8;
+  optional uint32 zoneid = 9;
+}
+// scene -> match         //增加够吗次数
+message AddBuyCntMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_ADD_BUY_CNT];
+  optional uint32 id = 3;
+  optional uint32 count = 4;
+  optional uint64 charid = 5;
+  optional uint32 zoneid = 6;
+}
+
+// scene -> match         
+message QuerySoldCntMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_QUERY_SOLD_CNT];
+  optional uint64 charid = 3;
+  optional uint32 zoneid = 4;
+}
+
+// guild -> session -> match, 公会战决战参战
+message JoinSuperGvgMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_SUPERGVG_JOIN ];
+
+  required uint64 guildid = 3;
+  required uint32 zoneid = 4;
+  optional string guildname = 5;
+  optional string guildicon = 6;
+  optional uint32 firecount = 7; //参战次数
+  optional uint32 firescore = 8; //总积分
+  optional uint32 begintime = 9 [ default = 0 ];
+}
+
+// match -> session -> guild , 匹配公会数量,不足,通知guild取消supergvg状态
+message SuperGvgRetMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_SUPERGVG_RET ];
+
+  optional bool ret = 3 [ default = false ];
+  optional uint64 guildid = 4 [ default = 0 ];
+}
+
+message ClearMvpCDMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_CLEAR_MVPCD ];
+  required uint64 roomid = 3;
+  required uint64 teamid = 4;
+}
+
+// match <-> social : apply tutor
+enum ETutorOpt
+{
+  ETUTOROPT_APPLY = 1;
+  ETUTOROPT_AGREE = 2;
+}
+message TutorOptMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_TUTOR_OPT ];
+
+  optional uint64 tutorid = 3 [ default = 0 ];
+  optional uint64 studentid = 4 [ default = 0 ];
+
+  optional ETutorOpt opt = 5 [ default = ETUTOROPT_APPLY ];
+  optional bool ret = 6 [ default = false ];
+  optional bool result = 7 [ default = false ];
+}
+
+// match <-> session : black update
+message TutorBlackUpdateMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_TUTOR_BLACK_UPDATE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  repeated uint64 blackids = 4;
+}
+
+// scene -> match 摆摊请求
+message UserBoothReqMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_USER_BOOTH_REQ ];
+
+  optional uint32 zoneid = 3;
+  optional uint32 sceneid = 4;
+  optional MapUser user = 5;
+  optional EBoothOper oper = 6 [ default = EBOOTHOPER_OPEN ];
+}
+
+// match -> scene 摆摊通知
+message UserBoothNTFMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_USER_BOOTH_NTF ];
+
+  optional uint32 zoneid = 3;
+  optional uint32 sceneid = 4;
+  optional MapUser user = 5;
+  optional EBoothOper oper = 6 [ default = EBOOTHOPER_OPEN ];
+}
+
+// session->team->match, 加入组队排位赛
+message JoinTeamPwsMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_JOIN_TEAMPWS ];
+
+  required uint64 teamid = 3;
+  required uint32 zoneid = 4;
+  required uint64 leaderid = 5;
+  repeated uint64 members = 6;
+  optional uint32 avescore = 7 [default = 0 ];
+  optional EPvpType etype = 8 [ default = EPVPTYPE_TEAMPWS ];
+  optional uint32 roomid = 9 [ default = 0 ]; //休闲模式需要指定进入的副本
+}
+
+// team<->match, 退出排位赛
+message ExitTeamPwsMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_LEAVE_TEAMPWS ];
+
+  required uint64 teamid = 3;
+  required uint32 zoneid = 4;
+  optional EPvpType etype = 5 [ default = EPVPTYPE_TEAMPWS ];
+}
+
+enum ESceneGMMatchType
+{
+  EMATCHGM_JOINTEAMPWS = 1;
+}
+
+// gm scene->match 测试使用
+message SceneGMTestMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_SCENE_GM_TEST ];
+
+  optional ESceneGMMatchType etype = 3;
+  optional uint32 frequency = 4 [ default = 0 ]; // 1s模拟次数
+  optional uint32 interval = 5 [ default = 0 ]; // 执行间隔
+  optional uint32 lasttime = 6 [ default = 0 ]; // 持续时间
+  repeated uint32 params = 7;
+}
+
+message MatchScoreData
+{
+  required uint64 charid = 1;
+  required int32 score = 2;
+  optional string name = 3;
+  optional UserPortraitData portrait = 4;
+  optional EProfession profession = 5;
+}
+
+// scene->session->match 更新积分
+message UpdateScoreMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_UPDATE_SCORE ];
+
+  optional EPvpType etype = 3;
+  repeated MatchScoreData userscores = 5;
+}
+
+// match -> session
+message SyncUserScoreMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_SYNC_SCORE ];
+
+  optional EPvpType etype = 3;
+  required uint64 charid = 4;
+  required uint32 score = 5;
+  optional uint32 season = 6;
+}
+
+// scene->match
+message UserLeaveRaidMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_USER_FORCE_LEAVE ];
+
+  optional uint64 charid = 3;
+  optional EPvpType etype = 4;
+}
+
+// match->team
+message ConfirmTeamMatchSCmd
+{
+  optional Command cmd = 1 [ default = MATCHS_PROTOCMD ];
+  optional MatchSParam param = 2 [ default = MATCHSPARAM_CONFIRM_TEAMMATCH ];
+
+  required uint64 teamid = 3;
+  optional EPvpType etype = 4;
+}
+

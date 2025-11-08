@@ -1,0 +1,177 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+
+enum EChatRoomParam
+{
+  ECHATROOMPARAM_CREATE = 1;
+  ECHATROOMPARAM_JOIN = 2;
+  ECHATROOMPARAM_EXIT = 3;
+  ECHATROOMPARAM_KICKMEMBER = 4;
+  ECHATROOMPARAM_CHANGEOWNER = 5;
+  ECHATROOMPARAM_ENTERROOM = 6;
+  ECHATROOMPARAM_MEMBERUPDATE = 7;
+
+  ECHATROOMPARAM_ROOMDATASYNC = 8;
+  ECHATROOMPARAM_ROOMTIP = 9;
+}
+
+enum EChatRoomJob
+{
+  ECHATROOM_OWNER = 1;
+  ECHATROOM_MEMBER = 2;
+}
+
+enum EChatRoomType
+{
+  ECHATROOMTYPE_PUBLIC = 1;
+  ECHATROOMTYPE_PRIVATE = 2;
+}
+
+message ChatRoomMember
+{
+  optional uint64 id = 1 [ default = 0 ];
+  optional uint32 level = 2 [ default = 0 ];
+  optional uint32 body = 3 [ default = 0 ];
+  optional uint32 hair = 4 [ default = 0 ];
+  optional uint32 haircolor = 5 [ default = 0 ];
+  optional uint32 portrait = 12 [ default = 0 ];
+  optional uint32 eye = 13 [ default = 0 ];
+
+  optional EGender gender = 6 [ default = EGENDER_MIN ];
+  optional EProfession rolejob = 7 [ default = EPROFESSION_MIN ];
+  optional EChatRoomJob job = 8 [ default = ECHATROOM_MEMBER ];
+
+  optional bool blink = 9 [ default = false ];
+
+  optional string name = 10;
+  optional string guildname = 11;
+}
+
+message ChatRoomData
+{
+  optional uint32 roomid = 1 [ default = 0 ];
+  optional string name = 2;
+  optional string pswd = 3;
+  optional uint64 ownerid = 4 [ default = 0 ];
+  optional uint32 maxnum = 5 [ default = 2 ];
+  optional EChatRoomType roomtype = 6 [ default = ECHATROOMTYPE_PUBLIC ];
+  repeated ChatRoomMember members = 7;
+}
+
+// client -> server : create room
+message CreateChatRoom
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CHATROOM_PROTOCMD ];
+  optional EChatRoomParam param = 2 [ default = ECHATROOMPARAM_CREATE];
+  optional string roomname = 3;
+  optional uint32 maxnum = 4 [ default = 2 ];
+  optional string pswd = 5;
+}
+
+// client -> server : join room
+message JoinChatRoom
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CHATROOM_PROTOCMD ];
+  optional EChatRoomParam param = 2 [ default = ECHATROOMPARAM_JOIN ];
+
+  optional uint64 roomid = 3 [ default = 0 ];
+  optional string pswd = 4;
+
+}
+
+// client <--> server : exit member
+message ExitChatRoom
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CHATROOM_PROTOCMD ];
+  optional EChatRoomParam param = 2 [ default = ECHATROOMPARAM_EXIT ];
+
+  optional uint64 roomid = 3 [ default = 0 ];
+  optional uint64 userid = 4 [ default = 0 ];
+}
+
+// client <--> server : kick member
+message KickChatMember
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CHATROOM_PROTOCMD ];
+  optional EChatRoomParam param = 2 [ default = ECHATROOMPARAM_KICKMEMBER ];
+
+  optional uint64 roomid = 3 [ default = 0 ];
+  optional uint64 memberid = 4 [ default = 0 ];
+}
+
+// client -> server : exchange room owner
+message ExchangeRoomOwner
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CHATROOM_PROTOCMD ];
+  optional EChatRoomParam param = 2 [ default = ECHATROOMPARAM_CHANGEOWNER ];
+
+  optional uint64 userid = 3 [ default = 0 ];
+}
+
+// server -> client : room member update
+message RoomMemberUpdate
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CHATROOM_PROTOCMD ];
+  optional EChatRoomParam param = 2 [ default = ECHATROOMPARAM_MEMBERUPDATE ];
+
+  repeated ChatRoomMember updates = 3;
+  repeated uint64 deletes = 4;
+}
+
+// server -> client : enter room
+message EnterChatRoom
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CHATROOM_PROTOCMD ];
+  optional EChatRoomParam param = 2 [ default = ECHATROOMPARAM_ENTERROOM ];
+
+  optional ChatRoomData data = 3;
+}
+
+message ChatRoomSummary
+{
+  optional uint64 ownerid = 1 [ default = 0 ];
+  optional uint32 roomid = 2 [ default = 0 ];
+  optional string name = 3;
+  optional EChatRoomType roomtype = 4 [ default = ECHATROOMTYPE_PUBLIC ];
+  optional uint32 maxnum = 5 [ default = 0 ];
+  optional uint32 curnum = 6 [ default = 0 ];
+  optional string pswd = 7;
+}
+
+enum EChatRoomSync
+{
+  ECHATROOMSYNC_UPDATE = 1;
+  ECHATROOMSYNC_REMOVE = 2;
+}
+
+// server -> client : room data sync
+message ChatRoomDataSync
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CHATROOM_PROTOCMD ];
+  optional EChatRoomParam param = 2 [ default = ECHATROOMPARAM_ROOMDATASYNC ];
+
+  optional EChatRoomSync esync = 3 [ default = ECHATROOMSYNC_UPDATE ];
+  optional ChatRoomSummary data = 4;
+}
+
+enum EChatRoomTip
+{
+  ECHATROOMTIP_JOIN = 1;
+  ECHATROOMTIP_EXIT = 2;
+  ECHATROOMTIP_KICK = 3;
+  ECHATROOMTIP_OWNERCHANGE = 4;
+}
+
+// server -> client : room tip
+message ChatRoomTip
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CHATROOM_PROTOCMD ];
+  optional EChatRoomParam param = 2 [ default = ECHATROOMPARAM_ROOMTIP ];
+  optional EChatRoomTip tip = 3 [ default = ECHATROOMTIP_JOIN ];
+
+  optional uint64 userid = 4 [ default = 0 ];
+  optional string name = 5;
+}
+

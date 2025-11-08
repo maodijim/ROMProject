@@ -1,0 +1,133 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+
+enum SealParam
+{
+  SEALPARAM_QUERYSEAL = 1;
+  SEALPARAM_UPDATESEAL = 2;
+  SEALPARAM_SEALTIMER = 3;
+  SEALPARAM_BEGINSEAL = 4;
+  SEALPARAM_ENDSEAL = 5;
+  SEALPARAM_USERLEAVE = 6;
+  SEALPARAM_QUERYLIST = 7;
+  SEALPARAM_ACCEPTSEAL = 8;
+}
+
+enum ESealType
+{
+  ESEALTYPE_MIN = 0;
+  ESEALTYPE_NORMAL = 1;
+  ESEALTYPE_PERSONAL = 2;
+  ESEALTYPE_ACTIVITY = 3;
+  ESEALTYPE_MAX = 4;
+}
+
+// client <-> server : query seal
+message SealItem
+{
+  optional uint32 config = 1 [ default = 0 ];
+  optional uint32 refreshtime = 2 [ default = 0 ];
+  optional bool ownseal = 3 [ default = false ];
+  optional ScenePos pos = 4;
+
+  optional uint64 sealid = 5 [ default = 0 ];
+  optional bool issealing = 6 [ default = false ];
+  optional ESealType etype = 7 [ default = ESEALTYPE_NORMAL ];
+}
+message SealData
+{
+  optional uint32 mapid = 1 [ default = 0 ];
+  repeated SealItem items = 2;
+}
+message QuerySeal
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SEAL_PROTOCMD ];
+  optional SealParam param = 2 [ default = SEALPARAM_QUERYSEAL ];
+
+  repeated SealData datas = 3;
+}
+
+// scene -> client : update seal
+message UpdateSeal
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SEAL_PROTOCMD ];
+  optional SealParam param = 2 [ default = SEALPARAM_UPDATESEAL ];
+
+  repeated SealData newdata = 3;
+  repeated SealData deldata = 4;
+}
+
+// scene -> client : seal timer
+message SealTimer
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SEAL_PROTOCMD ];
+  optional SealParam param = 2 [ default = SEALPARAM_SEALTIMER ];
+
+  optional int32 speed = 3 [ default = 0 ];
+
+  optional uint32 curvalue = 4 [ default = 0 ];
+  optional uint32 maxvalue = 5 [ default = 0 ];
+
+  optional uint32 stoptime = 6 [ default = 0 ];
+  optional uint32 maxtime = 7 [ default = 0 ];
+}
+
+enum EFinishType
+{
+  EFINISHTYPE_MIN = 0;
+  EFINISHTYPE_NORMAL = 1;
+  EFINISHTYPE_QUICK = 2;
+}
+
+// scene <-> client : begin seal
+message BeginSeal
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SEAL_PROTOCMD ];
+  optional SealParam param = 2 [ default = SEALPARAM_BEGINSEAL ];
+
+  optional uint64 sealid = 3 [ default = 0 ];
+  optional EFinishType etype = 4 [ default = EFINISHTYPE_NORMAL ];
+}
+
+// scene -> client : end seal
+message EndSeal
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SEAL_PROTOCMD ];
+  optional SealParam param = 2 [ default = SEALPARAM_ENDSEAL ];
+
+  optional bool success = 3 [ default = false ];
+  optional uint32 sealid = 4 [ default = 0 ];
+}
+
+// client -> scene : user leave sealact
+message SealUserLeave
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SEAL_PROTOCMD ];
+  optional SealParam param = 2 [ default = SEALPARAM_USERLEAVE ];
+}
+
+// client <-> scene : query seal list
+message SealQueryList
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SEAL_PROTOCMD ];
+  optional SealParam param = 2 [ default = SEALPARAM_QUERYLIST ];
+
+  repeated uint32 configid = 3;
+  optional uint32 donetimes = 4 [ default = 0 ];
+  optional uint32 maxtimes = 5 [ default = 0 ];
+}
+
+// client <-> scene : accept seal
+message SealAcceptCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SEAL_PROTOCMD ];
+  optional SealParam param = 2 [ default = SEALPARAM_ACCEPTSEAL ];
+
+  optional uint32 seal = 3 [ default = 0 ];
+  optional ScenePos pos = 4;
+
+  optional bool abandon = 5 [ default = false ];
+}
+

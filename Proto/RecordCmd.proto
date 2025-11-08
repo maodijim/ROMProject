@@ -1,0 +1,1924 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+import "Var.proto";
+import "SceneUser2.proto";
+import "SceneSkill.proto";
+import "SceneQuest.proto";
+import "SceneItem.proto";
+import "ScenePet.proto";
+import "SceneTip.proto";
+import "SceneSeal.proto";
+import "SessionCmd.proto";
+import "InfiniteTower.proto";
+import "SceneManual.proto";
+import "SceneInterlocution.proto";
+import "UserEvent.proto";
+import "SceneUser.proto";
+import "SceneMap.proto";
+import "GuildSCmd.proto";
+import "TeamCmd.proto";
+import "AchieveCmd.proto";
+import "FuBenCmd.proto";
+import "AstrolabeCmd.proto";
+import "PhotoCmd.proto";
+import "SceneFood.proto";
+import "Tutor.proto";
+import "ActivityEvent.proto";
+import "SceneBeing.proto";
+import "SessionShop.proto";
+
+enum RecordParam
+{
+  RECORDPARAM_NOTIFYLOGIN = 1;
+  RECORDPARAM_USERDATA = 2;
+  RECORDPARAM_ERROR_USERDATA = 3;
+  RECORDPARAM_MUSIC_DATA = 6;
+  RECORDPARAM_LOADLUA = 7;
+  RECORDPARAM_STORE_PUT = 8;
+  RECORDPARAM_STORE_OFF = 9;
+  RECORDPARAM_STORE_ITEMMODIFY = 10;
+  RECORDPARAM_DEL_PATCH_CHAR = 11;
+  RECORDPARAM_CHAT_SAVE = 12;
+  RECORDPARAM_CHAT_QUERY = 13;
+  RECORDPARAM_AUTHORIZE_CHANGE = 14;
+  RECORDPARAM_GUILD_MUSIC_QUERY = 15;
+  RECORDPARAM_GUILD_MUSIC_UPDATE = 16;
+  RECORDPARAM_GUILD_MUSIC_DELETE = 17;
+  RECORDPARAM_USER_RENAME_QUERY = 18;
+  RECORDPARAM_USER_RENAME_RESULT = 19;
+  RECORDPARAM_LOTTERY_RESULT = 20;
+  RECORDPARAM_USER_PROFESSION = 21;
+
+  RECORDPARAM_PROFESSION_SAVE = 22;
+  RECORDPARAM_PROFESSION_QUERY = 23;
+  RECORDPARAM_CHEAT_TAG = 24;
+  RECORDPARAM_CHEAT_TAG_QUERY = 25;
+}
+
+// scene -> record
+message NotifyLoginRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_NOTIFYLOGIN ];
+
+  optional uint64 id = 3 [ default = 0 ];
+  optional uint64 accid = 4 [ default = 0 ];
+  optional string sceneName = 5;
+}
+
+// record <-> scene
+message RecordUserData
+{
+  optional UserAccData acc = 1;
+  optional UserBaseData base = 2;
+  optional RedisUserData redis = 3;
+  optional bytes acc_data = 4;
+  optional bytes char_data = 5;
+}
+message RedisUserData
+{
+  optional uint32 portrait = 5 [ default = 0 ];
+  optional uint32 clothcolor = 13 [ default = 0 ];
+  optional uint32 manuallv = 20 [ default = 0 ];
+  optional uint32 manualexp = 21 [ default = 0 ];
+  optional uint32 querytype = 23 [ default = 0 ];
+  optional uint32 profic = 24 [ default = 0 ];
+
+  optional bool blink = 26 [ default = false ];
+  optional bool canbetutor = 27 [ default = false ];
+}
+message UserDataRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_USERDATA ];
+
+  optional uint64 charid = 3;
+  optional uint64 accid = 4;
+  optional uint32 unregType = 5;
+
+  optional bool first = 6 [ default = false ];
+  optional bool over = 7 [ default = false ];
+  optional bytes data = 8;
+}
+
+// record -> scene
+message ErrUserCharBaseRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_ERROR_USERDATA ];
+
+  optional uint64 id = 3 [ default = 0 ];
+}
+
+// scene -> record
+message MusicUpdateCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_MUSIC_DATA ];
+
+  optional MusicItem item = 3;
+}
+
+// scene -> record : load lua
+message LoadLuaSceneRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_LOADLUA ];
+
+  optional string table = 3;
+  optional string lua = 4;
+  optional string log = 5;
+}
+
+// scene -> record : item modify
+message ItemModifyRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_STORE_ITEMMODIFY ];
+
+  optional uint64 accid = 3 [ default = 0 ];
+  optional uint64 charid = 4 [ default = 0 ];
+  optional uint32 newid = 7 [ default = 0 ];
+
+  optional string scenename = 5;
+  optional string guid = 6;
+}
+
+// session <-> record : change authorize
+message ChangeAuthorizeRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_AUTHORIZE_CHANGE];
+
+  optional uint64 accid = 3 [ default = 0 ];
+  optional string password = 4;
+  optional uint32 resettime = 5;
+}
+
+// scene <-> record : query guild music
+message GuildMusicQueryRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_GUILD_MUSIC_QUERY ];
+
+  optional string scenename = 3;
+  optional uint32 sceneid = 4 [ default = 0 ];
+  optional uint64 guildid = 5 [ default = 0 ];
+  repeated MusicItem items = 6;
+}
+
+// scene -> record : save guild music
+message GuildMusicUpdateCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_GUILD_MUSIC_UPDATE ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional MusicItem item = 4;
+}
+
+// session -> record : delete guild music
+message GuildMusicDeleteRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_GUILD_MUSIC_DELETE ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+}
+
+// base data
+message UserBaseData
+{
+  optional uint32 platformid = 1 [ default = 0 ];
+  optional uint32 zoneid = 2 [ default = 0 ];
+  optional uint64 accid = 3 [ default = 0 ];
+  optional uint64 charid = 4 [ default = 0 ];
+  optional uint64 guildid = 5 [ default = 0 ];
+  optional string name = 6;
+  optional uint32 mapid = 7 [ default = 0 ];
+  optional uint32 rolelv = 8 [ default = 0 ];
+  optional uint64 roleexp = 9 [ default = 0 ];
+  optional uint32 charge = 10 [ default = 0 ];
+  optional uint32 diamond = 11 [ default = 0 ];
+  optional uint64 silver = 12 [ default = 0 ];
+  optional uint32 gold = 13 [ default = 0 ];
+  optional uint32 garden = 14 [ default = 0 ];
+  optional uint32 friendship = 15 [ default = 0 ];
+  optional uint32 createTime = 16 [ default = 0];
+  optional uint32 onlinetime = 17 [ default = 0 ];
+  optional uint32 offlinetime = 18 [ default = 0 ];
+  optional uint32 addict = 19 [ default = 0 ];
+  optional uint32 battletime = 20 [ default = 0 ];
+  optional uint32 body = 21 [ default = 0 ];
+  optional uint32 addictTipsTime = 22 [ default = 0 ];
+  optional uint32 gagtime = 23 [ default = 0 ];
+  optional uint32 nologintime = 24 [ default = 0 ];
+  optional uint32 rebattletime = 25 [ default = 0 ];
+  optional uint32 usedbattletime = 26 [ default = 0 ];
+  optional uint32 hair = 27 [ default = 0 ];      // 登录界面显示用
+  optional uint32 haircolor = 28 [ default  = 0]; // 登录界面显示用
+  optional uint32 lefthand = 29 [ default = 0 ];  // 登录界面显示用
+  optional uint32 righthand = 30 [ default = 0 ]; // 登录界面显示用
+  optional uint32 head = 31 [ default = 0 ];      // 登录界面显示用
+  optional uint32 back = 32 [ default = 0 ];      // 登录界面显示用
+  optional uint32 face = 33 [ default = 0 ];      // 登录界面显示用
+  optional uint32 tail = 34 [ default = 0 ];      // 登录界面显示用
+  optional uint32 mount = 35 [ default = 0 ];     // 登录界面显示用
+  optional uint32 title = 36 [ default = 0 ];     // 登录界面显示用
+  optional uint32 eye = 37 [ default = 0 ];       // 登录界面显示用
+  optional uint32 partnerid = 38 [ default = 0 ]; // 登录界面显示用
+  optional uint32 portrait = 39 [ default = 0 ];  // 登陆界面显示用
+  optional uint32 mouth = 40 [ default = 0 ];     // 登陆界面显示用
+  optional uint32 clothcolor = 41 [ default = 0 ];// 登陆界面显示用
+
+  optional EGender gender = 42 [ default = EGENDER_MIN ];
+  optional EProfession profession = 43 [ default = EPROFESSION_MIN ];
+  optional EProfession destprofession = 44 [ default = EPROFESSION_MIN ];
+
+  optional uint32 destzoneid = 45 [ default = 0 ];
+  optional uint32 originalzoneid = 46 [ default = 0 ];
+  optional uint32 maxbaselv = 47 [ default = 0 ];
+
+  optional string lock_reason = 48;
+  optional string gag_reason = 49;
+
+  repeated uint32 questmapntf = 50;
+  optional uint64 maincharid = 51;
+  optional uint32 maxpro = 52;
+}
+
+message BlobData
+{
+  optional uint32 version = 1 [ default = 0 ];
+
+  optional BlobUser user = 2;
+  optional BlobFighter fighter = 3;
+  optional BlobStage stage = 4;
+  optional BlobQuestNpc questnpc = 5;
+  optional BlobBuffer buffer = 6;
+  optional BlobPortrait portrait = 7;
+  optional BlobHair hair = 8;
+  optional BlobGears gear = 9;
+  optional BlobTips tip = 10;
+  optional BlobFollower follower = 11;
+  optional BlobCDTime cd = 12;
+  optional BlobShortcut shortcut = 13;
+  optional BlobGMEffects effect = 14;
+  optional BlobFreyja freyja = 15;
+  optional BlobLaboratory lab = 16;
+  optional BlobScenery scenery = 17;
+  optional BlobCarrier carrier = 18;
+  optional BlobMenu menu = 19;
+  optional BlobShopGotItem shop = 20;
+  optional BlobKnownMaps knownmap = 21;
+  optional BlobInter iter = 22;
+  optional BlobHands hand = 23;
+  optional BlobShow show = 24;
+  optional BlobTrace trace = 25;
+  optional BlobDojo dojo = 26;
+  optional BlobPack pack = 27;
+  optional BlobQuest quest = 28;
+  optional BlobTitle title = 29;
+  optional BlobLine line = 30;        //abandon  2016-1108
+  optional BlobPet pet = 31;
+  optional BlobVar var = 32;
+  optional BlobChatMsg chatmsg = 33;
+  optional BlobUserTower tower = 34;
+  optional BlobSeal seal = 35;
+  optional BlobManual manual = 36;
+  optional BlobFirstActionDone action = 37;
+  optional BlobAttr attr = 38;
+  optional BlobOption opt = 39;
+  optional BlobHandNpc handnpc = 40;
+  optional BlobCamera camera = 41;
+  optional BlobZone zone = 42;
+  optional BlobGuild guild = 43;
+  optional BlobTeam team = 44;
+  optional BlobUserZone userzone = 45;
+  optional BlobSpEffect speffect = 46;
+  optional BlobDeposit deposit = 47;
+  optional BlobActivity activity = 48;
+  //optional BlobRelation relation = 49;
+  //optional BlobCredit credit = 50;
+  optional BlobChat chat = 51;
+  optional BlobBattle battle = 52;
+  optional BlobStatVar statvar = 53;
+  optional BlobSeeNpc seenpc = 54;
+  optional BlobWeaponPet weaponpet = 55;
+  optional BlobTicket ticket = 56;
+  optional BlobShare share = 57;
+  optional BlobAchieve achieve = 58;
+  optional BlobAuthorize authorize = 59;
+  optional BlobGuildRaid guildraid = 60;
+  optional BlobAstrolabe astrolabe = 61;
+  optional BlobSettings settings= 62;
+  optional BlobPhoto photo = 63;
+  optional BlobFood food = 64;
+  optional BlobUserPet userpet = 65;
+  optional BlobPetAdventure petadventure = 66;
+  //optional BlobAccQuest acc_quest = 67;
+  optional BlobTutorTask tutortask = 67;
+  optional BlobEye eye = 68;
+  optional BlobHighRefine  highrefine = 69;
+  optional BlobActivityEvent acevent = 70;
+  optional BlobUserBeing being = 71;
+  optional BlobGuildChallenge gchallenge = 72;
+  optional BlobGvgData gvgdata = 73;
+  optional BlobLottery lottery = 74;
+  optional BlobServant servant = 75;
+  optional BlobProfession profession = 76;
+  optional BlobActivityQuest activityquest = 77;
+  optional BlobBooth booth = 79;
+  optional BlobExchangeShop exchangeshop = 80;
+  optional BlobTransfer transfer = 81;
+  optional BlobElementElfData element_elf = 82;
+  optional BlobBoss boss = 83;
+}
+
+message UserAccData
+{
+  optional uint32 nologintime = 1 [ default = 0 ];
+}
+
+message BlobAccData
+{
+  optional BlobAccUser user = 1;
+  optional BlobNewCredit credit = 2;
+  optional BlobShopGotItem shop = 3;  //账号共享次数
+  optional BlobAccVar var = 4;
+  optional BlobManual manual = 5;
+  optional BlobFood food = 6;
+  optional BlobQuest quest = 7;
+  optional BlobAchieve achieve = 8;
+  optional BlobTitle title = 9;
+  optional BlobScenery scenery = 10;
+  optional BlobMenu menu = 11;
+  optional BlobActivityEvent acevent = 12;
+  optional BlobUnsolvedPhoto photo = 13;
+  optional BlobPortrait portrait = 14;
+  optional BlobQuestNpc questnpc = 15;
+  optional BlobPetWork petwork = 16;
+  optional BlobShareSkill skill = 17;
+  optional BlobServant servant = 18;
+  optional BlobRecordInfo record = 19;
+  optional BlobPack pack = 20;
+  optional BlobLottery lottery = 21;
+}
+
+// acc user
+message BlobAccUser
+{
+  optional uint32 auguryreward = 1 [ default = 0 ];
+  optional uint32 maxbaselv = 2 [ default = 0 ];
+  optional uint32 maxbaselv_resettime = 3 [ default = 0 ];
+  repeated PhotoMd5 md5s = 4;
+  repeated BlobJoyData accjoy = 5;
+  repeated uint32 shownpcs = 6;
+  optional uint64 char_primary_id = 7; // 主号(功能上线 首次登陆为主号)
+  repeated uint64 patchversion = 8;
+}
+
+// acc unsolved
+message BlobUnsolvedPhoto
+{
+  repeated UnsolvedUserPhoto photos = 1;
+}
+
+// world boss
+message BlobBoss
+{
+  optional bool open_ntf = 1 [ default = false ];
+}
+
+// user
+message BlobUser
+{
+  // pos point
+  optional float x = 1 [ default = 0 ];
+  optional float y = 2 [ default = 0 ];
+  optional float z = 3 [ default = 0 ];
+
+  // cloth color
+  optional uint32 clothcolor = 4 [ default = 0 ];
+  // pufify
+  optional uint32 purify = 6 [ default = 0 ];
+  // save map
+  optional uint32 savemap = 7 [ default = 0 ];
+  // lastmap
+  optional uint32 lastmapid = 8;
+  optional uint32 lastrealmapid = 11;
+  // show npcs
+  repeated uint32 shownpcs = 9;
+  // area map
+  repeated uint32 mapareas = 10;
+  // patch version
+  repeated uint32 patchversion = 12;
+  // teamtimelen
+  optional uint32 teamtimelen = 13 [ default = 0 ];
+  // follower id
+  optional uint64 followerid = 14 [ default = 0 ];
+  // levelup time
+  optional uint32 leveluptime = 15 [ default = 0 ];
+
+  // 
+  optional uint32 lastsmapid = 16 [ default = 0 ];
+  optional float sx = 17 [ default = 0 ];
+  optional float sy = 18 [ default = 0 ];
+  optional float sz = 19 [ default = 0 ];
+
+  //heal count
+  optional uint32 healcount = 20 [ default = 0 ];
+
+  // zeny
+  optional uint32 zeny_max = 21 [ default = 0 ];
+  optional uint32 zeny_debt = 22 [ default = 0 ];
+
+  // pvp coin
+  optional uint32 pvp_coin = 23 [ default = 0 ];
+  // contribute
+  optional uint32 con = 24 [ default = 0 ];
+  optional bool coninit = 25 [ default = false ];
+
+  //
+  optional uint64 charge_zeny = 26;
+  optional uint32 charge_lottery = 27;
+  optional uint32 lottery_coin = 28 [ default = 0];
+
+  optional uint32 rename_time = 29 [ default = 0];
+  optional uint32 guild_honor = 30 [ default = 0 ];
+  optional uint64 save_index = 31 [default = 0];
+  optional bool divorce_roller_coaster = 32 [default = false];   //是否做过离婚过山车
+
+  optional uint64 daily_normal_zeny = 33;
+  optional uint64 daily_charge_zeny = 34;
+
+  // 导师从学生获得的战斗时长
+  optional uint64 tutorbattletime = 35 [ default = 0 ];
+  optional uint64 usedtutorbattletime = 36 [ default = 0 ];
+  optional uint32 last_offlinetime = 37;
+  optional uint32 last_baselv = 38;
+  optional uint32 last_joblv = 39;
+  optional uint32 dead_coin = 40 [ default = 0 ];
+  optional uint32 dead_lv = 41 [ default = 0 ];
+  optional uint32 dead_exp = 42 [ default = 0 ];
+}
+
+// fighter
+message SkillReplaceInfo
+{
+  optional uint32 oldid = 1 [ default = 0 ];
+  optional uint32 newid = 2 [ default = 0 ];
+}
+
+message SkillShortcutDB
+{
+  optional ESkillShortcut type = 1 [ default = ESKILLSHORTCUT_MIN ];
+  repeated SkillPos cuts = 2;
+}
+message UserSkillData
+{
+  optional uint32 totalpoint = 1;
+  optional uint32 maxpos = 2;
+
+  repeated SkillData datas = 3;
+  repeated SkillPos pos = 4;
+
+  optional uint32 automaxpos = 5;
+  repeated SkillPos autopos = 6;          // 废除,不删除(有老数据)
+  repeated SkillPos extendpos = 7;        // 废除,不删除(有老数据)
+  optional uint32 maxextendpos = 8;
+
+  optional bool reseted = 10 [ default = false];
+
+  repeated SkillReplaceInfo replace = 11;
+  repeated SkillShortcutDB shortcuts = 12;
+
+  optional uint32 last_concert_skillid = 13 [ default = 0 ];
+}
+
+message BlobShareSkill
+{
+  repeated SkillItem items = 1;
+}
+
+message UserRoleData
+{
+  optional uint64 jobExp = 1 [ default = 0 ];
+  optional uint32 jobLv = 2 [ default = 0 ];
+
+  optional EProfession profession = 3 [ default = EPROFESSION_MIN ];
+
+  optional uint32 strPoint = 4 [ default = 0 ];
+  optional uint32 intPoint = 5 [ default = 0 ];
+  optional uint32 agiPoint = 6 [ default = 0 ];
+  optional uint32 dexPoint = 7 [ default = 0 ];
+  optional uint32 vitPoint = 8 [ default = 0 ];
+  optional uint32 lukPoint = 9 [ default = 0 ];
+  optional uint32 totalPoint = 10 [ default = 0 ];
+  optional uint32 usedPoint = 11 [ default = 0 ];
+  optional uint32 hp = 12 [ default = 0 ];
+  optional uint32 sp = 13 [ default = 0];
+  optional UserSkillData skill = 14;
+
+  repeated uint32 unlocklv = 15;
+
+  optional uint32 maxjoblv = 16 [ default = 0 ];
+  optional uint32 branch = 17 [ default = 0 ];
+  optional bool isbuy = 18 [ default = false ];
+}
+
+message BlobFighter
+{
+  repeated UserRoleData datas = 1;
+  optional uint32 totalpoint = 2 [ default = 0 ];
+  optional uint32 maxskillpos = 3 [ default = 0 ];
+  optional uint32 maxautopos = 4 [ default = 0 ];
+  optional uint32 maxextendpos = 5 [ default = 0 ];
+  optional uint32 maxjoblv = 6 [ default = 0 ];
+  optional uint32 maxcurjoblv = 7 [ default = 0 ];
+}
+
+// stage
+message StageStepNormalBlob
+{
+  optional uint32 stepid = 1;
+  optional uint32 star = 2;
+}
+message StageStepHardBlob
+{
+  optional uint32 stepid = 1;
+  optional uint32 finish = 2;
+  optional uint32 time = 3;
+}
+message StageBlobItem
+{
+  optional uint32 stageID = 1;
+  repeated StageStepNormalBlob normalist = 2;
+  repeated StageStepHardBlob hardlist = 3;
+  repeated uint32 gets = 4;
+}
+message BlobStage
+{
+  repeated StageBlobItem list = 1;
+  optional uint32 resetTime = 2;
+}
+
+// quest npc
+message QuestNpcData
+{
+  optional uint32 mapid = 1 [ default = 0 ];
+  optional uint32 questid = 2 [ default = 0 ];
+  optional uint32 groupid = 16 [ default = 0 ];
+  optional uint32 acc = 15 [ default = 0 ];
+  optional uint32 hp = 12 [ default = 0 ];
+  optional NpcDefineData data = 14;
+}
+message BlobQuestNpc
+{
+  optional uint32 version = 1 [ default = 0];
+  repeated QuestNpcData list = 2;
+}
+
+// buffer
+message BufferStateBlob
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint64 endtime = 2 [ default = 0 ];
+  optional uint32 lv = 3 [ default = 0 ];
+  optional uint64 fromid = 4 [ default = 0 ];
+  optional uint32 hponadd = 5 [ default = 0 ];
+  optional uint32 addtime = 6 [ default = 0 ];
+  optional uint32 count = 7 [ default = 0 ];
+  optional uint32 commmondata = 8 [ default = 0 ];
+  optional bool actflag = 9;
+  optional uint32 layers = 10[ default = 0 ];
+  optional uint32 totaldamage = 11 [ default = 0 ];
+  optional uint32 attackcount = 12 [ default = 0 ];
+  optional uint32 beatkcount = 13 [ default = 0 ];
+  repeated UserAttrSvr attrs = 14;
+  repeated uint32 vecdata = 15;
+  optional string fromname = 16;
+  optional uint64 sparetime = 17 [ default = 0 ];
+  repeated uint64 setendtime = 18;
+  optional uint64 timetick = 19 [ default = 0 ];
+}
+message BlobBuffer
+{
+  optional uint32 version = 1 [ default = 0];
+  repeated BufferStateBlob list = 2;
+}
+
+// portrait
+message BlobPortrait
+{
+  optional uint32 curportrait = 1 [ default = 0 ];
+  optional uint32 curframe = 2 [ default = 0 ];
+
+  repeated uint32 unlockportrait = 3;
+  repeated uint32 unlockframe = 4;
+}
+
+// hair
+message BlobHair
+{
+  optional uint32 curhair = 1 [ default = 0 ];
+  optional uint32 curcolor = 2 [ default = 0 ];
+  repeated uint32 unlockhair = 3;
+}
+
+// gear
+message BlobGearItem
+{
+  optional uint32 gearid = 1;
+  optional uint32 state = 2;
+  optional uint32 sceneid = 3;
+}
+message BlobGears
+{
+  optional uint32 version = 1;
+  repeated BlobGearItem list = 2;
+  repeated BlobGearItem exitlist = 3;
+}
+
+// tip
+message BlobTipItem
+{
+  optional ERedSys red = 1 [ default = EREDSYS_MIN];
+  repeated uint32 tipid = 2;
+}
+message BlobTips
+{
+  optional uint32 version = 1;
+  repeated BlobTipItem list = 2;
+}
+
+// follower
+message FollowerItem
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional float spdRatio = 2 [ default = 0 ];
+  optional uint32 behaviours = 3 [ default = 0 ];
+  optional uint32 questid = 4 [ default = 0 ];
+  optional uint32 cleartime = 5 [ default = 0 ];
+}
+message BlobFollower
+{
+  optional uint32 version = 1;
+  repeated FollowerItem list = 2;
+}
+
+// cd
+message BlobCDTime
+{
+  optional uint32 version = 1;
+  repeated CDTimeItem list = 2;
+}
+
+// shortcut
+message BlobShortcut
+{
+  repeated ShortcutItem cut = 1;
+  repeated uint32 firstauto = 2;
+  optional uint32 version = 3 [ default = 0 ];
+}
+
+// gmeffect
+message BlobGMEffectItem
+{
+  optional uint32 mapid = 1 [ default = 0 ];
+  optional uint32 index = 2 [ default = 0 ];
+  optional string gmcommand = 3;
+}
+message BlobGMEffects
+{
+  optional uint32 version = 1 [ default = 0 ];
+  repeated BlobGMEffectItem list = 2;
+}
+
+// freyja
+message BlobFreyja
+{
+  optional uint32 version = 1 [ default = 0 ];
+  repeated uint32 mapid = 2;
+}
+
+// 传送阵激活列表
+message BlobTransfer
+{
+  repeated uint32 npcid = 1;
+  optional bool map1AllActivated = 2[ default = false ];
+  optional bool map2AllActivated = 3[ default = false ];
+}
+
+
+// laboratory
+message BlobLaboratory
+{
+  optional uint32 version = 1 [ default = 0 ];
+  optional uint32 point = 2 [ default = 0 ];
+  optional uint32 days = 3 [ default = 0 ];
+}
+
+// scenery
+message SceneryItem
+{
+  optional uint32 sceneryid = 1 [ default = 0 ];
+  optional uint32 visited = 2 [ default = 0 ];
+  optional uint32 upload = 3 [ default = 0 ];
+  optional uint32 anglez = 4 [ default = 0 ];
+  optional uint32 time = 5 [ default = 0 ];
+}
+message SceneryMapItem
+{
+  optional uint32 mapid = 1 [ default = 0 ];
+  repeated SceneryItem scenerys = 2;
+}
+message BlobScenery
+{
+  optional uint32 version = 1 [ default = 0 ];
+  repeated SceneryMapItem list = 2;
+  repeated SceneryItem items = 3;
+}
+
+// carrier
+message BlobCarrier
+{
+  optional uint32 version = 1 [ default = 0 ];
+  optional uint32 assemble = 2 [ default = 0 ];
+  optional uint64 joinmaster = 3 [ default = 0 ];
+}
+
+// menu
+message BlobMenu
+{
+  optional uint32 version = 1 [ default = 0 ];
+  repeated uint32 list = 2;
+}
+
+// shop
+message BlobShopGotItem
+{
+  optional uint32 version = 1 [ default = 0 ];
+  repeated ShopGotItem list = 2;
+  repeated ShopGotItem random = 3;  
+  optional uint32 refreshlv = 4 [ default = 0 ];
+  optional uint32 refreshlv_resettime = 5 [ default = 0 ];
+  repeated ShopGotItem month = 6;       //永远限购
+  repeated ShopGotItem randombylv = 7;
+  repeated ShopGotItem discountact = 8;
+  repeated ShopGotItem randomacc = 9;
+  repeated ShopGotItem listweek = 10;     //周限购
+  repeated ShopGotItem limitmonth = 11;   //月限购  
+  repeated ShopGotItem addcount = 12;
+  repeated ShopGotItem limititem = 13;
+}
+
+// exchange shop
+message BlobExchangeShop
+{
+  optional uint32 version = 1 [default = 0];
+  optional bool menuopen = 2 [default = false];
+  repeated ExchangeShopItem items = 3;
+  repeated ItemGetCount itemget = 4;
+  repeated uint32 exchanged_goods = 5; //已经兑换过的商品ID列表
+}
+
+// known map
+message BlobKnownMaps
+{
+  optional uint32 version = 1 [ default = 0 ];
+  repeated uint32 list = 2;
+}
+
+// inter
+message BlobInter
+{
+  optional uint32 version = 1 [ default = 0 ];
+  repeated InterData list = 2;
+}
+
+// hand
+message BlobHands
+{
+  optional uint32 version = 1 [ default = 0 ];
+  optional uint32 ismaster = 2 [ default = 0 ];
+  optional uint64 otherid = 3 [ default = 0 ];
+  optional uint64 forcejoinid = 4 [ default = 0 ];
+//reward
+  optional string last_handname = 5;
+  optional uint32 handtimelen = 6 [ default = 0 ];
+  optional uint32 nextrewardtime = 7 [ default = 0 ];
+  optional uint32 nexttiptime = 8  [ default = 0 ];
+}
+
+// show
+message BlobShow
+{
+  repeated uint32 actions = 1;
+  repeated uint32 expressions = 2;
+}
+
+// trace
+message BlobTrace
+{
+  repeated TraceItem items = 1;
+}
+
+// option
+message BlobOption
+{
+  optional EQueryType type = 1 [ default = EQUERYTYPE_MIN ];
+  optional uint32 normalskill_option = 2 [ default = 1 ];
+  optional uint32 fashionhide = 3 [ default = 0 ];
+  optional uint64 bitopt = 4 [ default = 18446744073709551615];	//每位都置1
+  repeated SkillOption skillopts = 5;
+  optional EQueryType wedding_type = 6;
+}
+
+// dojo
+message BlobDojo
+{
+  repeated uint32 completedid = 1;      //通关的道场id
+}
+
+message FoodItemInfo
+{
+  optional uint32 itemid = 1;
+  optional uint32 invalid_time = 2;      //失效时间戳  
+  repeated UserAttrSvr attrs = 3;       
+}
+
+message FoodLimitInfo
+{
+  optional uint32 itemid = 1;
+  optional uint32 num = 2;      //吃料理次数
+  optional uint32 time = 3;      //吃料理时间
+}
+
+// food
+message BlobFood
+{
+  optional uint32 cookerexp = 1;
+  optional uint32 cookerlv = 2;   //厨师等级
+  optional uint32 tasterexp = 3;   //美食家等级
+  optional uint32 tasterlv = 4;   //美食家等级
+  optional uint64 savehp = 5;
+  optional uint64 savesp = 6;
+  optional uint32 height = 7;
+  optional uint32 weight = 8;
+  repeated uint32 recipes = 9;
+  repeated FoodManualData manualdata = 10;  //料理冒险手册数据
+  repeated FoodItemInfo iteminfo = 11;      //在吃的料理
+  optional uint32 satiety = 12;
+  repeated uint32 last_cooked_ids = 13;      //最近制作的料理
+  repeated FoodLimitInfo limitinfo = 14;      //吃料理次数限制
+}
+
+message BlobHighRefine
+{
+  repeated HighRefineData datas = 1;
+}
+
+// package
+message PackageData
+{
+  optional EPackType type = 1 [ default = EPACKTYPE_MIN ];
+  repeated ItemData items = 2;
+}
+message ItemUseCount
+{
+  optional uint32 itemid = 1 [ default = 0 ];
+  optional uint32 usecount = 2 [ default = 0 ];
+}
+message ItemGetCount
+{
+  optional uint32 itemid = 1 [ default = 0 ];
+  optional uint32 getcount = 2 [ default = 0 ];
+  optional ESource source = 3 [ default = ESOURCE_MIN ];
+}
+
+message RewardSafetyItem
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 expiretime = 2 [ default = 0 ]; // 保底过期时间
+  optional uint32 rollcount = 3 [ default = 0 ]; // 已摇次数
+  optional uint32 rewardcount = 4 [ default = 0 ]; // 摇中次数
+  optional uint32 nextsafetycount = 5 [ default = 0 ]; // 下次保底需摇奖次数
+  optional uint32 version = 6 [ default = 0 ];
+}
+
+message BlobPack
+{
+  repeated PackageData datas = 1;
+  repeated uint32 hintitems = 2;
+  repeated FrostItemInfo frost_item_infos = 3;
+  repeated ItemUseCount itemuse = 4;
+  repeated uint32 onceitems = 5;
+  repeated ItemGetCount itemget = 6;
+
+  optional uint32 arrowid = 8;
+  optional uint32 version = 9 [ default = 0 ];
+  repeated EquipPosData equipposdatas = 10;
+  repeated RewardSafetyItem rewardsafetyitems = 11;
+}
+
+// quest
+message MapQuest
+{
+  optional uint32 mapid = 1 [ default = 0 ];
+  repeated uint32 questids = 2;
+}
+message BlobQuestPuzzle
+{
+  repeated QuestPuzzle puzzles = 1;
+}
+message BlobQuest
+{
+  repeated QuestData accept = 1;
+  repeated QuestData submit = 2;
+  repeated QuestDetail detail = 3;
+
+  optional uint32 dailycount = 4 [ default = 0 ];
+  optional uint32 dailytcount = 5 [ default = 0 ];
+  optional uint32 dailyexp = 6 [ default = 0 ];
+  optional uint32 dailylevel = 7 [ default = 0 ];
+  repeated uint32 dailygift = 8;
+  optional uint32 lastcalcdailycounttime = 9 [ default = 0];
+  repeated MapQuest mapquest = 10;
+  repeated MapQuest maprandquest = 14;
+  repeated uint32 varreward = 11;
+  repeated uint32 forbidquest = 12;
+  repeated uint32 process_acc = 13;
+  optional BlobQuestPuzzle puzzle = 15;
+}
+
+// title
+message BlobTitle
+{
+  optional uint32 curTitle = 1 [ default = 0];
+  repeated TitleData datas = 2;
+  optional uint32 curAchieveTitle = 3 [ default = 0];
+}
+
+// line
+message BlobLineData
+{
+  optional uint64 otherid = 1;
+  optional uint32 expireTime = 2;
+}
+message BlobLine
+{
+  repeated BlobLineData ilinewho = 1;    //i line who
+  repeated BlobLineData wholineme = 2;      //who line me
+}
+
+// sp effect
+message BlobSpEffect
+{
+  repeated SpEffectData data = 1;
+  repeated BlobLineData wholineme = 2;      //who line me
+}
+
+// hand npc
+message BlobHandNpc
+{
+  optional uint32 version = 1 [ default = 0 ];
+  optional HandNpcData data = 2;
+  optional uint32 endtime = 3;
+}
+
+// pet
+message BlobPet
+{
+  optional uint32 activePet = 1 [ default = 0 ];
+  optional uint32 activePartner = 2 [ default = 0 ];
+
+  repeated PetData datas = 3;
+}
+
+// weapon pet
+message BlobWeaponPet
+{
+  optional uint32 version = 1 [ default = 0 ];
+  repeated WeaponPetData datas = 2;
+  optional uint32 maxpetsize = 3 [ default = 0 ];
+  repeated uint32 unlockids = 4;
+}
+
+// vars
+message BlobVar
+{
+  repeated Var datas = 1;
+}
+
+//acc vars
+message BlobAccVar
+{
+  repeated AccVar datas = 1;
+}
+
+message SkillDamage 
+{
+  optional uint32 skillid = 1;
+  optional uint32 damage = 2;
+  optional uint32 type = 3;
+  optional uint64 targetid = 4;
+}
+
+message StatKillMonster
+{
+  required uint32 monsterid = 1;
+  required uint32 killnum = 2;
+}
+//
+message BlobStatVar
+{
+  repeated StatVar datas = 1;
+  repeated SkillDamage skilldamage = 2;    
+  repeated StatKillMonster killmonster = 3;
+}
+
+// chat msg
+message BlobChatMsg
+{
+  repeated PresetMsg preset = 1;
+}
+
+// tower
+message BlobUserTower
+{
+  optional UserTowerInfo towerinfo = 1;
+  optional uint32 cleartime = 2 [ default = 0 ];
+}
+
+// seal
+message BlobSeal
+{
+  repeated SealData datas = 1;
+  repeated SealData questseals = 2;
+  optional uint32 nexttime = 3 [ default = 0 ];
+  repeated uint32 openseals = 4;
+}
+
+// manual
+message BlobManual
+{
+  optional ManualData data = 1;
+  optional bool isadd = 2;
+}
+
+// first action
+message BlobFirstActionDone
+{
+  optional uint32 action = 1;
+}
+
+// attr
+message BlobAttr
+{
+  repeated UserAttrSvr datas = 1;
+}
+
+// camera
+message MonsterNum
+{
+  optional uint32 monsterid = 1;
+  optional uint32 count = 2;
+}
+message BlobCamera
+{
+  optional uint32 version = 1;
+  repeated MonsterNum monsters = 2;
+}
+
+message RaidZone
+{
+  optional uint32 raidid = 1 [ default = 0 ];
+  optional uint32 zoneid = 2 [ default = 0 ];
+}
+
+message BlobZone
+{
+  optional uint32 version = 1;
+  optional uint32 zoneid = 2;
+  optional uint32 mapid = 3;
+  optional bytes cmd = 4;
+  optional uint32 pastzoneid = 5;
+  repeated RaidZone raidzonelist = 6;
+  optional uint32 effectivetime = 7;
+  optional uint32 type = 8 [ default = 0 ];
+  optional uint64 roomid = 9;       //pvp 房间id
+  optional uint32 colorindex = 10;
+
+  optional float x = 11 [ default = 0 ];
+  optional float y = 12 [ default = 0 ];
+  optional float z = 13 [ default = 0 ];
+}
+
+// guild
+message BlobGuild
+{
+  optional GuildInfo info = 1;
+}
+
+// team
+message BlobTeam
+{
+  optional TeamInfo info = 2;
+}
+
+// user zone
+message BlobUserZone
+{
+  repeated RecentZoneInfo infos = 3;
+}
+
+// blob - global quest
+message BlobAccQuest
+{
+  repeated uint32 accept_ids = 1;
+  repeated uint32 choice_ids = 2;
+  optional uint32 version = 3 [ default = 0 ];
+}
+
+// blob - global tower
+message BlobGlobalTower
+{
+  optional TowerInfo info = 1;
+  optional BlobVar var = 2;
+}
+
+// blob - global offline social
+message GlobalSocialFocus
+{
+  optional uint64 guid = 1 [ default = 0 ];
+  repeated uint64 guids = 2;
+}
+message BlobGlobalSociality
+{
+  repeated uint64 applys = 1;
+  repeated GlobalSocialFocus focuss = 2;
+}
+
+// deposit 充值
+
+//充值明细
+message ChargeData
+{
+  optional uint32 time = 1; 
+  optional uint64 money = 2;
+}
+
+message BlobDeposit
+{
+  repeated DepositTypeData typeDatas = 1;  
+  repeated DepositCardData cardDatas = 2;
+  repeated ChargeData  chargeDatas = 3;             //废弃
+  repeated uint32 usedcards = 4;
+  optional bool hasquota = 5 [ default = false ];   
+  repeated QuotaDetail quota_detail = 6;
+  repeated QuotaLog quota_log = 7;
+  optional bool getitem = 8 [ default = false ];    //是否获得过道具
+  optional uint64 quota_lock = 9 [ default = 0 ]; // 锁定额度
+}
+
+enum ETicketType
+{
+  ETicketType_AddGiveItem = 1;   
+  ETicketType_AuctionTake = 2;    //拍卖行领取    
+}
+
+enum ETicketRet
+{
+  ETickRet_No = 0;
+  ETickRet_Ok = 1;
+  ETickRet_Error = 2;  
+}
+
+//去重的票据
+message BlobTicketData
+{
+  optional ETicketType type = 1;
+  optional string guid = 2;
+  optional ETicketRet ret = 3;
+  optional uint32 time = 4;
+}
+
+enum ETicketCmdType
+{
+  ETicketCmdType_Auction = 1;     //拍卖行   
+}
+
+message BlobTicketCacheCmd
+{
+  optional ETicketCmdType type = 1;
+  optional string guid = 2;
+  optional bytes data = 3;
+  optional uint32 len = 4;
+  optional uint32 time = 5;
+}
+
+//去重的票据
+message BlobTicket
+{
+  repeated BlobTicketData tickdata = 1;
+  repeated BlobTicketCacheCmd cache_cmds = 2;  
+}
+
+// 玩家信用度
+message BlobCredit
+{
+  optional uint32 version = 1 [ default = 0 ];
+  optional int32 credit = 2 [ default = 0 ];
+
+  optional uint32 monster_value = 3 [ default = 0 ];
+  optional uint32 savedtime = 4 [ default = 0 ];
+  optional uint32 forbidtime = 5 [ default = 0 ];
+
+  optional uint32 auguryreward = 6 [ default = 0 ];
+  optional BlobShopGotItem shop = 7;  //账号共享次数
+  optional BlobAccVar var = 8;
+
+  optional uint32 maxbaselv = 9 [ default = 0 ];
+  optional uint32 maxbaselv_resettime = 10 [ default = 0 ];
+
+  optional BlobActivityEvent acevent = 11;
+}
+message BlobNewCredit
+{
+  optional uint32 version = 1 [ default = 0 ];
+  optional int32 credit = 2 [ default = 0 ];
+
+  optional uint32 monster_value = 3 [ default = 0 ];
+  optional uint32 savedtime = 4 [ default = 0 ];
+  optional uint32 forbidtime = 5 [ default = 0 ];
+}
+
+// 聊天信息
+message ChatCount
+{
+  optional uint64 targetid = 2 [ default = 0 ];
+  optional uint32 to_chat = 3 [ default = 0 ];
+  optional uint32 from_chat = 4 [ default = 0 ];
+}
+message ChatItem
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 time = 2 [ default = 0 ];
+
+  optional string name = 3;
+  optional string msg = 4;
+}
+message BlobChat
+{
+  repeated ChatCount counts = 1;
+  repeated uint64 savelist = 2;
+  repeated ChatItem items = 3;
+}
+
+message ActivityCommonData
+{
+  optional string name = 1;
+  repeated uint32 params = 2;
+}
+
+message BlobActivity
+{
+  optional uint32 version = 1 [ default = 0 ];
+  repeated ActivityCommonData activitydatas = 2;
+}
+
+message BlobRelation
+{
+  optional uint32 version = 1 [ default = 0 ];
+  repeated uint64 black = 2;
+}
+
+
+//分享数据
+enum EShareDataType
+{
+  ESHAREDATATYPE_MIN = 0;
+  ESHAREDATATYPE_S_BATTLETIME = 1;      //总战斗时长
+  ESHAREDATATYPE_S_KILLMONSTER = 2;     //总杀怪物数量
+  ESHAREDATATYPE_S_MVPCOUNT = 3;        //总击杀mvp次数
+  ESHAREDATATYPE_S_MINICOUNT = 4;       //总击杀mini次数
+  ESHAREDATATYPE_S_MOVEDIS = 5;         //总移动距离
+  ESHAREDATATYPE_S_PHOTOCOUNT = 6;      //总拍照次数
+  ESHAREDATATYPE_N_FRIENDCOUNT = 7;     //当前好友数
+  ESHAREDATATYPE_S_TRADECOST = 8;       //总交易所花费
+  ESHAREDATATYPE_S_TRADEGAIN = 9;       //总交易所获得
+  ESHAREDATATYPE_S_REFINECOUNT = 10;     //总精炼次数
+  ESHAREDATATYPE_S_REFINESUCCESS = 11;   //总精炼成功次数
+  ESHAREDATATYPE_S_REFINEDAMAGE = 12;    //总精炼损坏次数
+  ESHAREDATATYPE_S_ENCHANTCOUNT = 13;    //总附魔次数
+  ESHAREDATATYPE_S_ENCHANTCOST = 14;     //总附魔花费
+  ESHAREDATATYPE_S_HUEDIE = 15;          //总蝴蝶翅膀次数
+  ESHAREDATATYPE_S_CANGYING = 16;        //总苍蝇翅膀次数
+  ESHAREDATATYPE_MAX_TOWER = 17;         //爬塔最高历史记录
+
+  ESHAREDATATYPE_MOST_KILLMONSTER = 18;   //击杀最多的魔物id                 怪物id：数量
+  ESHAREDATATYPE_MOST_DROPITEM = 19;      //掉落最多的物品id                 物品id：数量
+  ESHAREDATATYPE_MOST_TEAM = 20;          //组队次数                         charid:次数
+  ESHAREDATATYPE_MOST_HAND = 21;          //牵手最多的玩家和牵手数量         charid:次数
+  ESHAREDATATYPE_MOST_SAVE = 22;          //救过的人和次数                   charid:次数
+  ESHAREDATATYPE_MOST_BESAVED = 23;       //被救过的人和次数                 charid:次数
+  ESHAREDATATYPE_MOST_WHELL = 24;
+  ESHAREDATATYPE_MOST_CHAT = 25;
+
+  ESHAREDATATYPE_MOST_TEAMTIME = 26;
+  ESHAREDATATYPE_MOST_HANDTIME = 27;
+
+  ESHAREDATATYPE_S_LOGINCOUNT = 28;
+  ESHAREDATATYPE_S_BE_PRO_1_TIME = 29;
+  ESHAREDATATYPE_S_BE_PRO_2_TIME = 30;
+  ESHAREDATATYPE_S_BE_PRO_3_TIME = 31;
+
+  ESHAREDATATYPE_MOST_MUSICCD = 32;
+  ESHAREDATATYPE_MOST_HAND_TIMECOUNT = 33;
+  ESHAREDATATYPE_MOST_EXPRESSION = 34;
+  ESHAREDATATYPE_MOST_BARRAGEMSG = 35;
+  ESHAREDATATYPE_MOST_CARRIER = 36;
+  ESHAREDATATYPE_MOST_HANDMUSIC = 37;
+
+  ESHAREDATATYPE_MAX = 38;
+}
+
+message ShareNormal
+{
+  optional EShareDataType type = 1;
+  optional uint64 value = 2;  
+}
+
+message ShareCalcItem
+{
+  optional uint32 high_key = 1 [ default = 0];      //节约字段大小，由两个uint32组成一个uint64  高32位
+  optional uint32 low_key = 2 [ default = 0];       //低32位
+  optional uint32 high_value = 3 [ default = 0];    //节约字段大小，由两个uint32组成一个uint64
+  optional uint32 low_value = 4 [ default = 0];     //低32位
+}
+
+message ShareCalc
+{
+  optional EShareDataType type = 1;
+  repeated ShareCalcItem items = 3;  
+}
+
+message ShareFirstMvp
+{
+  optional uint32 mvpid = 2;    //第一次击杀的mvpid
+}
+
+message ShareFirstHand
+{
+  optional uint64 otherid = 1;
+}
+message ShareFirstCarrier
+{
+  optional uint64 otherid = 1;
+}
+message ShareTrade
+{
+  optional uint32 itemid = 1;           //物品id
+  optional uint64 total_price = 2;      //总价值
+  optional uint32 refine_lv = 3;        //精炼等级
+}
+message ShareDamage
+{
+  optional uint64 damage = 1;   //伤害值
+  optional string target = 2;   //目标名字
+}
+
+message BlobShare
+{
+  repeated ShareNormal normaldata =1;           //普通的数据
+  repeated ShareCalc  calcdata = 2;             //带计算的数据
+  optional ShareFirstMvp firstmvp  = 3;      
+  optional string firstphoto = 4;               //第一次拍照
+  optional ShareFirstHand firsthand = 5;        //第一次牵手
+  optional ShareFirstCarrier firstcarrier = 6;  //第一次摩天轮
+  optional ShareTrade  tradebuy = 7;
+  optional ShareTrade  tradesell = 8; 
+  optional ShareDamage maxdamage = 9;           //打出过的最高一次的输出 
+  repeated uint32  mystery_box = 10;            //神秘箱子开出的物品id，统计总数
+}
+
+message AchieveDBItem
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 process = 2 [ default = 0 ];
+  optional uint32 finishtime = 3 [ default = 0 ];
+  optional bool reward_get = 4 [ default = false ];
+
+  repeated uint64 params = 5;
+}
+// acc_data : AchieveDBItem:4, version:3
+// char_data : MaxInfo:2
+message BlobAchieve
+{
+  repeated AchieveData data = 1;
+  repeated MaxInfo max_cache = 2;
+
+  optional uint32 version = 3 [ default = 0 ];
+  repeated AchieveDBItem items = 4;
+  optional uint32 char_version = 5 [ default = 0 ];
+}
+
+message BlobAuthorize
+{
+  optional string password = 1;       //安全密码
+  optional uint32 resettime = 2;      //密码重置到期时间
+  optional uint32 inputtime = 3;      //下次输入密码时间
+}
+
+message GuildRaid
+{
+  optional uint64 npcid = 1;         // 大门npcid
+  optional EGuildGateState state = 2; // 大门状态
+  repeated uint32 killedboss = 3;    // 已击杀boss
+}
+
+message BlobGuildRaid
+{
+  repeated GuildRaid raid = 1; // 副本信息
+  optional uint32 raidversion = 2; // 记录副本重置记录
+}
+
+// 星盘星位
+message AstrolabeStarData
+{
+  optional uint32 id = 1 [ default = 0 ]; // 盘位id
+}
+
+// 星盘
+message AstrolabeData
+{
+  optional uint32 id = 1;
+  repeated AstrolabeStarData stars = 2;
+  repeated AstrolabeCostData costs = 3; // 激活消耗道具
+}
+
+message AstrolabeMainData
+{
+  optional EAstrolabeType type = 1;
+  repeated AstrolabeData astrolabes = 2;
+}
+
+message BlobAstrolabe
+{
+  repeated AstrolabeMainData datas = 1;
+}
+
+// 宠物冒险
+message PetAdventureDBItem
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 starttime = 2 [ default = 0 ];
+
+  optional EPetAdventureStatus status = 3 [ default = EPETADVENTURESTATUS_MIN ];
+  repeated ItemData eggs = 4;
+  repeated PetAdventureStep steps = 5;
+  repeated ItemData raresreward = 6;
+  optional uint32 specid = 7 [ default = 0 ];
+  repeated PetEfficiencyInfo eff = 8;
+  repeated PetMonsterRewardInfo rewardinfo = 9;
+  repeated ItemData extrarewardinfo = 10;
+}
+message BlobPetAdventure
+{
+  repeated PetAdventureDBItem items = 1;
+  repeated uint32 unlockarea = 2;
+  optional uint32 version = 3;
+}
+
+// 宠物打工
+message BlobPetWork
+{
+  optional WorkManual manual = 1;
+  repeated WorkSpace datas = 2;
+  repeated WorkPetExtra pets = 3;
+  repeated WorkDayReward rewards = 5;
+
+  optional uint32 card_expiretime = 4 [ default = 0 ];
+}
+
+// Eye
+message BlobEye
+{
+  optional uint32 curid = 1 [ default = 0 ];
+  repeated uint32 unlockids = 2;
+}
+
+// 导师冒险任务
+message BlobTutorTask
+{
+  repeated TutorTaskItem items = 1;
+  optional uint32 proficiency = 2 [ default = 0 ];
+  repeated TutorReward tutorrewards = 3;
+  repeated uint64 growreward = 4;
+  repeated uint64 tutorgrowreward = 5;
+  optional uint32 growrewardlv = 6 [ default = 0 ];
+}
+
+// 活动模板
+message BlobActivityEvent
+{
+  repeated AERewardItem rewarditems = 1;
+  repeated ActivityEventCnt eventcnt = 2;
+}
+
+// 公会挑战
+message BlobGuildChallenge
+{
+  repeated GuildChallengeItem items = 1;
+}
+
+// 公会战数据
+message BlobGvgData
+{
+  repeated GvgData datas = 1;
+  optional uint32 expiretime = 2 [ default = 0 ];
+}
+
+// blob - userdata
+message BlobUserData
+{
+  // pos point
+  optional float x = 1 [ default = 0 ];
+  optional float y = 2 [ default = 0 ];
+  optional float z = 3 [ default = 0 ];
+
+  // cd
+  optional BlobCDTime cdtime = 4;
+  // shortcut
+  optional BlobShortcut shortcuts = 5;
+  // follower
+  optional BlobFollower follower = 6;
+  // stage
+  optional BlobStage stage = 7;
+  // UserQuestNpc
+  optional BlobQuestNpc questnpc = 8;
+  // Buffer
+  optional BlobBuffer buffer = 9;
+  // menu
+  optional BlobMenu menu = 10;
+  // cloth color
+  optional uint32 clothcolor = 11 [ default = 0 ];
+  // portrait
+  optional BlobPortrait port = 12;
+  // shop got item
+  optional BlobShopGotItem items = 13;
+  // hair
+  optional BlobHair hair = 14;
+  // known map
+  optional BlobKnownMaps maps = 15;
+  // gear
+  optional BlobGears gear = 16;
+  // garden
+  optional uint32 garden = 17 [ default = 0 ];
+  // pufify
+  optional uint32 purify = 18 [ default = 0 ];
+  // tip
+  optional BlobTips tips = 19;
+  // save map
+  optional uint32 savemap = 20 [ default = 0 ];
+  // gm effect
+  optional BlobGMEffects gms = 21;
+  // freyja
+  optional BlobFreyja freyja = 22;
+  // interlocution
+  optional BlobInter inters = 23;
+  // laboratory
+  optional BlobLaboratory laboratory = 24;
+  // scenery
+  optional BlobScenery scenery = 25;
+  // carrier
+  optional BlobCarrier carrier = 27;
+  // lastmap
+  optional uint32 lastmapid = 28;
+  // show npcs
+  repeated uint32 shownpcs = 29;
+  // area map
+  repeated uint32 mapareas = 30;
+  // hands
+  optional BlobHands hands = 31;
+  // actions, motions
+  optional BlobShow usershow = 32;
+  optional uint32 lastrealmapid = 33;
+  // item trace
+  optional BlobTrace trace = 34;
+  // option
+  optional BlobOption option = 35;
+  // first action
+  optional BlobFirstActionDone firstaction = 36;
+  // title
+  optional BlobTitle title = 37;
+  // line
+  optional BlobLine lines = 38;
+  // dojo
+  optional BlobDojo dojo = 39;
+  // patch version
+  repeated uint32 patchversion = 40;
+  optional BlobFood food = 41;
+}
+
+// patch : del patch char
+enum EPatchType
+{
+  EPATCHTYPE_QUEST = 1;
+}
+message DelPatchCharRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_DEL_PATCH_CHAR ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional EPatchType type = 4 [ default = EPATCHTYPE_QUEST ];
+}
+
+// scene -> record : save chat
+message BlobChatItem
+{
+  repeated ChatItem items = 1;
+}
+message ChatSaveRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_CHAT_SAVE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 portrait = 4 [ default = 0 ];
+  optional uint32 time = 5 [ default = 0 ];
+  optional bytes data = 6;
+}
+
+// scene <-> record : query chat
+message QueryChatRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_CHAT_QUERY ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 targetid = 4 [ default = 0 ];
+
+  optional uint32 start = 5 [ default = 0 ];
+  optional uint32 end = 6 [ default = 0 ];
+
+  optional uint32 selfport = 7 [ default = 0 ];
+  optional uint32 targetport = 8 [ default = 0 ];
+
+  optional string scenename = 9;
+  repeated bytes datas = 10;
+}
+
+// scene <-> record : query rename
+message UserRenameQueryRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_USER_RENAME_QUERY ];
+
+  optional uint64 charid = 3;
+  optional uint64 accid = 4;
+  optional string oldname = 5;
+  optional string newname = 6;
+  optional string scenename = 7;
+  optional ERenameErrCode code = 8 [ default = ERENAME_SUCCESS ];
+}
+
+// scene -> record : rename result
+message UserRenameResultRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_USER_RENAME_RESULT ];
+
+  optional uint64 charid = 3;
+  optional uint64 accid = 4;
+  optional string newname = 5;
+  optional string oldname = 6;
+  optional bool success = 7 [ default = false ];
+}
+
+// scene -> data : lottery result
+message LotteryResultRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_LOTTERY_RESULT ];
+
+  optional uint64 charid = 3;
+  optional uint64 itemid = 4;
+  optional string name = 5;
+  optional string itemname = 6;
+  optional uint32 type = 7;
+  optional uint32 rate = 8;
+}
+
+message BlobBattle
+{
+  optional uint32 totalbattletime = 1 [ default = 0 ];
+}
+
+message BlobSeeNpc
+{
+  repeated uint32 see = 1;
+  repeated uint32 hide = 2;
+}
+
+message BlobSettings
+{
+  optional uint32 transmap = 1 [ default = 0 ];
+  optional float trans_x = 2 [ default = 0 ];
+  optional float trans_y = 3 [ default = 0 ];
+  optional float trans_z = 4 [ default = 0 ];
+}
+
+message BlobPhoto
+{
+  repeated PhotoItem items = 1;
+}
+
+message BlobUserPet
+{
+  repeated UserPetData data = 1;
+  optional PetEquipUnlockInfo unlockinfo = 2;
+}
+
+message BlobUserBeing
+{
+  repeated UserBeingData data = 1;
+  optional uint32 curbeingid = 2; // 当前召唤的生命体id
+  optional uint32 skillpoint = 3;
+}
+message BlobJoyData
+{
+  optional EJoyActivityType etype = 1 [ default = JOY_ACTIVITY_MIN ];
+  optional uint32 joyvalue = 2 [ default = 0 ];
+}
+
+message LotteryPoolData
+{
+  optional uint32 poolid = 1;
+  optional uint32 coin = 2;
+}
+
+message BlobLottery
+{
+  repeated uint32 items = 1;
+  repeated LotteryPoolData pools = 2;
+  optional uint32 pooltime = 3;
+}
+
+message BlobServant
+{
+  optional uint32 servantid = 1 [ default = 0 ];
+  repeated RecommendItemInfo recitem = 2;
+  repeated uint32 ownservant = 3;
+  repeated GrowthItemInfo growthitem = 4;
+  repeated GrowthValueInfo growthvalue = 5;
+  repeated GrowthCurInfo growthcurinfo = 6;
+}
+
+message ProfessionData
+{
+  optional uint32 id = 1;
+  optional uint32 profession = 2;
+  optional uint32 joblv = 3;
+  optional uint32 jobexp = 4;
+  optional EProfressionDataType type = 5 [ default = ETypeBranch ];
+  optional string recordname = 6;  //存档名
+  optional uint32 recordtime = 7;  //存档时间戳
+  optional uint64 charid = 8;
+  optional string charname = 9;
+  optional uint32 pro_branch = 10;
+
+  optional BlobAstrolabe astrolabe_data = 11;
+  repeated EquipPackData pack_data = 12;
+  optional UserRoleData role_data = 13;
+  optional BlobUserBeing being_data = 14;
+  optional BlobAttr attr_data = 15;
+  optional SkillData novice_data = 16;  //冒险技能  客户端显示用
+  optional BlobPet partner_data = 17;  //partner信息 手推车、猎鹰等
+  optional bool isfirst = 18 [ default = true ];
+  repeated UserData appearance_data = 19; //角色外观信息
+  optional SkillValidPosData skillpos = 20; // 废弃
+  optional uint32 opertime = 21;  // 操作时间
+  optional SkillValidPos shortcut = 22;
+  repeated ExchangeShopItem exchange_items = 23;
+}
+
+message ProfessionSvrData
+{
+  optional uint32 id = 1 [ default = 0 ];
+
+  optional uint32 bepro_1_time = 2 [ default = 0 ];
+  optional uint32 bepro_2_time = 3 [ default = 0 ];
+  optional uint32 bepro_3_time = 4 [ default = 0 ];
+}
+
+message BlobProfession
+{
+  repeated ProfessionData datas = 1;
+  repeated ProfessionSvrData svr_datas = 3;
+  optional uint32 last_load_time = 2 [ default = 0 ];
+}
+
+//存档信息
+message BlobRecordInfo
+{
+  optional uint32 buytimes = 1; //已经购买的次数
+  optional uint32 last_load_time = 2; //上次读取时间
+  repeated ProfessionData records = 3;
+  optional uint32 dest_charid = 4;
+  optional uint32 dest_map = 5;
+  optional uint32 dest_slotid = 6;
+  optional uint32 card_expiretime = 7;
+  repeated UserAstrolMaterialData astrol_data = 8;
+}
+
+message UserProfessionData
+{
+  optional uint32 profession = 1;
+  optional uint32 joblv = 2;
+}
+
+// scene -> data
+message ReqUserProfessionCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_USER_PROFESSION ];
+
+  optional uint64 charid = 3;
+  optional uint64 accid = 4;
+  optional string scenename = 5;
+  repeated UserProfessionData datas = 6;
+}
+
+// scene -> data
+message ProfessionSaveRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_PROFESSION_SAVE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 branch = 4 [ default = 0 ];
+  optional bytes data = 5;
+}
+// scene <-> data
+message ProfessionQueryRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_PROFESSION_QUERY ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional string scenename = 4;
+
+  repeated bytes datas = 5;
+}
+
+message ActivityQuestItem
+{
+  optional uint32 questid = 1 [ default = 0 ];
+  optional uint32 finishcount = 2 [ default = 0 ];
+  optional uint32 lastquesttime = 3 [ default = 0 ];
+}
+
+
+message BlobActivityQuest
+{
+  repeated ActivityQuestItem activityitems = 1;
+}
+
+message BlobBooth
+{
+  optional uint32 score = 1;
+}
+
+// 贤者 召唤的元素精灵信息
+message BlobElementElfData
+{
+  optional uint32 cur_element_id = 1;
+  optional uint32 clear_time = 2;
+}
+
+// data -> scene
+message CheatTagRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_CHEAT_TAG ];
+  
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 mininterval = 4 [ default = 0 ];
+  optional uint32 frame = 5 [ default = 0 ];
+  optional uint32 count = 6 [ default = 0 ];
+}
+
+// scene -> data
+message CheatTagQueryRecordCmd
+{
+  optional Command cmd = 1 [ default = RECORD_DATA_PROTOCMD ];
+  optional RecordParam param = 2 [ default = RECORDPARAM_CHEAT_TAG_QUERY ];
+  
+  optional uint64 charid = 3 [ default = 0 ];
+  optional string scenename = 4;
+}

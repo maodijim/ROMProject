@@ -1,0 +1,370 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+
+enum SocialityParam
+{
+  SOCIALITYPARAM_QUERYDATA = 1;
+  SOCIALITYPARAM_FINDUSER = 2;
+  SOCIALITYPARAM_UPDATE = 3;
+  SOCIALITYPARAM_UPDATEDATA = 4;
+  SOCIALITYPARAM_FRAMESTATUS = 5;
+  SOCIALITYPARAM_USE_GIFT_CODE = 6;
+
+  SOCIALITYPARAM_OPERATE_QUERY = 7;
+  SOCIALITYPARAM_OPERATE_TAKE = 8;
+
+  SOCIALITYPARAM_QUERYDATA_NTF = 9;
+  SOCIALITYPARAM_OPER_ACTIVITY_NTF = 10;
+
+  SOCIALITYPARAM_ADDRELATION = 11;
+  SOCIALITYPARAM_REMOVERELATION = 12;
+
+  SOCIALITYPARAM_QUERY_RECALL_LIST = 13;
+  SOCIALITYPARAM_RECALL_FRIEND = 14;
+  SOCIALITYPARAM_ADD_RELATION_RESULT = 15;
+
+  SOCIALITYPARAM_QUERY_CHARGE_VIRGIN = 16;
+  SOCIALITYPARAM_QUERY_USER_INFO = 17;
+}
+
+enum ESocialRelation
+{
+  ESOCIALRELATION_MIN = 1;
+  ESOCIALRELATION_FRIEND = 2;
+  ESOCIALRELATION_MERRY = 4;
+  ESOCIALRELATION_CHAT = 8;
+  ESOCIALRELATION_TEAM = 16;
+  ESOCIALRELATION_APPLY = 32;
+  ESOCIALRELATION_BLACK = 64;
+  ESOCIALRELATION_BLACK_FOREVER = 128;
+  ESOCIALRELATION_TUTOR = 256;
+  ESOCIALRELATION_TUTOR_APPLY = 512;
+  ESOCIALRELATION_STUDENT = 1024;
+  ESOCIALRELATION_STUDENT_APPLY = 2048;
+  ESOCIALRELATION_STUDENT_RECENT = 4096;
+  ESOCIALRELATION_TUTOR_PUNISH = 8192;
+  ESOCIALRELATION_TUTOR_CLASSMATE = 16384;
+  ESOCIALRELATION_RECALL = 32768;
+  ESOCIALRELATION_BERECALL = 65536;
+  ESOCIALRELATION_MAX = 65537;
+}
+
+enum ESocialData
+{
+  ESOCIALDATA_MIN = 1;
+  ESOCIALDATA_LEVEL = 2;
+  ESOCIALDATA_OFFLINETIME = 3;
+  ESOCIALDATA_RELATION = 4;
+  ESOCIALDATA_PROFESSION = 5;
+  ESOCIALDATA_PORTRAIT = 6;
+  ESOCIALDATA_FRAME = 7;
+  ESOCIALDATA_HAIR = 8;
+  ESOCIALDATA_HAIRCOLOR = 9;
+  ESOCIALDATA_BODY = 10;
+  ESOCIALDATA_ADVENTURELV = 11;
+  ESOCIALDATA_ADVENTUREEXP = 12;
+  ESOCIALDATA_APPELLATION = 13;
+  ESOCIALDATA_GENDER = 14;
+  ESOCIALDATA_GUILDNAME = 15;
+  ESOCIALDATA_GUILDPORTRAIT = 16;
+  //ESOCIALDATA_MAP = 17;
+  ESOCIALDATA_BLINK = 18;
+  ESOCIALDATA_ZONEID = 19;
+  ESOCIALDATA_NAME = 20;
+  ESOCIALDATA_CREATETIME = 21;
+  ESOCIALDATA_HEAD = 22;
+  ESOCIALDATA_FACE = 23;
+  ESOCIALDATA_MOUTH = 24;
+  ESOCIALDATA_TUTOR_PROFIC = 25;
+  ESOCIALDATA_EYE = 26;
+  ESOCIALDATA_RECALL = 27;
+  ESOCIALDATA_CANRECALL = 28;
+  ESOCIALDATA_MAX = 29;
+}
+
+message SocialData
+{
+  optional uint64 guid = 1 [ default = 0 ];
+  optional uint64 accid = 2 [ default = 0 ];
+
+  optional uint32 level = 3 [ default = 0 ];
+  optional uint32 offlinetime = 4 [ default = 0 ];
+  optional uint32 relation = 5 [ default = 0 ];
+
+  optional uint32 portrait = 6 [ default = 0 ];
+  optional uint32 frame = 7 [ default = 0 ];
+  optional uint32 hair = 8 [ default = 0 ];
+  optional uint32 haircolor = 9 [ default = 0 ];
+  optional uint32 body = 10 [ default = 0 ];
+  optional uint32 head = 11 [ default = 0 ];
+  optional uint32 face = 12 [ default = 0 ];
+  optional uint32 mouth = 13 [ default = 0 ];
+  optional uint32 eye = 14 [ default = 0 ];
+  optional uint32 profic = 15 [ default = 0 ];
+
+  optional uint32 adventurelv = 16 [ default = 0 ];
+  optional uint32 adventureexp = 17 [ default = 0 ];
+  optional uint32 appellation = 18 [ default = 0 ];
+
+  optional uint32 mapid = 19 [ default = 0 ];
+  optional uint32 zoneid = 20 [ default = 0 ];
+
+  optional EProfession profession = 21 [ default = EPROFESSION_MIN ];
+  optional EGender gender = 22 [ default = EGENDER_MIN ];
+
+  optional bool blink = 23 [ default = false ];
+  optional bool recall = 24 [ default = false ];
+  optional bool canrecall = 25 [ default = false ];
+
+  optional string name = 26;
+  optional string guildname = 27;
+  optional string guildportrait = 28;
+  optional string createtime = 29;
+}
+
+// client <-> session : query social data
+message QuerySocialData
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_QUERYDATA ];
+
+  repeated SocialData datas = 4;
+}
+
+// client <-> session : find user
+message FindUser
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_FINDUSER ];
+
+  optional string keyword = 3;
+  repeated SocialData datas = 4;
+}
+
+// session -> client : update
+message SocialUpdate
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_UPDATE ];
+
+  repeated SocialData updates = 4;
+  repeated uint64 dels = 5;
+}
+
+// session -> client : update data
+message SocialDataItem
+{
+  optional ESocialData type = 1 [ default = ESOCIALDATA_MIN ];
+  optional uint32 value = 2 [ default = 0 ];
+  optional string data = 3;
+}
+message SocialDataUpdate
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_UPDATEDATA ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+  repeated SocialDataItem items = 4;
+}
+
+// client -> session : reg update
+message FrameStatusSocialCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_FRAMESTATUS ];
+
+  optional bool open = 3 [ default = false ];
+}
+
+// client -> session ->social
+message UseGiftCodeSocialCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_USE_GIFT_CODE ];
+
+  optional string code = 3 ;
+  //res
+  optional bool ret = 4;
+}
+
+//client  <-> scene
+
+enum EOperateType 
+{
+  EOperateType_Summer = 1;  //夏测，雪糕头饰
+  EOperateType_Autumn = 2;  //秋测, 枫叶头饰
+  EOperateType_Charge = 3;  //充值银币
+  EOperateType_CodeBW = 4;  //百万
+  EOperateType_CodeMX = 5;  //冒险
+  EOperateType_RedBag = 6;  //大年夜红包
+  EOperateType_Phone = 7;   //绑定手机
+  EOperateType_MonthCard = 8;   //月卡领礼包
+      
+}
+
+enum EOperateState
+{
+  EOperateState_None = 1;
+  EOperateState_Toke = 2;
+  EOperateState_CanTake = 3;
+  EOperateState_Expire = 4;   
+}
+
+message OperateQuerySocialCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_OPERATE_QUERY ];
+  optional EOperateType type = 3;  
+  optional EOperateState state = 4;
+  optional uint32 param1 = 5;
+  optional uint32 param2 = 6;
+  optional uint32 param3 = 7;
+  repeated uint32 param4 = 8;
+}
+
+message OperateTakeSocialCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_OPERATE_TAKE ];
+  optional EOperateType type = 3;  
+  optional EOperateState state = 4;      
+  optional uint32 subkey = 5;
+}
+
+// social -> client : querydata ntf
+message QueryDataNtfSocialCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_QUERYDATA_NTF ];
+
+  repeated SocialData relations = 3;
+}
+
+message OperActivityUrl
+{
+  optional uint32 language = 1 [ default = 0 ];
+  optional string url = 2;
+}
+
+message OperActivityData
+{
+  repeated OperActivityUrl iconurls = 1;
+  repeated OperActivityUrl urls = 2;
+}
+
+message OperSubActivityData
+{
+  repeated OperActivityUrl picurls = 1;
+  repeated OperActivityUrl urls = 2;
+}
+
+message OperSubActivity
+{
+  optional uint64 id = 1 [ default = 0 ];
+  optional string name = 2;
+  optional uint32 begintime = 4 [ default = 0 ];
+  optional uint32 endtime = 5 [ default = 0 ];
+  optional uint32 pathid = 6 [ default = 0 ];
+  optional uint32 pathtype = 7 [ default = 0 ];
+  optional string pathevent = 8;
+  optional string url = 9;      // 非空时优先使用, 否则取data
+  optional string pic_url = 10; // 非空时优先使用, 否则取data
+  optional uint64 groupid = 11 [ default = 0 ];
+  optional OperSubActivityData data = 12;
+}
+
+message OperActivity
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional string name = 2;
+  optional string iconurl = 3;  // 非空时优先使用, 否则取data
+  optional uint32 begintime = 4 [ default = 0 ];
+  optional uint32 endtime = 5 [ default = 0 ];
+  optional string url = 6;      // 非空时优先使用, 否则取data
+  optional bool countdown = 7 [ default = false ];
+  repeated OperSubActivity sub_activity = 8;
+  optional OperActivityData data = 9;
+}
+
+// session -> client : 运营活动面板通知客户端
+message OperActivityNtfSocialCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_OPER_ACTIVITY_NTF ];
+  repeated OperActivity activity = 3;
+}
+
+// client -> session : add relation
+message AddRelation
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_ADDRELATION ];
+
+  repeated uint64 charid = 3;
+  optional ESocialRelation relation = 4 [ default = ESOCIALRELATION_MIN ];
+}
+
+// client -> session : remove relation
+message RemoveRelation
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_REMOVERELATION ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional ESocialRelation relation = 4 [ default = ESOCIALRELATION_MIN ];
+}
+
+// social -> client : query recall list
+message Recall
+{
+  optional uint64 charid = 1 [ default = 0 ];
+}
+message QueryRecallListSocialCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_QUERY_RECALL_LIST ];
+
+  repeated Recall items = 3;
+}
+
+// client -> social : recall friend
+message RecallFriendSocialCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_RECALL_FRIEND ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+}
+
+// social -> client : sign
+message AddRelationResultSocialCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_ADD_RELATION_RESULT ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional ESocialRelation relation = 4 [ default = ESOCIALRELATION_MIN ];
+  optional bool success = 5 [ default = false ];
+}
+
+// client <-> session
+message QueryChargeVirginCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_QUERY_CHARGE_VIRGIN ];
+
+  repeated uint64 datas = 3;
+  optional uint64 del = 4 [default = 0];
+}
+
+message QueryUserInfoCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SOCIALITY_PROTOCMD ];
+  optional SocialityParam param = 2 [ default = SOCIALITYPARAM_QUERY_USER_INFO ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional SocialData data = 4;
+}
+

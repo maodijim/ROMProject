@@ -1,0 +1,67 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+
+enum InterParam
+{
+  INTERPARAM_NEWINTERLOCUTION = 1;
+  INTERPARAM_ANSWERINTER = 2;
+  INTERPARAM_QUERYINTER = 3;
+}
+
+message InterData
+{
+  optional uint32 guid = 1 [ default = 0 ];
+  optional uint32 interid = 2 [ default = 0 ];
+
+  optional ESource source = 3 [ default = ESOURCE_MIN ];
+}
+
+// scene -> client : new interlocution
+message NewInter
+{
+  optional Command cmd = 1 [ default = SCENE_USER_INTER_PROTOCMD ];
+  optional InterParam param = 2 [ default = INTERPARAM_NEWINTERLOCUTION ];
+
+  optional InterData inter = 3;
+  optional uint64 npcid = 4;
+  optional uint64 answerid = 5 [ default = 0];     //回答者
+}
+
+// scene <-> client : answer
+message Answer
+{
+  optional Command cmd = 1 [ default = SCENE_USER_INTER_PROTOCMD ];
+  optional InterParam param = 2 [ default = INTERPARAM_ANSWERINTER ];
+
+  optional uint64 npcid = 3;
+  optional uint32 guid = 4 [ default = 0 ];
+  optional uint32 interid = 5 [ default = 0 ];
+  optional ESource source = 6 [ default = ESOURCE_MIN ];
+
+  optional uint32 answer = 7 [ default = 0 ];
+  optional bool correct = 8 [ default = false ];
+}
+
+enum EQueryState
+{
+  EQUERYSTATE_OK = 1;
+  EQUERYSTATE_ANSWERED_RIGHT = 2;
+  EQUERYSTATE_ANSWERED_WRONG = 3;
+  EQUERYSTATE_FAIL = 4;   
+}
+
+// scene <-> client : answer
+message Query
+{
+  optional Command cmd = 1 [ default = SCENE_USER_INTER_PROTOCMD ];
+  optional InterParam param = 2 [ default = INTERPARAM_QUERYINTER ];
+
+  optional uint64 npcid = 3 [ default = 0 ];
+
+  //res
+  optional EQueryState ret = 4;
+}
+
+

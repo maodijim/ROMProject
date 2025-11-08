@@ -1,0 +1,375 @@
+package Cmd;
+
+import "xCmd.proto";
+import "SceneItem.proto";
+
+enum AuctionCParam
+{
+  AUCTIONCPARAM_NTF_AUCTION_STATE = 1;            //
+  AUCTIONCPARAM_OPEN_AUCTION_PANEL = 2;
+  AUCTIONCPARAM_NTF_SIGNUP_INFO = 3;
+  AUCTIONCPARAM_NTF_AUCTION_INFO = 4;
+  AUCTIONCPARAM_UPDATE_AUCTION_INFO = 5;
+  AUCTIONCPARAM_REQ_AUCTION_FLOWINGWATER = 6;
+  AUCTIONCPARAM_UPDATE_AUCTION_FLOWINGWATER = 7;
+  AUCTIONCPARAM_REQ_LAST_AUCTION_INFO = 8;
+  AUCTIONCPARAM_OFFER_PRICE = 9;
+  AUCTIONCPARAM_REQ_AUCTION_RECORD = 10;
+  AUCTIONCPARAM_TAKE_AUCTION_RECORD = 11;
+  AUCTIONCPARAM_SIGNUP_ITEM = 12;
+  AUCTIONCPARAM_NTF_CANTAKE_CNT = 13;
+  AUCTIONCPARAM_NTF_MY_SIGNUP_INFO = 14;        //推送我自己的报名信息
+  AUCTIONCPARAM_NTF_MY_OFFERPRICE = 15;         //推送我自己的竞拍价格
+  AUCTIONCPARAM_NTF_NEXT_AUCTION_INFO = 16;     //推送我下一个拍品信息
+  AUCTIONCPARAM_REQ_ACUTION_INFO = 17;          //请求拍卖行状态信息
+  AUCTIONCPARAM_NTF_CUR_AUCTION_INFO = 18;      //推送正在拍卖的物品id给全服所有玩家
+  AUCTIONCPARAM_NTF_OVERTAKE_PRICE = 19;        //通知玩家价格被超过了
+  AUCTIONCPARAM_REQ_MY_TRADED_PRICE = 20;       //请求我的拍卖交易完成后的出价
+  AUCTIONCPARAM_NTF_MASK_PRICE = 21;            //通知出价档禁止信息
+  AUTIONCPARAM_AUCTION_DIALOG = 22;             //通知竞拍dialog信息
+}
+
+enum EAuctionState
+{
+  EAuctionState_Close = 1;                 //关闭
+  EAuctionState_SignUp = 2;                //报名
+  EAuctionState_SignUpVerify = 3;          //报名审核
+  EAuctionState_AuctionPublicity = 6;      //公示期
+  EAuctionState_Auction = 4;               //竞拍
+  EAuctionState_AuctionEnd = 5;            //竞拍结束
+}
+
+// auction -> client 玩家上线推送拍卖状态
+message NtfAuctionStateCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_NTF_AUCTION_STATE ];
+  optional EAuctionState state = 3;
+  optional uint64 batchid = 4;        //批次
+  optional uint32 auctiontime = 5;    //拍卖时间
+  optional bool delay = 6;
+}
+
+// client -> auction    拍卖面板打开关闭通知
+message OpenAuctionPanelCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_OPEN_AUCTION_PANEL ];
+  optional bool open = 3;     //true: 打开面板 false:关闭面板
+}
+
+message SignUpItemInfo
+{
+  optional uint32 itemid = 1;
+  optional uint32 price = 2;
+  optional uint32 auction = 3 [ default = 0 ];  // 0:禁止上架；1:物品；2:附魔装备
+}
+
+// auction ->client 推送报名上架信息
+message NtfSignUpInfoCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_NTF_SIGNUP_INFO ];
+  repeated SignUpItemInfo iteminfos = 3;    //拍卖的商品订单
+}
+
+// auction ->client 推送我自己的上架信息
+message NtfMySignUpInfoCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_NTF_MY_SIGNUP_INFO ];
+  repeated uint32 signuped = 4;             //我已经报名的itemid列表
+}
+
+// client -> auction ->client 报名上架物品
+message SignUpItemCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_SIGNUP_ITEM ];
+  optional SignUpItemInfo iteminfo = 3;   
+  optional bool ret = 4;
+
+  optional string guid = 5; // 装备
+}
+
+enum EAuctionResult
+{
+  EAuctionResult_None = 0;
+  EAuctionResult_Fail = 1;        //竞拍失败，流拍
+  EAuctionResult_Sucess = 2;      //竞拍成功
+  EAuctionResult_AtAuction = 3;   //拍卖中
+}
+
+message AuctionItemInfo
+{
+  optional uint32 itemid = 1;
+  optional uint32 price = 2;            //起拍价格
+  optional string seller = 3;
+  optional uint64 sellerid = 4;
+  optional EAuctionResult result = 5;
+  optional uint32 people_cnt = 6;       //竞拍人数
+  optional uint64 trade_price = 7;      //成交价格
+  optional uint32 auction_time = 8;     //拍卖时间
+//  optional uint64 my_price = 9;         //我的出价删除
+  optional uint64 cur_price = 10;       //当前价格
+  optional uint32 mask_price = 11;      //出价档位被禁止，二进制表示，3表示，第一档第二档被禁止
+
+  optional uint64 signup_id = 12;    // 报名id
+  optional ItemData itemdata = 13;   // 装备拍品信息
+}
+
+// auction ->client 推送拍卖信息
+message NtfAuctionInfoCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_NTF_AUCTION_INFO ];
+  repeated AuctionItemInfo iteminfos = 3;   
+  optional uint64 batchid = 4;
+}
+
+
+// auction ->client 更新拍卖信息
+message UpdateAuctionInfoCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_UPDATE_AUCTION_INFO ];
+  optional AuctionItemInfo iteminfo = 3;   
+  optional uint64 batchid = 4;
+}
+
+//拍卖事件
+enum AuctionEvent
+{
+  AuctionEvent_None = 0;           
+  AuctionEvent_Start = 1;         //[时间]  [道具名]拍卖正式开始，拍卖底价zenyXXXXXX                
+  AuctionEvent_OfferPrice = 2;    //[时间]  出价  [线] [玩家名] 出价zenyXXXXXXX     
+  AuctionEvent_Result1 = 3;       //[时间]  30秒  若无竞价，拍品将由[线][玩家名]获得                 
+  AuctionEvent_Result2 = 4;       //[时间]  20秒  拍品即将落锤，还有没有竞价者？                
+  AuctionEvent_Result3 = 5;       //[时间]  10秒  最后十秒，拍品即将归 [线][玩家名]                 
+  AuctionEvent_ResultSuccess = 6; //[时间]  成交  恭喜[线] [玩家名] 成功拍得[道具名]，下一场拍卖将在60秒后开始，敬请等待。                
+  AuctionEvent_ResultFail = 7;    //[时间]  流拍  拍卖时间内无人出价，[道具名]流拍。                           
+}
+
+//拍卖流水信息
+message FlowingWaterInfo
+{
+  optional uint32 time = 1;
+  optional AuctionEvent event = 2;
+  optional uint64 price = 3;
+  optional string player_name = 4;
+  optional uint32 zoneid = 5;
+  optional bool max_price = 6;    //是否是最高价
+  optional uint64 player_id = 7;
+}
+
+// client -> auction ->client 请求拍卖过程流水
+message ReqAuctionFlowingWaterCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_REQ_AUCTION_FLOWINGWATER];
+  optional uint64 batchid = 3;
+  optional uint32 itemid = 4;
+  optional uint32 page_index = 5;
+  repeated FlowingWaterInfo flowingwater = 6;   
+
+  optional uint64 signup_id = 7;
+}
+
+// auction ->client 更新拍卖流水
+message UpdateAuctionFlowingWaterCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_UPDATE_AUCTION_FLOWINGWATER];
+  optional uint64 batchid = 3;
+  optional uint32 itemid = 4;
+  optional FlowingWaterInfo flowingwater = 5;   
+
+  optional uint64 signup_id = 6;
+}
+
+// client -> auction ->client 请求上次拍卖纪录
+message ReqLastAuctionInfoCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_REQ_LAST_AUCTION_INFO ]; 
+}
+
+// client -> auction ->client 出价
+message OfferPriceCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_OFFER_PRICE ]; 
+  optional uint32 itemid = 3;
+  optional uint64 max_price = 4;      //当前价格 
+  optional uint64 add_price = 5;      //我的出价 max_price+add_price
+  optional uint32 level = 6;          //价格档次
+
+  optional uint64 signup_id = 7;
+}
+
+enum ERecordType
+{
+//sell
+  ERecordType_SignUp = 1;           //拍品报名  
+  ERecordType_SignUpSuccess = 2;    //拍品报名成功
+  ERecordType_SignUpFail = 3;       //报名失败的拍品
+  ERecordType_SellSucess = 4;       //竞拍出售成功审核中
+  ERecordType_SellFail = 5;         //流拍
+  ERecordType_SellSucessPass = 6;   //竞拍出售成功审核通过
+  ERecordType_SellSucessNoPass = 7; //竞拍出售成功审核不通过
+
+//buy
+  ERecordType_MaxOfferPrice = 8;    //最高出价   
+  ERecordType_OverTakePrice = 9;    //出价被超过
+  ERecordType_BuySuccess = 10;      //竞拍获得道具审核中
+  ERecordType_BuySuccessPass = 11;  //竞拍获得道具审核通过
+  ERecordType_BuySuccessNoPass = 12;//竞拍获得道具审核不通过
+}
+
+enum EAuctionTakeStatus
+{
+  EAuctionTakeStatus_None = 0;        //不可领取
+  EAuctionTakeStatus_CanTake = 1;     //可领取
+  EAuctionTakeStatus_Took = 2;        //已领取
+}
+
+message AuctionRecord
+{
+  optional uint64 id = 1;
+  optional ERecordType type = 2;
+  optional EAuctionTakeStatus take_status = 3;
+  optional uint32 itemid = 4;
+  optional uint64 price = 5;
+  optional string seller = 6;
+  optional string buyer = 7;
+  optional uint32 zoneid = 8;
+  optional uint64 cost_money = 9;
+  optional uint64 get_money = 10;
+  optional uint64 tax = 11;
+  optional uint64 batchid = 12;   //拍卖场次id
+  optional uint32 time = 13;
+
+  optional uint64 signup_id = 14;
+  optional ItemData itemdata = 15;
+}
+
+// client->auction ->client 请求拍卖纪录
+message ReqAuctionRecordCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_REQ_AUCTION_RECORD ]; 
+  optional uint32 index = 3;
+  optional uint64 total_page_cnt = 4; 
+  //res
+  repeated AuctionRecord records = 5;
+}
+
+// client->auction ->client 领取拍卖物品
+message TakeAuctionRecordCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_TAKE_AUCTION_RECORD]; 
+  optional uint64 id = 3;
+  optional ERecordType type = 4;
+  optional bool ret = 5;
+}
+
+//auction -> client
+message NtfCanTakeCntCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_NTF_CANTAKE_CNT ];   
+  optional uint32 count = 3;
+}
+
+// auction ->client 推送我当前拍卖拍卖信息
+message NtfMyOfferPriceCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_NTF_MY_OFFERPRICE ]; 
+  optional uint64 batchid = 3;
+  optional uint32 itemid = 4;
+  optional uint64 my_price = 5;
+
+  optional uint64 signup_id = 6;
+}
+
+// auction ->client 下一个拍品
+message NtfNextAuctionInfoCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_NTF_NEXT_AUCTION_INFO ]; 
+  optional uint64 batchid = 3;
+  optional uint32 itemid = 4;
+  optional uint32 last_itemid = 5;
+  optional uint64 base_price = 6;
+  optional uint32 start_time = 7;
+
+  optional uint64 signup_id = 8;
+  optional uint64 last_signup_id = 9;
+}
+
+// client -> auction 
+message ReqAuctionInfoCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_REQ_ACUTION_INFO ]; 
+}
+
+// auction ->client 推送正在竞拍的物品给全服玩家
+message NtfCurAuctionInfoCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_NTF_CUR_AUCTION_INFO ]; 
+  optional uint32 itemid = 3;
+}
+
+// auction ->client 通知玩家价格被超过了
+message NtfOverTakePriceCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_NTF_OVERTAKE_PRICE ]; 
+}
+
+// auction ->client 请求我的拍卖交易完成后的出价
+message ReqMyTradedPriceCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_REQ_MY_TRADED_PRICE ]; 
+  optional uint64 batchid = 3;
+  optional uint32 itemid = 4;
+  
+  optional uint64 my_price = 5;
+  optional uint64 signup_id = 6;
+}
+
+// auction -> client 通知出价禁止
+message NtfMaskPriceCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD ];
+  optional AuctionCParam param = 2 [ default = AUCTIONCPARAM_NTF_MASK_PRICE ]; 
+  optional uint64 batchid = 3;
+  optional uint32 itemid = 4;
+  optional uint32 mask_price = 5;
+
+  optional uint64 signup_id = 6;
+}
+
+enum EDialogType
+{
+  EDialogType_None = 0;
+  EDialogType_AuctionStart = 1; // 竞拍开始
+  EDialogType_AuctionSuccess = 2; // 竞拍成功
+  EDialogType_AuctionFail = 3; // 流拍
+  EDialogType_AuctionPubicity = 4; // 公示期
+}
+
+message AuctionDialogCCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONC_PROTOCMD];
+  optional AuctionCParam param = 2 [ default = AUTIONCPARAM_AUCTION_DIALOG];
+  optional EDialogType type = 3 [ default = EDialogType_None];
+  optional uint64 msg_id = 4;
+  repeated string params = 5;
+}
+

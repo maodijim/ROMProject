@@ -1,0 +1,171 @@
+package Cmd;
+
+import "xCmd.proto";
+import "GuildCmd.proto";
+import "ProtoCommon.proto";
+
+enum PhotoParam
+{
+  PHOTOPARAM_QUERY_PHOTO_LIST = 1;
+  PHOTOPARAM_PHOTO_OPT = 2;
+  PHOTOPARAM_PHOTO_UPDATE = 3;
+  PHOTOPARAM_FRAME_ACTION = 4;
+  PHOTOPARAM_QUERY_FRAMEPHOTOLIST = 5;
+  PHOTOPARAM_QUERY_USERPHOTOLIST = 6;
+  PHOTOPARAM_UPDATE_FRAMESHOW = 7;
+  PHOTOPARAM_UPDATE_FRAMEPHOTO = 8;
+  PHOTOPARAM_QUERY_MD5LIST = 9;
+  PHOTOPARAM_ADD_MD5 = 10;
+  PHOTOPARAM_REMOVE_MD5 = 11;
+}
+
+message PhotoItem
+{
+  optional uint32 index = 1 [ default = 0 ];
+  optional uint32 mapid = 2 [ default = 0 ];
+  optional uint32 time = 3 [ default = 0 ];
+  optional uint32 anglez = 4 [ default = 0 ];
+  optional bool isupload = 5 [ default = false ];
+  optional uint64 charid = 6 [ default = 0 ];
+}
+
+// scene -> client : 查询相册
+message PhotoQueryListCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PHOTO_PROTOCMD ];
+  optional PhotoParam param = 2 [ default = PHOTOPARAM_QUERY_PHOTO_LIST ];
+
+  repeated PhotoItem photos = 3;
+  optional uint32 size = 4 [ default = 0 ];
+}
+
+// client -> scene : 操作相册
+enum EPhotoOptType
+{
+  EPHOTOOPTTYPE_MIN = 0;
+  EPHOTOOPTTYPE_ADD = 1;
+  EPHOTOOPTTYPE_UPLOAD = 2;
+  EPHOTOOPTTYPE_REMOVE = 3;
+  EPHOTOOPTTYPE_REPLACE = 4;
+  EPHOTOOPTTYPE_MAX = 5;
+}
+message PhotoOptCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PHOTO_PROTOCMD ];
+  optional PhotoParam param = 2 [ default = PHOTOPARAM_PHOTO_OPT ];
+
+  optional EPhotoOptType opttype = 3 [ default = EPHOTOOPTTYPE_MIN ];
+  optional uint32 index = 4 [ default = 0 ];
+  optional uint32 anglez = 5 [ default = 0 ];
+  optional uint32 mapid = 6 [ default = 0 ];
+}
+
+// scene -> client : 相片数据更新通知
+message PhotoUpdateNtf
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PHOTO_PROTOCMD ];
+  optional PhotoParam param = 2 [ default = PHOTOPARAM_PHOTO_UPDATE ];
+
+  optional EPhotoOptType opttype = 3 [ default = EPHOTOOPTTYPE_MIN ];
+  optional PhotoItem photo = 4;
+}
+
+// client -> scene : frame action
+enum EFrameAction
+{
+  EFRAMEACTION_MIN = 0;
+  EFRAMEACTION_UPLOAD = 1;
+  EFRAMEACTION_REMOVE = 2;
+  EFRAMEACTION_MAX = 3;
+}
+message FrameActionPhotoCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PHOTO_PROTOCMD ];
+  optional PhotoParam param = 2 [ default = PHOTOPARAM_FRAME_ACTION ];
+
+  optional uint32 frameid = 3 [ default = 0 ];
+  optional EFrameAction action = 4 [ default = EFRAMEACTION_MIN ];
+  repeated GuildPhoto photos = 5;
+}
+
+// client <-> scene : query frame photo list
+message QueryFramePhotoListPhotoCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PHOTO_PROTOCMD ];
+  optional PhotoParam param = 2  [ default = PHOTOPARAM_QUERY_FRAMEPHOTOLIST ];
+
+  optional uint32 frameid = 3 [ default = 0 ];
+  repeated GuildPhoto photos = 4;
+}
+
+// scene -> client : query user photo list
+message QueryUserPhotoListPhotoCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PHOTO_PROTOCMD ];
+  optional PhotoParam param = 2 [ default = PHOTOPARAM_QUERY_USERPHOTOLIST ];
+
+  repeated PhotoFrame frames = 3;
+  optional uint32 maxphoto = 4 [ default = 0 ];
+  optional uint32 maxframe = 5 [ default = 0 ];
+}
+
+// scene -> client : update frame show photo
+message FrameShow
+{
+  optional uint32 frameid = 1 [ default = 0 ];
+  optional GuildPhoto photo = 2;
+}
+message UpdateFrameShowPhotoCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PHOTO_PROTOCMD ];
+  optional PhotoParam param = 2 [ default = PHOTOPARAM_UPDATE_FRAMESHOW ];
+
+  repeated FrameShow shows = 3;
+}
+
+// scene -> client : frame photo update
+message FramePhotoUpdatePhotoCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PHOTO_PROTOCMD ];
+  optional PhotoParam param = 2 [ default = PHOTOPARAM_UPDATE_FRAMEPHOTO ];
+
+  optional uint32 frameid = 3 [ default = 0 ];
+  optional GuildPhoto update = 4;
+  optional GuildPhoto del = 5;
+}
+
+// scene -> client : query md5 list
+message PhotoMd5
+{
+  optional uint32 sourceid = 1 [ default = 0 ];
+  optional uint32 time = 2 [ default = 0 ];
+  optional ESource source = 3 [ default = ESOURCE_MIN ];
+  optional string md5 = 4;
+}
+
+message QueryMd5ListPhotoCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PHOTO_PROTOCMD ];
+  optional PhotoParam param = 2 [ default = PHOTOPARAM_QUERY_MD5LIST ];
+
+  repeated PhotoMd5 item = 3;
+}
+
+// client -> scene : add md5
+message AddMd5PhotoCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PHOTO_PROTOCMD ];
+  optional PhotoParam param = 2 [ default = PHOTOPARAM_ADD_MD5 ];
+
+  optional PhotoMd5 md5 = 3;
+}
+
+// client -> scene : remove md5
+message RemoveMd5PhotoCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PHOTO_PROTOCMD ];
+  optional PhotoParam param = 2 [ default = PHOTOPARAM_REMOVE_MD5 ];
+
+  optional PhotoMd5 md5 = 3;
+}
+

@@ -1,0 +1,2215 @@
+package Cmd;
+
+import "xCmd.proto";
+import "SceneUser.proto";
+import "ProtoCommon.proto";
+import "Var.proto";
+import "SessionSociality.proto";
+import "SceneSkill.proto";
+import "SceneBeing.proto";
+import "AstrolabeCmd.proto";
+
+enum User2Param
+{
+  USER2PARAM_GOCITY = 1;
+  USER2PARAM_SYSMSG = 2;
+  USER2PARAM_NPCDATASYNC = 3;
+  USER2PARAM_USERNINESYNC = 4;
+  USER2PARAM_ACTION = 5;
+  USER2PARAM_BUFFERSYNC = 6;
+  USER2PARAM_EXIT_POS = 7;
+  USER2PARAM_RELIVE = 8;
+  USER2PARAM_VAR = 9;
+  USER2PARAM_TALKINFO = 10;
+  USER2PARAM_SERVERTIME = 11;
+  USER2PARAM_NEWTRANSMAP = 12;
+  USER2PARAM_EFFECT = 14;
+  USER2PARAM_MENU = 15;
+  USER2PARAM_NEWMENU = 16;
+  USER2PARAM_TEAMINFONINE = 17;
+  USER2PARAM_USEPORTRAIT = 18;
+  USER2PARAM_USEFRAME = 19;
+  USER2PARAM_NEWPORTRAITFRAME = 20;
+  USER2PARAM_QUERYPORTRAITLIST = 24;
+  USER2PARAM_ADDATTRPOINT = 21;
+  USER2PARAM_QUERYSHOPGOTITEM = 22;
+  USER2PARAM_UPDATESHOPGOTITEM = 23;
+  USER2PARAM_USEDRESSING = 25;
+  USER2PARAM_NEWDRESSING = 26;
+  USER2PARAM_DRESSINGLIST = 27;
+  USER2PARAM_OPENUI = 29;
+  USER2PARAM_DBGSYSMSG = 30;
+  USER2PARAM_FOLLOWTRANSFER = 32;
+  USER2PARAM_NPCFUNC = 33;
+  USER2PARAM_MODELSHOW = 34;
+  USER2PARAM_SOUNDEFFECT = 35;
+  USER2PARAM_PRESETCHATMSG = 36;
+  USER2PARAM_CHANGEBGM = 37;
+  USER2PARAM_QUERYFIGHTERINFO = 38;
+  USER2PARAM_GAMETIME = 40;
+  USER2PARAM_CDTIME = 41;
+  USER2PARAM_STATECHANGE = 42;
+  USER2PARAM_PHOTO = 44;
+  USER2PARAM_SHAKESCREEN = 45;
+  USER2PARAM_QUERYSHORTCUT = 47;
+  USER2PARAM_PUTSHORTCUT = 48;
+  USER2PARAM_NPCANGLE = 49;
+  USER2PARAM_CAMERAFOCUS = 50;
+  USER2PARAM_GOTO_LIST = 51;
+  USER2PARAM_GOTO_GEAR = 52;
+  USER2PARAM_FOLLOWER = 53;
+  USER2PARAM_LABORATORY = 54;
+  USER2PARAM_EXCHANGEPROFESSION = 56;
+  USER2PARAM_GOTO_LABORATORY = 57;
+  USER2PARAM_SCENERY = 58;
+  USER2PARAM_GOMAP_QUEST = 59;
+  USER2PARAM_GOMAP_FOLLOW = 60;
+  USER2PARAM_AUTOHIT = 61;
+  USER2PARAM_UPLOAD_SCENERY_PHOTO = 62;
+  USER2PARAM_QUERY_MAPAREA = 63;
+  USER2PARAM_NEW_MAPAREA = 64;
+  USER2PARAM_FOREVER_BUFF = 66;
+  USER2PARAM_INVITE_JOIN_HANDS = 67;
+  USER2PARAM_BREAK_UP_HANDS= 68;
+  USER2PARAM_QUERY_ACTION= 69;
+  USER2PARAM_MUSIC_LIST = 70;
+  USER2PARAM_MUSIC_DEMAND = 71;
+  USER2PARAM_MUSIC_CLOSE = 72;
+  USER2PARAM_UPLOAD_OK_SCENERY = 73;
+  USER2PARAM_JOIN_HANDS = 74;
+  USER2PARAM_QUERY_TRACE_LIST = 75;
+  USER2PARAM_UPDATE_TRACE_LIST = 76;
+  USER2PARAM_SET_DIRECTION = 77;
+  USER2PARAM_DOWNLOAD_SCENERY_PHOTO = 80;
+  USER2PARAM_BATTLE_TIMELEN_USER_CMD = 82;
+  USER2PARAM_SETOPTION = 83;
+  USER2PARAM_QUERYUSERINFO = 84;
+  USER2PARAM_COUNTDOWN_TICK = 85;
+  USER2PARAM_ITEM_MUSIC_NTF = 86;
+  USER2PARAM_SHAKETREE = 87;
+  USER2PARAM_TREELIST = 88;
+
+  USER2PARAM_ACTIVITY_NTF = 89;
+
+  USER2PARAM_QUERY_ZONESTATUS = 91;
+  USER2PARAM_JUMP_ZONE = 92;
+  USER2PARAM_ITEMIMAGE_USER_NTF = 93;   
+
+  USER2PARAM_HANDSTATUS = 95;
+  USER2PARAM_BEFOLLOW = 96;
+  USER2PARAM_INVITEFOLLOW = 97;
+  USER2PARAM_CHANGENAME = 98;
+  USER2PARAM_CHARGEPLAY = 99;   
+
+  USER2PARAM_REQUIRENPCFUNC = 100;
+
+  USER2PARAM_CHECK_SEAT = 101;      
+  USER2PARAM_NTF_SEAT = 102;
+  USER2PARAM_SET_NORMALSKILL_OPTION = 103;   
+
+  USER2PARAM_UNSOLVED_SCENERY_NTF = 104;
+  USER2PARAM_NTF_VISIBLENPC = 105;
+  USER2PARAM_NEW_SET_OPTION = 106;   
+
+  USER2PARAM_UPYUN_AUTHORIZATION = 107;
+
+  USER2PARAM_TRANSFORM_PREDATA = 108;
+
+  USER2PARAM_USER_RENAME = 109;
+  USER2PARAM_ENTER_CAPRA_ACTIVITY = 110;    //进入卡普拉活动地图
+  USER2PARAM_BUY_ZENY = 111;            //b2zeny
+  USER2PARAM_CALL_TEAMER = 112;
+  USER2PARAM_CALL_TEAMER_JOIN = 113;
+  USER2PARAM_YOYO_SEAT = 114;
+  USER2PARAM_SHOW_SEAT = 115;
+  USER2PARAM_SPECIAL_EFFECT = 116;
+
+  USER2PARAM_MARRIAGE_PROPOSAL = 117;
+  USER2PARAM_MARRIAGE_PROPOSAL_REPLY = 118;
+  USER2PARAM_UPLOAD_WEDDING_PHOTO = 119;
+  USER2PARAM_MARRIAGE_PROPOSAL_SUCCESS = 120;
+  USER2PARAM_INVITEE_WEDDING_START_NTF = 121;
+
+  USER2PARAM_SERVANT_SHOW = 122;
+  USER2PARAM_SERVANT_REPLACE = 123;
+  USER2PARAM_SERVANT_SERVICE = 124;
+  USER2PARAM_SERVANT_RECOMMEND = 125;
+  USER2PARAM_SERVANT_RECEIVE = 126;
+  USER2PARAM_SERVANT_REWARD_STATUS = 127;
+  USER2PARAM_KFC_SHARE = 128;
+  USER2PARAM_TWINS_ACTION = 129;
+  USER2PARAM_CHECK_RELATION = 130;
+
+  USER2PARAM_PROFESSION_QUERY = 131;
+  USER2PARAM_PROFESSION_BUY = 132;
+  USER2PARAM_PROFESSION_CHANGE = 133;
+
+  USER2PARAM_UPDATE_RECORD_INFO = 134;
+  USER2PARAM_SAVE_RECORD = 135;
+  USER2PARAM_LOAD_RECORD = 136;
+  USER2PARAM_CHANGE_RECORD_NAME = 137;
+  USER2PARAM_BUY_RECORD_SLOT = 138;
+  USER2PARAM_DELETE_RECORD = 139;
+  USER2PARAM_UPDATE_BRANCH_INFO = 140;
+  USER2PARAM_GOTO_FUNCMAP = 141;
+  USER2PARAM_INVITE_WITH_ME = 142;
+  USER2PARAM_QUERY_ALTMAN_KILL = 143;
+  USER2PARAM_USER_BOOTH_REQ = 144;
+  USER2PARAM_BOOTH_INFO_SYNC = 145;
+
+  USER2PARAM_DRESSUP_MODEL = 146;
+  USER2PARAM_DRESSUP_HEAD = 147;
+  USER2PARAM_QUERY_STAGE = 148;
+  USER2PARAM_DRESSUP_LINEUP = 149;
+  USER2PARAM_DRESSUP_STAGE = 150;
+
+  //死亡国度传送器
+  USER2PARAM_DEATH_TRANSFER_LIST = 151;
+  USER2PARAM_NEW_DEATH_TRANSFER = 152;
+  USER2PARAM_TRANSFER = 153;
+
+  USER2PARAM_SERVANT_GROWTH = 154;
+  USER2PARAM_SERVANT_RECEIVE_GROWTH = 155;
+  USER2PARAM_SERVANT_GROWTH_OPEN = 156;
+  
+  USER2PARAM_CHEAT_TAG = 157;
+  USER2PARAM_CHEAT_TAG_STAT = 158;
+}
+
+// client -> scene : go city
+message GoCity
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_GOCITY ];
+
+  optional uint32 mapid = 3 [ default = 0 ];
+}
+
+// scene -> client : msg
+enum EMessageType
+{
+  EMESSAGETYPE_MIN = 0;
+  EMESSAGETYPE_FRAME = 1;
+  EMESSAGETYPE_GETEXP = 2;
+  EMESSAGETYPE_TIME_DOWN  = 3;
+  EMESSAGETYPE_TIME_DOWN_NOT_CLEAR  = 4;
+  EMESSAGETYPE_MIDDLE_SHOW  = 5;
+  EMESSAGETYPE_MAX = 6;
+}
+
+enum EMessageActOpt
+{
+  EMESSAGEACT_ADD = 1;
+  EMESSAGEACT_DEL = 2;
+}
+
+message MsgLangParam
+{
+  optional uint32 language = 1 [ default = 0 ];
+  optional string param = 2;
+}
+message MsgParam
+{
+  optional string param = 1;
+  repeated string subparams = 2;
+  repeated MsgLangParam langparams = 3;
+}
+message SysMsg
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SYSMSG ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  optional EMessageType type = 4 [ default = EMESSAGETYPE_MIN ];
+  repeated MsgParam params = 5;
+
+  optional EMessageActOpt act = 6 [ default = EMESSAGEACT_ADD ];
+  optional uint32 delay = 7 [ default = 0 ];
+}
+
+// scene -> client : npc data sync
+message NpcDataSync
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_NPCDATASYNC ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+  repeated UserAttr attrs = 4;
+  repeated UserData datas = 5;
+}
+
+// scene -> client : user nine data sync
+message UserNineSyncCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_USERNINESYNC ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+
+  repeated UserData datas = 4;
+  repeated UserAttr attrs = 5;
+}
+
+// scene <-> client : action notify
+enum EUserActionType
+{
+  EUSERACTIONTYPE_MIN = 0;
+  EUSERACTIONTYPE_ADDHP = 1;
+  EUSERACTIONTYPE_REFINE = 2;
+  EUSERACTIONTYPE_EXPRESSION = 3;
+  EUSERACTIONTYPE_MOTION = 4;
+  EUSERACTIONTYPE_GEAR_ACTION = 5;
+  EUSERACTIONTYPE_NORMALMOTION = 6;
+  EUSERACTIONTYPE_DIALOG = 7;
+  EUSERACTIONTYPE_MAX = 8;
+}
+message UserActionNtf
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_ACTION ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 value = 5 [ default = 0 ];
+
+  optional EUserActionType type = 4 [ default = EUSERACTIONTYPE_MIN ];
+
+  optional uint32 delay = 6 [ default = 0 ];
+}
+
+// scene -> client : buff sync
+message BufferData
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 layer = 2 [ default = 0 ];
+  optional uint64 time = 3 [ default = 0 ];
+  optional bool active = 4 [ default = true ];
+  optional string fromname = 5;
+  optional uint64 fromid = 6 [ default = 0 ];
+  optional uint32 level = 7 [ default = 0 ];
+}
+message UserBuffNineSyncCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_BUFFERSYNC ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+
+  repeated BufferData updates = 4;
+  repeated uint32 dels = 5;
+}
+
+// client -> scene
+message ExitPosUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_EXIT_POS ];
+
+  optional ScenePos pos = 3;
+  optional uint32 exitid = 4;
+  optional uint32 mapid = 5;
+}
+
+// client -> scene : relive
+enum EReliveType
+{
+  ERELIVETYPE_MIN = 0;
+  ERELIVETYPE_RETURN = 1;
+  ERELIVETYPE_MONEY = 2;
+  ERELIVETYPE_RAND = 3;
+  ERELIVETYPE_RETURNSAVE = 4;
+  ERELIVETYPE_SKILL = 5;
+  ERELIVETYPE_TOWER = 6;
+  ERELIVETYPE_MAX = 7;
+}
+message Relive
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_RELIVE ];
+
+  optional EReliveType type = 3 [ default = ERELIVETYPE_MIN ];
+}
+
+// scene -> client : var sync
+message VarUpdate
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_VAR ];
+
+  repeated Var vars = 3;
+}
+
+// scene -> client : talk
+message TalkInfo
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_TALKINFO ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+  optional uint32 talkid = 4;
+  optional string talkmessage = 5;
+  repeated MsgParam params = 6;
+}
+
+// client <-> scene : server time
+message ServerTime
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SERVERTIME ];
+
+  optional uint64 time = 3 [ default = 0 ];
+}
+
+// scene -> client
+enum EEffectOpt
+{
+  EEFFECTOPT_PLAY = 1;
+  EEFFECTOPT_STOP = 2;
+  EEFFECTOPT_DELETE = 3;
+}
+
+enum EEffectType
+{
+  EEFFECTTYPE_NORMAL = 1;
+  EEFFECTTYPE_ACCEPTQUEST = 2;
+  EEFFECTTYPE_FINISHQUEST = 3;
+  EEFFECTTYPE_MVPSHOW = 4;
+  EEFFECTTYPE_SCENEEFFECT = 5;  
+}
+
+message EffectUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_EFFECT ];
+  optional EEffectType effecttype = 3 [ default = EEFFECTTYPE_NORMAL ];
+
+  optional uint64 charid = 4;
+  optional uint32 effectpos = 5;
+  optional ScenePos pos = 6;
+  optional string effect = 7;
+  optional uint32 msec = 8 [ default = 0 ];
+  optional uint32 times = 9 [ default = 1 ];
+  optional uint32 index = 10 [ default = 1 ];
+
+  optional EEffectOpt opt = 11 [ default = EEFFECTOPT_PLAY ];
+  optional bool posbind = 12 [ default = false ];
+  optional bool epbind = 13 [ default = false ];
+
+  optional uint32 delay = 14 [ default = 0 ];
+  optional uint64 id = 15 [ default = 0 ];   
+  optional uint32 dir = 16;
+  optional uint32 skillid = 17 [ default = 0 ];
+}
+
+// scene -> client : menu
+message MenuList
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_MENU ];
+
+  repeated uint32 list = 3;
+  repeated uint32 dellist = 4;
+}
+
+// scene -> client : new menu
+message NewMenu
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_NEWMENU ];
+
+  optional bool animplay = 3 [ default = true ];
+  repeated uint32 list = 4;
+}
+
+// scene -> client : team data
+message TeamInfoNine
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_TEAMINFONINE ];
+
+  optional uint64 userid = 3 [ default = 0 ];
+  optional uint32 id = 4 [ default = 0 ];
+  optional string name = 5;
+}
+
+// client <-> scene : use portrait
+message UsePortrait
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_USEPORTRAIT ];
+
+  optional uint32 id = 3 [ default = 0 ];
+}
+
+// client <-> scene : use frame
+message UseFrame
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_USEFRAME ];
+
+  optional uint32 id = 3 [ default = 0 ];
+}
+
+// scene -> client : new portrait and frame
+message NewPortraitFrame
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_NEWPORTRAITFRAME ];
+
+  repeated uint32 portrait = 3;
+  repeated uint32 frame = 4;
+}
+
+// scene -> client : query portrait list
+message QueryPortraitListUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_QUERYPORTRAITLIST ];
+
+  repeated uint32 portrait = 3;
+}
+
+// client <-> server : change hair(废弃)
+enum EDressType
+{
+  EDRESSTYPE_MIN = 0;
+  EDRESSTYPE_HAIR = 1;
+  EDRESSTYPE_HAIRCOLOR = 2;
+  EDRESSTYPE_EYE = 3;
+  EDRESSTYPE_CLOTH = 4;
+  EDRESSTYPE_MAX = 5;
+}
+message UseDressing
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_USEDRESSING ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  optional uint64 charid = 4 [ default = 0 ];
+  optional EDressType type = 5 [ default = EDRESSTYPE_MIN ];
+}
+
+// server -> client : get new hair
+message NewDressing
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_NEWDRESSING ];
+
+  optional EDressType type = 3 [ default = EDRESSTYPE_MIN ];
+  repeated uint32 dressids = 4;
+}
+
+// scene -> client : dressing list
+message DressingListUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_DRESSINGLIST ];
+
+  optional EDressType type = 3 [ default = EDRESSTYPE_MIN ];
+  repeated uint32 dressids = 4;
+}
+
+// client -> scene point process
+enum PointType
+{
+  POINTTYPE_ADD = 1;
+  POINTTYPE_RESET = 2;
+}
+message AddAttrPoint
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_ADDATTRPOINT ];
+
+  optional PointType type = 3 [ default = POINTTYPE_ADD ];
+
+  optional uint32 strpoint = 4 [ default = 0 ];
+  optional uint32 intpoint = 5 [ default = 0 ];
+  optional uint32 agipoint = 6 [ default = 0 ];
+  optional uint32 dexpoint = 7 [ default = 0 ];
+  optional uint32 vitpoint = 8 [ default = 0 ];
+  optional uint32 lukpoint = 9 [ default = 0 ];
+}
+
+// client -> scene : shop got item
+message ShopGotItem
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 count = 2 [ default = 0 ];
+}
+message QueryShopGotItem
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_QUERYSHOPGOTITEM ];
+
+  repeated ShopGotItem items = 3;
+  repeated ShopGotItem discountitems = 4;
+  repeated ShopGotItem limititems = 5;
+}
+
+// scene -> client : update shop got item
+message UpdateShopGotItem
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_UPDATESHOPGOTITEM ];
+
+  optional ShopGotItem item = 3;
+  optional ShopGotItem discountitem = 4;
+  optional ShopGotItem limititem = 5;
+}
+
+// scene -> client : openui
+message OpenUI
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_OPENUI ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  optional uint32 ui = 4 [ default = 0 ];
+}
+
+// scene -> client : debug sys msg
+enum EDbgMsgType
+{
+  EDBGMSGTYPE_MIN = 0;
+  EDBGMSGTYPE_TEST = 1;
+}
+
+message DbgSysMsg
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_DBGSYSMSG ];
+
+  required EDbgMsgType type = 3 [ default = EDBGMSGTYPE_MIN ];
+  required string content = 4;
+}
+
+// client -> server : follow transfer
+message FollowTransferCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_FOLLOWTRANSFER ];
+
+  optional uint64 targetId = 3;
+}
+
+// server -> client : call npc function
+message CallNpcFuncCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_NPCFUNC ];
+
+  optional uint32 type = 3 [ default = 0 ];
+  optional string funparam = 4;
+}
+
+// scene -> client : model show
+message ModelShow
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_MODELSHOW ];
+
+  optional uint32 type = 3 [ default = 0 ];
+  optional string data = 4;
+}
+
+// server -> client : sound_effect
+message SoundEffectCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SOUNDEFFECT ];
+
+  optional string se = 3;
+  optional ScenePos pos = 4;
+
+  optional uint32 msec = 5 [ default = 0 ];
+  optional uint32 times = 6 [ default = 1 ];
+
+  optional uint32 delay = 7 [ default = 0 ];
+}
+
+// server <--> client : preset chat msg
+message PresetMsg
+{
+  optional uint32 msgid = 1 [default = 0];
+  optional string msg = 2;
+}
+message PresetMsgCmd
+{
+  optional Command cmd = 1 [default = SCENE_USER2_PROTOCMD];
+  optional User2Param param = 2 [default = USER2PARAM_PRESETCHATMSG];
+
+  repeated string msgs = 3;
+}
+
+// server -> client : change BGM
+message ChangeBgmCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_CHANGEBGM ];
+
+  optional string bgm = 3;
+  optional bool play = 4 [ default = true ];
+  optional uint32 times = 5 [ default = 0 ];
+  optional EBgmType type = 6;
+}
+
+// scene -> client : query fighter info
+message FighterInfo
+{
+  repeated UserData datas = 1;
+  repeated UserAttr attrs = 2;
+}
+message QueryFighterInfo
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_QUERYFIGHTERINFO ];
+
+  repeated FighterInfo fighters = 3;
+}
+
+// game time
+enum GameTimeOpt
+{
+  EGAMETIMEOPT_SYNC = 1;
+  EGAMETIMEOPT_ADJUST = 2;
+}
+// scene -> client : user's game time
+message GameTimeCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_GAMETIME ];
+
+  optional GameTimeOpt opt = 3 [ default = EGAMETIMEOPT_SYNC ] ;
+  optional uint32 sec = 4 [ default = 1 ];
+  optional uint32 speed = 5 [ default = 1 ];
+}
+
+enum CD_TYPE
+{
+  CD_TYPE_SKILL = 0;
+  CD_TYPE_ITEM = 1;
+  CD_TYPE_SKILLDEALY = 2;
+}
+
+message CDTimeItem
+{
+  optional uint32 id = 1;
+  optional uint64 time = 2;
+  optional CD_TYPE type = 3;
+}
+
+message CDTimeUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_CDTIME ];
+
+  repeated CDTimeItem list = 3;
+}
+
+// client -> scene : state change
+message StateChange
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_STATECHANGE ];
+
+  optional ECreatureStatus status = 3 [ default = ECREATURESTATUS_MIN ];
+}
+
+// client <-> scene : photo
+message Photo
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_PHOTO ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+}
+
+// server -> client : shage screen
+message ShakeScreen
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SHAKESCREEN ];
+
+  optional uint32 maxamplitude = 3 [ default = 3 ];
+  optional uint32 msec = 4 [ default = 0 ];
+  optional uint32 shaketype = 5 [ default = 1 ];
+}
+
+// client <-> scene : shortcut set and get
+message ShortcutItem
+{
+  optional string guid = 1;
+
+  optional uint32 type = 2 [ default = 0 ];
+  optional uint32 pos = 3 [ default = 0 ];
+}
+
+// scene -> client : query shortcut
+message QueryShortcut
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_QUERYSHORTCUT ];
+
+  repeated ShortcutItem list = 3;
+}
+
+// client <-> scene : put shortcut
+message PutShortcut
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_PUTSHORTCUT ];
+
+  optional ShortcutItem item = 3;
+}
+
+// scene -> client
+message NpcChangeAngle
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_NPCANGLE ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+  optional uint64 targetid = 4 [ default = 0 ];
+  optional uint32 angle = 5 [ default = 0 ];
+}
+
+// client -> scene
+message CameraFocus
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_CAMERAFOCUS ];
+
+  repeated uint64 targets = 3;
+}
+
+// scene -> client : goto list
+message GoToListUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_GOTO_LIST ];
+
+  repeated uint32 mapid = 3;
+}
+
+enum EGoToGearType
+{
+  EGoToGearType_Single = 1;
+  EGoToGearType_Hand = 2;
+  EGoToGearType_Team = 3;  
+  EGoToGearType_Free = 4;     
+}
+
+// client -> scene : goto gear
+message GoToGearUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_GOTO_GEAR ];
+
+  optional uint32 mapid = 3;
+  optional EGoToGearType type = 4;
+  repeated uint64 otherids = 5;
+}
+
+// scene -> scene : new map
+message NewTransMapCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_NEWTRANSMAP];
+
+  repeated uint32 mapid = 3;
+}
+
+//初始化死亡国度传送阵
+message DeathTransferListCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_DEATH_TRANSFER_LIST];
+
+  repeated uint32 npcId = 3;
+
+}
+
+//更新死亡国度传送阵
+message NewDeathTransferCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_NEW_DEATH_TRANSFER];
+
+  optional uint32 npcId = 3;
+
+}
+
+//传送
+message UseDeathTransferCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_TRANSFER ];
+
+  optional uint32 fromNpcId = 3;
+  optional uint32 toNpcId = 4;
+
+}
+
+enum EFollowType
+{
+  EFOLLOWTYPE_MIN = 0;
+  EFOLLOWTYPE_HAND = 1;
+  EFOLLOWTYPE_BREAK = 5;
+  EFOLLOWTYPE_TWINSACTION = 6;
+  EFOLLOWTYPE_MAX = 7;
+}
+// client <-> scene : follower
+message FollowerUser
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_FOLLOWER ];
+
+  optional uint64 userid = 3 [ default = 0 ];
+  optional EFollowType eType = 4 [ default = EFOLLOWTYPE_MIN ];
+}
+
+message BeFollowUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_BEFOLLOW ];
+
+  optional uint64 userid = 3 [ default = 0 ];
+  optional EFollowType eType = 4 [ default = EFOLLOWTYPE_MIN ];
+}
+
+// client <- scene : Laboratory
+message LaboratoryUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_LABORATORY ];
+
+  optional uint32 round = 3 [ default = 0 ];
+  optional uint32 curscore = 4 [ default = 0 ];
+  optional uint32 maxscore = 5 [ default = 0 ];
+}
+
+// client -> scene : goto laboratory
+message GotoLaboratoryUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_GOTO_LABORATORY ];
+  optional uint32 funid = 3;
+}
+
+// scene -> client : exchangeprofession
+message ExchangeProfession
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_EXCHANGEPROFESSION ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+
+  repeated UserData datas = 4;
+  repeated UserAttr attrs = 5;
+  repeated UserAttr pointattrs = 6;
+
+  optional EProfressionDataType type = 7 [ default = ETypeAdvance ]; // 用于区分特效
+}
+
+// scene <-> client : scenery
+message Scenery
+{
+  optional uint32 sceneryid = 1 [ default = 0 ];
+  optional uint32 anglez = 2 [ default = 0 ];
+  optional uint64 charid = 3 [ default = 0 ];
+}
+message SceneryUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SCENERY ];
+
+  optional uint32 mapid = 3 [ default = 0 ];
+  repeated Scenery scenerys = 4;
+}
+
+// scene <- client : gomap quest
+message GoMapQuestUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_GOMAP_QUEST ];
+
+  optional uint32 questid = 3 [ default = 0 ];
+}
+
+// scene <- client : gomap follow
+message GoMapFollowUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_GOMAP_FOLLOW ];
+
+  optional uint32 mapid = 3 [ default = 0 ];
+  optional uint64 charid = 4 [ default = 0 ];
+}
+
+// scene -> client : auto hit target
+message UserAutoHitCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_AUTOHIT ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+}
+
+// scene <-> client : upload scenery photo
+message UploadSceneryPhotoUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_UPLOAD_SCENERY_PHOTO ];
+
+  optional EAlbumType type = 3 [ default = EALBUMTYPE_SCENERY ];
+  optional uint32 sceneryid = 4;    // client cmd required
+  optional string policy = 5;
+  optional string signature = 6;
+}
+
+// scene <-> client : download scenery photo
+enum EAlbumType
+{
+  EALBUMTYPE_MIN = 0;
+  EALBUMTYPE_SCENERY = 1;
+  EALBUMTYPE_PHOTO = 2;
+  EALBUMTYPE_GUILD_ICON = 3;
+  EALBUMTYPE_WEDDING = 4;
+  EALBUMTYPE_MAX = 5;
+}
+message UpyunUrl
+{
+  optional EAlbumType type = 1 [ default = EALBUMTYPE_SCENERY ];
+  optional string char_url = 2;
+  optional string acc_url = 3;
+}
+message DownloadSceneryPhotoUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_DOWNLOAD_SCENERY_PHOTO ];
+
+  repeated UpyunUrl urls = 3;
+}
+
+// scene -> client : query map area
+message QueryMapArea
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_QUERY_MAPAREA ];
+
+  repeated uint32 areas = 3;
+}
+
+// scene -> client : new map area
+message NewMapAreaNtf
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default =  USER2PARAM_NEW_MAPAREA ];
+
+  optional uint32 area = 3 [ default = 0 ];
+}
+
+// scene -> client : add forever buff
+message BuffForeverCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_FOREVER_BUFF ];
+
+  repeated BufferData buff = 3;
+}
+
+// client <-> scene
+message InviteJoinHandsUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_INVITE_JOIN_HANDS ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 masterid = 4 [ default = 0 ];
+  optional uint32 time = 5 [ default = 0 ];
+  optional string mastername = 6;
+  optional bytes sign = 7;
+}
+
+// clien -> scene
+message BreakUpHandsUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_BREAK_UP_HANDS ];
+}
+
+// scene <-> client : build hand or break hand
+message HandStatusUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_HANDSTATUS ];
+
+  optional bool build = 3 [ default = true ];
+  optional uint64 masterid = 4 [ default = 0 ];
+  optional uint64 followid = 5 [ default = 0 ];
+
+  optional uint32 type = 6 [ default = 0 ];   //  0 牵手 1 双人动作
+}
+
+// scene -> client : get actions and expressions
+message QueryShow
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_QUERY_ACTION ];
+
+  repeated uint32 actionid = 3;
+  repeated uint32 expression = 4;
+}
+
+// scene -> client : query music list
+message MusicItem
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 demandtime = 2 [ default = 0 ];
+  optional uint32 mapid = 3 [ default = 0 ];
+  optional uint32 npcid = 4 [ default = 0 ];
+  optional uint32 musicid = 5 [ default = 0 ];
+  optional uint32 starttime = 6 [ default = 0 ];
+  optional uint32 endtime = 7 [ default = 0 ];
+  optional uint32 status = 8 [ default = 0 ];
+  optional string name = 9;
+}
+message QueryMusicList
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_MUSIC_LIST ];
+
+  optional uint64 npcid = 3 [ default = 0 ];
+  repeated MusicItem items = 4;
+}
+
+// client -> scene : demand music
+message DemandMusic
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_MUSIC_DEMAND ];
+
+  optional uint64 npcid = 3 [ default = 0 ];
+  optional uint32 musicid = 4 [ default = 0 ];
+}
+
+// client -> scene : close frame
+message CloseMusicFrame
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_MUSIC_CLOSE ];
+}
+
+// scene <- client : scenery
+message UploadOkSceneryUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_UPLOAD_OK_SCENERY ];
+
+  optional uint32 sceneryid = 3 [ default = 0 ];
+  optional uint32 status = 4 [ default = 0 ];
+  optional uint32 anglez = 5 [ default = 0 ];
+  optional uint32 time = 6 [ default = 0 ];
+}
+
+// client -> scene
+message JoinHandsUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_JOIN_HANDS ];
+
+  optional uint64 masterid = 3 [ default = 0 ];
+  optional string sign = 4;
+  optional uint32 time = 5 [ default = 0 ];
+}
+
+// scene -> client : query trace list
+message TraceItem
+{
+  optional uint32 itemid = 1 [ default = 0 ];
+  optional uint32 monsterid = 2 [ default = 0 ];
+}
+message QueryTraceList
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_QUERY_TRACE_LIST ];
+
+  repeated TraceItem items = 3;
+}
+
+// client -> scene : update trace list
+message UpdateTraceList
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_UPDATE_TRACE_LIST ];
+
+  repeated TraceItem updates = 3;
+  repeated uint32 dels = 4;
+}
+
+// client <-> scene : set direction
+message SetDirection
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SET_DIRECTION ];
+
+  optional uint32 dir = 3 [ default = 0 ];
+}
+
+enum EBattleStatus
+{
+  EBATTLESTATUS_EASY = 1;
+  EBATTLESTATUS_TIRED = 2;
+  EBATTLESTATUS_HIGHTIRED = 3;
+}
+// client <-> scene 
+message BattleTimelenUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_BATTLE_TIMELEN_USER_CMD ];
+
+  optional uint32 timelen = 3 [ default = 0 ];
+  optional uint32 totaltime = 4 [ default = 0 ];
+  optional uint32 musictime = 5 [ default = 0 ];
+  optional uint32 tutortime = 6 [ default = 0 ];
+
+  optional EBattleStatus estatus = 7 [ default = EBATTLESTATUS_EASY ];
+}
+
+// client -> scene : set option
+enum EQueryType
+{
+  EQUERYTYPE_MIN = 0;
+  EQUERYTYPE_ALL = 1;
+  EQUERYTYPE_FRIEND = 2;
+  EQUERYTYPE_CLOSE = 3;
+  EQUERYTYPE_WEDDING_ALL = 4;
+  EQUERYTYPE_WEDDING_FRIEND = 5;
+  EQUERYTYPE_WEDDING_CLOSE = 6;
+  EQUERYTYPE_MAX = 7;
+}
+enum EFashionHideType
+{
+  EFASHIONHIDETYPE_HEAD = 0;
+  EFASHIONHIDETYPE_BACK = 1;
+  EFASHIONHIDETYPE_FACE = 2;
+  EFASHIONHIDETYPE_TAIL = 3;
+  EFASHIONHIDETYPE_MOUTH = 4;
+  EFASHIONHIDETYPE_BODY = 5;
+  EFASHIONHIDETYPE_MAX = 6;
+}
+message SetOptionUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SETOPTION ];
+
+  optional EQueryType type = 3 [ default = EQUERYTYPE_MIN ];
+  optional uint32 fashionhide = 4 [ default = 0 ];
+  optional EQueryType wedding_type = 5 [ default = EQUERYTYPE_MIN ];
+}
+
+// client -> scene : query user info
+message QueryUserInfoUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_QUERYUSERINFO ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 teamid = 4 [ default = 0 ];
+  optional bool blink = 5 [ default = false ];
+}
+
+enum ECountDownType
+{
+  ECOUNTDOWNTYPE_DOJO = 1;
+  ECOUNTDOWNTYPE_TOWER = 2;
+  ECOUNTDOWNTYPE_ALTMAN = 3;
+}
+
+// scene ->client : ntf countdown
+message CountDownTickUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_COUNTDOWN_TICK ];
+
+  optional ECountDownType type = 3;   //倒计时类型
+  optional uint32 tick = 4;           //倒计时时间， 15 表示倒计时15秒
+  optional uint32 time = 5;           //时间戳
+  optional string sign = 6;
+  optional uint32 extparam = 7;       //附带参数，如果是道场，附带的是道场id
+}
+
+// scene -> client
+message ItemMusicNtfUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_ITEM_MUSIC_NTF ];
+  optional bool add = 3;
+  optional string uri = 4;
+  optional uint32 starttime = 5;
+}
+
+// client <-> scene
+enum ETreeStatus
+{
+  ETREESTATUS_MIN = 0;
+  ETREESTATUS_NORMAL = 1;
+  ETREESTATUS_MONSTER = 2;
+  ETREESTATUS_REWARD = 3;
+  ETREESTATUS_DEAD = 4;
+  ETREESTATUS_MAX = 5;
+}
+message ShakeTreeUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SHAKETREE ];
+
+  optional uint64 npcid = 3 [ default = 0 ];
+  optional ETreeStatus result = 4 [ default = ETREESTATUS_MIN ];
+}
+
+// scene -> client : tree list
+message Tree
+{
+  optional uint64 id = 1 [ default = 0 ];
+  optional uint32 typeid = 2 [ default = 0 ];
+  optional ScenePos pos = 3;
+}
+message TreeListUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_TREELIST ];
+
+  repeated Tree updates = 3;
+  repeated uint64 dels = 4;
+}
+
+// scene -> client 
+message ActivityNtfUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_ACTIVITY_NTF ];
+
+  optional uint32 id = 3;
+  optional uint32 mapid = 4 [ default = 0 ];
+  optional uint32 endtime = 5 [ default = 0 ];
+  optional uint32 progress = 6;     //活动进度 1:start   5：stop
+}
+
+// client <-> scene <-> session <-> social : query zone status
+enum EZoneStatus
+{
+  EZONESTATUS_MIN = 0;
+  EZONESTATUS_FREE = 1;
+  EZONESTATUS_BUSY = 2;
+  EZONESTATUS_VERYBUSY = 3;
+  EZONESTATUS_MAX = 4;
+}
+enum EZoneState
+{
+  EZONESTATE_MIN = 0;
+  EZONESTATE_FULL = 1;
+  EZONESTATE_NOFULL = 2;
+  EZONESTATE_MAX = 3;
+}
+message ZoneInfo
+{
+  optional uint32 zoneid = 1 [ default = 0 ];
+  optional uint32 maxbaselv = 2 [ default = 0 ];
+  optional EZoneStatus status = 3 [ default = EZONESTATUS_MIN ];
+  optional EZoneState state = 4 [ default = EZONESTATE_MIN ];
+}
+enum EJumpZone
+{
+  EJUMPZONE_MIN = 0;
+  EJUMPZONE_GUILD = 1;
+  EJUMPZONE_TEAM = 2;
+  EJUMPZONE_USER = 3;
+  EJUMPZONE_MAX = 4;
+}
+message RecentZoneInfo
+{
+  optional EJumpZone type = 1 [ default = EJUMPZONE_MIN ];
+  optional uint32 zoneid = 2 [ default = 0 ];
+}
+message QueryZoneStatusUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_QUERY_ZONESTATUS ];
+
+  repeated ZoneInfo infos = 3;
+  repeated RecentZoneInfo recents = 4;
+}
+
+// client -> scene : jump zone
+message JumpZoneUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_JUMP_ZONE ];
+
+  optional uint64 npcid = 3 [ default = 0 ];
+  optional uint32 zoneid = 4 [ default = 0 ];
+}
+
+// scene -> client 
+message ItemImageUserNtfUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_ITEMIMAGE_USER_NTF ];
+  optional uint64 userid = 3 [ default = 0 ];
+}
+
+message InviteFollowUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_INVITEFOLLOW ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional bool follow = 4 [ default = true ];
+}
+
+// client <-> scene
+message ChangeNameUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_CHANGENAME ];
+
+  optional string name = 3;
+}
+
+// client <-> scene
+message ChargePlayUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_CHARGEPLAY ];
+
+  repeated uint32 chargeids = 3;    //充值的id 按充值顺序排序
+}
+
+message RequireNpcFuncUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_REQUIRENPCFUNC ];
+
+  optional uint32 npcid = 3 [ default = 0 ];
+  repeated string functions = 4;
+}
+
+// server <-> client
+message CheckSeatUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_CHECK_SEAT ];
+
+  optional uint32 seatid = 3 [ default = 0 ];
+
+//res
+  optional bool success = 4;
+}
+
+// server -> client
+message NtfSeatUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_NTF_SEAT ];
+
+  optional uint64 charid = 3;
+  optional uint32 seatid = 4;    
+  optional bool isseatdown = 5;
+}
+
+// server <-> client
+message YoyoSeatUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_YOYO_SEAT ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+}
+
+enum SeatShowType
+{
+  SEAT_SHOW_VISIBLE = 0;
+  SEAT_SHOW_INVISIBLE = 1;
+};
+
+message ShowSeatUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SHOW_SEAT ];
+
+  repeated uint32 seatid = 3;
+  optional SeatShowType show = 4 [ default = SEAT_SHOW_VISIBLE ];
+}
+
+message SetNormalSkillOptionUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SET_NORMALSKILL_OPTION ];
+
+  optional uint32 flag = 3;       //0  1
+}
+
+enum EOptionType
+{
+  EOPTIONTYPE_USE_SAVE_HP = 0;
+  EOPTIONTYPE_USE_SAVE_SP = 1;
+  EOPTIONTYPE_USE_SLIM = 2;   
+  EOPTIONTYPE_LOTTERY_CNT_HEAD = 3;   
+  EOPTIONTYPE_LOTTERY_CNT_EQUIP = 4;   
+  EOPTIONTYPE_LOTTERY_CNT_CARD = 5;   
+  EOPTIONTYPE_LOTTERY_CNT_MAGIC = 6;   
+  EOPTIONTYPE_LOTTERY_CNT_GIVE = 7;   
+  EOPTIONTYPE_USE_PETTALK = 8;
+  EOPTIONTYPE_MAX = 63;                       //最大64个     
+}
+
+message NewSetOptionUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_NEW_SET_OPTION ];
+  optional EOptionType type = 3;
+  optional uint32 flag = 4;       //0  1
+} 
+
+// scene -> client
+message UnsolvedSceneryNtfUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_UNSOLVED_SCENERY_NTF ];
+
+  repeated uint32 ids = 3;
+}
+
+message VisibleNpc
+{
+  optional uint32 npcid = 1 [ default = 0 ];
+  optional ScenePos pos = 2 ;
+  optional uint64 uniqueid = 3 [ default = 0 ];
+}
+
+// server -> client
+message NtfVisibleNpcUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_NTF_VISIBLENPC];
+
+  repeated VisibleNpc npcs = 3;
+  optional uint32 type = 4 [ default = 0 ]; // 0 删除 1 添加
+}
+
+// scene <-> client : upyun authorization
+message UpyunAuthorizationCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_UPYUN_AUTHORIZATION ];
+
+  optional string authvalue = 3;
+}
+
+// server <-> client
+message TransformPreDataCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD];
+  optional User2Param param = 2 [ default = USER2PARAM_TRANSFORM_PREDATA ];
+
+  repeated UserData datas = 3;
+}
+
+enum ERenameErrCode
+{
+  ERENAME_SUCCESS = 0; // 成功
+  ERENAME_CD = 1; // 未冷却
+  ERENAME_CONFLICT = 2; // 名字冲突
+}
+
+//client <-> scene
+message UserRenameCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_USER_RENAME ];
+
+  optional string name = 3;
+  optional ERenameErrCode code = 4 [ default = ERENAME_SUCCESS ];
+}
+
+//client <-> scene
+message BuyZenyCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_BUY_ZENY ];
+  optional uint32 bcoin = 3;
+  optional uint64 zeny = 4;
+  optional bool ret = 5;
+}
+
+// scene -> client
+message CallTeamerUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_CALL_TEAMER ];
+
+  optional uint64 masterid = 3 [ default = 0 ];
+  optional string sign = 4;
+  optional uint32 time = 5 [ default = 0 ];
+  optional string username = 6;
+  optional uint32 mapid = 7 [ default = 0 ];
+  optional ScenePos pos = 8;
+}
+
+// client -> scene
+message CallTeamerReplyUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_CALL_TEAMER_JOIN ];
+
+  optional uint64 masterid = 3 [ default = 0 ];
+  optional string sign = 4;
+  optional uint32 time = 5 [ default = 0 ];
+  optional uint32 mapid = 6 [ default = 0 ];
+  optional ScenePos pos = 7;
+}
+
+//scene -> client
+message SpecialEffectCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SPECIAL_EFFECT ];
+
+  optional uint32 dramaid = 3;
+  optional uint32 starttime = 4;
+  optional uint32 times = 5 [ default = 0 ];
+}
+
+//scene -> client
+message MarriageProposalCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_MARRIAGE_PROPOSAL ];
+
+  optional uint64 masterid = 3 [ default = 0 ];
+  optional uint32 itemid = 4 [ default = 0 ];
+  optional uint32 time = 5 [ default = 0 ];
+  optional string mastername = 6;
+  optional bytes sign = 7;
+}
+
+enum EProposalReply
+{
+  EPROPOSALREPLY_YES = 0;
+  EPROPOSALREPLY_NO = 1;
+  EPROPOSALREPLY_OUTRANGE = 2;
+  EPROPOSALREPLY_CANCEL =3;
+}
+
+//client -> scene
+message MarriageProposalReplyCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_MARRIAGE_PROPOSAL_REPLY ];
+
+  optional uint64 masterid = 3 [ default = 0 ];
+  optional EProposalReply reply = 4 [ default = EPROPOSALREPLY_YES];
+  optional uint32 time = 5 [ default = 0 ];
+  optional string sign = 6;
+}
+
+// client -> scene
+message UploadWeddingPhotoUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_UPLOAD_WEDDING_PHOTO ];
+
+  optional string itemguid = 3;
+  optional uint32 index = 4 [ default = 0 ];
+  optional uint32 time = 5 [ default = 0 ];
+}
+
+//scene -> client
+message MarriageProposalSuccessCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_MARRIAGE_PROPOSAL_SUCCESS ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional bool ismaster = 4 [ default = true ];
+}
+
+// scene -> client
+message InviteeWeddingStartNtfUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_INVITEE_WEDDING_START_NTF ];
+
+  optional string itemguid = 3;
+}
+
+// client -> scene
+message KFCShareUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_KFC_SHARE ];
+}
+
+// client <-> scene
+message CheckRelationUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_CHECK_RELATION ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional ESocialRelation etype = 4 [ default = ESOCIALRELATION_MIN ];
+  optional bool ret = 5 [ default = false ];
+}
+
+enum ETwinsOperation
+{
+  ETWINS_OPERATION_MIN = 0;
+  ETWINS_OPERATION_SPONSOR = 1;
+  ETWINS_OPERATION_REQUEST = 2;
+  ETWINS_OPERATION_AGREE = 3;
+  ETWINS_OPERATION_DISAGREE = 4;
+  ETWINS_OPERATION_COMMIT = 5;
+}
+
+message TwinsActionUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_TWINS_ACTION ];
+
+  optional uint64 userid = 3 [ default = 0 ];
+  optional uint32 actionid = 4 [ default = 0 ];
+  optional ETwinsOperation etype = 5 [ default = ETWINS_OPERATION_MIN ];
+  optional bool sponsor = 6 [ default = true ];
+}
+
+message ShowServantUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SERVANT_SHOW ];
+
+  optional bool show = 3;
+}
+
+message ReplaceServantUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SERVANT_REPLACE ];
+
+  optional bool replace = 3;
+  optional uint32 servant = 4 [ default = 0 ];
+}
+
+enum EServantService
+{
+  ESERVANT_SERVICE_RECOMMEND = 1;
+  ESERVANT_SERVICE_FINANCE_THREE = 2;
+  ESERVANT_SERVICE_FINANCE_SEVEN = 3;
+  ESERVANT_SERVICE_UPGRADE = 4;
+  ESERVANT_SERVICE_SPECIAL = 5;
+}
+
+// client -> scene
+message ServantService
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SERVANT_SERVICE ];
+
+  optional EServantService type = 3 [ default = ESERVANT_SERVICE_RECOMMEND ];
+}
+
+enum ERecommendStatus
+{
+  ERECOMMEND_STATUS_MIN = 0;
+  ERECOMMEND_STATUS_GO = 1;
+  ERECOMMEND_STATUS_RECEIVE = 2;
+  ERECOMMEND_STATUS_FINISH = 3;
+}
+
+message RecommendItemInfo
+{
+  optional uint32 dwid = 1 [ default = 0 ];
+  optional uint32 finishtimes = 2 [ default = 0 ];
+  optional ERecommendStatus status = 3 [ default = ERECOMMEND_STATUS_MIN ];
+  optional bool realopen = 4 [ default = false ];
+}
+
+// scene -> client
+message RecommendServantUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SERVANT_RECOMMEND];
+
+  repeated RecommendItemInfo items = 3;
+}
+
+//  client -> scene
+message ReceiveServantUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SERVANT_RECEIVE ];
+
+  optional bool favorability = 3 [ default = false ];
+  optional uint32 dwid = 4;
+}
+
+message FavorabilityStatus
+{
+  optional uint32 favorability = 1 [ default = 0 ];
+  optional uint32 status = 2 [ default = 0 ];  // 0 不可领取 1 可领取 2 已领取
+}
+
+//  scene -> client
+message ServantRewardStatusUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SERVANT_REWARD_STATUS ];
+
+  repeated FavorabilityStatus items = 3;
+  optional uint32 stayfavo = 4 [ default = 0 ];   // 1 计时 2 可领取 3 倒计时结束
+}
+
+message ProfessionInfo
+{
+  optional uint32 branch = 1;
+  optional uint32 profession = 2;
+  optional uint32 joblv = 3;
+  optional bool iscurrent = 4 [ default = false ];
+  optional bool isbuy = 5 [ default = false ];
+}
+
+// client <-> scene
+message ProfessionQueryUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_PROFESSION_QUERY ];
+
+  repeated ProfessionInfo items = 3;
+}
+
+// client <-> scene
+message ProfessionBuyUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_PROFESSION_BUY ];
+
+  optional uint32 branch = 3; // 职业分支
+  optional bool success = 4 [ default = true ]; // 返回是否成功
+}
+
+// client <-> scene
+message ProfessionChangeUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_PROFESSION_CHANGE ];
+
+  optional uint32 branch = 3; // 职业分支
+  optional bool success = 4 [ default = true ];
+}
+
+//星盘信息
+message AstrolabeProfessionData
+{
+  repeated uint32 stars = 2; // 盘位id
+}
+
+//属性加点
+message AttrProfessionData
+{
+  repeated UserAttr attrs = 1;
+  repeated UserData datas = 2;
+}
+
+message EquipInfo
+{
+  optional uint32 pos = 1;
+  optional uint32 type_id = 2;
+  optional string guid = 3;
+}
+
+message EquipPackData
+{
+  optional uint32 type = 1; // EPackType
+  repeated EquipInfo datas = 2;
+}
+
+message SkillValidPosData
+{
+  repeated uint32 pos = 1;
+  repeated uint32 autopos = 2;
+  repeated uint32 extendpos = 3;
+}
+
+//技能信息
+message SkillProfessionData
+{
+  optional uint32 left_point = 1; //技能剩余点数
+  repeated SkillData datas = 2;  //职业技能
+  optional SkillData novice_data = 3; //冒险技能 该字段已废弃
+  repeated BeingSkillData beings = 4; //生命体技能信息
+  optional uint32 curbeingid = 5; // 当前召唤的生命体id
+  repeated BeingInfo beinginfos = 6; //生命体信息
+  optional SkillValidPosData skillpos = 7;  // 废弃
+  optional SkillValidPos shortcut = 8;
+}
+
+enum EProfressionDataType
+{
+  ETypeAdvance = 0; // 职业进阶
+  ETypeBranch = 1; // 分支数据
+  ETypeRecord = 2; // 存档数据
+}
+
+//存档信息
+message ProfessionUserInfo
+{
+  optional uint32 id = 1;
+  optional uint32 profession = 2;
+  optional uint32 joblv = 3 [ default = 0 ];
+  optional uint32 jobexp = 4 [ default = 0 ];
+  optional EProfressionDataType type = 5 [ default = ETypeBranch ];
+  optional string recordname = 6; //存档名
+  optional uint32 recordtime = 7;  //存档时间戳
+  optional uint64 charid = 8;
+  optional string charname = 9;
+  optional AttrProfessionData attr_data = 10;
+  repeated EquipPackData equip_data = 11;
+  optional AstrolabeProfessionData astrolabe_data = 12;
+  optional SkillProfessionData skill_data = 13;
+  optional bool isfirst = 14 [ default = true ];
+  optional bool isbuy = 15 [ default = false ];
+}
+
+//存档位类型
+enum ESlotType
+{
+  ESLOT_DEFAULT = 1; //默认存档位
+  ESLOT_BUY = 2; //需要购买的存档位
+  ESLOT_MONTH_CARD = 3; //月卡存档位
+}
+
+//存档位信息
+message SlotInfo
+{
+  optional uint32 id = 1;
+  optional ESlotType type = 2 [default = ESLOT_DEFAULT];
+  optional bool active = 3 [default = false];
+  optional uint32 costid = 4;
+  optional uint32 costnum = 5;
+}
+
+message UserAstrolMaterialData
+{
+  optional uint64 charid = 1;
+  repeated AstrolabeCostData materials = 2;
+}
+
+//scene -> client
+//存档位或者存档的上线同步、更新 都用该协议。
+message UpdateRecordInfoUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_UPDATE_RECORD_INFO ];
+  repeated SlotInfo slots = 3;
+  repeated ProfessionUserInfo records = 4;
+  repeated uint32 delete_ids = 5;
+  optional uint32 card_expiretime = 6;
+  repeated UserAstrolMaterialData astrol_data = 7;
+}
+
+//client <-> scene
+message SaveRecordUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SAVE_RECORD ];
+  optional uint32 slotid = 3;
+  optional string record_name = 4;
+}
+
+//client <-> scene
+message LoadRecordUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_LOAD_RECORD];
+  optional uint32 slotid = 3;
+}
+
+//client <-> scene
+message ChangeRecordNameUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_CHANGE_RECORD_NAME ];
+  optional uint32 slotid = 3;
+  optional string record_name = 4;
+}
+
+//client <-> scene
+message BuyRecordSlotUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_BUY_RECORD_SLOT];
+  optional uint32 slotid = 3;
+}
+
+//client <-> scene
+message DeleteRecordUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_DELETE_RECORD];
+  optional uint32 slotid = 3;
+}
+
+//scene -> client
+//职业分支信息上线同步、更新 都用该协议。
+//sync_type 0:上线同步；1:更新
+message UpdateBranchInfoUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_UPDATE_BRANCH_INFO ];
+
+  repeated ProfessionUserInfo datas = 3;
+  optional uint32 sync_type = 4 [ default = 0];
+}
+//client -> scene
+message EnterCapraActivityCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_ENTER_CAPRA_ACTIVITY ];
+}
+
+
+// client <-> scene
+message InviteWithMeUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_INVITE_WITH_ME ];
+
+  optional uint64 sendid = 3 [ default = 0 ];
+  optional uint32 time = 4 [ default = 0 ];
+  optional bool reply = 5 [ default = false ];
+  optional bytes sign = 6 ;
+}
+
+// client <-> scene
+message QueryAltmanKillUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_QUERY_ALTMAN_KILL ];
+}
+
+enum EBoothOper
+{
+  EBOOTHOPER_OPEN = 0;
+  EBOOTHOPER_CLOSE = 1;
+  EBOOTHOPER_UPDATE = 2;
+}
+
+enum EBoothSign
+{
+  EBOOTHSIGN_WHITE = 0;
+  EBOOTHSIGN_GREEN = 1;
+  EBOOTHSIGN_BLUE = 2;
+  EBOOTHSIGN_PURPLE = 3;
+  EBOOTHSIGN_ORANGE = 4;
+  EBOOTHSIGN_PINK = 5;
+}
+
+// 摊位信息
+message BoothInfo
+{
+  optional string name = 1;
+  optional EBoothSign sign = 2;
+}
+
+//client <-> scene
+message BoothReqUserCmd
+{
+  optional Command cmd = 1[default = SCENE_USER2_PROTOCMD];
+  optional User2Param param = 2[default = USER2PARAM_USER_BOOTH_REQ];
+
+  optional string name = 3; // 店铺名称
+  optional EBoothOper oper = 4 [default = EBOOTHOPER_OPEN];
+  optional bool success = 5[default = true];
+}
+
+//client <- scene
+message BoothInfoSyncUserCmd
+{
+  optional Command cmd = 1[default = SCENE_USER2_PROTOCMD];
+  optional User2Param param = 2[default = USER2PARAM_BOOTH_INFO_SYNC];
+
+  optional uint64 charid = 3;
+  optional EBoothOper oper = 4 [default = EBOOTHOPER_OPEN];
+  optional BoothInfo info = 5;
+}
+
+
+message DressUpModelUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_DRESSUP_MODEL ];
+
+  optional uint32 stageid = 3 [ default = 0 ];
+  optional EUserDataType type  = 4 [ default = EUSERDATATYPE_MIN ];
+  optional uint32 value = 5 [ default = 0 ];
+}
+
+message DressUpHeadUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_DRESSUP_HEAD ];
+
+  optional EUserDataType type  = 3 [ default = EUSERDATATYPE_MIN ];
+  optional uint32 value = 4 [ default = 0 ];
+  optional bool puton = 5 [ default = true ];
+}
+
+enum EDressUpStatus
+{
+  EDRESSUP_MIN = 0;
+  EDRESSUP_WAIT = 1;
+  EDRESSUP_SHOW = 2;
+}
+
+message StageInfo
+{
+  optional uint32 stageid = 1 [ default = 0 ];
+  optional uint32 usernum = 2 [ default = 0 ];
+  optional uint32 waittime = 3 [ default = 0 ];
+  optional uint32 status = 4 [ default = 0 ];
+}
+
+message QueryStageUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_QUERY_STAGE ];
+
+  optional uint32 stageid = 3 [ default = 0 ]; //(0 请求所有舞台信息 非零 指定舞台信息)
+  repeated StageInfo info = 4 ;
+}
+
+message DressUpLineUpUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_DRESSUP_LINEUP ];
+
+  optional uint32 stageid = 3 [ default = 0 ];
+  optional uint32 mode = 4 [ default = 0 ];
+  optional bool enter = 5 [ default = false ];   // true 进入  false 退出
+}
+
+message StageUserDataType
+{
+  optional EUserDataType type  = 1 [ default = EUSERDATATYPE_MIN ];
+  optional uint32 value = 2 [ default = 0 ];
+}
+
+message DressUpStageUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_DRESSUP_STAGE ];
+
+  repeated uint64 userid = 3 ;
+  optional uint32 stageid = 4 [ default = 0 ];
+  repeated StageUserDataType datas = 5;
+}
+
+enum EFuncMapType
+{
+  EFUNCMAPTYPE_POLLY = 1;
+}
+
+message GoToFunctionMapUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_GOTO_FUNCMAP ];
+
+  required EFuncMapType etype = 3;
+}
+
+enum EGrowthStatus
+{
+  EGROWTH_STATUS_MIN = 0;
+  EGROWTH_STATUS_GO = 1;
+  EGROWTH_STATUS_RECEIVE = 2;
+  EGROWTH_STATUS_FINISH = 3;
+}
+
+enum EGrowthType
+{
+  EGROWTH_TYPE_MIN = 0;
+  EGROWTH_TYPE_STEP = 1;
+  EGROWTH_TYPE_EP = 2;
+}
+
+message GrowthCurInfo
+{
+  optional EGrowthType type = 1 [ default = EGROWTH_TYPE_STEP ];
+  optional uint32 groupid = 2 [ default = 0 ];
+}
+
+message GrowthItemInfo
+{
+  optional uint32 dwid = 1 [ default = 0 ];
+  optional uint32 finishtimes = 2 [ default = 0 ];
+  optional EGrowthStatus status = 3 [ default = EGROWTH_STATUS_MIN ];
+}
+
+message GrowthValueInfo
+{
+  optional uint32 groupid = 1 [ default = 0 ];
+  optional uint32 growth = 2 [ default = 0 ];
+  repeated uint32 everreward = 3 ;
+}
+
+message GrowthGroupInfo
+{
+  repeated GrowthItemInfo items = 1;
+  optional GrowthValueInfo valueitems = 2;
+}
+
+// scene -> client
+message GrowthServantUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SERVANT_GROWTH ];
+
+  repeated GrowthGroupInfo datas = 3;
+  repeated uint32 unlockitems = 4;
+}
+
+//  client -> scene
+message ReceiveGrowthServantUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SERVANT_RECEIVE_GROWTH ];
+
+  optional uint32 dwid = 3 [ default = 0 ];
+  optional uint32 dwvalue = 4 [ default = 0 ];
+}
+
+message GrowthOpenServantUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_SERVANT_GROWTH_OPEN ];
+
+  optional uint32 groupid = 3 [ default = 0 ];
+}
+
+// client -> server
+message CheatTagUserCmd 
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_CHEAT_TAG ];
+
+  optional uint32 interval = 3 [ default = 0 ]; // 玩家操作间隔
+  optional uint32 frame = 4 [ default = 0 ]; // 帧间隔
+}
+
+// server -> client
+message CheatTagStatUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER2_PROTOCMD ];
+  optional User2Param param = 2 [ default = USER2PARAM_CHEAT_TAG_STAT ];
+
+  optional uint32 count = 3 [ default = 0 ]; // 嫌疑操作次数
+}

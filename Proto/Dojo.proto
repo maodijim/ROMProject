@@ -1,0 +1,158 @@
+package Cmd;
+
+import "xCmd.proto";
+import "SceneItem.proto";
+
+enum DojoParam
+{
+  EDOJOPARAM_DOJO_PRIVATE_INFO = 1;
+  EDOJOPARAM_DOJO_PUBLIC_INFO = 2;
+
+  EDOJOPARAM_INVITE = 3;
+  EDOJOPARAM_REPLY = 4;
+  EDOJOPARAM_ENTERDOJO = 5;       //进入道场
+  EDOJOPARAM_ADD_MSG = 6;         //添加留言
+  EDOJOPARAM_PANEL_OPER = 7;      //道场面板操作
+
+  EDOJOPARAM_SPONSOR = 9;         //发起道场
+  EDOJOPARAM_QUERYSTATE = 10;     //请求状态
+
+  EDOJOPARAM_REWARD = 11;         //道场奖励    
+}
+
+//道场私人数据
+message DojoPrivateInfoCmd
+{
+  optional Command cmd = 1 [ default = DOJO_PROTOCMD ];
+  optional DojoParam param = 2 [ default = EDOJOPARAM_DOJO_PRIVATE_INFO ];
+  optional uint32 groupid = 3;        //组策划表id  //feiqi
+  repeated uint32 completed_id = 4;
+}
+
+//道场留言
+message DojoMsg
+{
+  optional uint64 charid = 1;
+  optional string name = 2;
+  optional string conent = 3;
+  optional bool iscompleted = 4;
+}
+
+message DojoMsgBlob
+{
+  repeated DojoMsg msgs = 1;
+  optional uint32 dojoid = 2;
+}
+
+//道场公共数据
+message DojoPublicInfoCmd
+{
+  optional Command cmd = 1 [ default = DOJO_PROTOCMD ];
+  optional DojoParam param = 2 [ default = EDOJOPARAM_DOJO_PUBLIC_INFO ];
+  optional uint32  dojoid = 3;   //道场id
+  optional DojoMsgBlob msgblob = 4;
+}
+
+// client <-> server :
+message DojoInviteCmd
+{
+  optional Command cmd = 1 [ default = DOJO_PROTOCMD ];
+  optional DojoParam param = 2 [ default = EDOJOPARAM_INVITE ];
+  optional uint32 dojoid = 3;       //道场id
+  optional uint64 sponsorid = 4;    //发起人
+  optional string sponsorname = 5;  //发起人name
+}
+
+enum EDojoReply
+{
+  EDOJOREPLY_AGREE = 1;
+  EDOJOREPLY_DISAGREE = 2;
+}
+// client <-> server : member replay leader's invite
+message DojoReplyCmd
+{
+  optional Command cmd = 1 [ default = DOJO_PROTOCMD ];
+  optional DojoParam param = 2 [ default = EDOJOPARAM_REPLY ];
+
+  optional EDojoReply eReply = 3 [ default = EDOJOREPLY_DISAGREE ];
+  optional uint64 userid = 4 [ default = 0 ];
+}
+
+// client --> session-->social->scene
+message EnterDojo
+{
+  optional Command cmd = 1 [ default = DOJO_PROTOCMD ];
+  optional DojoParam param = 2 [ default = EDOJOPARAM_ENTERDOJO ];
+
+  optional uint32 dojoid = 3 [ default = 0 ];
+  optional uint64 userid = 4 [ default = 0 ];
+  optional uint32 zoneid = 5 [ default = 0 ];
+  optional uint32 time = 6  [ default = 0 ];
+  optional string sign = 7;
+}
+
+//道场留言 client-->scene->session --> client
+message DojoAddMsg
+{
+  optional Command cmd = 1 [ default = DOJO_PROTOCMD ];
+  optional DojoParam param = 2 [ default = EDOJOPARAM_ADD_MSG ];
+  optional uint32 dojoid = 3;
+  optional DojoMsg dojomsg = 4;
+}
+
+//道场面板操作 关闭面板 client<--> server
+message DojoPanelOper
+{
+  optional Command cmd = 1 [ default = DOJO_PROTOCMD ];
+  optional DojoParam param = 2 [ default = EDOJOPARAM_PANEL_OPER ];
+}
+
+// client <-> server :
+message DojoSponsorCmd
+{
+  optional Command cmd = 1 [ default = DOJO_PROTOCMD ];
+  optional DojoParam param = 2 [ default = EDOJOPARAM_SPONSOR ];
+  optional uint32 dojoid = 3;       //道场id
+  optional bool  is_cancel = 4 [ default = false];     //取消进入
+  optional uint64 sponsorid = 5;    //发起人
+  optional string sponsorname = 6;  //发起人name
+  optional bool ret = 7;
+}
+
+enum DojoState
+{
+  DOJOSTATE_NONE = 0;
+  DOJOSTATE_SPONSORED = 1;    //有人发起了
+  DOJOSTATE_OPENED = 2 ;      //道场已经开始
+  DOJOSTATE_ERROR = 3 ;
+}
+
+// client <-> server :
+message DojoQueryStateCmd
+{
+  optional Command cmd = 1 [ default = DOJO_PROTOCMD ];
+  optional DojoParam param = 2 [ default = EDOJOPARAM_QUERYSTATE ];
+  optional DojoState state = 3;
+  optional uint32 dojoid = 4;       //道场id
+  optional uint64 sponsorid = 5;    //发起人
+  optional string sponsorname = 6;  //发起人name
+  optional bool ret = 7;
+}
+
+enum EPassType
+{
+  EPASSTYPE_FIRST = 1;
+  EPASSTYPE_HELP = 2;
+  EPASSTYPE_NORMAL = 3; 
+}
+
+//scene -> client
+message DojoRewardCmd
+{
+  optional Command cmd = 1 [ default = DOJO_PROTOCMD ];
+  optional DojoParam param = 2 [ default = EDOJOPARAM_REWARD ];
+  optional uint32 dojoid = 3;       //道场id
+  optional EPassType passtype = 4;
+  repeated ItemInfo items = 5;      //奖励
+}
+

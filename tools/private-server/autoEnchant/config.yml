@@ -1,0 +1,48 @@
+# character 1 - 3
+char: 1
+
+version: "1.3.35"
+clientVer: "229126"
+authServer: "http://103.70.76.250/login/index.php"
+ipPort: "103.70.76.250:5678"
+authParams:
+  acc: Username
+  pwd: Password
+
+#账户
+username: ""
+#密码
+password: ""
+#交易密码 如果没有不用管
+#authPass: "11223344aaa"
+#accId: 1058764751661694976
+
+enchantConfig:
+#  # 附魔等级: 高级, 中级, 低级
+#  enchantType: 高级
+#  # 要附魔的装备位置(选一): 武器, 副手, 盔甲, 斗篷, 鞋子,
+#  enchantEquipPos: 武器
+  # 附魔停止条件 只要符合其中一个条件就停止附魔
+  # 格式空格必须对齐
+  condition:
+    # 附魔属性: 必须跟游戏里面的属性描述一样要不然可能无法识别
+    attributes:
+    #  - "灵巧Dex > 7"
+#      - "物理攻击 > 55"
+#      - "魔法攻击 > 50"
+      - "物伤加成 > 30"
+      - "暴伤% > 95"
+    # 附魔词条: 比如 尖锐3
+    extras:
+#      - "斗志3"
+#      - "斗志4"
+      - "尖锐2"
+      - "尖锐3"
+      - "尖锐4"
+#      - "名弓3"
+#      - "名弓4"
+      - "利刃3"
+      - "利刃4"
+      - "狂热3"
+      - "狂热2"
+      - "狂热4"

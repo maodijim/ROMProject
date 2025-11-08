@@ -1,0 +1,1301 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+
+enum ItemParam
+{
+  ITEMPARAM_PACKAGEITEM = 1;
+  ITEMPARAM_PACKAGEUPDATE = 2;
+  ITEMPARAM_ITEMUSE = 3;
+  ITEMPARAM_PACKAGESORT = 4;
+  ITEMPARAM_EQUIP = 5;
+  ITEMPARAM_SELLITEM = 6;
+  ITEMPARAM_EQUIPSTRENGTH = 7;
+  ITEMPARAM_PRODUCE = 9;
+  ITEMPARAM_PRODUCEDONE = 10;
+  ITEMPARAM_REFINE = 11;
+  ITEMPARAM_DECOMPOSE = 12;
+  ITEMPARAM_QUERYEQUIPDATA = 13;
+  ITEMPARAM_BROWSEPACK = 14;
+  ITEMPARAM_EQUIPCARD = 15;
+  ITEMPARAM_ITEMSHOW = 16;
+  ITEMPARAM_REPAIR = 17;
+  ITEMPARAM_HINTNTF = 18;
+  ITEMPARAM_ENCHANT = 19;
+  ITEMPARAM_PROCESSENCHANT = 20;
+  ITEMPARAM_EQUIPEXCHANGE = 21;
+  ITEMPARAM_ONOFFSTORE = 22;
+  ITEMPARAM_PACKSLOTNTF = 23;
+  ITEMPARAM_RESTOREEQUIP = 24;
+  ITEMPARAM_USECOUNT = 25;
+  ITEMPARAM_QUERYDECOMPOSERESULT = 27;
+  ITEMPARAM_EXCHANGECARD = 28;
+  ITEMPARAM_GETCOUNT = 29;
+  ITEMPARAM_SAVE_LOVE_LETTER = 30;
+  ITEMPARAM_ITEMDATASHOW = 31;
+
+  ITEMPARAM_LOTTERY = 32;
+  ITEMPARAM_LOTTERY_RECOVERY = 33;
+  ITEMPARAM_QUERY_LOTTERYINFO = 34;   
+  ITEMPARAM_ITEMSHOW64 = 35;
+  ITEMPARAM_HIGHREFINE_MATCOMPOSE = 36;       //炼金合成
+  ITEMPARAM_HIGHREFINE = 37;                  //强化精炼
+  ITEMPARAM_NTF_HIGHTREFINE_DATA = 38;        //上线推送强化精炼信息给客户端
+  ITEMPARAM_UPDATE_HIGHTREFINE_DATA = 39;     //更新
+  ITEMPARAM_REQ_QUOTA_LOG = 40;
+  ITEMPARAM_REQ_QUOTA_DETAIL = 41;
+  ITEMPARAM_EQUIPPOSDATA_UPDATE = 42;
+  ITEMPARAM_USE_CODE_ITEM = 43;
+  ITEMPARAM_ADD_JOBLEVEL = 44;
+  ITEMPARAM_LOTTERY_GIVE_BUY_COUNT = 46;      //扭蛋购买次数
+  ITEMPARAM_GIVE_WEDDING_DRESS = 47;        //赠送婚纱
+
+  ITEMPARAM_QUICK_STOREITEM = 48;
+  ITEMPARAM_QUICK_SELLITEM = 49;
+  ITEMPARAM_ENCHANT_TRANS = 50;
+  ITEMPARAM_QUERY_LOTTERYHEAD = 51;
+  ITEMPARAM_LOTTERY_RATE_QUERY = 52;        //扭蛋概率查询
+  ITEMPARAM_EQUIPCOMPOSE = 53;
+}
+
+enum EPackType
+{
+  EPACKTYPE_MIN             = 0;
+  EPACKTYPE_MAIN            = 1;
+  EPACKTYPE_EQUIP           = 2;
+  EPACKTYPE_FASHION         = 3;
+  EPACKTYPE_FASHIONEQUIP    = 4;
+  EPACKTYPE_CARD            = 5;
+  EPACKTYPE_STORE           = 6;
+  EPACKTYPE_PERSONAL_STORE  = 7;
+  EPACKTYPE_TEMP_MAIN       = 8;
+  EPACKTYPE_BARROW          = 9;
+  EPACKTYPE_QUEST           = 10;
+  EPACKTYPE_FOOD            = 11;
+  EPACKTYPE_PET             = 12;
+  EPACKTYPE_MAX             = 13;
+}
+
+enum EItemType
+{
+  EITEMTYPE_MIN             = 0;
+
+  EITEMTYPE_HONOR           = 10;
+  EITEMTYPE_STREASURE       = 20;
+  EITEMTYPE_TREASURE        = 30;
+  EITEMTYPE_STUFF           = 40;
+  EITEMTYPE_STUFFNOCUT      = 41;
+  EITEMTYPE_ARROW           = 43;
+  EITEMTYPE_USESKILL        = 44;
+  EITEMTYPE_GHOSTLAMP       = 45;       //幽林灯
+  EITEMTYPE_MULTITIME       = 46;
+  EITEMTYPE_MONTHCARD       = 47;       //月卡
+  EITEMTYPE_QUEST_ONCE      = 48;
+  EITEMTYPE_QUEST_TIME      = 49;
+  EITEMTYPE_SHEET           = 50;
+  EITEMTYPE_PET_WEARSHEET   = 51;
+  EITEMTYPE_PET_WEARUNLOCK  = 52;
+  EITEMTYPE_CONSUME         = 60;
+  EITEMTYPE_HAIRSTUFF       = 61;
+  EITEMTYPE_CONSUME_2       = 62;
+  EITEMTYPE_COLLECTION      = 63;
+  EITEMTYPE_RANGE           = 64;
+  EITEMTYPE_FUNCTION        = 65;
+  EITEMTYPE_ACTIVITY        = 66;
+  EITEMTYPE_WEDDING_RING    = 67;
+  EITEMTYPE_MATERIAL        = 70;
+
+  EITEMTYPE_LETTER          = 71;
+  EITEMTYPE_GOLDAPPLE       = 72;
+  EITEMTYPE_GETSKILL        = 73;
+  EITEMTYPE_PICKEFFECT      = 74;  //捡到不进包裹, 直接触发效果
+  EITEMTYPE_FRIEND          = 75;
+  EITEMTYPE_PICKEFFECT_1    = 76;  //捡到不进包裹, 直接触发效果
+
+  EITEMTYPE_CARD_WEAPON     = 81;
+  EITEMTYPE_CARD_ASSIST     = 82;
+  EITEMTYPE_CARD_ARMOUR     = 83;
+  EITEMTYPE_CARD_ROBE       = 84;
+  EITEMTYPE_CARD_SHOES      = 85;
+  EITEMTYPE_CARD_ACCESSORY  = 86;
+  EITEMTYPE_CARD_HEAD       = 87;
+
+  EITEMTYPE_MOUNT           = 90;
+  EITEMTYPE_BARROW          = 91;
+  EITEMTYPE_PET             = 100;
+  EITEMTYPE_EGG             = 101;
+  EITEMTYPE_PET_EQUIP       = 102;
+  EITEMTYPE_PET_CONSUME     = 103;
+  EITEMTYPE_CARDPIECE       = 110;
+  EITEMTYPE_EQUIPPIECE      = 120;
+  EITEMTYPE_FASHION_PIECE   = 121;    //时装碎片
+
+  EITEMTYPE_GOLD            = 130;
+  EITEMTYPE_SILVER          = 131;
+  EITEMTYPE_DIAMOND         = 132;
+  EITEMTYPE_GARDEN          = 140;
+  EITEMTYPE_CONTRIBUTE      = 145;
+  EITEMTYPE_ASSET           = 146;
+  EITEMTYPE_FRIENDSHIP      = 147;
+
+  EITEMTYPE_MANUALSPOINT    = 143;
+  EITEMTYPE_MORA            = 144;
+  EITEMTYPE_PVPCOIN         = 141;
+
+  EITEMTYPE_QUOTA           = 149;
+  EITEMTYPE_BASEEXP         = 150;
+  EITEMTYPE_JOBEXP          = 151;
+  EITEMTYPE_PURIFY          = 152;
+  EITEMTYPE_MANUALPOINT     = 153;
+  EITEMTYPE_LOTTERY         = 154;
+  EITEMTYPE_COOKER_EXP      = 155;
+  EITEMTYPE_GUILDHONOR      = 156;
+  EITEMTYPE_POLLY_COIN      = 157;
+  EITEMTYPE_QUESTITEM       = 160;
+  EITEMTYPE_QUESTITEMCOUNT  = 165;
+  EITEMTYPE_WEDDING_CERT    = 166;
+  EITEMTYPE_WEDDING_INVITE  = 167;
+  EITEMTYPE_WEDDING_MANUAL  = 168;
+  EITEMTYPE_DEADCOIN        = 169;
+
+  EITEMTYPE_WEAPON_LANCE    = 170;
+  EITEMTYPE_WEAPON_SWORD    = 180;
+  EITEMTYPE_WEAPON_WAND     = 190;
+  EITEMTYPE_WEAPON_KNIFE    = 200;
+  EITEMTYPE_WEAPON_BOW      = 210;
+  EITEMTYPE_WEAPON_HAMMER   = 220;
+  EITEMTYPE_WEAPON_AXE      = 230;
+  EITEMTYPE_WEAPON_BOOK     = 240;
+  EITEMTYPE_WEAPON_DAGGER   = 250;
+  EITEMTYPE_WEAPON_INSTRUMEMT = 260;
+  EITEMTYPE_WEAPON_WHIP     = 270;
+  EITEMTYPE_WEAPON_TUBE     = 280;
+  EITEMTYPE_WEAPON_FIST     = 290;
+
+  EITEMTYPE_ARTIFACT_LANCE  = 450;
+  EITEMTYPE_ARTIFACT_SWORD  = 451;
+  EITEMTYPE_ARTIFACT_WAND   = 452;
+  EITEMTYPE_ARTIFACT_KNIFE  = 453;
+  EITEMTYPE_ARTIFACT_BOW    = 454;
+  EITEMTYPE_ARTIFACT_HAMMER = 455;
+  EITEMTYPE_ARTIFACT_AXE    = 456;
+  EITEMTYPE_ARTIFACT_DAGGER = 457;
+  EITEMTYPE_ARTIFACT_FIST   = 458;
+  EITEMTYPE_ARTIFACT_INSTRUMEMT = 459;
+  EITEMTYPE_ARTIFACT_WHIP   = 460;
+  EITEMTYPE_ARTIFACT_BOOK   = 461;
+
+  EITEMTYPE_ARTIFACT_HEAD   = 485;
+  EITEMTYPE_ARTIFACT_BACK   = 488;
+
+  EITEMTYPE_ARMOUR          = 500;
+  EITEMTYPE_ARMOUR_FASHION  = 501;
+  EITEMTYPE_SHIELD          = 510;
+  EITEMTYPE_PEARL           = 511;
+  EITEMTYPE_EIKON           = 512;
+  EITEMTYPE_BRACER          = 513;
+  EITEMTYPE_BRACELET        = 514;
+  EITEMTYPE_TROLLEY         = 515;
+  EITEMTYPE_ROBE            = 520;
+  EITEMTYPE_SHOES           = 530;
+  EITEMTYPE_ACCESSORY       = 540;
+  EITEMTYPE_FOOD_MEAT       = 601;  //肉类食材
+  EITEMTYPE_FOOD_FISH       = 602;  //鱼类食材
+  EITEMTYPE_FOOD_VEGETABLE  = 603;  //蔬菜食材
+  EITEMTYPE_FOOD_FRUIT      = 604;  //水果食材
+  EITEMTYPE_FOOD_SEASONING  = 605;  //调料食材
+  EITEMTYPE_FOOD            = 610;  //料理成品
+
+  EITEMTYPE_HEAD            = 800;
+  EITEMTYPE_BACK            = 810;
+  EITEMTYPE_HAIR            = 820;
+  EITEMTYPE_HAIR_MALE       = 821;
+  EITEMTYPE_HAIR_FEMALE     = 822;
+  EITEMTYPE_EYE_MALE        = 823;
+  EITEMTYPE_EYE_FEMALE      = 824;
+  EITEMTYPE_FACE            = 830;
+  EITEMTYPE_TAIL            = 840;
+  EITEMTYPE_MOUTH           = 850;
+
+  EITEMTYPE_WATER_ELEMENT   = 1001;
+  EITEMTYPE_PORTRAIT        = 1200;
+  EITEMTYPE_FRAME           = 1210;
+  EITEMTYPE_CODE            = 4000;
+  EITEMTYPE_KFC_CODE        = 4200;
+  EITEMTYPE_MAX             = 4201;
+}
+
+enum EEquipType
+{
+  EEQUIPTYPE_MIN            = 0;
+  EEQUIPTYPE_WEAPON         = 1;
+  EEQUIPTYPE_SHIELD         = 3;
+  EEQUIPTYPE_ARMOUR         = 2;
+  EEQUIPTYPE_ROBE           = 4;
+  EEQUIPTYPE_SHOES          = 5;
+  EEQUIPTYPE_ACCESSORY      = 6;
+  EEQUIPTYPE_HEAD           = 8;
+  EEQUIPTYPE_BACK           = 9;
+  EEQUIPTYPE_FACE           = 10;
+  EEQUIPTYPE_TAIL           = 11;
+  EEQUIPTYPE_MOUNT          = 12;
+  EEQUIPTYPE_MOUTH          = 13;
+  EEQUIPTYPE_BARROW         = 14;
+  EEQUIPTYPE_PEARL          = 16;
+  EEQUIPTYPE_EIKON          = 17;
+  EEQUIPTYPE_BRACELET       = 18;
+  EEQUIPTYPE_HANDBRACELET   = 19;
+  EEQUIPTYPE_TROLLEY        = 20;
+  EEQUIPTYPE_ARTIFACT       = 21;
+  EEQUIPTYPE_ARTIFACT_HEAD  = 22;
+  EEQUIPTYPE_ARTIFACT_BACK  = 23;
+  EEQUIPTYPE_MAX            = 24;
+}
+
+enum EBindType
+{
+  EBINDTYPE_MIN             = 0;
+  EBINDTYPE_BIND            = 1;
+  EBINDTYPE_NOBIND          = 2;
+  EBINDTYPE_MAX             = 3;
+}
+
+enum EExpireType
+{
+  EEXPIRETYPE_MIN           = 0;
+  EEXPIRETYPE_MAX           = 1;
+}
+
+enum ERideType
+{
+  ERIDETYPE_MIN             = 0;
+  ERIDETYPE_ON              = 1;
+  ERIDETYPE_OFF             = 2;
+  ERIDETYPE_MAX             = 3;
+}
+
+enum ETragetType
+{
+  ETARGETTYPE_MY             = 0;
+  ETARGETTYPE_USER           = 1;
+  ETARGETTYPE_MONSTER        = 2;
+  ETARGETTYPE_USERANDMONSTER = 3;
+}
+
+message ItemInfo
+{
+  optional string guid = 1;
+
+  optional uint32 id = 2 [ default = 0 ];
+  optional uint32 count = 3 [ default = 1 ];
+  optional uint32 index = 4 [ default = 0 ];
+  optional uint32 createtime = 5 [ default = 0 ];
+  optional uint64 cd = 6 [ default = 0 ];
+
+  optional EItemType type = 7 [ default = EITEMTYPE_MIN ];
+  optional EBindType bind = 8 [ default = EBINDTYPE_MIN ];
+  optional EExpireType expire = 9 [ default = EEXPIRETYPE_MIN ];
+  optional EQualityType quality = 10 [ default = EQUALITYTYPE_MIN ];
+  optional EEquipType equipType = 11 [ default = EEQUIPTYPE_MIN ];
+  optional ESource source = 12 [ default = ESOURCE_NORMAL ];
+
+  optional bool isnew = 13 [ default = false ];
+  optional uint32 maxcardslot = 14 [ default = 0 ];
+  optional bool ishint = 15 [ default = false ];
+
+  optional bool isactive = 16 [ default = false ];
+  optional uint32 source_npc = 17 [ default = 0 ];
+  optional uint32 refinelv = 18 [ default = 0 ];
+
+  optional uint32 chargemoney = 19 [ default = 0];    //充多少钱获得的，在邮件里赋值。单位元，注意多个道具时，只需要一个道具赋值。  
+  optional uint32 overtime = 20 [ default = 0 ];
+  optional uint64 quota = 21[ default = 0 ];          //充值获得的额度  在邮件里赋值。注意多个道具时，只需要一个道具赋值。 
+}
+
+message RefineCompose
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 num = 2 [ default = 0 ];
+}
+message EquipData
+{
+  optional uint32 strengthlv = 1 [ default = 0 ];
+  optional uint32 refinelv = 2 [ default = 0 ];
+
+  optional uint32 strengthCost = 3 [ default = 0 ];
+  repeated RefineCompose refineCompose = 4;
+
+  optional uint32 cardslot = 5 [ default = 0 ];
+
+  repeated uint32 buffid = 6;
+  optional bool damage = 7 [ default = false ];
+  optional uint32 lv = 8 [ default = 0 ];
+  optional uint32 color = 9 [ default = 0];
+
+  optional uint32 breakstarttime = 10 [ default = 0 ]; // 装备破坏开始时间
+  optional uint32 breakendtime = 11 [ default = 0 ]; // 装备破坏结束时间
+  optional uint32 strengthlv2 = 12 [ default = 0 ];
+  repeated ItemInfo strengthlv2cost = 13;
+}
+message CardData
+{
+  optional string guid = 1;
+  optional uint32 id = 2 [ default = 0 ];
+  optional uint32 pos = 3 [ default = 0 ];
+}
+enum EEnchantType
+{
+  EENCHANTTYPE_MIN = 0;
+  EENCHANTTYPE_PRIMARY = 1;
+  EENCHANTTYPE_MEDIUM = 2;
+  EENCHANTTYPE_SENIOR = 3;
+  EENCHANTTYPE_MAX = 4;
+}
+message EnchantAttr
+{
+  optional EAttrType type = 1 [ default = EATTRTYPE_MIN ];
+  optional uint32 value = 2 [ default = 0 ];
+}
+message EnchantExtra
+{
+  optional uint32 configid = 1 [ default = 0 ];
+  optional uint32 buffid = 2 [ default = 0 ];
+}
+message EnchantData
+{
+  optional EEnchantType type = 1 [ default = EENCHANTTYPE_MIN ];
+  repeated EnchantAttr attrs = 2;
+  repeated EnchantExtra extras = 3;
+  repeated uint32 patch = 4;
+}
+message RefineData
+{
+  optional bool lastfail = 1 [ default = false ];
+  optional uint32 repaircount = 2 [ default = 0 ];
+}
+
+message EggEquip
+{
+  optional ItemInfo base = 1;
+  optional EquipData data = 2;
+  repeated CardData card = 3;
+  optional EnchantData enchant = 4;
+  optional EnchantData previewenchant = 5;
+  optional RefineData refine = 7;
+}
+
+message PetEquipData
+{
+  optional EEquipPos epos = 1;
+  optional uint32 itemid = 2;
+}
+
+message EggData
+{
+  optional uint64 exp = 1 [ default = 0 ];
+  optional uint64 friendexp = 2 [ default = 0 ];
+  optional uint64 rewardexp = 3 [ default = 0 ];
+
+  optional uint32 id = 4 [ default = 0 ];
+  optional uint32 lv = 5 [ default = 0 ];
+  optional uint32 friendlv = 6 [ default = 0 ];
+  optional uint32 body = 7 [ default = 0 ];
+  optional uint32 relivetime = 8 [ default = 0 ];
+  optional uint32 hp = 9 [ default = 0 ];
+  optional uint32 restoretime = 10 [ default = 0 ];
+  optional uint32 time_happly = 11 [ default = 0 ];
+  optional uint32 time_excite = 12 [ default = 0 ];
+  optional uint32 time_happiness = 13 [ default = 0 ];
+
+  optional uint32 time_happly_gift = 14 [ default = 0 ];
+  optional uint32 time_excite_gift = 15 [ default = 0 ];
+  optional uint32 time_happiness_gift = 16 [ default = 0 ];
+
+  optional uint32 touch_tick = 22 [ default = 0 ];
+  optional uint32 feed_tick = 23 [ default = 0 ];
+
+  optional string name = 17;
+  optional bytes var = 18;
+
+  repeated uint32 skillids = 19;
+  repeated EggEquip equips = 20;
+  optional bytes buff = 21;
+
+  repeated uint32 unlock_equip = 24;
+  repeated uint32 unlock_body = 25;
+  optional uint32 version = 26 [ default = 0 ];
+
+  optional bool skilloff = 27 [ default = false ];
+  optional uint32 exchange_count = 28 [ default = 0 ];
+  optional string guid = 29;
+
+  repeated PetEquipData defaultwears = 30;
+  repeated PetEquipData wears = 31;
+}
+
+enum ELetterType
+{
+  ELETTERTYPE_LOVE = 1;
+  ELETTERTYPE_CONSTELLATION = 2;
+  ELETTERTYPE_CHRISTMAS = 3;
+  ELETTERTYPE_SPRING = 4;
+  ELETTERTYPE_LOTTERY = 5;        //扭蛋祝福卡
+  ELETTERTYPE_WEDDINGDRESS = 6;       //婚纱赠送
+}
+
+message LoveLetterData
+{
+  optional string sendUserName = 1;
+  optional string bg = 2;
+  optional uint32 configID = 3;
+  optional string content = 4;
+  optional string content2 = 5;
+}
+
+message CodeData
+{
+  optional string code = 1;   //兑换码
+  optional bool used = 2 [ default  = false];     //是否兑换
+}
+
+message WeddingData
+{
+  optional uint64 id = 1 [ default = 0 ];
+  optional uint32 zoneid = 2 [ default = 0 ];
+  optional uint64 charid1 = 3 [ default = 0 ];
+  optional uint64 charid2 = 4 [ default = 0 ];
+  optional uint32 weddingtime = 5 [ default = 0 ]; // 结婚时间
+  optional uint32 photoidx = 6 [ default = 0 ];
+  optional uint32 phototime = 7 [ default = 0 ];
+  optional string myname = 8;
+  optional string partnername = 9;
+  optional uint32 starttime = 10 [ default = 0 ]; // 婚礼开始时间
+  optional uint32 endtime = 11 [ default = 0 ]; // 婚礼结束时间
+  optional bool notified = 12 [ default = false ]; // 是否通知玩家婚礼开始
+}
+
+message SenderData
+{
+  optional uint64 charid = 1;
+  optional string name = 2;  
+}
+
+message ItemData
+{
+  optional ItemInfo base = 1;
+
+  optional bool equiped = 2 [ default = false ];
+  optional uint32 battlepoint = 3 [ default = 0 ];
+
+  optional EquipData equip = 4;
+  repeated CardData card = 5;
+  optional EnchantData enchant = 6;
+  optional EnchantData previewenchant = 7;
+  optional RefineData refine = 8;
+  optional EggData egg = 9;
+  optional LoveLetterData letter = 10;
+  optional CodeData code = 11;
+  optional WeddingData wedding = 12;
+  optional SenderData  sender = 13;
+}
+
+// client <-> scene : package item request
+message PackageItem
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_PACKAGEITEM ];
+
+  optional EPackType type = 3 [ default = EPACKTYPE_MIN ];
+  repeated ItemData data = 4;
+  optional uint32 maxslot = 5 [ default = 0 ];
+}
+
+// scene -> client : package item update
+message PackageUpdate
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_PACKAGEUPDATE ];
+
+  optional EPackType type = 3 [ default = EPACKTYPE_MIN ];
+  repeated ItemData updateItems = 4;
+  repeated ItemData delItems = 5;
+}
+
+// client -> scene : use item
+message ItemUse
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_ITEMUSE ];
+
+  optional string itemguid = 3;
+  repeated uint64 targets = 4;
+  optional uint32 count = 5;
+}
+
+// client <-> scent : sort package
+message SortInfo
+{
+  optional string guid = 1;
+  optional uint32 index = 2 [ default = 0 ];
+}
+message PackageSort
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_PACKAGESORT ];
+
+  optional EPackType type = 3 [ default = EPACKTYPE_MIN ];
+  repeated SortInfo item = 4;
+}
+
+// client -> scene : equip
+enum EEquipOper
+{
+  EEQUIPOPER_MIN        = 0;
+  EEQUIPOPER_ON         = 1;
+  EEQUIPOPER_OFF        = 2;
+  EEQUIPOPER_PUTFASHION = 3;
+  EEQUIPOPER_OFFFASHION = 4;
+  EEQUIPOPER_PUTSTORE   = 5;
+  EEQUIPOPER_OFFSTORE   = 6;
+  EEQUIPOPER_OFFALL     = 7;
+  EEQUIPOPER_OFFPOS     = 8;
+  EEQUIPOPER_PUTPSTORE  = 9;
+  EEQUIPOPER_OFFPSTORE  = 10;
+  EEQUIPOPER_OFFTEMP    = 11;
+  EEQUIPOPER_PUTBARROW  = 12;
+  EEQUIPOPER_OFFBARROW  = 13;
+  EEQUIPOPER_DRESSUP_ON = 14;
+  EEQUIPOPER_DRESSUP_OFF= 15;
+  EEQUIPOPER_MAX        = 16;
+}
+enum EEquipPos
+{
+  EEQUIPPOS_MIN = 0;
+  EEQUIPPOS_WEAPON = 7;
+  EEQUIPPOS_ARMOUR = 2;
+  EEQUIPPOS_SHIELD = 1;
+  EEQUIPPOS_ROBE = 3;
+  EEQUIPPOS_SHOES = 4;
+  EEQUIPPOS_ACCESSORY1 = 5;
+  EEQUIPPOS_ACCESSORY2 = 6;
+  EEQUIPPOS_HEAD = 8;
+  EEQUIPPOS_BACK = 11;
+  EEQUIPPOS_FACE = 9;
+  EEQUIPPOS_TAIL = 12;
+  EEQUIPPOS_MOUNT = 13;
+  EEQUIPPOS_MOUTH = 10;
+  EEQUIPPOS_BARROW = 14;
+  EEQUIPPOS_ARTIFACT = 15;
+  EEQUIPPOS_ARTIFACT_HEAD = 16;
+  EEQUIPPOS_ARTIFACT_BACK = 17;
+  EEQUIPPOS_MAX = 18;
+}
+message Equip
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_EQUIP ];
+
+  optional EEquipOper oper = 3 [ default = EEQUIPOPER_MIN ];
+  optional EEquipPos pos = 4 [ default = EEQUIPPOS_MIN ];
+  optional string guid = 5;
+  optional bool transfer = 6 [ default = false ];
+  optional uint32 count = 7 [ default = 0 ];
+}
+
+// client -> scene : sell item
+message SItem
+{
+  optional string guid = 1;
+  optional uint32 count = 2 [ default = 0 ];
+}
+message SellItem
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_SELLITEM ];
+
+  optional uint64 npcid = 3 [ default = 0 ];
+  repeated SItem items = 4;
+}
+
+// client <-> scene : strength equip
+enum EStrengthResult
+{
+  ESTRENGTHRESULT_MIN = 0;
+  ESTRENGTHRESULT_SUCCESS = 1;
+  ESTRENGTHRESULT_NOMATERIAL = 2;
+  ESTRENGTHRESULT_MAXLV = 3;
+}
+enum EStrengthType
+{
+  ESTRENGTHTYPE_MIN = 0;
+  ESTRENGTHTYPE_NORMAL = 1;
+  ESTRENGTHTYPE_GUILD = 2;
+  ESTRENGTHTYPE_MAX = 3;
+}
+message EquipStrength
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_EQUIPSTRENGTH ];
+
+  optional string guid = 3;
+
+  optional uint32 destcount = 4 [ default = 0 ];
+  optional uint32 count = 5 [ default = 0 ];
+  optional uint32 cricount = 6 [ default = 0 ];
+  optional uint32 oldlv = 7 [ default = 0 ];
+  optional uint32 newlv = 8 [ default = 0 ];
+
+  optional EStrengthResult result = 9 [ default = ESTRENGTHRESULT_MIN ];
+  optional EStrengthType type = 10 [ default = ESTRENGTHTYPE_MIN ];
+}
+
+// client <-> scene : produce item
+enum EProduceType
+{
+  EPRODUCETYPE_MIN = 1;
+  EPRODUCETYPE_HEAD = 2;
+  EPRODUCETYPE_EQUIP = 3;
+  EPRODUCETYPE_TRADER = 4;
+  EPRODUCETYPE_MAX = 5;
+}
+message Produce
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_PRODUCE ];
+
+  optional EProduceType type = 3 [ default = EPRODUCETYPE_MIN ];
+
+  optional uint32 composeid = 4 [ default = 0 ];
+  optional uint64 npcid = 5 [ default = 0 ];
+  optional uint32 itemid = 6 [ default = 0 ];
+  optional uint32 count = 7 [ default = 1 ];
+  optional bool qucikproduce = 8 [ default = false ];
+}
+
+// client -> scene : produce done
+message ProduceDone
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_PRODUCEDONE ];
+
+  optional EProduceType type = 3 [ default = EPRODUCETYPE_MIN ];
+
+  optional uint64 npcid = 4 [ default = 0 ];
+  optional uint64 charid = 5 [ default = 0 ];
+  optional uint32 delay = 6 [ default = 0 ];
+  optional uint32 itemid = 7 [ default = 0 ];
+}
+
+// client <-> scene : refine item
+enum ERefineResult
+{
+  EREFINERESULT_MIN = 0;
+  EREFINERESULT_SUCCESS = 1;
+  EREFINERESULT_FAILSTAY = 2;
+  EREFINERESULT_FAILBACK = 3;
+  EREFINERESULT_FAILSTAYDAM = 4;
+  EREFINERESULT_FAILBACKDAM = 5;
+  EREFINERESULT_MAX = 6;
+}
+
+message EquipRefine
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_REFINE ];
+
+  optional string guid = 3;
+  optional uint32 composeid = 4 [ default = 0 ];
+
+  optional uint32 refinelv = 5 [ default = 0 ];
+  optional ERefineResult eresult = 6 [ default = EREFINERESULT_MIN ];
+
+  optional uint64 npcid = 7 [ default = 0 ];
+
+  optional bool saferefine = 8 [ default = false ];
+  repeated string itemguid = 9;
+}
+
+// client -> scene : decompose equip
+enum EDecomposeResult
+{
+  EDECOMPOSERESULT_MIN = 0;
+  EDECOMPOSERESULT_FAIL = 1;
+  EDECOMPOSERESULT_SUCCESS = 2;
+  EDECOMPOSERESULT_SUCCESS_BIG = 3;
+  EDECOMPOSERESULT_SUCCESS_SBIG = 4;
+  EDECOMPOSERESULT_SUCCESS_FANTASY = 5;
+  EDECOMPOSERESULT_MAX = 6;
+}
+message EquipDecompose
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_DECOMPOSE ];
+
+  optional string guid = 3;
+  optional EDecomposeResult result = 4 [ default = EDECOMPOSERESULT_MIN ];
+  repeated ItemInfo items = 5;
+}
+
+// client <-> scene : query decompose result
+message DecomposeResult
+{
+  optional ItemInfo item = 1;
+  optional uint32 rate = 2 [ default = 0 ];
+  optional uint32 min_count = 3 [ default = 0 ];
+  optional uint32 max_count = 4 [ default = 0 ];
+}
+message QueryDecomposeResultItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_QUERYDECOMPOSERESULT ];
+
+  optional string guid = 3;
+  repeated DecomposeResult results = 4;
+  optional uint32 sell_price = 5 [ default = 0 ];
+}
+
+// client <-> scene : query equip data
+message QueryEquipData
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_QUERYEQUIPDATA ];
+
+  optional string guid = 3;
+  optional EquipData data = 4;
+}
+
+// client <-> scene : browse package
+message BrowsePackage
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_BROWSEPACK ];
+
+  optional EPackType type = 3 [ default = EPACKTYPE_MIN ];
+}
+
+// client -> scene : equip card
+enum ECardOper
+{
+  ECARDOPER_MIN = 0;
+  ECARDOPER_EQUIPON = 1;
+  ECARDOPER_EQUIPOFF = 2;
+  ECARDOPER_MAX = 3;
+}
+message EquipCard
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_EQUIPCARD ];
+
+  optional ECardOper oper = 3 [ default = ECARDOPER_MIN ];
+  optional string cardguid = 4;
+  optional string equipguid = 5;
+  optional uint32 pos = 6 [ default = 0 ];
+}
+
+// scene -> client : item show
+message ItemShow
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_ITEMSHOW ];
+
+  repeated ItemInfo items = 3;
+}
+
+message ItemShow64
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_ITEMSHOW64 ];
+
+  optional uint32 id = 3;
+  optional uint64 count = 4;
+}
+
+
+message EquipRepair
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_REPAIR ];
+
+  optional string targetguid = 3;
+  optional bool success = 4 [ default = false ];
+  optional string stuffguid = 5;
+}
+
+// client -> scene : hint ntf
+message HintNtf
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_HINTNTF ];
+
+  optional uint32 itemid = 3 [ default = 0 ];
+}
+
+// client -> scene : enchant equip
+message EnchantEquip
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_ENCHANT ];
+
+  optional EEnchantType type = 3 [ default = EENCHANTTYPE_MIN ];
+  optional string guid = 4;
+}
+
+
+message TradeComposePair
+{
+  optional uint32 compose_id = 1; //合成id
+  optional uint32 count = 2;     //个数
+}
+
+message TradeRefineData
+{
+  repeated TradeComposePair composeInfos = 1;
+}
+
+enum ETradeType
+{
+  ETRADETYPE_ALL = 0;
+  ETRADETYPE_TRADE = 1;
+  ETRADETYPE_BOOTH = 2;
+}
+
+message TradeItemBaseInfo
+{
+  optional uint32 itemid = 1;
+  optional uint32 price = 2;
+  optional uint32 count = 3;  
+  optional string guid = 4;       //出售的时候需要
+  optional uint64 order_id = 5; 
+  optional uint32 refine_lv = 6;  //精炼等级
+  optional bool overlap = 8;      //是否可堆叠
+  optional bool is_expired = 9;   //是否过期
+  optional ItemData item_data = 10;
+  optional uint32 publicity_id = 11 [default = 0];    //公示期id
+  optional uint32 end_time = 12 [default = 0];        //公示期结束时间
+  optional string key = 13 ;                        //公示期的key
+  optional uint64 charid = 14;    // 摆摊玩家id
+  optional string name = 15;      // 摆摊玩家名称
+  optional ETradeType type =16 [default = ETRADETYPE_TRADE]; //交易类型
+  optional uint32 up_rate = 17 [default = 0];   // 上调价格
+  optional uint32 down_rate = 18 [default = 0]; // 下调价格
+}
+
+// client -> scene : save enchant
+message ProcessEnchantItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_PROCESSENCHANT ];
+
+  optional bool save = 3 [ default = false ];
+  optional string itemid = 4;
+}
+
+// client -> scene : equip exchange
+enum EExchangeType
+{
+  EEXCHANGETYPE_MIN = 0;
+  EEXCHANGETYPE_EXCHANGE = 1;
+  EEXCHANGETYPE_LEVELUP = 2;
+  EEXCHANGETYPE_MAX = 3;
+}
+message EquipExchangeItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_EQUIPEXCHANGE ];
+
+  optional string guid = 3;
+  optional EExchangeType type = 4 [ default = EEXCHANGETYPE_MIN ];
+}
+
+// client -> scene : open or close store
+message OnOffStoreItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_ONOFFSTORE ];
+
+  optional bool open = 3 [ default = false ];
+}
+
+// scene -> client : pack slot ntf
+message PackSlotNtfItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_PACKSLOTNTF ];
+
+  optional EPackType type = 3 [ default = EPACKTYPE_MIN ];
+  optional uint32 maxslot = 4 [ default = 0 ];
+}
+
+// scene -> client : reset equip
+message RestoreEquipItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_RESTOREEQUIP ];
+
+  optional string equipid = 3;
+
+  optional bool strengthlv = 4 [ default = false ];
+  repeated string cardids = 5;
+  optional bool enchant = 6 [ default = false ];
+  optional bool upgrade = 7 [ default = false ];
+  optional bool strengthlv2 = 8 [ default = false ];
+}
+
+// client <-> scene : query item used times
+message UseCountItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_USECOUNT ];
+
+  required uint32 itemid = 3;
+  optional uint32 count = 4 [ default = 0 ];
+}
+
+// client <-> scene : exchange card
+enum EExchangeCardType
+{
+  EEXCHANGECARDTYPE_DRAW = 1;
+  EEXCHANGECARDTYPE_COMPOSE = 2;
+  EEXCHANGECARDTYPE_DECOMPOSE = 3;
+}
+message ExchangeCardItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_EXCHANGECARD ];
+
+  optional EExchangeCardType type = 3 [ default = EEXCHANGECARDTYPE_DRAW ];
+
+  optional uint64 npcid = 4 [ default = 0 ];
+  repeated string material = 5;
+
+  optional uint64 charid = 6 [ default = 0 ];
+  optional uint32 cardid = 7 [ default = 0 ];
+
+  optional bool anim = 8 [ default = false ];
+  repeated ItemInfo items = 9; // 分解卡片后获得的道具
+}
+
+// client <-> scene: 查询道具获得次数
+message GetCountItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_GETCOUNT ];
+
+  optional uint32 itemid = 3;
+  optional uint32 count = 4 [ default = 0 ];
+  optional ESource source = 5 [ default = ESOURCE_MIN ];
+}
+
+message SaveLoveLetterCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_SAVE_LOVE_LETTER];
+
+  optional uint32 dwID = 3;
+}
+
+// scene -> client : item data show
+message ItemDataShow
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_ITEMDATASHOW ];
+
+  repeated ItemData items = 3;
+}
+
+
+enum ELotteryType
+{
+  ELotteryType_Min = 0;      
+  ELotteryType_Head = 1;      //头饰扭蛋
+  ELotteryType_Equip = 2;    
+  ELotteryType_Card = 3;
+  ELotteryType_CatLitterBox = 4; // 公会建筑福利猫砂盆
+  ELotteryType_Magic = 5;     //魔力扭蛋机
+  ELotteryType_Max = 6;      
+}
+
+message LotteryCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_LOTTERY ];
+  optional uint32 year = 3;    
+  optional uint32 month = 4;
+  optional uint64 npcid = 5;
+  optional bool skip_anim = 6 [ default = false];
+  optional uint32 price = 7;
+  optional uint32 ticket = 8;     //扭蛋券itemid
+  optional ELotteryType type = 9; //扭蛋类型
+  optional uint32 count = 10; // 扭蛋次数
+//res
+  repeated ItemInfo items = 11;
+  optional uint64 charid = 12;
+
+  optional string guid = 13;  //扭蛋道具扭蛋的时候赋值 
+  optional uint32 today_cnt = 14; //今天扭蛋了多少次
+}
+
+
+//SceneItem.proto 回收消息
+message LotteryRecoveryCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_LOTTERY_RECOVERY ];
+  repeated string guids = 3;
+  optional uint64 npcid = 4;
+  optional ELotteryType type = 5;
+}
+
+message LotterySubInfo
+{
+  optional uint32 itemid = 1;
+  optional uint32 recover_price = 2;  
+  optional uint32 rate = 3;       //万分制， 30/10000
+  optional string rarity = 4;
+  optional bool cur_batch = 5;
+  optional uint32 id = 6;
+  optional uint32 recover_itemid = 7; //回收物品id
+  optional uint32 count = 8;
+  optional uint32 female_itemid=9;    //女性itemid
+}
+
+message LotteryInfo
+{
+  optional uint32 year = 1;
+  optional uint32 month = 2;
+  optional uint32 price = 3;
+  optional uint32 discount = 4;     //折扣，30=>30%
+  repeated LotterySubInfo subInfo = 5;
+  optional uint32 lotterybox = 6;    //扭蛋盒itemid
+}
+
+message QueryLotteryInfo
+{ 
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_QUERY_LOTTERYINFO ];
+  repeated LotteryInfo infos = 3;  
+  optional ELotteryType type = 4;
+  optional uint32 today_cnt = 5;    //今日扭蛋次数
+  optional uint32 max_cnt = 6;      //最大次数
+}
+
+enum EQuotaType
+{
+  EQuotaType_G_Charge = 1;      //充值获得
+  EQuotaType_C_Give = 2;        //赠送消耗
+  EQuotaType_C_Auction = 3;     //拍卖消耗
+  EQuotaType_G_Auction = 4;     //拍卖失败返回
+  EQuotaType_C_Lottery = 5;     //赠送扭蛋
+  EQuotaType_C_GuildBox = 6;     //公会宝箱
+  EQuotaType_C_WeddingDress = 7;     //赠送婚纱
+  EQuotaType_L_Booth = 8;       //摆摊锁定
+  EQuotaType_U_Booth = 9;       //摆摊解锁
+  EQuotaType_C_Booth = 10;      //摆摊消耗
+  EQuotaType_L_Give_Trade = 11;  //交易所赠送锁定
+  EQuotaType_U_Give_Trade = 12;  //交易所赠送解锁
+  EQuotaType_C_Give_Trade = 13;  //交易所赠送消耗
+  EQuotaType_G_Reward = 14;     //兑换获得
+}
+message QuotaLog
+{
+  optional uint64 value = 1;
+  optional EQuotaType type = 2;
+  optional uint32 time = 3;
+}
+message QuotaDetail
+{
+  optional uint64 value = 1;
+  optional uint64 left = 2;
+  optional uint32 expire_time = 3;
+  optional uint32 time = 4;
+}
+//client <-> server       请求积分额度获得消耗记录
+message ReqQuotaLogCmd
+{ 
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_REQ_QUOTA_LOG ];
+  optional uint32 page_index = 3;   //第一页是0
+  //res
+  repeated QuotaLog log = 4;
+}
+//client <-> server     请求积分额度期限详情
+message ReqQuotaDetailCmd
+{ 
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_REQ_QUOTA_DETAIL ];
+  optional uint32 page_index = 3;
+ //res
+  repeated QuotaDetail detail = 4;
+}
+
+message EquipPosData
+{
+  optional EEquipPos pos = 1 [ default = EEQUIPPOS_MIN ];
+  optional uint32 offstarttime = 2 [ default = 0 ]; // 装备脱卸开始时间
+  optional uint32 offendtime = 3 [ default = 0 ]; // 装备脱卸结束时间
+  optional uint32 protecttime = 4 [ default = 0 ]; // 免疫对应位置装备被破坏/脱卸的时间
+  optional uint32 protectalways = 5 [ default = 0 ]; // 是否永久保护, 大于0表示永久保护
+  optional string recordguid = 6;
+}
+
+message EquipPosDataUpdate
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_EQUIPPOSDATA_UPDATE ];
+
+  repeated EquipPosData datas = 3;
+}
+
+message MatItemInfo
+{
+  optional uint32 itemid = 1;
+  optional uint32 num = 2;
+}
+
+//client -> scene 炼金合成
+message HighRefineMatComposeCmd
+{ 
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_HIGHREFINE_MATCOMPOSE ];
+  optional uint32 dataid = 3;   //配置表id
+  optional uint64 npcid = 4;
+  repeated MatItemInfo mainmaterial = 5;
+  repeated MatItemInfo vicematerial = 6;
+}
+
+//client -> scene 极限精炼
+message HighRefineCmd
+{ 
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_HIGHREFINE ];
+  optional uint32 dataid = 3;  
+}
+
+message HighRefineData
+{
+  optional EEquipPos pos = 1;
+  repeated uint32 level = 2;
+}
+
+//server -> client 推送极限精炼信息给客户端
+message NtfHighRefineDataCmd
+{ 
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_NTF_HIGHTREFINE_DATA ];
+  repeated HighRefineData datas = 3;
+}
+
+//server -> client 更新极限精炼信息给客户端
+message UpdateHighRefineDataCmd
+{ 
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_UPDATE_HIGHTREFINE_DATA ];
+  optional HighRefineData data = 3;
+}
+
+
+//client <-> server     使用兑换码道具
+message UseCodItemCmd
+{ 
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_USE_CODE_ITEM ];
+  optional string guid = 3;
+  //res
+  optional string code = 4;
+}
+
+message AddJobLevelItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_ADD_JOBLEVEL ];
+
+  optional uint32 item = 3 [ default = 0 ];
+  optional uint32 num = 4 [ default = 0 ];
+}
+
+// client -> server 购买扭蛋盒并赠送
+message LotterGivBuyCountCmd
+{ 
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_LOTTERY_GIVE_BUY_COUNT ];
+  optional uint32 got_count = 3;    //已经购买的次数
+  optional uint32 max_count = 4;    //总数
+}
+
+
+//client <-> server     赠送婚纱
+message GiveWeddingDressCmd
+{ 
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_GIVE_WEDDING_DRESS ];
+  optional string guid = 3;
+  optional string content = 6;    //祝福内容
+  optional uint64 receiverid = 8; //接收者角色id
+}
+
+// client -> scene : 一键存储
+message QuickStoreItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_QUICK_STOREITEM ];
+
+  repeated ItemInfo items = 3;
+}
+
+// client -> scene : 一键出售
+message QuickSellItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_QUICK_SELLITEM ];
+
+  repeated SItem items = 3;
+}
+
+// client <-> scene : 附魔转移
+message EnchantTransItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_ENCHANT_TRANS ];
+
+  optional string from_guid = 3;
+  optional string to_guid = 4;
+  optional bool success = 5 [ default = false ];
+}
+
+// client <-> scene : 查询扭蛋头饰
+message QueryLotteryHeadItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_QUERY_LOTTERYHEAD ];
+
+  repeated uint32 ids = 3;
+}
+
+message LotteryRateInfo
+{
+  optional uint32 type = 1;
+  optional uint32 rate = 2;  // 除以1000000
+}
+
+//client <-> scene
+message LotteryRateQueryCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_LOTTERY_RATE_QUERY ];
+
+  optional ELotteryType type = 3;
+  repeated LotteryRateInfo infos = 4;
+}
+
+// client <-> scene : 装备合成
+message EquipComposeItemCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
+  optional ItemParam param = 2 [ default = ITEMPARAM_EQUIPCOMPOSE ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  repeated string materialequips = 4;
+  optional uint32 retmsg = 5 [ default = 0 ];  // 0表示成功
+}
+

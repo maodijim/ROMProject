@@ -1,0 +1,113 @@
+package Cmd;
+
+import "xCmd.proto";
+enum EPveCardParam
+{
+  EPVE_INVITE_TEAM_CMD = 1;
+  EPVE_REPLY_TEAM_CMD = 2;
+  EPVE_ENTER_RAID_CMD = 3;
+  EPVE_QUERY_ALL_CARD_CMD = 4;
+  EPVE_SELECT_CARD_CMD = 5;
+  EPVE_SELECTED_CARD_CMD = 6;
+  EPVE_UPDATE_CARD_CMD = 7;
+  EPVE_BEGIN_FIRE_CMD = 8;
+  EPVE_FINISH_CARD_CMD = 9;
+  EPVE_PLAY_CARD_CMD = 10;
+}
+
+// client -> teamserver, 队长发送邀请
+message InvitePveCardCmd
+{
+  optional Command cmd = 1 [ default = PVE_CARD_PROTOCMD ];
+  optional EPveCardParam param = 2 [ default = EPVE_INVITE_TEAM_CMD ];
+
+  optional uint32 configid = 3 [ default = 0 ];
+  optional bool iscancel = 4 [ default = false ];
+}
+
+// client -> teamserver, 队员回复是否他同意
+message ReplyPveCardCmd
+{
+  optional Command cmd = 1 [ default = PVE_CARD_PROTOCMD ];
+  optional EPveCardParam param = 2 [ default = EPVE_REPLY_TEAM_CMD ];
+
+  optional bool agree = 3 [ default = false ];
+  optional uint64 charid = 4 [ default = 0 ];
+}
+
+// client -> teamserver, 队长点击进入副本
+message EnterPveCardCmd
+{
+  optional Command cmd = 1 [ default = PVE_CARD_PROTOCMD ];
+  optional EPveCardParam param = 2 [ default = EPVE_ENTER_RAID_CMD ];
+
+  optional uint32 configid = 3 [ default = 0 ];
+}
+
+message PveCardInfo
+{
+  optional uint32 index = 1 [ default = 0 ];
+  repeated uint32 cardids = 2;
+}
+
+// client <-> scene, 请求当前系统所有卡牌信息
+message QueryCardInfoCmd
+{
+  optional Command cmd = 1 [ default = PVE_CARD_PROTOCMD ];
+  optional EPveCardParam param = 2 [ default = EPVE_QUERY_ALL_CARD_CMD ];
+
+  repeated PveCardInfo cards = 3;
+}
+
+// client -> scene, 队长选择一套卡牌
+message SelectPveCardCmd
+{
+  optional Command cmd = 1 [ default = PVE_CARD_PROTOCMD ];
+  optional EPveCardParam param = 2 [ default = EPVE_SELECT_CARD_CMD ];
+
+  required uint32 index = 3;
+}
+
+// scene -> client, 同步玩家当前副本选中的卡牌进度(队长选牌后, 或者队员重新进入副本时,发送)
+message SyncProcessPveCardCmd
+{
+  optional Command cmd = 1 [ default = PVE_CARD_PROTOCMD ];
+  optional EPveCardParam param = 2 [ default = EPVE_SELECTED_CARD_CMD ];
+
+  optional PveCardInfo card = 3;
+  optional uint32 process = 4 [ default = 0 ]; //即将打出的卡牌索引,0表示尚未开始,1~57
+}
+
+// scene -> client, 更新打牌进度
+message UpdateProcessPveCardCmd
+{
+  optional Command cmd = 1 [ default = PVE_CARD_PROTOCMD ];
+  optional EPveCardParam param = 2 [ default = EPVE_UPDATE_CARD_CMD ];
+
+  optional uint32 process = 3 [ default = 0 ];
+}
+
+// client -> scene, 队长点击开始战斗
+message BeginFirePveCardCmd
+{
+  optional Command cmd = 1 [ default = PVE_CARD_PROTOCMD ];
+  optional EPveCardParam param = 2 [ default = EPVE_BEGIN_FIRE_CMD ];
+}
+
+// scene -> client, 打牌结束
+message FinishPlayCardCmd
+{
+  optional Command cmd = 1 [ default = PVE_CARD_PROTOCMD ];
+  optional EPveCardParam param = 2 [ default = EPVE_FINISH_CARD_CMD ];
+}
+
+// scene -> client, 打牌事件
+message PlayPveCardCmd
+{
+  optional Command cmd = 1 [ default = PVE_CARD_PROTOCMD ];
+  optional EPveCardParam param = 2 [ default = EPVE_PLAY_CARD_CMD ];
+
+  required uint64 npcguid = 3;
+  repeated uint32 cardids = 4;
+}
+

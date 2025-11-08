@@ -1,0 +1,138 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+
+enum BossParam
+{
+  BOSS_LIST_USER_CMD = 1;
+  BOSS_POS_USER_CMD = 2;
+  BOSS_KILL_USER_CMD = 3;
+  BOSS_USER_INFO_CMD = 4;
+  BOSS_WORLD_NTF = 5;
+  BOSS_STEP_SYNC = 6;
+}
+
+enum EBossRefreshState
+{
+  EBOSSREFRESHSTATE_MIN = 0;
+  EBOSSREFRESHSTATE_APPEARED = 1; // 已现身
+  EBOSSREFRESHSTATE_UPCOMING = 2; // 即将刷新
+  EBOSSREFRESHSTATE_SHORT = 3; // 较短时间
+  EBOSSREFRESHSTATE_LONG = 4; // 较长时间
+  EBOSSREFRESHSTATE_MAX = 5;
+}
+
+message BossInfoItem
+{
+  optional uint32 id = 1;
+  optional uint32 refreshTime = 2 [ default = 0 ];
+  optional uint32 dietime = 9 [ default = 0 ];
+  optional uint32 summontime = 10 [ default = 0 ];
+  optional uint32 mapid = 4;
+  optional uint32 settime = 7 [ default = 0 ];
+  optional uint32 lv = 8 [ default = 0 ];
+  optional EBossRefreshState refreshstate = 5 [ default = EBOSSREFRESHSTATE_MIN ];
+  optional string lastKiller = 3;
+  optional uint64 charid = 6 [ default = 0 ];
+}
+
+// server <=> client
+message BossListUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_BOSS_PROTOCMD ];
+  optional BossParam param = 2 [ default = BOSS_LIST_USER_CMD ];
+
+  repeated BossInfoItem bosslist = 3;
+  repeated BossInfoItem minilist = 4;
+  repeated BossInfoItem deadlist = 5;
+}
+
+// server => client
+message BossPosUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_BOSS_PROTOCMD ];
+  optional BossParam param = 2 [ default = BOSS_POS_USER_CMD ];
+
+  optional ScenePos pos = 3;
+}
+
+// server => client
+message KillBossUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_BOSS_PROTOCMD ];
+  optional BossParam param = 2 [ default = BOSS_KILL_USER_CMD ];
+
+  optional uint64 userid = 3 [ default = 0];
+}
+
+message BossKillerData
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 portrait = 2;
+  //optional uint32 frame = 3;
+  optional uint32 baselevel = 4;
+  optional uint32 hair = 5;
+  optional uint32 haircolor = 6;
+  optional uint32 body = 7;
+  optional uint32 head = 8;
+  optional uint32 face = 9;
+  optional uint32 mouth = 10;
+  optional uint32 eye = 11;
+  optional uint32 blink = 12;
+  optional EProfession profession = 13;
+  optional EGender gender = 14;
+  optional string name = 15;
+  optional string guildname = 16;
+}
+
+// client <-> session
+message QueryKillerInfoBossCmd
+{
+  optional Command cmd = 1 [ default = SCENE_BOSS_PROTOCMD ];
+  optional BossParam param = 2 [ default = BOSS_USER_INFO_CMD ];
+
+  optional uint64 charid = 3;
+  optional BossKillerData userdata = 4;
+}
+
+// session -> client
+message WorldBossNtf
+{
+  optional Command cmd = 1 [ default = SCENE_BOSS_PROTOCMD ];
+  optional BossParam param = 2 [ default = BOSS_WORLD_NTF ];
+
+  optional uint32 npcid = 3 [ default = 0 ];
+  optional uint32 mapid = 4 [ default = 0 ];
+  optional uint32 time = 5 [ default = 0 ];
+  optional bool open = 6 [ default = false ];
+}
+
+// scene -> client
+enum EBossStep
+{
+  EBOSSSTEP_MIN = 0;
+  EBOSSSTEP_VISIT = 1;
+  EBOSSSTEP_SUMMON = 2;
+  EBOSSSTEP_CLEAR = 3;
+  EBOSSSTEP_BOSS = 4;
+  EBOSSSTEP_END = 5;
+  EBOSSSTEP_LIMIT = 7;
+  EBOSSSTEP_DIALOG = 8;
+  EBOSSSTEP_STATUS = 9;
+  EBOSSSTEP_WAIT = 10;
+  EBOSSSTEP_KILL = 11;
+  EBOSSSTEP_WORLD = 12;
+  EBOSSSTEP_SHOW = 13;
+  EBOSSSTEP_MAX = 14;
+}
+message StepSyncBossCmd
+{
+  optional Command cmd = 1 [ default = SCENE_BOSS_PROTOCMD ];
+  optional BossParam param = 2 [ default = BOSS_STEP_SYNC ];
+
+  optional uint32 actid = 3 [ default = 0 ];
+  optional EBossStep step = 4 [ default = EBOSSSTEP_MIN ];
+  optional ConfigParam params = 5;
+}
+

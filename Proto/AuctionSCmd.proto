@@ -1,0 +1,146 @@
+package Cmd;
+
+import "xCmd.proto";
+import "AuctionCCmd.proto";
+import "SceneItem.proto";
+
+enum AuctionSParam
+{
+  AUCTIONSPARAM_FORWARD_CCMD2AUCTION = 1;         //client -> session ->auctionserver
+  AUCTIONSPARAM_FORWARD_SCMD2AUCTION = 2;         //scene ->session -> auctionserver
+  AUCTIONSPARAM_FORWARD_AUCTION2SCMD = 3;         //auctionserver ->session -> scene
+  AUCTIONSPARAM_SIGNUP_ITEM = 4;                  //上架扣物品
+  AUCTIONSPARAM_OFFER_PRICE = 5;                  //出价扣钱
+  AUCTIONSPARAM_OFFER_PRICE_DEL_ORDER = 6;        //删除订单号
+  AUCTIONSPARAM_TAKE_RECORD = 7;                  //领取拍卖纪录
+  AUCTIONSPARAM_WORLD_CMD = 8;                    //世界消息   
+  AUCTIONSPARAM_GM_MODIFY_AUCTION_TIME = 9;       //修改拍卖时间
+  AUCTIONSPARAM_GM_STOP_AUCTION = 10;             //停止拍卖 
+  AUCTIONSPARAM_BROADCASE_MSG_BYSESSION = 11;     //通过sessionserver广播消息
+}
+
+//client -> session -> auctionserver
+message ForwardCCmd2Auction
+{
+  optional Command cmd = 1 [ default = AUCTIONS_PROTOCMD ];
+  optional AuctionSParam param = 2 [ default = AUCTIONSPARAM_FORWARD_CCMD2AUCTION];   
+  optional uint64 charid = 3;
+  optional uint32 zoneid = 4;
+  optional string name = 5;
+  optional bytes data = 6;
+  optional uint32 len = 7;
+}
+
+//scene->sessionserver->auctionserver
+message ForwardSCmd2Auction
+{
+  optional Command cmd = 1 [ default = AUCTIONS_PROTOCMD ];
+  optional AuctionSParam param = 2 [ default = AUCTIONSPARAM_FORWARD_SCMD2AUCTION];   
+  optional uint64 charid = 3;
+  optional uint32 zoneid = 4;
+  optional string name = 5;
+  optional bytes data = 6;
+  optional uint32 len = 7; 
+}
+
+//auctionserver->sessionserver->sceneserver
+message ForwardAuction2SCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONS_PROTOCMD ];
+  optional AuctionSParam param = 2 [ default = AUCTIONSPARAM_FORWARD_AUCTION2SCMD ];   
+  optional uint64 charid = 3;
+  optional bytes data = 4;
+  optional uint32 len = 5;
+}
+
+//auctionserver<->sceneserver
+message SignUpItemSCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONS_PROTOCMD ];
+  optional AuctionSParam param = 2 [ default = AUCTIONSPARAM_SIGNUP_ITEM ];   
+  optional SignUpItemInfo iteminfo = 3;   
+  optional bool ret = 4;
+  optional uint64 charid = 5;
+  optional uint64 batchid = 6;
+  optional uint64 orderid = 7;
+
+  optional string guid = 8;             // 装备拍品guid
+  optional uint32 fm_point = 9;         // 附魔点数总和
+  optional uint32 fm_buff = 10;         // 附魔buff
+  optional ItemData itemdata = 11;      // 装备拍品data
+}
+
+//auctionserver<->sceneserver
+message OfferPriceSCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONS_PROTOCMD ];
+  optional AuctionSParam param = 2 [ default = AUCTIONSPARAM_OFFER_PRICE ];   
+  optional uint64 orderid = 3;    //去重用
+  optional uint64 batchid = 4;
+  optional uint32 itemid = 5;
+  optional uint64 reduce_money = 6;  //扣钱
+  optional uint64 total_price = 7;
+  optional bool ret = 8;          //是否扣除成功
+  optional uint64 charid = 9;
+
+  optional uint64 signupid = 10;
+}
+
+//auctionserver<->sceneserver
+message OfferPriceDelOrderSCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONS_PROTOCMD ];
+  optional AuctionSParam param = 2 [ default = AUCTIONSPARAM_OFFER_PRICE_DEL_ORDER ];   
+  optional uint64 orderid = 3;    
+  optional uint64 charid = 4;
+}
+
+//auctionserver<->sceneserver
+message TakeRecordSCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONS_PROTOCMD ];
+  optional AuctionSParam param = 2 [ default = AUCTIONSPARAM_TAKE_RECORD ];   
+  optional uint64 id = 3;
+  optional ERecordType type = 4;
+  optional uint64 charid = 5;
+  optional uint64 batchid = 6;    
+  optional uint32 itemid = 7;     //做解锁使用
+  optional ItemInfo item = 8;
+  optional uint64 zeny = 9;
+  optional bool ret = 10;
+  optional uint64 bcat = 11;  
+
+  optional uint64 signup_id = 12;
+  optional ItemData itemdata = 13;
+}
+
+//auctionserver->session->gateserver
+message WorldCmdSCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONS_PROTOCMD ];
+  optional AuctionSParam param = 2 [ default = AUCTIONSPARAM_WORLD_CMD ];   
+  optional bytes data = 3;
+  optional uint32 len = 4; 
+}
+
+message GmModifyAuctionTimeSCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONS_PROTOCMD ];
+  optional AuctionSParam param = 2 [ default = AUCTIONSPARAM_GM_MODIFY_AUCTION_TIME ];   
+  optional uint32 auction_time = 3;
+}
+
+message GmStopAuctionSCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONS_PROTOCMD ];
+  optional AuctionSParam param = 2 [ default = AUCTIONSPARAM_GM_STOP_AUCTION ];   
+}
+
+message BroadcastMsgBySessionAuctionSCmd
+{
+  optional Command cmd = 1 [ default = AUCTIONS_PROTOCMD ];
+  optional AuctionSParam param = 2 [ default = AUCTIONSPARAM_BROADCASE_MSG_BYSESSION ];   
+  optional bytes data = 3;
+  optional uint32 len = 4;
+}
+

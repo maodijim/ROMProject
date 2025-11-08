@@ -1,0 +1,29 @@
+package Cmd;
+
+import "xCmd.proto";
+
+enum WeatherParam
+{
+  WEATHERPARAM_WEATHERCHANGE = 1;
+  WEATHERPARAM_SKYCHANGE = 2;
+}
+
+// session -> client : weather change
+message WeatherChange
+{
+  optional Command cmd = 1 [ default = SESSION_USER_WEATHER_PROTOCMD ];
+  optional WeatherParam param = 2 [ default = WEATHERPARAM_WEATHERCHANGE ];
+
+  optional uint32 id = 3 [ default = 0 ];
+}
+
+// session -> client : sky change
+message SkyChange
+{
+  optional Command cmd = 1 [ default = SESSION_USER_WEATHER_PROTOCMD ];
+  optional WeatherParam param = 2 [ default = WEATHERPARAM_SKYCHANGE ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  optional uint32 sec = 4 [ default = 0];
+}
+

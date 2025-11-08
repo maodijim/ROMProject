@@ -1,0 +1,272 @@
+package Cmd;
+
+import "xCmd.proto";
+import "SceneItem.proto";
+
+enum ManualParam
+{
+  MANUALPARAM_QUERYVERSION = 1;
+  MANUALPARAM_QUERYDATA = 2;
+  MANUALPARAM_POINTSYNC = 3;
+  MANUALPARAM_UPDATE = 4;
+  MANUALPARAM_GETREWARD = 5;
+  MANUALPARAM_UNLOCK = 6;
+  MANUALPARAM_SKILLPOINTSYNC = 7;
+  MANUALPARAM_LEVELSYNC = 8;
+  MANUALPARAM_GETQUESTREWARD = 9;
+  MANUALPARAM_STOREITEM = 10;
+  MANUALPARAM_GETITEM = 11;
+  MANUALPARAM_GROUPACTION = 12;
+  MANUALPARAM_QUERY_UNSOLVED_PHOTO = 13;
+  MANUALPARAM_UPDATE_UNSOLVED_PHOTO = 14;
+}
+
+enum EManualType
+{
+  EMANUALTYPE_MIN = 0;
+  EMANUALTYPE_FASHION = 1;
+  EMANUALTYPE_CARD = 2;
+  EMANUALTYPE_EQUIP = 3;
+  EMANUALTYPE_ITEM = 4;
+  EMANUALTYPE_MOUNT = 5;
+  EMANUALTYPE_MONSTER = 6;
+  EMANUALTYPE_NPC = 7;
+  EMANUALTYPE_HOMEPAGE = 8;
+  EMANUALTYPE_MAP = 9;
+  EMANUALTYPE_ACHIEVE = 10;
+  EMANUALTYPE_SCENERY = 11;
+  EMANUALTYPE_COLLECTION = 14;
+  EMANUALTYPE_RESEARCH = 15;
+  EMANUALTYPE_HAIRSTYLE = 16;
+  EMANUALTYPE_MATE = 17;
+  EMANUALTYPE_FOOD = 18;
+  EMANUALTYPE_PET = 19;
+  EMANUALTYPE_MAX = 20;
+}
+
+enum EManualLockMethod
+{
+  EMANUALLOCKMETHOD_MIN = 0;
+  EMANUALLOCKMETHOD_KILL = 1;
+  EMANUALLOCKMETHOD_PICK = 2;
+  EMANUALLOCKMETHOD_PRODUCE = 3;
+  EMANUALLOCKMETHOD_GET = 4;
+  EMANUALLOCKMETHOD_VISIT = 5;
+  EMANUALLOCKMETHOD_PHOTO = 6;
+  EMANUALLOCKMETHOD_USED = 7;
+  EMANUALLOCKMETHOD_DRAW = 8;
+  EMANUALLOCKMETHOD_MAX = 9;
+}
+
+enum EManualStatus
+{
+  EMANUALSTATUS_MIN = 0;
+  EMANUALSTATUS_DISPLAY = 1;
+  EMANUALSTATUS_UNLOCK_CLIENT = 2;
+  EMANUALSTATUS_UNLOCK_STEP = 3;
+  EMANUALSTATUS_UNLOCK = 4;
+  EMANUALSTATUS_MAX = 5;
+}
+message ManualQuest
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 process = 2 [ default = 0 ];
+
+  optional bool finish = 3 [ default = false ];
+  optional bool rewardget = 4 [ default = false ];
+}
+message ManualSubItem
+{
+  optional EManualStatus status = 1 [ default = EMANUALSTATUS_MIN ];
+  optional uint32 id = 2 [ default = 0 ];
+  optional bool unlock = 3 [ default = false ];
+
+  repeated ManualQuest quests = 4;
+  optional bool store = 5;
+
+  repeated uint32 params = 6;
+  repeated string data_params = 7;    // scenery : (anglez, time, accid|charid)
+  optional uint32 storeid = 8 [ default = 0 ];
+  optional ItemData item = 9;
+}
+message ManualItem
+{
+  optional EManualType type = 1 [ default = EMANUALTYPE_MIN ];
+
+  optional uint32 version = 2 [ default = 0 ];
+  repeated ManualSubItem items = 3;
+  repeated ManualQuest quests = 4;
+}
+message ManualGroup
+{
+  optional uint32 id = 1 [ default = 0 ];
+}
+message ManualData
+{
+  optional uint32 version = 6 [ default = 0 ];
+
+  optional uint32 point = 1 [ default = 0 ];
+  optional uint32 level = 2 [ default = 0 ];
+  optional uint32 skillpoint = 4 [ default = 0 ];
+  optional uint32 exchange_time = 8 [ default = 0 ];
+
+  repeated ManualItem items = 3;
+  repeated ManualGroup groups = 5;
+}
+
+// scene -> client : query version
+message ManualVersion
+{
+  optional EManualType type = 1 [ default = EMANUALTYPE_MIN ];
+  optional uint32 version = 2 [ default = 0 ];
+}
+message QueryVersion
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_QUERYVERSION ];
+
+  repeated ManualVersion versions = 3;
+}
+
+// client <-> scene : query data
+message QueryManualData
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_QUERYDATA ];
+
+  optional EManualType type = 3 [ default = EMANUALTYPE_MIN ];
+  optional ManualItem item = 4;
+}
+
+// scene -> client : point sync
+message PointSync
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_POINTSYNC ];
+
+  optional uint32 point = 3 [ default = 0 ];
+}
+
+// scene -> client : update
+message ManualUpdate
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_UPDATE ];
+
+  optional ManualItem update = 3;
+}
+
+// client -> scene : get reward
+message GetAchieveReward
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_GETREWARD ];
+
+  optional uint32 id = 3 [ default = 0 ];
+}
+
+// client -> scene : unlock
+message Unlock
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_UNLOCK ];
+
+  optional EManualType type = 3 [ default = EMANUALTYPE_MIN ];
+  optional uint32 id = 4 [ default = 0 ];
+}
+
+// scene -> client : skillpoint sync
+message SkillPointSync
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_SKILLPOINTSYNC ];
+
+  optional uint32 skillpoint = 3 [ default = 0 ];
+}
+
+// scene -> client : level sync
+message LevelSync
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_LEVELSYNC ];
+
+  optional uint32 level = 3 [ default = 0 ];
+}
+
+// client > scene : get quest reward
+message GetQuestReward
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_GETQUESTREWARD ];
+
+  optional uint32 appendid = 3 [ default = 0 ];
+}
+
+// client -> scene : store
+message StoreManualCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_STOREITEM];
+
+  optional EManualType type = 3 [ default = EMANUALTYPE_MIN ];
+  optional string guid = 4;
+}
+
+// client -> scene : get
+message GetManualCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_GETITEM];
+
+  optional EManualType type = 3 [ default = EMANUALTYPE_MIN ];
+  optional uint32 itemid = 4 [ default = 0 ];
+}
+
+// client -> scene : group action
+enum EGroupAction
+{
+  EGROUPACTION_MIN = 0;
+  EGROUPACTION_ENTER_END = 1;
+  EGROUPACTION_MAX = 2;
+}
+message GroupActionManualCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_GROUPACTION ];
+
+  optional EGroupAction action = 3 [ default = EGROUPACTION_MIN ];
+  optional uint32 group_id = 4 [ default = 0 ];
+}
+
+// scene -> client : query unresolved photo
+message UnsolvedPhoto
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 time = 2 [ default = 0 ];
+  optional uint32 anglez = 3 [ default = 0 ];
+}
+message UnsolvedUserPhoto
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional string name = 2;
+
+  repeated UnsolvedPhoto photos = 3;
+}
+message QueryUnsolvedPhotoManualCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_QUERY_UNSOLVED_PHOTO ];
+
+  repeated UnsolvedUserPhoto photos = 3;
+  optional uint32 time = 4 [ default = 0 ];
+}
+
+message UpdateSolvedPhotoManualCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MANUAL_PROTOCMD ];
+  optional ManualParam param = 2 [ default = MANUALPARAM_UPDATE_UNSOLVED_PHOTO ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 sceneryid = 4 [ default = 0 ];
+}
+

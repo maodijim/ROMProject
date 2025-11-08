@@ -1,0 +1,630 @@
+package Cmd;
+
+import "xCmd.proto";
+import "SceneItem.proto";
+
+enum PetParam
+{
+  PETPARAM_PETLIST = 1;
+  PETPARAM_FIRE_CAT = 2;
+  PETPARAM_HIRE_CAT = 3;
+  PETPARAM_HATCH_EGG = 4;
+  PETPARAM_RESTORE_EGG = 5;
+  PETPARAM_CATCH_VALUE_SYNC = 6;
+  PETPARAM_CATCH_RESULT = 7;
+  PETPARAM_CATCH_PET = 8;
+  PETPARAM_PETINFO = 9;
+  PETPARAM_PETINFO_UPDATE = 10;
+  PETPARAM_OFF_PET = 11;
+  PETPARAM_CATCH_GIFT = 12;
+  PETPARAM_GET_GIFT = 13;
+  PETPARAM_EQUIP_OPER = 14;
+  PETPARAM_EQUIP_UPDATE = 15;
+  PETPARAM_ADVENTURE_QUERYLIST = 16;
+  PETPARAM_ADVENTURE_RESULTNTF = 17;
+  PETPARAM_ADVENTURE_START = 18;
+  PETPARAM_ADVENTURE_GETREWARD = 19;
+  PETPARAM_ADVENTURE_QUERYBATTLEPET = 20;
+  PETPARAM_INVITE_HAND = 21;
+  PETPARAM_GIVE_GIFT = 22;
+  PETPARAM_UNLOCK_NTF = 23;
+  PETPARAM_RESET_SKILL = 24;
+  PETPARAM_QUERY_GOTITEM = 25;
+  PETPARAM_CHANGE_NAME = 26;
+  PETPARAM_SWITCH_SKILL = 27;
+  PETPARAM_WORK_UNLOCKMANUAL = 28;
+  PETPARAM_WORK_STARTWORK = 29;
+  PETPARAM_WORK_STOPWORK = 30;
+  PETPARAM_WORK_QUERYWORKMANUAL = 31;
+  PETPARAM_WORK_QUERYWORKDATA = 32;
+  PETPARAM_WORK_GETREWARD = 33;
+  PETPARAM_WORK_SPACEUPDATE = 34;
+  PETPARAM_WORK_EXTRAUPDATE = 35;
+  PETPARAM_COMPOSE = 36;
+  PETPARAM_EQUIP_LIST = 37;
+  PETPARAM_EQUIP_LIST_UPDATE = 38;
+  PETPARAM_CHANGE_WEAR = 39;
+  PETPARAM_UPDATE_WEAR = 40;
+}
+
+// pet data
+message PetData
+{
+  optional uint32 id = 1 [ default = 0 ];
+}
+
+// scene -> client : query pet list
+message PetList
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional uint32 param = 2 [ default = 1 ];
+
+  repeated PetData datas = 3;
+}
+
+message WeaponPetData
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 hp = 2 [ default = 0 ];
+  optional uint32 relivetime = 3 [ default = 0 ];
+  optional uint32 expiretime = 4 [ default = 0 ];
+  optional bool blive = 5 [ default = false ];
+  optional bool bactive = 6 [ default = false ];
+  optional bool handstatus = 7 [ default = false ];
+}
+
+// client -> scene : fire cat
+message FireCatPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_FIRE_CAT ];
+
+  optional uint32 catid = 3 [ default = 0 ];
+}
+
+enum EEmployType
+{
+  EEMPLOYTYPE_MIN = 0;
+  EEMPLOYTYPE_DAY = 1;
+  EEMPLOYTYPE_WEEK = 2;
+  EEMPLOYTYPE_MAX = 3;
+}
+
+message HireCatPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_HIRE_CAT ];
+
+  optional uint32 catid = 3 [ default = 0 ];
+  optional EEmployType etype = 4 [ default = EEMPLOYTYPE_DAY ];
+}
+
+// client -> scene : hatch egg
+message EggHatchPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_HATCH_EGG ];
+
+  optional string name = 3;
+  optional string guid = 4;
+}
+
+// client -> scene : restore egg
+message EggRestorePetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_RESTORE_EGG ];
+
+  optional uint32 petid = 3 [ default = 0 ];
+}
+
+// scene -> client : catch value sync
+message CatchValuePetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_CATCH_VALUE_SYNC ];
+
+  required uint64 npcguid = 3;
+  optional uint32 value = 4 [ default = 0 ];
+  optional uint32 from_npcid = 5 [ default = 0 ];
+}
+
+// scene -> client : catch pet result
+message CatchResultPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_CATCH_RESULT ];
+
+  optional bool success = 3 [ default = false ];
+  optional uint64 npcguid = 4 [ default = 0 ];
+}
+
+message UserPetData
+{
+  optional EggData basedata = 1;
+  optional bool inhand = 2 [ default = false ];
+}
+
+// client -> scene : catch or stop catch
+message CatchPetPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_CATCH_PET ];
+
+  optional uint64 npcguid = 3 [ default = 0 ];
+  optional bool isstop = 4 [ default = false ];
+}
+
+// client -> scene : give gift to catchnpc
+message CatchPetGiftPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_CATCH_GIFT ];
+
+  optional uint64 npcguid = 3 [ default = 0 ];
+}
+
+enum EPetDataType
+{
+  EPETDATA_MIN = 0;
+  EPETDATA_LV = 1;
+  EPETDATA_EXP = 2;
+  EPETDATA_FRIENDLV = 3;
+  EPETDATA_FRIENDEXP = 4;
+  EPETDATA_REWARDEXP = 5;
+  EPETDATA_RELIVETIME = 6;
+  EPETDATA_TIME_HAPPLY = 7;
+  EPETDATA_TIME_EXCITE = 8;
+  EPETDATA_TIME_HAPPINESS = 9;
+  EPETDATA_TOUCH_TICK = 10;
+  EPETDATA_TOUCH_COUNT = 13;
+  EPETDATA_FEED_TICK = 11;
+  EPETDATA_FEED_COUNT = 12;
+  EPETDATA_REWARD_COUNT = 17;
+  EPETDATA_BODY = 18;
+  EPETDATA_SKILL = 19;
+  EPETDATA_NAME = 20;
+  EPETDATA_SKILLSWITCH = 21;
+  EPETDATA_MAX = 22;
+}
+
+message PetMemberData
+{
+  optional EPetDataType etype = 1 [ default = EPETDATA_MIN ];
+  optional uint64 value = 2 [ default = 0 ];
+  repeated uint32 values = 3;
+  optional string data = 4;
+}
+
+message PetInfo
+{
+  optional uint64 guid = 1 [ default = 0 ];
+  optional uint64 exp = 2 [ default = 0 ];
+  optional uint64 friendexp = 3 [ default = 0 ];
+  optional uint64 rewardexp = 4 [ default = 0 ];
+
+  required uint32 petid = 5;
+  required string name = 6;
+  optional uint32 lv = 7 [ default = 0 ];
+  optional uint32 friendlv = 8 [ default = 0 ];
+  optional uint32 relivetime = 9 [ default = 0 ];
+  optional uint32 body = 10 [ default = 0 ];
+
+  optional uint32 time_happly = 11 [ default = 0 ];
+  optional uint32 time_excite = 12 [ default = 0 ];
+  optional uint32 time_happiness = 13 [ default = 0 ];
+
+  repeated uint32 unlock_equip = 14;
+  repeated uint32 unlock_body = 15;
+  repeated uint32 skills = 16;
+  repeated ItemData equips = 17;
+  optional bool skilloff = 18 [ default = false ];
+}
+
+message PetInfoPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_PETINFO ];
+
+  repeated PetInfo petinfo = 3;
+}
+
+message PetInfoUpdatePetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_PETINFO_UPDATE ];
+
+  required uint32 petid = 3;
+  repeated PetMemberData datas = 4;
+}
+
+// 移除宠物, 如:回收宠物变为蛋
+message PetOffPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_OFF_PET ];
+
+  required uint32 petid = 3;
+}
+
+// client -> scene : get gift
+message GetGiftPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_GET_GIFT ];
+
+  optional uint32 petid = 3 [ default = 0 ];
+}
+
+// client -> scene : equip oper
+enum EPetEquipOper
+{
+  EPETEQUIPOPER_MIN = 0;
+  EPETEQUIPOPER_ON = 1;
+  EPETEQUIPOPER_OFF = 2;
+  EPETEQUIPOPER_BODY = 3;
+  EPETEQUIPOPER_DELETE = 4;
+  EPETEQUIPOPER_MAX = 5;
+}
+message EquipOperPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_EQUIP_OPER ];
+
+  optional EPetEquipOper oper = 3 [ default = EPETEQUIPOPER_MIN ];
+
+  optional uint32 petid = 4 [ default = 0 ];
+  optional string guid = 5;
+}
+
+// scene -> client : equip update
+message EquipUpdatePetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_EQUIP_UPDATE ];
+
+  optional uint32 petid = 3 [ default = 0 ];
+  optional ItemData update = 4;
+  optional string del = 5;
+}
+
+// adventure
+enum EPetAdventureStatus
+{
+  EPETADVENTURESTATUS_MIN = 0;
+  EPETADVENTURESTATUS_CANACCEPT = 1;
+  EPETADVENTURESTATUS_ACCEPT = 2;
+  EPETADVENTURESTATUS_COMPLETE = 3;
+  EPETADVENTURESTATUS_SUBMIT = 4;
+  EPETADVENTURESTATUS_MAX = 5;
+}
+message PetAdventureStep
+{
+  optional uint32 step = 1 [ default = 0 ];
+  repeated ItemData items = 3;
+}
+
+enum EPetEfficiencyType
+{
+  EPETEFFICIENCY_MIN = 0;
+  EPETEFFICIENCY_REFINE = 1;
+  EPETEFFICIENCY_ENCHANT = 2;
+  EPETEFFICIENCY_STAR = 3;
+  EPETEFFICIENCY_TITLE = 4;
+  EPETEFFICIENCY_HEADWEAR = 5;
+  EPETEFFICIENCY_CARD = 6;
+  EPETEFFICIENCY_MAX = 7;
+}
+
+message PetEfficiencyInfo
+{
+  required EPetEfficiencyType etype = 1;
+  optional uint32 fvalue = 2; // * 1000 发送
+}
+
+message PetMonsterRewardInfo
+{
+  optional uint32 monsterid = 1 [ default = 0 ];
+  repeated ItemData items = 2;
+}
+
+message PetAdventureItem
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 starttime = 2 [ default = 0 ];
+
+  optional EPetAdventureStatus status = 3 [ default = EPETADVENTURESTATUS_MIN ];
+  repeated ItemData eggs = 4;
+  repeated PetAdventureStep steps = 5;
+  repeated ItemData raresreward = 6;
+  optional uint32 specid = 7 [ default = 0 ];
+  repeated PetEfficiencyInfo eff = 8;
+  repeated PetMonsterRewardInfo rewardinfo = 9;
+  repeated ItemData extrarewardinfo = 10;
+}
+
+// client <-> scene : query adventure list
+message QueryPetAdventureListPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_ADVENTURE_QUERYLIST ];
+
+  repeated PetAdventureItem items = 3;
+}
+
+// scene -> client : new result ntf
+message PetAdventureResultNtfPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_ADVENTURE_RESULTNTF ];
+
+  optional PetAdventureItem item = 3;
+}
+
+// client -> scene : start adventure
+message StartAdventurePetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_ADVENTURE_START ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  repeated string petids = 4;
+  optional uint32 specid = 5 [ default = 0 ];
+}
+
+// client -> scene : get reward
+message GetAdventureRewardPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_ADVENTURE_GETREWARD ];
+
+  optional uint32 id = 3 [ default = 0 ];
+}
+
+// client <-> scene : query battle pet
+message QueryBattlePetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_ADVENTURE_QUERYBATTLEPET ];
+
+  repeated ItemData pets = 3;
+}
+
+// client -> scene : invite or break hand pet
+message HandPetPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_INVITE_HAND ];
+
+  required uint64 petguid = 3;
+  optional bool breakup = 4 [ default = false ];
+}
+
+// client -> scene : give gift to pet
+message GiveGiftPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_GIVE_GIFT ];
+
+  required uint32 petid = 3;
+  optional string itemguid = 4;
+}
+
+// scene -> client : unlock ntf
+message UnlockNtfPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_UNLOCK_NTF ];
+
+  optional uint32 petid = 3 [ default = 0 ];
+  repeated uint32 equipids = 4;
+  repeated uint32 bodys = 5;
+}
+
+// client -> scene : reset skill
+message ResetSkillPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_RESET_SKILL ];
+
+  optional uint32 id = 3 [ default = 0 ];
+}
+
+// client <-> scene : change name
+message ChangeNamePetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_CHANGE_NAME ];
+
+  optional uint32 petid = 3 [ default = 0 ];
+  optional string name = 4;
+}
+
+// client -> scene : switch skill
+message SwitchSkillPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_SWITCH_SKILL ];
+
+  optional uint32 petid = 3 [ default = 0 ];
+  optional bool open = 4 [ default = false ];
+}
+
+enum EWorkState
+{
+  EWORKSTATE_MIN = 0;
+  EWORKSTATE_UNUSED = 1;
+  EWORKSTATE_WORKING = 2;
+  EWORKSTATE_REST = 3;
+  EWORKSTATE_MAX = 4;
+}
+message WorkSpace
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 starttime = 2 [ default = 0 ];
+  optional uint32 lastrewardtime = 7 [ default = 0];
+  optional bool unlock = 3 [ default = false ];
+
+  optional EWorkState state = 4 [ default = EWORKSTATE_MIN ];
+  repeated ItemData datas = 5;
+  repeated uint32 counts = 6;
+  repeated uint32 last_counts = 8;
+}
+
+message WorkManual
+{
+  optional bool unlock = 1 [ default = false ];
+}
+
+message WorkPetExtra
+{
+  optional string guid = 1;
+  optional uint32 lastspaceid = 2 [ default = 0 ];
+  optional uint32 count = 3 [ default = 0 ];
+}
+
+message WorkDayReward
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 time = 2 [ default = 0 ];
+}
+
+// client -> scene : unlock manual
+message UnlockPetWorkManualPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_WORK_UNLOCKMANUAL ];
+}
+
+// client -> scene : start work
+message StartWorkPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_WORK_STARTWORK ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  repeated string pets = 4;
+}
+
+// client -> scene : stop work
+message StopWorkPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_WORK_STOPWORK ];
+
+  optional uint32 id = 3 [ default = 0 ];
+}
+
+// scene -> client : query work manual
+message QueryPetWorkManualPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_WORK_QUERYWORKMANUAL ];
+
+  optional WorkManual manual = 3;
+}
+
+// client <-> scene : query work data
+message QueryPetWorkDataPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_WORK_QUERYWORKDATA ];
+
+  repeated WorkSpace datas = 3;
+  repeated WorkPetExtra extras = 4;
+
+  optional uint32 max_space = 5 [ default = 0 ];
+  optional uint32 card_expiretime = 6 [ default = 0 ];
+}
+
+// client -> scene : get work reward
+message GetPetWorkRewardPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_WORK_GETREWARD ];
+
+  optional uint32 id = 3 [ default = 0 ];
+}
+
+// scene -> client : work space update
+message WorkSpaceUpdate
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_WORK_SPACEUPDATE ];
+
+  repeated WorkSpace updates = 3;
+}
+
+// scene -> client : pet extra update
+message PetExtraUpdatePetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_WORK_EXTRAUPDATE ];
+
+  repeated WorkPetExtra updates = 3;
+}
+
+// client -> scene : compose
+message ComposePetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_COMPOSE ];
+  required uint32 id = 3;
+  repeated string eggguids = 4;
+}
+
+message SpecPetEquip
+{
+  required uint32 bodyid = 1;
+  required uint32 itemid = 2;
+  optional EEquipPos epos = 3 [ default = EEQUIPPOS_MIN ];
+}
+
+message PetEquipUnlockInfo
+{
+  repeated uint32 items = 1;
+  repeated SpecPetEquip bodyitems = 2;
+}
+
+// scene -> client : equip unlock list
+message PetEquipListCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_EQUIP_LIST ];
+  optional PetEquipUnlockInfo unlockinfo = 3;
+}
+
+// scene -> client : unlock new equip
+message UpdatePetEquipListCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_EQUIP_LIST_UPDATE ];
+  repeated uint32 additems = 3;
+  repeated SpecPetEquip addbodyitems = 4;
+}
+
+message PetWearInfo
+{
+  required EEquipPos epos = 4;
+  optional uint32 itemid = 5;
+  optional EPetEquipOper oper = 6 [ default = EPETEQUIPOPER_ON ];
+}
+
+// client -> scene : change wear
+message ChangeWearPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_CHANGE_WEAR ];
+  required uint32 petid = 3;
+  repeated PetWearInfo wearinfo = 4;
+}
+
+// scene -> client : update wear
+message UpdateWearPetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_PET_PROTOCMD ];
+  optional PetParam param = 2 [ default = PETPARAM_UPDATE_WEAR ];
+  required uint32 petid = 3;
+  repeated PetWearInfo wearinfo = 4;
+}
+

@@ -1,0 +1,422 @@
+package Cmd;
+import "xCmd.proto";
+import "ProtoCommon.proto";
+
+enum WeddingCParam
+{
+  WEDDINGCPARAM_REQ_WEDDINGDATE_LIST = 1;               //请求婚礼排期列表
+  WEDDINGCPARAM_REQ_WEDDING_ONEDAY_LIST = 3;            //某一天的预定时间
+  WEDDINGCPARAM_REQ_WEDDING_INFO = 4;                   //查看某个预定的详情
+  WEDDINGCPARAM_RESERVE_WEDDINGDATE = 5;                //预定
+  WEDDINGCPARAM_NTF_RESERVE_WEDDINGDATE = 6;            //对方收到预定通知
+  WEDDINGCPARAM_REPLY_RESERVE_WEDDINGDATE = 7;          //对方回复预定通知
+  WEDDINGCPARAM_GIVEUP_RESERVE = 8;                     //放弃预定
+  WEDDINGCPARAM_REQ_DIVORCE = 9;                        //请求离婚  
+  WEDDINGCPARAM_UPDATE_MANUAL = 10;                     //结婚手册数据查询/更新
+  WEDDINGCPARAM_BUY_PACKAGE = 11;                       //购买套餐
+  WEDDINGCPARAM_BUY_RING = 12;                          //购买戒指
+  WEDDINGCPARAM_INVITE = 13;                            //邀请
+  WEDDINGCPARAM_UPLOAD_WEDDING_PHOTO = 14;              //上传结婚照
+  WEDDINGCPARAM_CHECK_CAN_RESERVE = 15;                 //检查可否订婚
+  WEDDINGCPARAM_REQ_PARTNER_INFO = 16;                  //请求伴侣信息
+  WEDDINGCPARAM_NTF_WEDDING_INFO = 17;                  //玩家上线推送订婚信息给玩家
+  WEDDINGCPARAM_INVITE_WEDDING = 18;                    //邀请开始婚礼仪式
+  WEDDINGCPARAM_REPLY_WEDDING = 19;                     //同意开始婚礼仪式
+  WEDDINGCPARAM_GOTO_WEDDINGPOS = 20;                   //通知婚礼双方移动到主教位置
+  WEDDINGCPARAM_QUESTION = 21;                          //答题,问题
+  WEDDINGCPARAM_ANSWER = 22;                            //答题,回答
+  WEDDINGCPARAM_WEDDING_EVENT_MSG = 23;                 //婚礼事件到场景，可能会离线
+  WEDDINGCPARAM_WEDDING_STOP = 24;                      //婚礼结束消息
+  WEDDINGCPARAM_QUESTION_SWITCH = 25;                   //答题, 开始或者结束
+  WEDDINGCPARAM_ENTER_ROLLER_COASTER = 26;              //进入婚礼过山车
+  WEDDINGCPARAM_DIVORCE_ROLLER_COASTER_INVITE = 27;     //离婚过山车邀请
+  WEDDINGCPARAM_DIVORCE_ROLLER_COASTER_REPLY = 28;      //离婚过山车回复   
+  WEDDINGCPARAM_ENTER_WEDDINGMAP = 29;                  //访问Npc进入婚礼地图
+  WEDDINGCPARAM_MISSYOU_INVITE = 30;                    //好想你邀请
+  WEDDINGCPARAM_MISSYOU_REPLY = 31;                     //好想你应答
+  WEDDINGCPARAM_CARRIER = 32;                           //乘坐载具
+}
+
+enum EDateStatus
+{  
+  EDateStatus_None = 0;
+  EDateStatus_Full = 1;
+  EdateStatus_Hot = 2;
+}
+
+message WeddingDateStatus
+{
+  optional uint32 date = 1 [ default = 0 ];           //那天0点时间戳
+  optional uint32 count = 3 [ default = 0 ];
+  optional EDateStatus status = 2; 
+}
+message ReqWeddingDateListCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_REQ_WEDDINGDATE_LIST ];
+  repeated WeddingDateStatus date_list = 3;    //那天0点时间戳
+  optional bool use_ticket = 4;      //是否是婚礼券
+}
+
+message WeddingOneDayInfo
+{
+  optional uint32 configid = 1;
+  optional bool ban = 2 [ default = false ];    //是否禁止
+  optional uint32 starttime = 3;
+  optional uint32 endtime = 4;
+  optional uint32 price = 5;
+  optional uint64 id = 6;           //婚礼id如果为0表示每人预定
+}
+
+message ReqWeddingOneDayListCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_REQ_WEDDING_ONEDAY_LIST ];
+  optional uint32 date = 3;
+  repeated WeddingOneDayInfo info = 4;    
+}
+
+message CharData
+{
+  optional uint64 charid = 1;
+  optional string name = 2;
+  optional uint32 profession = 3;
+  optional EGender gender = 4;
+  optional uint32 portrait = 5 [ default = 0 ];
+  optional uint32 hair = 7 [ default = 0 ];
+  optional uint32 haircolor = 8 [ default = 0 ];
+  optional uint32 body = 9 [ default = 0 ];
+  optional uint32 head = 10 [ default = 0 ];
+  optional uint32 face = 11 [ default = 0 ];
+  optional uint32 mouth = 12 [ default = 0 ];
+  optional uint32 eye = 13 [ default = 0 ];
+  optional uint32 level = 14;
+  optional string guildname = 15;
+}
+
+enum EWeddingStatus
+{
+  EWeddingStatus_Reserve = 0;     //预定
+  EWeddingStatus_Married = 1;     //结婚
+  EWeddingStatus_None = 2;        //无   
+}
+
+message BirefWeddingInfo
+{
+  optional uint64 id = 1;
+  optional EWeddingStatus status = 2;
+  optional CharData char1 = 3;
+  optional CharData char2 = 4;
+  optional uint32 zoneid = 5;
+  optional uint32 starttime = 6;
+  optional uint32 endtime = 7;
+  optional bool can_single_divorce = 8;     //可否单方面离婚
+}
+
+message ReqWeddingInfoCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_REQ_WEDDING_INFO ];
+  optional uint64 id = 3;
+  optional BirefWeddingInfo info = 4;      
+}
+
+message ReserveWeddingDateCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_RESERVE_WEDDINGDATE ];
+  optional uint32 date = 3;
+  optional uint32 configid = 4;   
+  optional uint64 charid2 = 5;
+  optional bool use_ticket = 6;
+}
+
+message NtfReserveWeddingDateCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_NTF_RESERVE_WEDDINGDATE ];
+  optional uint32 date = 3;
+  optional uint32 configid = 4;   
+  optional uint64 charid1 = 5;
+  optional string name = 6;
+  optional uint32 starttime = 7;
+  optional uint32 endtime = 8;
+  optional uint32 time = 9;
+  optional bool use_ticket = 10;
+  optional uint32 zoneid = 11;
+  optional string sign = 12;
+}
+
+enum EReply
+{
+  EReply_Agree = 1;
+  EReply_Refuse = 2;  
+}
+
+message ReplyReserveWeddingDateCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_REPLY_RESERVE_WEDDINGDATE ];
+  optional uint32 date = 3;
+  optional uint32 configid = 4;   
+  optional uint64 charid1 = 5;
+  optional EReply reply =6;
+  optional uint32 time = 7;
+  optional bool use_ticket = 8;
+  optional uint32 zoneid = 9;
+  optional string sign = 10;
+}
+
+message GiveUpReserveCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_GIVEUP_RESERVE ];
+  optional uint64 id = 3;       //婚礼id
+}
+
+enum EGiveUpType
+{
+  EGiveUpType_Together = 1;
+  EGiveUpType_Single = 2;
+  EGiveUpType_Force = 3;
+  EGiveUpType_DelChar = 4;   
+}
+
+message ReqDivorceCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_REQ_DIVORCE ];
+  optional uint64 id = 3;       //婚礼唯一id
+  optional EGiveUpType type = 4; 
+}
+
+message ClientWeddingManual
+{
+  repeated uint32 packageids = 1; // 已购买套餐id
+  optional uint32 ringid = 2 [ default = 0 ];
+  optional uint32 photoindex = 3 [ default = 0 ];
+  optional uint32 phototime = 4 [ default = 0 ];
+}
+
+// 被邀请人
+message WeddingInvitee
+{
+  optional uint64 charid = 1 [ default = 0];
+  optional string name = 2;
+  optional uint32 invitetime = 3 [ default = 0 ];
+}
+
+// 结婚手册数据查询/更新
+message UpdateWeddingManualCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_UPDATE_MANUAL ];
+
+  optional ClientWeddingManual manual = 3;
+  repeated WeddingInvitee invitees = 4;
+}
+
+// 购买套餐
+message BuyWeddingPackageCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_BUY_PACKAGE ];
+
+  optional uint32 id = 3 [ default = 0 ]; // 套餐id
+  optional uint32 priceitem = 4 [ default = 0 ]; // 使用的货币id
+}
+
+// 购买戒指
+message BuyWeddingRingCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_BUY_RING ];
+
+  optional uint32 id = 3 [ default = 0 ]; // 戒指id
+  optional uint32 priceitem = 4 [ default = 0 ]; // 使用的货币id
+}
+
+// 邀请玩家
+message WeddingInviteCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_INVITE ];
+
+  repeated uint64 charids = 3; // 被邀请人charid
+}
+
+// 上传照片
+message UploadWeddingPhotoCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_UPLOAD_WEDDING_PHOTO ];
+
+  optional uint32 index = 3 [ default = 0 ];
+  optional uint32 time = 4 [ default = 0 ];
+}
+
+// 可否订婚
+message CheckCanReserveCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_CHECK_CAN_RESERVE ];
+  optional uint64 charid2 = 3;
+  optional bool success = 4;
+}
+
+message ReqPartnerInfoCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_REQ_PARTNER_INFO ];
+  optional CharData chardata = 3;
+}
+
+message NtfWeddingInfoCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_NTF_WEDDING_INFO ];
+  optional BirefWeddingInfo info = 3;
+}
+
+message InviteBeginWeddingCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_INVITE_WEDDING ];
+
+  optional uint64 masterid = 3 [ default = 0 ];
+  optional string name = 5;
+  optional uint64 tocharid = 6 [ default = 0 ];
+}
+
+message ReplyBeginWeddingCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_REPLY_WEDDING ];
+
+  optional uint64 masterid = 3 [ default = 0 ];
+}
+
+// scene <-> client
+message GoToWeddingPosCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_GOTO_WEDDINGPOS ];
+}
+
+message QuestionWeddingCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_QUESTION ];
+
+  optional uint32 questionid = 3 [ default = 0 ];
+  repeated uint64 charids = 4;
+  optional uint64 npcguid = 5 [ default = 0 ];
+}
+
+message AnswerWeddingCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_ANSWER ];
+
+  optional uint32 questionid = 3 [ default = 0 ];
+  optional uint32 answer = 4 [ default = 0 ];
+}
+
+enum EWeddingEvent
+{
+  EWeddingEvent_Reserve = 1;                //订婚
+  EWeddingEvent_GiveupReserve = 2;          //放弃订婚
+  EWeddingEvent_Marry = 3;                  //结婚
+  EWeddingEvent_CancelReserveTimeOut = 5;   //超时取消订婚
+  EWeddingEvent_CancelReserveSys = 6;       //系统维护取消订婚
+  EWeddingEvent_DivorceTogether = 7;        //协议离婚
+  EWeddingEvent_DivorceSingle = 8;          //单方面离婚
+  EWeddingEvent_DivorceForce = 9;           //强制离婚
+  EWeddingEvent_DivorceDelChar = 10;        //删角色离婚
+  EWeddingEvent_DelInvitation = 11;         //删除邀请函
+}
+
+message WeddingEventMsgCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_WEDDING_EVENT_MSG ];
+  optional uint64 charid = 3;
+  optional EWeddingEvent event = 4;
+  optional uint64 id = 5;
+  optional uint64 charid1 = 6;
+  optional uint64 charid2 = 7;
+  optional string msg = 8;
+  optional uint64 opt_charid = 9;   //操作者
+}
+
+message WeddingOverCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_WEDDING_STOP ];
+
+  optional bool success = 3 [ default = false ];
+}
+
+//scene <-> client
+message WeddingSwitchQuestionCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_QUESTION_SWITCH ];
+
+  optional bool onoff = 3 [ default = false ];
+  optional uint64 npcguid = 4 [ default = 0 ];
+}
+
+//进入过山车副本
+message EnterRollerCoasterCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_ENTER_ROLLER_COASTER ];  
+}
+
+message DivorceRollerCoasterInviteCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_DIVORCE_ROLLER_COASTER_INVITE ];  
+  optional uint64 inviter = 3;    //邀请人
+  optional uint64 invitee = 4;    //被邀请人
+  optional string inviter_name = 5; //邀请人名字
+}
+
+message DivorceRollerCoasterReplyCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_DIVORCE_ROLLER_COASTER_REPLY ];  
+  optional uint64 inviter = 3;  //邀请人
+  optional EReply reply = 5;
+}
+
+message EnterWeddingMapCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_ENTER_WEDDINGMAP ];
+}
+
+// client -> scene : miss invite
+message MissyouInviteWedCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_MISSYOU_INVITE ];
+}
+
+// client -> scene : missyou reply
+message MisccyouReplyWedCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_MISSYOU_REPLY ];
+
+  optional bool agree = 3 [ default = false ];
+}
+
+//client->scene : create carrier
+message WeddingCarrierCCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGC_PROTOCMD ];
+  optional WeddingCParam param = 2 [ default = WEDDINGCPARAM_CARRIER ];
+}
+
