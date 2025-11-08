@@ -517,9 +517,9 @@ message PackageUpdate
   optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
   optional ItemParam param = 2 [ default = ITEMPARAM_PACKAGEUPDATE ];
 
-  optional EPackType type = 3 [ default = EPACKTYPE_MIN ];
-  repeated ItemData updateItems = 4;
-  repeated ItemData delItems = 5;
+  optional EPackType type = 5 [ default = EPACKTYPE_MIN ];
+  repeated ItemData updateItems = 3;
+  repeated ItemData delItems = 4;
 }
 
 // client -> scene : use item
