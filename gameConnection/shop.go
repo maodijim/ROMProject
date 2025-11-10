@@ -3,6 +3,7 @@ package gameConnection
 import (
 	Cmd "ROMProject/Cmds"
 	gameTypes "ROMProject/gameConnection/types"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -15,13 +16,13 @@ func (g *GameConnection) QueryShopConfig(shopType gameTypes.ShopType, shopId uin
 		Type:   (*uint32)(&shopType),
 		Shopid: &shopId,
 	}
-	g.AddNotifier("SHOPPARAM_QUERY_SHOP_CONFIG")
+	g.AddNotifier(gameTypes.NtfType_ShopQueryShopConfig)
 	_ = g.sendProtoCmd(
 		&cmd,
 		sessionUserShopCmdId,
 		Cmd.ShopParam_value["SHOPPARAM_QUERY_SHOP_CONFIG"],
 	)
-	res, err := g.waitForResponse("SHOPPARAM_QUERY_SHOP_CONFIG")
+	res, err := g.waitForResponse(gameTypes.NtfType_ShopQueryShopConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +32,7 @@ func (g *GameConnection) QueryShopConfig(shopType gameTypes.ShopType, shopId uin
 func (g *GameConnection) BuyShopItem(shopItem *Cmd.ShopItem, count uint32) {
 	price := shopItem.GetMoneycount()
 	id := shopItem.GetId()
-	g.AddNotifier("SHOPPARAM_BUYITEM")
+	g.AddNotifier(gameTypes.NtfType_ShopBuyItem)
 	cmd := Cmd.BuyShopItem{
 		Price: &price,
 		Count: &count,
@@ -42,7 +43,7 @@ func (g *GameConnection) BuyShopItem(shopItem *Cmd.ShopItem, count uint32) {
 		sessionUserShopCmdId,
 		Cmd.ShopParam_value["SHOPPARAM_BUYITEM"],
 	)
-	res, err := g.waitForResponse("SHOPPARAM_BUYITEM")
+	res, err := g.waitForResponse(gameTypes.NtfType_ShopBuyItem)
 	if err != nil {
 		return
 	}
