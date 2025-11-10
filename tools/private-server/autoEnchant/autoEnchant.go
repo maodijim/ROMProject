@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	ver = "0.1.3"
+	ver = "0.1.4"
 )
 
 var (
@@ -184,10 +184,33 @@ func main() {
 			log.Infof("已经有附魔要求的属性 %s", fumoStr(enchantMap))
 			break
 		}
-		log.Infof("还有附魔币 %d", getFuMoBi())
+		curCoins := getFuMoBi()
+		log.Infof("还有附魔币 %d", curCoins)
 		log.Infof("还有神谕之尘 %d", getDust())
 		log.Infof("还有神谕之晶 %d", getCrystal())
 		log.Infof("第 %d 次 %s附魔 %s", count, g.Configs.EnchantConfig.EnchantType, g.Items[targetEquip.GetBase().GetId()].NameZh)
+
+		// handle auto buy
+		if conf.EnchantConfig.AutoBuyCoin.Enable && curCoins <= 4 {
+			if uint64(conf.EnchantConfig.AutoBuyCoin.MinZenyToKeep) >= g.Role.GetSilver() {
+				log.Infof("附魔币不足，但银币低于保留阈值，无法自动购买附魔币，停止附魔")
+				return
+			}
+			log.Infof("附魔币不足，自动购买中...")
+			numToBuy := conf.EnchantConfig.AutoBuyCoin.NumCoinsToBuy
+			shopConfig, err := g.QueryShopConfig(gameTypes.ShopType_Item, 10)
+			if err != nil {
+				log.Errorf("购买附魔币查询商店配置失败 %s", err)
+			}
+			for _, item := range shopConfig.GetGoods() {
+				if item.GetId() == 6000 {
+					log.Infof("购买%d附魔币", numToBuy)
+					g.BuyShopItem(item, uint32(numToBuy))
+				}
+			}
+			time.Sleep(time.Second * 2)
+		}
+
 		curEnchant := enchantToZh(targetEquip.GetEnchant())
 		g.EnchantEquip(
 			EnchantTypeMap[g.Configs.EnchantConfig.EnchantType],

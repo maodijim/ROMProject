@@ -20,6 +20,13 @@ authPass: ""
 enchantConfig:
   # 是否自动保存附魔结果 true (保存) 或 false (不保存)
   autoSave: false
+  # 自动买附魔币 true (购买) 或 false (不购买)
+  autoBuyCoin:
+    enable: true
+    # 最低保持的银币数量
+    minZenyToKeep: 200000000
+    # 一次买多少附魔币
+    numCoinsToBuy: 999
 #  # 附魔等级: 高级, 中级, 低级
   enchantType: 高级
 #  # 要附魔的装备位置(选一): 武器, 副手, 盔甲, 斗篷, 鞋子,

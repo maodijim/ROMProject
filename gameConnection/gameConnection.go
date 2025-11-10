@@ -91,12 +91,12 @@ func (g *GameConnection) SetAuthed(Authed bool) {
 }
 
 const (
-	queryTimeout              = 3 * time.Second
 	printHeartBeatLogInterval = 60 * time.Second
 	maxRetry                  = 1
 )
 
 var (
+	queryTimeout                = 5 * time.Second
 	ErrQueryTimeout             = errors.New("query timeout")
 	ErrUseClosedConnection      = errors.New("use of closed network connection")
 	ErrConnectionClosedByRemote = errors.New("an existing connection was forcibly closed by the remote host")

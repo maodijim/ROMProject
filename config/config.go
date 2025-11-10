@@ -16,10 +16,17 @@ type EsConfig struct {
 }
 
 type EnchantConfig struct {
-	AutoSave        bool             `yaml:"autoSave"`
-	EnchantType     string           `yaml:"enchantType"`
-	EnchantEquipPos string           `yaml:"enchantEquipPos"`
-	Condition       EnchantCondition `yaml:"condition"`
+	AutoSave        bool              `yaml:"autoSave"`
+	EnchantType     string            `yaml:"enchantType"`
+	EnchantEquipPos string            `yaml:"enchantEquipPos"`
+	Condition       EnchantCondition  `yaml:"condition"`
+	AutoBuyCoin     AutoBuyCoinConfig `yaml:"autoBuyCoin"`
+}
+
+type AutoBuyCoinConfig struct {
+	Enable        bool  `yaml:"enable"`
+	MinZenyToKeep int64 `yaml:"minZenyToKeep"`
+	NumCoinsToBuy int   `yaml:"numCoinsToBuy" default:"1000"`
 }
 
 type EnchantCondition struct {
@@ -87,6 +94,15 @@ func parseConfigYaml(r io.Reader, sc *ServerConfigs) error {
 		sc.Region = 1
 	} else {
 		sc.Region -= 1
+	}
+
+	if sc.EnchantConfig.AutoBuyCoin.Enable {
+		if sc.EnchantConfig.AutoBuyCoin.NumCoinsToBuy <= 0 {
+			sc.EnchantConfig.AutoBuyCoin.NumCoinsToBuy = 1000
+		}
+		if sc.EnchantConfig.AutoBuyCoin.MinZenyToKeep <= 0 {
+			sc.EnchantConfig.AutoBuyCoin.MinZenyToKeep = 100000000
+		}
 	}
 
 	return nil
