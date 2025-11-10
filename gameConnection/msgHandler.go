@@ -46,7 +46,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 		case Cmd.Command_value["SESSION_USER_MAIL_PROTOCMD"]:
 			_, _ = g.HandleSessionMailMsg(cmdParamId, o)
 
-		case Cmd.Command_value["CENE_BOSS_PROTOCMD"]:
+		case Cmd.Command_value["SCENE_BOSS_PROTOCMD"]:
 			_, _ = g.HandleSceneBossMsg(cmdParamId, o)
 
 		case Cmd.Command_value["LOGIN_USER_PROTOCMD"]:

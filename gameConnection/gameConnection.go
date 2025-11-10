@@ -96,7 +96,7 @@ const (
 )
 
 var (
-	queryTimeout                = 5 * time.Second
+	queryTimeout                = 3 * time.Second
 	ErrQueryTimeout             = errors.New("query timeout")
 	ErrUseClosedConnection      = errors.New("use of closed network connection")
 	ErrConnectionClosedByRemote = errors.New("an existing connection was forcibly closed by the remote host")

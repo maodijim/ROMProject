@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	Cmd "ROMProject/Cmds"
+
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 )
@@ -904,6 +905,9 @@ func TranslateMsg(output [][]byte) {
 			PrintTranslateMsgResult(cmdParamName, err, param)
 		} else if cmdId == Cmd.Command_value["SCENE_BOSS_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.BossParam_value["BOSS_LIST_USER_CMD"]:
+				param = &Cmd.BossListUserCmd{}
+
 			case Cmd.BossParam_value["BOSS_WORLD_NTF"]:
 				param = &Cmd.WorldBossNtf{}
 
