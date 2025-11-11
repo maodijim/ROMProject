@@ -7,10 +7,7 @@ import (
 func (g *GameConnection) AddNotifier(notifierType notifier.NotifierType) {
 	g.Mutex.Lock()
 	defer g.Mutex.Unlock()
-	if val, exists := g.notifier[notifierType]; exists && val != nil {
-		return
-	}
-	g.notifier[notifierType] = make(chan interface{}, 3)
+	g.notifier[notifierType] = make(chan interface{})
 }
 
 func (g *GameConnection) RemoveNotifier(notifierType notifier.NotifierType) {
