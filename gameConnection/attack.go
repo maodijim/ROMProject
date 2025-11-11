@@ -210,6 +210,31 @@ func (g *GameConnection) IsMonsterInRange(monsterList ...string) bool {
 	return false
 }
 
+func (g *GameConnection) IsMonsterInDistance(distance int, monsterList ...string) bool {
+	g.Mutex.RLock()
+	mapNpcs := deepcopy.Copy(g.MapNpcs).(map[uint64]*Cmd.MapNpc)
+	g.Mutex.RUnlock()
+	for _, npc := range mapNpcs {
+		if npc.GetOwner() != 0 {
+			continue
+		}
+		// This is not a monster
+		if npc.GetId() < 10000 {
+			continue
+		}
+		if utils.Contains(monsterList, npc.GetName()) && len(npc.GetAttrs()) != 1 {
+			if utils.GetDistanceXYZ(
+				g.Role.GetPos(),
+				*npc.GetPos(),
+			) > float64(distance) {
+				return false
+			}
+			return true
+		}
+	}
+	return false
+}
+
 func (g *GameConnection) copyTarget(org *Cmd.MapNpc) *Cmd.MapNpc {
 	g.Mutex.RLock()
 	target := deepcopy.Copy(org).(*Cmd.MapNpc)
