@@ -18,6 +18,11 @@ func (g *GameConnection) HandleSceneBossMsg(cmdParamId int32, rawData []byte) (p
 				g.Notifier(notifier.NtfType_BossListUserCmd) <- param.(*Cmd.BossListUserCmd)
 			}()
 		}
+		if err == nil {
+			g.Mutex.Lock()
+			g.BossInfo = param.(*Cmd.BossListUserCmd)
+			g.Mutex.Unlock()
+		}
 
 	case Cmd.BossParam_value["BOSS_WORLD_NTF"]:
 		param = &Cmd.WorldBossNtf{}

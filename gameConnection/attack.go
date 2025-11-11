@@ -13,6 +13,7 @@ import (
 	Cmd "ROMProject/Cmds"
 	notifier "ROMProject/gameConnection/types"
 	"ROMProject/utils"
+
 	"github.com/mohae/deepcopy"
 	log "github.com/sirupsen/logrus"
 )
@@ -37,6 +38,7 @@ type AttackMonsterStat struct {
 	lock            sync.RWMutex
 	Standstill      bool
 	CurrentTargetId uint64
+	IsAutoAttacking bool
 }
 
 func (a *AttackMonsterStat) IsStandstill() bool {
@@ -293,9 +295,17 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 }
 
 func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...string) {
+	if g.AtkStat.IsAutoAttacking == true {
+		log.Warnf("auto attack is already enabled")
+	}
 	go func() {
 		ticker := time.NewTicker(time.Millisecond * 75)
-		defer ticker.Stop()
+		g.AtkStat.IsAutoAttacking = true
+		defer func() {
+			log.Infof("stop auto attack")
+			ticker.Stop()
+			g.AtkStat.IsAutoAttacking = false
+		}()
 		for {
 			select {
 			case <-ctx.Done():
