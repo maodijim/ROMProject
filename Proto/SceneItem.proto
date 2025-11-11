@@ -528,8 +528,8 @@ message ItemUse
   optional Command cmd = 1 [ default = SCENE_USER_ITEM_PROTOCMD ];
   optional ItemParam param = 2 [ default = ITEMPARAM_ITEMUSE ];
 
-  optional string itemguid = 3;
-  repeated uint64 targets = 4;
+  repeated uint64 targets = 3;
+  optional string itemguid = 4;
   optional uint32 count = 5;
 }
 
