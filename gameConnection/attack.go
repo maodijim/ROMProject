@@ -322,6 +322,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...string) {
 	if g.AtkStat.IsAutoAttacking == true {
 		log.Warnf("auto attack is already enabled")
+		return
 	}
 	go func() {
 		ticker := time.NewTicker(time.Millisecond * 75)
