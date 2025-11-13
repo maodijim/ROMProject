@@ -34,6 +34,12 @@ type EnchantCondition struct {
 	Extras     []string `yaml:"extras"`
 }
 
+type HuntConfig struct {
+	CarryTeam bool     `yaml:"CarryTeam"`
+	Mini      []string `yaml:"Mini"`
+	MVP       []string `yaml:"MVP"`
+}
+
 type ServerConfigs struct {
 	AuthServer     string `yaml:"authServer"`
 	AuthPass       string `yaml:"authPass"`
@@ -43,6 +49,7 @@ type ServerConfigs struct {
 	// if not set, use random string during auto create char
 	CharacterName string        `yaml:"characterName"`
 	EnchantConfig EnchantConfig `yaml:"enchantConfig"`
+	HuntConfig    HuntConfig    `yaml:"HuntConfig"`
 	// Username and password for login if accId is not set
 	Username    string            `yaml:"username"`
 	Password    string            `yaml:"password"`

@@ -80,6 +80,7 @@ type GameConnection struct {
 	MonsterItems       map[uint32]utils.MonsterInfo
 	MonsterItemsByName map[string]utils.MonsterInfo
 	AtkStat            AttackMonsterStat
+	BossInfo           *Cmd.BossListUserCmd
 }
 
 func (g *GameConnection) IsAuthed() bool {

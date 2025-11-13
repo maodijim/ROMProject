@@ -9,6 +9,7 @@ import (
 	Cmd "ROMProject/Cmds"
 	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -94,6 +95,34 @@ func (g *GameConnection) GoToMap(mapId uint32) {
 		if goToMapId == mapId {
 			cmd := &Cmd.GoToGearUserCmd{
 				Mapid: &mapId,
+			}
+			g.sendProtoCmd(cmd,
+				sceneUser2CmdId,
+				Cmd.User2Param_value["USER2PARAM_GOTO_GEAR"],
+			)
+			return
+		}
+	}
+	log.Warnf("mapId: %d is not in map goto list %v", mapId, g.GotoList)
+}
+
+func (g *GameConnection) TeamGoToMap(mapId uint32) {
+	teamMembers := g.Role.TeamData.GetMembers()
+	var MembersID []uint64
+	for _, m := range teamMembers {
+		if *g.Role.RoleId != *m.Guid {
+			MembersID = append(MembersID, *m.Guid)
+		}
+
+	}
+
+	for _, goToMapId := range g.GotoList.GetMapid() {
+		Type := Cmd.EGoToGearType_EGoToGearType_Team
+		if goToMapId == mapId {
+			cmd := &Cmd.GoToGearUserCmd{
+				Mapid:    &mapId,
+				Type:     &Type,
+				Otherids: MembersID,
 			}
 			g.sendProtoCmd(cmd,
 				sceneUser2CmdId,
