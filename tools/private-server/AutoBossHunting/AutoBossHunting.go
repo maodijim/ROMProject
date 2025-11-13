@@ -75,7 +75,6 @@ func start() {
 	g.GameServerLogin()
 
 	_ = g.GetAllPackItems()
-	//UpdateBossInfo()
 	g.GetBossInfo()
 	checkBossLive()
 
@@ -119,7 +118,7 @@ func start() {
 		for {
 			select {
 			case <-ticker.C:
-				//UpdateBossInfo()
+				// UpdateBossInfo()
 				g.GetBossInfo()
 				if !MitionCompelete && !fightStar {
 					if !checkTargetBossLive() {
@@ -249,8 +248,8 @@ func buyFlyWing() {
 	}
 	for _, item := range shopConfig.GetGoods() {
 		if item.GetItemid() == 5024 {
-			log.Infof("购买50苍蝇翅膀")
-			g.BuyShopItem(item, 50)
+			log.Infof("购买999苍蝇翅膀")
+			g.BuyShopItem(item, 999)
 		}
 	}
 }
