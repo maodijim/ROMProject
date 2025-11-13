@@ -2,6 +2,7 @@ package gameConnection
 
 import (
 	"bufio"
+	"context"
 	"crypto/sha1"
 	"encoding/binary"
 	"encoding/json"
@@ -69,6 +70,7 @@ type GameConnection struct {
 	Mutex              *sync.RWMutex
 	lastHeartBeat      time.Time
 	retries            map[string]uint
+	cancelAtkCtx       context.CancelFunc
 	ExchangeItems      map[uint32]utils.ExchangeItem
 	SkillItems         map[uint32]utils.SkillItem
 	SkillItemsByName   map[string][]utils.SkillItem
@@ -795,6 +797,13 @@ func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 	siName := map[string][]utils.SkillItem{}
 	if skillItems != nil {
 		si = skillItems
+		if config.HuntConfig.PrepEliteCD > 0 {
+			if skill, ok := si[uint32(50057001)]; ok {
+				skill.CD = strconv.Itoa(config.HuntConfig.PrepEliteCD)
+				si[uint32(50057001)] = skill
+			}
+		}
+
 		for _, skill := range skillItems {
 			if _, ok := siName[skill.NameZh]; !ok {
 				siName[skill.NameZh] = []utils.SkillItem{}
