@@ -139,6 +139,7 @@ func start() {
 				if MitionCompelete {
 					if !checkBossLive() {
 						log.Infof("没有找到目标，躺平吧!")
+						time.Sleep(time.Millisecond * 10000)
 					} else {
 						log.Infof("已获取彩币数量:%d,已狩猎数量:%d", g.Role.GetLottery()-StartNum, HuntingCount)
 						MitionCompelete = false
