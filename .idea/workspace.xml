@@ -4,12 +4,8 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6bba9f15-0920-4264-a184-eeafb1204a80" name="Changes" comment="初始化项目结构">
-      <change beforePath="$PROJECT_DIR$/config/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/config/config.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gameConnection/character.go" beforeDir="false" afterPath="$PROJECT_DIR$/gameConnection/character.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gameConnection/gameConnection.go" beforeDir="false" afterPath="$PROJECT_DIR$/gameConnection/gameConnection.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gameConnection/types/map.go" beforeDir="false" afterPath="$PROJECT_DIR$/gameConnection/types/map.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tools/private-server/autoEnchant/autoEnchant.go" beforeDir="false" afterPath="$PROJECT_DIR$/tools/private-server/autoEnchant/autoEnchant.go" afterDir="false" />
+    <list default="true" id="6bba9f15-0920-4264-a184-eeafb1204a80" name="Changes" comment="新增自动狩猎BOSS">
+      <change afterPath="$PROJECT_DIR$/tools/private-server/AutoBossHunting/config.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -111,7 +107,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="初始化项目结构" />
-    <option name="LAST_COMMIT_MESSAGE" value="初始化项目结构" />
+    <MESSAGE value="新增自动狩猎BOSS" />
+    <option name="LAST_COMMIT_MESSAGE" value="新增自动狩猎BOSS" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
