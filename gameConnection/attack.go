@@ -84,8 +84,10 @@ func (g *GameConnection) SkillCmd(skillId uint32, data *Cmd.PhaseData, random1 b
 	cmd := &Cmd.SkillBroadcastUserCmd{
 		Charid:  g.Role.RoleId,
 		SkillID: &skillId,
-		Data:    data,
 		Random:  &random,
+	}
+	if data != nil {
+		cmd.Data = data
 	}
 	g.sendProtoCmd(
 		cmd,
@@ -324,6 +326,8 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 		log.Warnf("auto attack is already enabled")
 		return
 	}
+	var attackCtx context.Context
+	attackCtx, g.cancelAtkCtx = context.WithCancel(ctx)
 	go func() {
 		ticker := time.NewTicker(time.Millisecond * 75)
 		g.AtkStat.IsAutoAttacking = true
@@ -334,7 +338,7 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 		}()
 		for {
 			select {
-			case <-ctx.Done():
+			case <-attackCtx.Done():
 				log.Infof("stop auto attack")
 				g.AtkStat.SetCurrentTargetId(0)
 				ticker.Stop()
@@ -349,7 +353,7 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 			skillLoop:
 				for _, skill := range autoSkills {
 					select {
-					case <-ctx.Done():
+					case <-attackCtx.Done():
 						log.Debugf("stop auto attack skill loop")
 						g.AtkStat.SetCurrentTargetId(0)
 						ticker.Stop()
@@ -365,7 +369,9 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 							skill.GetShortcuts()[len(skill.GetShortcuts())-1].GetPos(), skill.GetId(), skillItem.NameZh)
 						cd, _ := strconv.ParseFloat(skillItem.CD, 64)
 						if time.Since(g.Role.GetSkillCd(skill.GetId())) < time.Duration(cd) {
-							log.Infof("技能CD中:%s", skillItem.NameZh)
+							if skill.GetId() != 50057001 {
+								log.Infof("技能CD中:%s", skillItem.NameZh)
+							}
 							continue skillLoop
 						}
 						// 这是buff
@@ -388,7 +394,7 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 									lastPrint := time.Now().Add(10 * time.Second)
 									for startTime := time.Now(); time.Since(startTime) < 50*time.Second; {
 										select {
-										case <-ctx.Done():
+										case <-attackCtx.Done():
 											ticker.Stop()
 											return
 										case <-g.quit:
@@ -417,6 +423,14 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 							} else if buff != "" {
 								log.Debugf("找到技能buff: %s -> %s", skillItem.NameZh, buff)
 								continue skillLoop
+							} else if skill.GetId() == 50057001 {
+								// 这是备战精英
+								if time.Since(g.Role.GetSkillCd(skill.GetId())) < time.Duration(cd) {
+									log.Tracef("备战精英CD中:%s", skillItem.NameZh)
+									continue skillLoop
+								}
+								g.SkillCmd(skill.GetId(), nil, true)
+								g.Role.SetSkillCd(skill.GetId(), time.Now().Add(time.Duration(cd)*time.Second))
 							} else {
 								log.Debugf("没有找到技能buff %s", skillItem.NameZh)
 								num := int32(1)
