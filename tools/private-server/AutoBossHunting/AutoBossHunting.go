@@ -206,6 +206,8 @@ func start() {
 							tempUHP = MHP
 							log.Infof("%s 未死亡，剩余血量:%d", g.MonsterItems[*TargetMonster.Id].NameZh, MonsterHP)
 							log.Infof("我的血量", MHP)
+						} else if MonsterHP == 0 {
+							g.GetBossInfo()
 						}
 					}
 				}
