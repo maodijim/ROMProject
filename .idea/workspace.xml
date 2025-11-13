@@ -4,8 +4,10 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6bba9f15-0920-4264-a184-eeafb1204a80" name="Changes" comment="新增自动狩猎BOSS">
-      <change afterPath="$PROJECT_DIR$/tools/private-server/AutoBossHunting/config.yml" afterDir="false" />
+    <list default="true" id="6bba9f15-0920-4264-a184-eeafb1204a80" name="Changes" comment="增加版本">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/private-server/AutoBossHunting/AutoBossHunting.go" beforeDir="false" afterPath="$PROJECT_DIR$/tools/private-server/AutoBossHunting/AutoBossHunting.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tools/private-server/AutoBossHunting/config.yml" beforeDir="false" afterPath="$PROJECT_DIR$/tools/private-server/AutoBossHunting/config.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -43,6 +45,7 @@
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "Go Build.go build AutoBossHunting.go.executor": "Run",
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.GoLinterPluginOnboarding": "true",
     "RunOnceActivity.GoLinterPluginStorageMigration": "true",
@@ -58,9 +61,22 @@
     "last_opened_file_path": "C:/Users/User",
     "node.js.detected.package.eslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm"
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable"
   }
 }]]></component>
+  <component name="RunManager">
+    <configuration name="go build AutoBossHunting.go" type="GoApplicationRunConfiguration" factoryName="Go Application" nameIsGenerated="true">
+      <module name="ROMProject" />
+      <working_directory value="$PROJECT_DIR$/tools/private-server/AutoBossHunting" />
+      <kind value="FILE" />
+      <package value="ROMProject" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$/tools/private-server/AutoBossHunting/AutoBossHunting.go" />
+      <output_directory value="$PROJECT_DIR$/bin" />
+      <method v="2" />
+    </configuration>
+  </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>

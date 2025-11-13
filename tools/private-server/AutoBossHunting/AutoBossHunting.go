@@ -38,7 +38,7 @@ var (
 )
 
 const (
-	ver = "0.1.1"
+	ver = "0.1.2"
 )
 
 func init() {
@@ -82,7 +82,7 @@ func start() {
 	StartNum := g.Role.GetLottery()
 
 	ticker := time.NewTicker(time.Second * 10)
-	ticker2 := time.NewTicker(time.Second * 10)
+	ticker2 := time.NewTicker(time.Second * 1)
 
 	targetId := uint64(0)
 	go func() {
