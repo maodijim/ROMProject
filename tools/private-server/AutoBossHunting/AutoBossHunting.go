@@ -37,6 +37,10 @@ var (
 	tempUHP               = int32(0)
 )
 
+const (
+	ver = "0.1.1"
+)
+
 func init() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,
@@ -45,6 +49,7 @@ func init() {
 }
 
 func main() {
+	log.Infof("自动BOSS狩猎版本 %s", ver)
 	confFile := flag.String("configPath", "config.yml", "Game Server Configuration Yaml Path")
 	itemFile := flag.String("itemPath", "", "Exchange Item Json Path")
 	buffFile := flag.String("buffPath", "", "Buff Json Path")
@@ -106,7 +111,7 @@ func start() {
 				targetId = g.AtkStat.GetCurrentTargetId()
 				lastPosUpdate = time.Now()
 			}
-			time.Sleep(time.Second * 5)
+			time.Sleep(time.Second * 2)
 		}
 	}()
 
@@ -123,6 +128,8 @@ func start() {
 						fightStar = false
 						fightCancel()
 						MitionCompelete = true
+						checkBossLive()
+						log.Infof("已获取彩币数量:%d,已狩猎数量:%d", g.Role.GetLottery()-StartNum, HuntingCount)
 					} else {
 						log.Infof("%s 未死亡，继续寻找", g.MonsterItems[*TargetMonster.Id].NameZh)
 					}
