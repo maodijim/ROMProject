@@ -38,6 +38,7 @@ type HuntConfig struct {
 	CarryTeam   bool     `yaml:"CarryTeam"`
 	Mini        []string `yaml:"Mini"`
 	MVP         []string `yaml:"MVP"`
+	HMVP        []string `yaml:"HMVP"`
 	PrepEliteCD int      `yaml:"PrepEliteCD"`
 }
 

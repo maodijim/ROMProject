@@ -15,6 +15,11 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+type HiddenMVP struct {
+	Info        utils.MonsterInfo
+	RespawnTime time.Time
+}
+
 var (
 	g                     *gameConnection.GameConnection
 	fightCtx, fightCancel = context.WithCancel(context.Background())
@@ -35,6 +40,9 @@ var (
 	LastHp                = int32(0)
 	tempMHP               = int32(0)
 	tempUHP               = int32(0)
+	HuntHidMVP            = bool(false)
+	HiddenMVPList         map[string]HiddenMVP
+	TargetHiddenMVP       HiddenMVP
 )
 
 const (
@@ -66,6 +74,19 @@ func main() {
 		log.SetLevel(log.DebugLevel)
 	}
 	flyMutex = &sync.Mutex{}
+
+	//隐藏MVP清单
+	ConfigMVPName := g.Configs.HuntConfig.HMVP
+	HiddenMVPList = map[string]HiddenMVP{}
+	for _, v := range ConfigMVPName {
+		if g.GetMonsterIdByName(v) != 0 {
+			HMVP := HiddenMVP{
+				Info:        g.MonsterItemsByName[v],
+				RespawnTime: time.Now(),
+			}
+			HiddenMVPList[v] = HMVP
+		}
+	}
 	start()
 }
 
@@ -88,28 +109,30 @@ func start() {
 	go func() {
 		lastPosUpdate = time.Now()
 		for {
-			if targetId != 0 && g.AtkStat.GetCurrentTargetId() == targetId && g.IsMonsterInRange(g.MonsterItems[*TargetMonster.Id].NameZh) {
-				TargetID := g.AtkStat.GetCurrentTargetId()
-				if g.MapNpcs[TargetID].Attrs != nil {
-					HP := utils.GetNpcAttrValByType(g.MapNpcs[TargetID].Attrs, Cmd.EAttrType_EATTRTYPE_HP)
-					if LastHp == 0 || LastHp > HP {
-						LastHp = HP
-						lastPosUpdate = time.Now()
-					} else if time.Since(lastPosUpdate) > time.Second*10 {
-						log.Infof("卡住了")
-						g.AtkStat.SetCurrentTargetId(0)
-						useFlyWing()
-						targetId = 0
+			if !HuntHidMVP {
+				if targetId != 0 && g.AtkStat.GetCurrentTargetId() == targetId && g.IsMonsterInRange(g.MonsterItems[*TargetMonster.Id].NameZh) {
+					TargetID := g.AtkStat.GetCurrentTargetId()
+					if g.MapNpcs[TargetID].Attrs != nil {
+						HP := utils.GetNpcAttrValByType(g.MapNpcs[TargetID].Attrs, Cmd.EAttrType_EATTRTYPE_HP)
+						if LastHp == 0 || LastHp > HP {
+							LastHp = HP
+							lastPosUpdate = time.Now()
+						} else if time.Since(lastPosUpdate) > time.Second*10 {
+							log.Infof("卡住了")
+							g.AtkStat.SetCurrentTargetId(0)
+							useFlyWing()
+							targetId = 0
+						}
 					}
+				} else if fightStar && targetId == 0 && time.Since(lastPosUpdate) > time.Second*10 {
+					log.Infof("没有目标卡住了")
+					fightStar = false
+					useFlyWing()
+					lastPosUpdate = time.Now()
+				} else if g.AtkStat.GetCurrentTargetId() != targetId {
+					targetId = g.AtkStat.GetCurrentTargetId()
+					lastPosUpdate = time.Now()
 				}
-			} else if fightStar && targetId == 0 && time.Since(lastPosUpdate) > time.Second*10 {
-				log.Infof("没有目标卡住了")
-				fightStar = false
-				useFlyWing()
-				lastPosUpdate = time.Now()
-			} else if g.AtkStat.GetCurrentTargetId() != targetId {
-				targetId = g.AtkStat.GetCurrentTargetId()
-				lastPosUpdate = time.Now()
 			}
 			time.Sleep(time.Second * 2)
 		}
@@ -118,25 +141,27 @@ func start() {
 	go func() {
 		for {
 			select {
+			//确认BOSS是否被他人狩猎
 			case <-ticker.C:
-				//UpdateBossInfo()
-				g.GetBossInfo()
-				if !MitionCompelete && !fightStar {
-					if !checkTargetBossLive() {
-						log.Infof("%s 死亡，重新查找", g.MonsterItems[*TargetMonster.Id].NameZh)
-						buyFlyWing()
-						fightStar = false
-						fightCancel()
-						MitionCompelete = true
-						checkBossLive()
-						log.Infof("已获取彩币数量:%d,已狩猎数量:%d", g.Role.GetLottery()-StartNum, HuntingCount)
-					} else {
-						log.Infof("%s 未死亡，继续寻找", g.MonsterItems[*TargetMonster.Id].NameZh)
+				if !HuntHidMVP {
+					g.GetBossInfo()
+					if !MitionCompelete && !fightStar {
+						if !checkTargetBossLive() {
+							log.Infof("%s 死亡，重新查找", g.MonsterItems[*TargetMonster.Id].NameZh)
+							buyFlyWing()
+							fightStar = false
+							fightCancel()
+							MitionCompelete = true
+							checkBossLive()
+							log.Infof("已获取彩币数量:%d,已狩猎数量:%d", g.Role.GetLottery()-StartNum, HuntingCount)
+						} else {
+							log.Infof("%s 未死亡，继续寻找", g.MonsterItems[*TargetMonster.Id].NameZh)
+						}
 					}
 				}
-
+			//查找BOSS清单
 			case <-ticker2.C:
-				if MitionCompelete {
+				if MitionCompelete && !HuntHidMVP {
 					if !checkBossLive() {
 						log.Infof("没有找到目标，躺平吧!")
 						time.Sleep(time.Millisecond * 10000)
@@ -213,8 +238,19 @@ func start() {
 					}
 				}
 			}
+
+			time.Sleep(time.Millisecond * 1000)
+
+		} else if HuntHidMVP {
+			switch TargetHiddenMVP.Info.NameZh {
+			case "卡仑":
+				HuntCarlen()
+				HuntHidMVP = false
+				break
+			}
+		} else {
+			time.Sleep(time.Millisecond * 1000)
 		}
-		time.Sleep(time.Millisecond * 1000)
 	}
 }
 
@@ -250,17 +286,10 @@ func buyFlyWing() {
 	}
 	for _, item := range shopConfig.GetGoods() {
 		if item.GetItemid() == 5024 {
-			log.Infof("购买50苍蝇翅膀")
-			g.BuyShopItem(item, 50)
+			log.Infof("购买1000苍蝇翅膀")
+			g.BuyShopItem(item, 1000)
 		}
 	}
-}
-
-func UpdateBossInfo() {
-	ntf := g.GetBossInfo()
-	log.Debugf("送出BOSS资讯请求")
-	bossInfo := <-ntf
-	log.Debugf("当前世界Boss信息: %v", bossInfo)
 }
 
 func Contains(list []string, target string) bool {
@@ -274,7 +303,25 @@ func Contains(list []string, target string) bool {
 
 func checkBossLive() bool {
 	if g.BossInfo != nil {
+		HiddenMVP := g.Configs.HuntConfig.HMVP
 		BossInfo := *g.BossInfo
+
+		//查找隐藏BOSS
+		for _, v := range HiddenMVP {
+			if _, ok := HiddenMVPList[v]; ok {
+				if time.Since(HiddenMVPList[v].RespawnTime) > time.Second*0 {
+					HuntHidMVP = true
+					TargetHiddenMVP = HiddenMVPList[v]
+					log.Printf("卡仑已复活，进行狩猎")
+					return false
+				} else {
+					remaining := time.Until(HiddenMVPList[v].RespawnTime)
+					minutes := int(remaining.Minutes())
+					log.Printf("%s 目標時間尚未到，還有約 %d 分鐘\n", v, minutes)
+				}
+			}
+		}
+		//查找BOSS清单
 		for _, v := range BossInfo.Bosslist {
 			if Contains(g.Configs.HuntConfig.MVP, g.MonsterItems[*v.Id].NameZh) && *v.Mapid != gameTypes.MapId_LabyrinthForest.Uint32() && *v.Settime == 0 {
 				if v.RefreshTime == nil {
@@ -295,7 +342,7 @@ func checkBossLive() bool {
 				}
 			}
 		}
-
+		//查找Mini清单
 		for _, v := range BossInfo.Minilist {
 			if Contains(g.Configs.HuntConfig.Mini, g.MonsterItems[*v.Id].NameZh) && *v.Mapid != gameTypes.MapId_LabyrinthForest.Uint32() {
 				if v.RefreshTime == nil {
@@ -326,6 +373,7 @@ func checkTargetBossLive() bool {
 		return false
 	}
 	BossInfo := *g.BossInfo
+	//确认MVP复活时间
 	for _, v := range BossInfo.Bosslist {
 		if *v.Id == *TargetMonster.Id && *v.Mapid == *TargetMonster.Mapid {
 			if v.RefreshTime == nil {
@@ -343,7 +391,7 @@ func checkTargetBossLive() bool {
 			}
 		}
 	}
-
+	//确认Mini复活时间
 	for _, v := range BossInfo.Minilist {
 		if *v.Id == *TargetMonster.Id && *v.Mapid == *TargetMonster.Mapid {
 			if v.RefreshTime == nil {
