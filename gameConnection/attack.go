@@ -276,12 +276,32 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 				return
 			} else if time.Since(lastMove) > time.Millisecond*150 {
 				lastMove = time.Now()
-				g.MoveChart(launchSkillPos)
+				log.Debugf("%s 跑向目标 怪物id: %d 名字: %s 血量: %d 位置: %v 距离: %f 攻击距离 %f 角度 %f 预计攻击位置: %v",
+					g.Role.GetRoleName(),
+					closestId,
+					target.GetName(),
+					utils.GetNpcAttrValByType(target.GetAttrs(), Cmd.EAttrType_EATTRTYPE_HP),
+					target.GetPos(),
+					distance,
+					launchSkillDis,
+					utils.GetAngleByAxisY(g.Role.GetPos(), *target.GetPos()),
+					&launchSkillPos,
+				)
+				g.MoveChart(*target.GetPos())
 			}
 			after := time.After(75 * time.Millisecond)
+			check := time.NewTicker(200 * time.Millisecond)
+			defer check.Stop()
 		moveToTargetLoop:
 			for {
 				select {
+				case <-check.C:
+					distance = utils.GetDistanceXZ(g.Role.GetPos(), *target.GetPos())
+					if distance <= launchSkillDis {
+						check.Stop()
+						g.MoveChart(g.Role.GetPos())
+						break moveToTargetLoop
+					}
 				case <-after:
 					// oldDistance := distance
 					target, ok = g.GetMapNpcs()[closestId]
@@ -307,7 +327,6 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 					} else if distance <= launchSkillDis {
 						break moveToTargetLoop
 					}
-					break moveToTargetLoop
 				}
 			}
 		} else {
