@@ -334,6 +334,19 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 				}
 			}
 		} else {
+			// 幽灵波利拍照显形
+			if target.GetNpcID() == 20004 {
+				attrs := target.GetAttrs()
+				for _, a := range attrs {
+					if a.GetType() == Cmd.EAttrType_EATTRTYPE_HIDE && a.GetValue() == 1 {
+						log.Infof("幽灵波利隐身中，拍照显形")
+						g.TakePhotoSkill(&Cmd.CameraFocus{
+							Targets: []uint64{target.GetId()},
+						}, *target.GetPos(), []Cmd.MapNpc{target})
+						time.Sleep(time.Millisecond * 1000)
+					}
+				}
+			}
 			g.AttackTarget(skillId, target)
 			if g.GetMapNpcs()[closestId].Id == nil {
 				log.Warnf("target %s is killed", target.GetName())
