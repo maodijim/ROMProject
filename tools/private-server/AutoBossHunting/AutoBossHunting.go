@@ -253,6 +253,26 @@ func start() {
 }
 
 func fightMonstStar(MonsterName string) {
+	m := g.GetMonsterItemByName(MonsterName)
+	nature := m.Nature
+	if nature != "" {
+		if g.Role.GetProfession() >= 41 && g.Role.GetProfession() <= 44 {
+			if nature == gameTypes.NatureType_Fire {
+				useElementArrow(gameTypes.WaterArrow)
+			} else if nature == gameTypes.NatureType_Water {
+				useElementArrow(gameTypes.WindArrow)
+			} else if nature == gameTypes.NatureType_Wind {
+				useElementArrow(gameTypes.EarthArrow)
+			} else if nature == gameTypes.NatureType_Earth {
+				useElementArrow(gameTypes.FireArrow)
+			} else if nature == gameTypes.NatureType_Undead || nature == gameTypes.NatureType_Shawdow {
+				useElementArrow(gameTypes.SliverArrow)
+			} else {
+				useElementArrow(gameTypes.FireArrow)
+			}
+		}
+	}
+
 	fightCancel()
 	fightStar = true
 	fightCtx, fightCancel = context.WithCancel(context.Background())

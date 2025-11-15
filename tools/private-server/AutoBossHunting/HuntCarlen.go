@@ -179,7 +179,6 @@ func CheckCarlonApear() bool {
 	if !FindCarlen && g.IsMonsterInRange("卡仑") {
 		FindCarlen = true
 		log.Infof("发现卡仑，开始狩猎")
-		useElementStone()
 		fightCancel()
 		fightMonstStar("卡仑")
 		Transition(HUNT_CARLEN)
@@ -202,6 +201,21 @@ func useElementStone() {
 	} else {
 		log.Infof("使用风灵原石")
 		g.UseItem(item.GetBase().GetGuid(), 1)
+		time.Sleep(time.Millisecond * 1000)
+	}
+}
+
+func useElementArrow(arrowType gameTypes.ElementArrowType) {
+	item := g.FindPackItemByName(string(arrowType), Cmd.EPackType_EPACKTYPE_MAIN)
+	if item == nil {
+		log.Warnf("%s没有找到", arrowType)
+	} else {
+		if item.GetBase().GetIsactive() {
+			log.Infof("%s已装备", arrowType)
+			return
+		}
+		log.Infof("使用%s", arrowType)
+		g.UseItem(item.GetBase().GetGuid(), 0)
 		time.Sleep(time.Millisecond * 1000)
 	}
 }
