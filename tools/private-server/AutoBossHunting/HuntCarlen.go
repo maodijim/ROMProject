@@ -100,7 +100,7 @@ func HuntCarlen() {
 			if g.IsMonsterInRange("疯兔") {
 				log.Infof("出生点%d发现疯兔，开始狩猎疯兔", PosCount+1)
 				HaveCarlen = true
-				fightMonstStar("疯兔")
+				fightMonstStar("疯兔", 0)
 				Transition(HUNT_RABBIDS)
 			} else {
 				log.Infof("出生点%d未发现疯兔，到疯兔点%d", PosCount+1, PosCount+2)
@@ -127,7 +127,7 @@ func HuntCarlen() {
 		// 确认卡伦
 		case CHECK_CARLEN:
 			if g.IsMonsterInRange("卡仑") {
-				fightMonstStar("卡仑")
+				fightMonstStar("卡仑", 0)
 				Transition(HUNT_CARLEN)
 			} else {
 				fightCancel()
@@ -180,7 +180,7 @@ func CheckCarlonApear() bool {
 		FindCarlen = true
 		log.Infof("发现卡仑，开始狩猎")
 		fightCancel()
-		fightMonstStar("卡仑")
+		fightMonstStar("卡仑", 0)
 		Transition(HUNT_CARLEN)
 		return true
 	} else {

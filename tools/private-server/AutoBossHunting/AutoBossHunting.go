@@ -191,7 +191,7 @@ func start() {
 				time.Sleep(time.Millisecond * 1000)
 			} else if g.IsMonsterInRange(g.MonsterItems[*TargetMonster.Id].NameZh) && !fightStar {
 				log.Infof("找到%s", g.MonsterItems[*TargetMonster.Id].NameZh)
-				fightMonstStar(g.MonsterItems[*TargetMonster.Id].NameZh)
+				fightMonstStar(g.MonsterItems[*TargetMonster.Id].NameZh, *TargetMonster.Id)
 				flyWingUseCount = 0
 				pickupCount = 0
 				tempMHP = 0
@@ -252,8 +252,14 @@ func start() {
 	}
 }
 
-func fightMonstStar(MonsterName string) {
-	m := g.GetMonsterItemByName(MonsterName)
+// fightMonstStar 开始自动打怪, MonsterName:怪物名称, monsterId:怪物ID(用于避免同名怪物)
+func fightMonstStar(MonsterName string, monsterId uint32) {
+	var m utils.MonsterInfo
+	if monsterId > 0 {
+		m = g.GetMonsterItemById(monsterId)
+	} else {
+		m = g.GetMonsterItemByName(MonsterName)
+	}
 	nature := m.Nature
 	if nature != "" {
 		if g.Role.GetProfession() >= 41 && g.Role.GetProfession() <= 44 {
