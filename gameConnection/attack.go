@@ -290,12 +290,16 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 				g.MoveChart(*target.GetPos())
 			}
 			after := time.After(75 * time.Millisecond)
-			check := time.NewTicker(200 * time.Millisecond)
+			check := time.NewTicker(150 * time.Millisecond)
 			defer check.Stop()
 		moveToTargetLoop:
 			for {
 				select {
 				case <-check.C:
+					target, ok = g.GetMapNpcs()[closestId]
+					if !ok {
+						break moveToTargetLoop
+					}
 					distance = utils.GetDistanceXZ(g.Role.GetPos(), *target.GetPos())
 					if distance <= launchSkillDis {
 						check.Stop()

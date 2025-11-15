@@ -75,7 +75,7 @@ func main() {
 	}
 	flyMutex = &sync.Mutex{}
 
-	//隐藏MVP清单
+	// 隐藏MVP清单
 	ConfigMVPName := g.Configs.HuntConfig.HMVP
 	HiddenMVPList = map[string]HiddenMVP{}
 	for _, v := range ConfigMVPName {
@@ -95,8 +95,6 @@ func start() {
 	g.ShouldChangeScene = true
 	g.GameServerLogin()
 
-	_ = g.GetAllPackItems()
-	//UpdateBossInfo()
 	g.GetBossInfo()
 	checkBossLive()
 
@@ -141,7 +139,7 @@ func start() {
 	go func() {
 		for {
 			select {
-			//确认BOSS是否被他人狩猎
+			// 确认BOSS是否被他人狩猎
 			case <-ticker.C:
 				if !HuntHidMVP {
 					g.GetBossInfo()
@@ -159,7 +157,7 @@ func start() {
 						}
 					}
 				}
-			//查找BOSS清单
+			// 查找BOSS清单
 			case <-ticker2.C:
 				if MitionCompelete && !HuntHidMVP {
 					if !checkBossLive() {
@@ -306,7 +304,7 @@ func checkBossLive() bool {
 		HiddenMVP := g.Configs.HuntConfig.HMVP
 		BossInfo := *g.BossInfo
 
-		//查找隐藏BOSS
+		// 查找隐藏BOSS
 		for _, v := range HiddenMVP {
 			if _, ok := HiddenMVPList[v]; ok {
 				if time.Since(HiddenMVPList[v].RespawnTime) > time.Second*0 {
@@ -321,7 +319,7 @@ func checkBossLive() bool {
 				}
 			}
 		}
-		//查找BOSS清单
+		// 查找BOSS清单
 		for _, v := range BossInfo.Bosslist {
 			if Contains(g.Configs.HuntConfig.MVP, g.MonsterItems[*v.Id].NameZh) && *v.Mapid != gameTypes.MapId_LabyrinthForest.Uint32() && *v.Settime == 0 {
 				if v.RefreshTime == nil {
@@ -342,7 +340,7 @@ func checkBossLive() bool {
 				}
 			}
 		}
-		//查找Mini清单
+		// 查找Mini清单
 		for _, v := range BossInfo.Minilist {
 			if Contains(g.Configs.HuntConfig.Mini, g.MonsterItems[*v.Id].NameZh) && *v.Mapid != gameTypes.MapId_LabyrinthForest.Uint32() {
 				if v.RefreshTime == nil {
@@ -373,7 +371,7 @@ func checkTargetBossLive() bool {
 		return false
 	}
 	BossInfo := *g.BossInfo
-	//确认MVP复活时间
+	// 确认MVP复活时间
 	for _, v := range BossInfo.Bosslist {
 		if *v.Id == *TargetMonster.Id && *v.Mapid == *TargetMonster.Mapid {
 			if v.RefreshTime == nil {
@@ -391,7 +389,7 @@ func checkTargetBossLive() bool {
 			}
 		}
 	}
-	//确认Mini复活时间
+	// 确认Mini复活时间
 	for _, v := range BossInfo.Minilist {
 		if *v.Id == *TargetMonster.Id && *v.Mapid == *TargetMonster.Mapid {
 			if v.RefreshTime == nil {

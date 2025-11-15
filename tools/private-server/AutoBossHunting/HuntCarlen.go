@@ -1,10 +1,11 @@
 package main
 
 import (
+	"time"
+
 	Cmd "ROMProject/Cmds"
 	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
-	"time"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -41,9 +42,9 @@ var RabbidsPos = []Cmd.ScenePos{
 
 func HuntCarlen() {
 	for {
-		CheckCarlonApear() //确认卡伦是否复活
+		CheckCarlonApear() // 确认卡伦是否复活
 		switch WorkState {
-		//初始化
+		// 初始化
 		case Init:
 			log.Infof("开始狩猎卡仑")
 			FindCarlen = false
@@ -51,7 +52,7 @@ func HuntCarlen() {
 			PosCount = 0
 			Transition(TeleportMap)
 			break
-		//传送到姜饼城
+		// 传送到姜饼城
 		case TeleportMap:
 			log.Infof("传送到姜饼城")
 			if g.Configs.HuntConfig.CarryTeam {
@@ -69,7 +70,7 @@ func HuntCarlen() {
 			time.Sleep(time.Millisecond * 1000)
 			Transition(MOVE_RABBIDSPOS)
 			break
-		//移动到疯兔地点
+		// 移动到疯兔地点
 		case MOVE_RABBIDSPOS:
 			if int(PosCount) < len(RabbidsPos) {
 				if g.MoveChartWait(RabbidsPos[PosCount]) {
@@ -94,7 +95,7 @@ func HuntCarlen() {
 				}
 			}
 			break
-		//确认有疯兔
+		// 确认有疯兔
 		case CHECK_RABBIDS:
 			if g.IsMonsterInRange("疯兔") {
 				log.Infof("出生点%d发现疯兔，开始狩猎疯兔", PosCount+1)
@@ -108,7 +109,7 @@ func HuntCarlen() {
 				Transition(MOVE_RABBIDSPOS)
 			}
 			break
-		//狩猎疯兔
+		// 狩猎疯兔
 		case HUNT_RABBIDS:
 			if !g.IsMonsterInRange("疯兔") {
 				log.Infof("出生点%d疯兔狩猎完成，到疯兔点%d", PosCount+1, PosCount+2)
@@ -117,24 +118,24 @@ func HuntCarlen() {
 				Transition(MOVE_RABBIDSPOS)
 			}
 			break
-		//移动到卡伦出生位置
+		// 移动到卡伦出生位置
 		case MOVE_CARLENPOS:
 			if g.MoveChartWait(g.ParsePos(-29854, 62, -87337)) {
 				Transition(CHECK_RABBIDS)
 			}
 			break
-		//确认卡伦
+		// 确认卡伦
 		case CHECK_CARLEN:
 			if g.IsMonsterInRange("卡仑") {
 				fightMonstStar("卡仑")
-				Transition(HUNT_RABBIDS)
+				Transition(HUNT_CARLEN)
 			} else {
 				fightCancel()
 				PosCount++
 				Transition(MOVE_RABBIDSPOS)
 			}
 			break
-		//狩猎卡伦
+		// 狩猎卡伦
 		case HUNT_CARLEN:
 			if g.IsMonsterInRange("卡仑") {
 				TargetID := g.AtkStat.GetCurrentTargetId()
@@ -155,7 +156,7 @@ func HuntCarlen() {
 				Transition(End)
 			}
 			break
-		//结束
+		// 结束
 		case End:
 			if _, ok := HiddenMVPList["卡仑"]; ok {
 				obj := HiddenMVPList["卡仑"]
@@ -178,6 +179,7 @@ func CheckCarlonApear() bool {
 	if !FindCarlen && g.IsMonsterInRange("卡仑") {
 		FindCarlen = true
 		log.Infof("发现卡仑，开始狩猎")
+		useElementStone()
 		fightCancel()
 		fightMonstStar("卡仑")
 		Transition(HUNT_CARLEN)
@@ -190,5 +192,16 @@ func CheckCarlonApear() bool {
 func Transition(SwitchState Work) {
 	if WorkState != SwitchState {
 		WorkState = SwitchState
+	}
+}
+
+func useElementStone() {
+	item := g.FindPackItemByName("风灵原石", Cmd.EPackType_EPACKTYPE_MAIN)
+	if item == nil {
+		log.Warnf("风灵原石没有找到")
+	} else {
+		log.Infof("使用风灵原石")
+		g.UseItem(item.GetBase().GetGuid(), 1)
+		time.Sleep(time.Millisecond * 1000)
 	}
 }
