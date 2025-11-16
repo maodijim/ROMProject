@@ -90101,6 +90101,118 @@
     },
     "Dsc": ""
   },
+  "500151": {
+    "BuffEffect": {
+      "SkillRes": 0.1,
+      "type": "AttrChange"
+    },
+    "BuffIcon": "",
+    "BuffDesc": "物理穿刺＋1.5%",
+    "id": 500151,
+    "BuffName": "破甲1",
+    "BuffRate": {
+      "Odds": 100
+    },
+    "Dsc": ""
+  },
+  "500152": {
+    "BuffEffect": {
+      "SkillRes": 0.1,
+      "type": "AttrChange"
+    },
+    "BuffIcon": "",
+    "BuffDesc": "物理穿刺＋3%",
+    "id": 500152,
+    "BuffName": "破甲2",
+    "BuffRate": {
+      "Odds": 100
+    },
+    "Dsc": ""
+  },
+  "500153": {
+    "BuffEffect": {
+      "SkillRes": 0.1,
+      "type": "AttrChange"
+    },
+    "BuffIcon": "",
+    "BuffDesc": "物理穿刺＋4.5%",
+    "id": 500153,
+    "BuffName": "破甲3",
+    "BuffRate": {
+      "Odds": 100
+    },
+    "Dsc": ""
+  },
+  "500154": {
+    "BuffEffect": {
+      "SkillRes": 0.1,
+      "type": "AttrChange"
+    },
+    "BuffIcon": "",
+    "BuffDesc": "物理穿刺＋6%",
+    "id": 500154,
+    "BuffName": "破甲4",
+    "BuffRate": {
+      "Odds": 100
+    },
+    "Dsc": ""
+  },
+  "500161": {
+    "BuffEffect": {
+      "SkillRes": 0.1,
+      "type": "AttrChange"
+    },
+    "BuffIcon": "",
+    "BuffDesc": "魔法穿刺＋1.5%",
+    "id": 500161,
+    "BuffName": "破魔1",
+    "BuffRate": {
+      "Odds": 100
+    },
+    "Dsc": ""
+  },
+  "500162": {
+    "BuffEffect": {
+      "SkillRes": 0.1,
+      "type": "AttrChange"
+    },
+    "BuffIcon": "",
+    "BuffDesc": "魔法穿刺＋3%",
+    "id": 500162,
+    "BuffName": "破魔2",
+    "BuffRate": {
+      "Odds": 100
+    },
+    "Dsc": ""
+  },
+  "500163": {
+    "BuffEffect": {
+      "SkillRes": 0.1,
+      "type": "AttrChange"
+    },
+    "BuffIcon": "",
+    "BuffDesc": "魔法穿刺＋4.5%",
+    "id": 500163,
+    "BuffName": "破魔3",
+    "BuffRate": {
+      "Odds": 100
+    },
+    "Dsc": ""
+  },
+  "500164": {
+    "BuffEffect": {
+      "SkillRes": 0.1,
+      "type": "AttrChange"
+    },
+    "BuffIcon": "",
+    "BuffDesc": "魔法穿刺＋6%",
+    "id": 500164,
+    "BuffName": "破魔4",
+    "BuffRate": {
+      "Odds": 100
+    },
+    "Dsc": ""
+  },
   "10003000": {
     "BuffEffect": {
       "Body": 1223,
