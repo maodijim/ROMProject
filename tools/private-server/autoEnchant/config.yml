@@ -20,6 +20,8 @@ authPass: ""
 enchantConfig:
   # 是否自动保存附魔结果 true (保存) 或 false (不保存)
   autoSave: false
+  # 每次附魔次数
+  enchantCount: 10
   # 自动买附魔币 true (购买) 或 false (不购买)
   autoBuyCoin:
     enable: true

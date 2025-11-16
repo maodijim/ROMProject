@@ -491,7 +491,7 @@ message ItemData
   optional EquipData equip = 4;
   repeated CardData card = 5;
   optional EnchantData enchant = 6;
-  optional EnchantData previewenchant = 7;
+  repeated EnchantData previewenchant = 7;
   optional RefineData refine = 8;
   optional EggData egg = 9;
   optional LoveLetterData letter = 10;
@@ -839,6 +839,7 @@ message EnchantEquip
 
   optional EEnchantType type = 3 [ default = EENCHANTTYPE_MIN ];
   optional string guid = 4;
+  optional uint32 enchantCount = 5 [ default = 1 ];
 }
 
 
@@ -889,6 +890,7 @@ message ProcessEnchantItemCmd
 
   optional bool save = 3 [ default = false ];
   optional string itemid = 4;
+  optional uint32 enchantNum = 5 [ default = 0 ];
 }
 
 // client -> scene : equip exchange

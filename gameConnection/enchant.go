@@ -34,10 +34,15 @@ func (ea *EnchantAttrCompare) GetCondition() string {
 	return ea.Condition
 }
 
-func (g *GameConnection) EnchantEquip(enchantType Cmd.EEnchantType, equipGuid string) {
+func (g *GameConnection) EnchantEquip(enchantType Cmd.EEnchantType, equipGuid string, enchantCount uint32) {
+	defaultEnchantCount := uint32(1)
 	cmd := Cmd.EnchantEquip{
-		Type: &enchantType,
-		Guid: &equipGuid,
+		Type:         &enchantType,
+		Guid:         &equipGuid,
+		EnchantCount: &defaultEnchantCount,
+	}
+	if enchantCount >= 1 {
+		cmd.EnchantCount = &enchantCount
 	}
 	_ = g.sendProtoCmd(
 		&cmd,
@@ -46,11 +51,14 @@ func (g *GameConnection) EnchantEquip(enchantType Cmd.EEnchantType, equipGuid st
 	)
 }
 
-func (g *GameConnection) EnchantSave(itemGuid string) {
+func (g *GameConnection) EnchantSave(itemGuid string, enchantNum uint32) {
 	save := true
 	cmd := Cmd.ProcessEnchantItemCmd{
 		Itemid: &itemGuid,
 		Save:   &save,
+	}
+	if enchantNum > 0 {
+		cmd.EnchantNum = &enchantNum
 	}
 	_ = g.sendProtoCmd(
 		&cmd,
@@ -67,86 +75,89 @@ func (g *GameConnection) EnchantGetByItemGuid(itemGuid string, packType Cmd.EPac
 	return item.GetEnchant()
 }
 
-func (g *GameConnection) EnchantGetPreviewByItemGuid(itemGuid string, packType Cmd.EPackType) *Cmd.EnchantData {
+func (g *GameConnection) EnchantGetPreviewByItemGuid(itemGuid string, packType Cmd.EPackType) []*Cmd.EnchantData {
 	item := g.FindPackItemByGuid(itemGuid, packType)
 	if item == nil {
-		return &Cmd.EnchantData{}
+		return []*Cmd.EnchantData{}
 	}
 	return item.GetPreviewenchant()
 }
 
-func (g *GameConnection) EnchantPreviewContains(equipGuid string, preview *EnchantCompare) bool {
+func (g *GameConnection) EnchantPreviewContains(equipGuid string, preview *EnchantCompare) (success bool, targetNum uint32) {
 	enchantPreview := g.EnchantGetPreviewByItemGuid(equipGuid, Cmd.EPackType_EPACKTYPE_EQUIP)
 	enchantNow := g.EnchantGetByItemGuid(equipGuid, Cmd.EPackType_EPACKTYPE_EQUIP)
 	if enchantPreview == nil {
-		return false
+		return false, targetNum
 	}
-	extrasPreview := enchantPreview.GetExtras()
-	attrsPreview := enchantPreview.GetAttrs()
-	attrsNow := enchantNow.GetAttrs()
-	for _, extra := range extrasPreview {
-		for _, targetExtra := range preview.GetExtras() {
-			if extra.GetBuffid() == targetExtra.GetBuffid() {
-				return true
+	for index, newPreview := range enchantPreview {
+		targetNum = uint32(index)
+		extrasPreview := newPreview.GetExtras()
+		attrsPreview := newPreview.GetAttrs()
+		attrsNow := enchantNow.GetAttrs()
+		for _, extra := range extrasPreview {
+			for _, targetExtra := range preview.GetExtras() {
+				if extra.GetBuffid() == targetExtra.GetBuffid() {
+					return true, targetNum
+				}
 			}
 		}
-	}
-	for _, attr := range attrsPreview {
-		for _, targetAttr := range preview.GetAttrs() {
-			if attr.GetType() == targetAttr.GetType() {
-				switch targetAttr.Condition {
-				case ">":
-					if attr.GetValue() > targetAttr.GetValue() {
-						for _, attrNow := range attrsNow {
-							if attrNow.GetType() == targetAttr.GetType() {
-								if attrNow.GetValue() < targetAttr.GetValue() {
-									return true
-								} else if attr.GetValue() > attrNow.GetValue() {
-									return true
-								} else {
-									return false
+		for _, attr := range attrsPreview {
+			for _, targetAttr := range preview.GetAttrs() {
+				if attr.GetType() == targetAttr.GetType() {
+					switch targetAttr.Condition {
+					case ">":
+						if attr.GetValue() > targetAttr.GetValue() {
+							for _, attrNow := range attrsNow {
+								if attrNow.GetType() == targetAttr.GetType() {
+									if attrNow.GetValue() < targetAttr.GetValue() {
+										return true, targetNum
+									} else if attr.GetValue() > attrNow.GetValue() {
+										return true, targetNum
+									} else {
+										return false, 0
+									}
 								}
-							}
-							return true
-						}
-					}
-				case "<":
-					if attr.GetValue() < targetAttr.GetValue() {
-						return true
-					}
-				case "=":
-					if attr.GetValue() == targetAttr.GetValue() {
-						return true
-					}
-				case ">=":
-					if attr.GetValue() >= targetAttr.GetValue() {
-						for _, attrNow := range attrsNow {
-							if attrNow.GetType() == targetAttr.GetType() {
-								if attrNow.GetValue() < targetAttr.GetValue() {
-									return true
-								} else if attr.GetValue() > attrNow.GetValue() {
-									return true
-								} else {
-									return false
-								}
-							} else {
-								return true
+								return true, targetNum
 							}
 						}
-					}
-				case "<=":
-					if attr.GetValue() <= targetAttr.GetValue() {
-						return true
-					}
-				case "!=":
-					if attr.GetValue() != targetAttr.GetValue() {
-						return true
+					case "<":
+						if attr.GetValue() < targetAttr.GetValue() {
+							return true, targetNum
+						}
+					case "=":
+						if attr.GetValue() == targetAttr.GetValue() {
+							return true, targetNum
+						}
+					case ">=":
+						if attr.GetValue() >= targetAttr.GetValue() {
+							for _, attrNow := range attrsNow {
+								if attrNow.GetType() == targetAttr.GetType() {
+									if attrNow.GetValue() < targetAttr.GetValue() {
+										return true, targetNum
+									} else if attr.GetValue() > attrNow.GetValue() {
+										return true, targetNum
+									} else {
+										return false, 0
+									}
+								} else {
+									return true, targetNum
+								}
+							}
+						}
+					case "<=":
+						if attr.GetValue() <= targetAttr.GetValue() {
+							return true, targetNum
+						}
+					case "!=":
+						if attr.GetValue() != targetAttr.GetValue() {
+							return true, targetNum
+						}
 					}
 				}
 			}
 		}
 	}
-	return false
+	return false, 0
 }
 
 func (g *GameConnection) EnchantContains(equipGuid string, preview *EnchantCompare) bool {

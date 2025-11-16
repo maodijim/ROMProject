@@ -123,6 +123,7 @@ func main() {
 	configPath := flag.String("config", "config.yml", "配置文件路径")
 	enableDebug := flag.Bool("debug", false, "是否开启调试模式")
 	speed := flag.Uint("speed", 850, "附魔速度，单位毫秒")
+	enchantCount := flag.Uint("count", 15, "每次附魔次数")
 	flag.Parse()
 	items := utils.NewItemsLoader("", "", "")
 	conf := config.NewServerConfigs(*configPath)
@@ -172,6 +173,9 @@ func main() {
 
 	targetEquip := getTargetItem()
 	targetEnchant := conditionToEnchantCompare()
+	if g.Configs.EnchantConfig.EnchantCount > 0 {
+		*enchantCount = uint(g.Configs.EnchantConfig.EnchantCount)
+	}
 	log.Infof("附魔装备位置: %s", g.Configs.EnchantConfig.EnchantEquipPos)
 	log.Infof("目标装备: %s", g.Items[targetEquip.GetBase().GetId()].NameZh)
 	log.Infof("附魔停止条件: %v", g.Configs.EnchantConfig.Condition)
@@ -191,13 +195,14 @@ func main() {
 		log.Infof("第 %d 次 %s附魔 %s", count, g.Configs.EnchantConfig.EnchantType, g.Items[targetEquip.GetBase().GetId()].NameZh)
 
 		// handle auto buy
-		if conf.EnchantConfig.AutoBuyCoin.Enable && curCoins <= 4 {
+		leastCoin := uint32(*enchantCount * 4)
+		if conf.EnchantConfig.AutoBuyCoin.Enable && curCoins <= leastCoin {
 			if uint64(conf.EnchantConfig.AutoBuyCoin.MinZenyToKeep) >= g.Role.GetSilver() {
 				log.Infof("附魔币不足，但银币低于保留阈值，无法自动购买附魔币，停止附魔")
 				return
 			}
 			log.Infof("附魔币不足，自动购买中...")
-			numToBuy := conf.EnchantConfig.AutoBuyCoin.NumCoinsToBuy
+			numToBuy := math.Max(float64(conf.EnchantConfig.AutoBuyCoin.NumCoinsToBuy), float64(leastCoin))
 			shopConfig, err := g.QueryShopConfig(gameTypes.ShopType_Item, 10)
 			if err != nil {
 				log.Errorf("购买附魔币查询商店配置失败 %s", err)
@@ -215,19 +220,24 @@ func main() {
 		g.EnchantEquip(
 			EnchantTypeMap[g.Configs.EnchantConfig.EnchantType],
 			targetEquip.GetBase().GetGuid(),
+			uint32(*enchantCount),
 		)
 		time.Sleep(time.Millisecond * time.Duration(math.Max(float64(*speed), 200)))
 		log.Infof("当前附魔: %s", fumoStr(curEnchant))
 		targetEquip = getTargetItem()
-		previewEnchant := enchantToZh(targetEquip.GetPreviewenchant())
-		log.Infof("附魔结果: %s", fumoStr(previewEnchant))
-		shouldSave := g.EnchantPreviewContains(
+
+		previewEnchants := targetEquip.GetPreviewenchant()
+		for i, preview := range previewEnchants {
+			enchantZh := enchantToZh(preview)
+			log.Infof("附魔结果%d: %s", i, fumoStr(enchantZh))
+		}
+		shouldSave, targetNum := g.EnchantPreviewContains(
 			targetEquip.GetBase().GetGuid(),
 			&targetEnchant,
 		)
 		if shouldSave && autoSave {
 			log.Infof("自動保存附魔属性")
-			g.EnchantSave(targetEquip.GetBase().GetGuid())
+			g.EnchantSave(targetEquip.GetBase().GetGuid(), targetNum)
 			time.Sleep(time.Second * 2)
 			return // 保存后退出
 		} else if shouldSave {

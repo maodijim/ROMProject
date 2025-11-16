@@ -21,6 +21,7 @@ type EnchantConfig struct {
 	EnchantEquipPos string            `yaml:"enchantEquipPos"`
 	Condition       EnchantCondition  `yaml:"condition"`
 	AutoBuyCoin     AutoBuyCoinConfig `yaml:"autoBuyCoin"`
+	EnchantCount    uint32            `yaml:"enchantCount"`
 }
 
 type AutoBuyCoinConfig struct {
