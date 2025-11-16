@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"os"
 	"sync"
 	"time"
 
@@ -43,6 +44,7 @@ var (
 	HuntHidMVP            = bool(false)
 	HiddenMVPList         map[string]HiddenMVP
 	TargetHiddenMVP       HiddenMVP
+	StartTime             = time.Now()
 )
 
 const (
@@ -110,7 +112,7 @@ func start() {
 			if !HuntHidMVP {
 				if targetId != 0 && g.AtkStat.GetCurrentTargetId() == targetId && g.IsMonsterInRange(g.MonsterItems[*TargetMonster.Id].NameZh) {
 					TargetID := g.AtkStat.GetCurrentTargetId()
-					if g.MapNpcs[TargetID].Attrs != nil {
+					if TargetID != 0 && g.MapNpcs[TargetID].Attrs != nil {
 						HP := utils.GetNpcAttrValByType(g.MapNpcs[TargetID].Attrs, Cmd.EAttrType_EATTRTYPE_HP)
 						if LastHp == 0 || LastHp > HP {
 							LastHp = HP
@@ -164,6 +166,7 @@ func start() {
 						log.Infof("没有找到目标，躺平吧!")
 						time.Sleep(time.Millisecond * 10000)
 					} else {
+						CheckCloseTime()
 						log.Infof("已获取彩币数量:%d,已狩猎数量:%d", g.Role.GetLottery()-StartNum, HuntingCount)
 						MitionCompelete = false
 					}
@@ -173,6 +176,7 @@ func start() {
 	}()
 
 	for {
+
 		if !MitionCompelete {
 			if g.Role.GetMapId() != *TargetMonster.Mapid {
 				if g.Configs.HuntConfig.CarryTeam {
@@ -463,4 +467,15 @@ func Useskill() {
 		Dir:    &dir,
 	}
 	g.SkillCmd(10020001, pData, true)
+}
+
+func CheckCloseTime() {
+	GameDuration := g.Configs.HuntConfig.GameDuration
+	remaining := time.Until(StartTime)
+	hour := -int(remaining.Hours())
+	if GameDuration > 0 && hour >= GameDuration {
+		os.Exit(0)
+	} else {
+		log.Printf("距离关闭还有%d小时", hour)
+	}
 }
