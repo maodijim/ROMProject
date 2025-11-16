@@ -18,10 +18,12 @@ authPass: ""
 #accId: 1058764751661694976
 
 HuntConfig:
+  # 挂机时长，时间到自动关闭，单位小时(设置0不自动关闭)
+  GameDuration: 0
   # 备战精英释放间隔时间(秒)
   PrepEliteCD: 25
   # 是否带队友一起飞图true(会全队一起飞地图)false(仅自己飞)
-  CarryTeam: false
+  CarryTeam: true
   #输入狩猎的怪物清单(前面加#表示不狩猎)
   Mini:
     - "狸猫"
