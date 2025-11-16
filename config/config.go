@@ -36,11 +36,12 @@ type EnchantCondition struct {
 }
 
 type HuntConfig struct {
-	CarryTeam   bool     `yaml:"CarryTeam"`
-	Mini        []string `yaml:"Mini"`
-	MVP         []string `yaml:"MVP"`
-	HMVP        []string `yaml:"HMVP"`
-	PrepEliteCD int      `yaml:"PrepEliteCD"`
+	CarryTeam    bool     `yaml:"CarryTeam"`
+	GameDuration int      `yaml:"GameDuration"`
+	Mini         []string `yaml:"Mini"`
+	MVP          []string `yaml:"MVP"`
+	HMVP         []string `yaml:"HMVP"`
+	PrepEliteCD  int      `yaml:"PrepEliteCD"`
 }
 
 type ServerConfigs struct {
