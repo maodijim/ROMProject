@@ -112,7 +112,8 @@ func start() {
 			if !HuntHidMVP {
 				if targetId != 0 && g.AtkStat.GetCurrentTargetId() == targetId && g.IsMonsterInRange(g.MonsterItems[*TargetMonster.Id].NameZh) {
 					TargetID := g.AtkStat.GetCurrentTargetId()
-					if TargetID != 0 && g.MapNpcs[TargetID].Attrs != nil {
+					npcs := g.GetMapNpcs()
+					if _, ok := npcs[TargetID]; ok {
 						HP := utils.GetNpcAttrValByType(g.MapNpcs[TargetID].Attrs, Cmd.EAttrType_EATTRTYPE_HP)
 						if LastHp == 0 || LastHp > HP {
 							LastHp = HP
@@ -168,7 +169,9 @@ func start() {
 					} else {
 						CheckCloseTime()
 						log.Infof("已获取彩币数量:%d,已狩猎数量:%d", g.Role.GetLottery()-StartNum, HuntingCount)
-						MitionCompelete = false
+						if !HuntHidMVP {
+							MitionCompelete = false
+						}
 					}
 				}
 			}
@@ -226,7 +229,7 @@ func start() {
 				} else {
 					TargetID := g.AtkStat.GetCurrentTargetId()
 					MapNPC := g.GetMapNpcs()
-					if g.IsMonsterInRange(g.MonsterItems[*TargetMonster.Id].NameZh) && MapNPC[TargetID].Attrs != nil {
+					if _, ok := MapNPC[TargetID]; ok {
 						MonsterHP := utils.GetNpcAttrValByType(MapNPC[TargetID].Attrs, Cmd.EAttrType_EATTRTYPE_HP)
 						MHP := utils.GetNpcAttrValByType(g.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_HP)
 						if MonsterHP != tempMHP || MHP != tempUHP {
@@ -341,7 +344,7 @@ func checkBossLive() bool {
 					HuntHidMVP = true
 					TargetHiddenMVP = HiddenMVPList[v]
 					log.Printf("卡仑已复活，进行狩猎")
-					return false
+					return true
 				} else {
 					remaining := time.Until(HiddenMVPList[v].RespawnTime)
 					minutes := int(remaining.Minutes())
@@ -471,11 +474,21 @@ func Useskill() {
 
 func CheckCloseTime() {
 	GameDuration := g.Configs.HuntConfig.GameDuration
-	remaining := time.Until(StartTime)
-	hour := -int(remaining.Hours())
-	if GameDuration > 0 && hour >= GameDuration {
-		os.Exit(0)
+	if GameDuration > 0 {
+		remaining := time.Until(StartTime) + time.Duration(GameDuration)*time.Hour
+		hour := int(remaining.Hours())
+		minutes := int(remaining.Minutes()) % 60
+		seconds := int(remaining.Seconds()) % 3600
+		if GameDuration > 0 && hour <= 0 && minutes <= 0 && seconds <= 0 {
+			os.Exit(0)
+		} else {
+			log.Printf("距离关闭还有%d小时，%d分钟", hour, minutes)
+		}
+
 	} else {
-		log.Printf("距离关闭还有%d小时", hour)
+		remaining := time.Until(StartTime)
+		hour := -int(remaining.Hours())
+		minutes := -int(remaining.Minutes()) % 60
+		log.Printf("已挂机%d小时，%d分钟", hour, minutes)
 	}
 }
