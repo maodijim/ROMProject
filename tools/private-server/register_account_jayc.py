@@ -37,6 +37,7 @@ if __name__ == '__main__':
             csv_file = open("account.csv", "a")
             csv_file.write('\n')
             csv_file.write(username + "," + password)
+            csv_file.close()
         else:
             print("注册失败")
         time.sleep(1)
