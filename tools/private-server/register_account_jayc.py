@@ -21,7 +21,7 @@ if __name__ == '__main__':
         print(data)
         response = requests.post(
             register_url,
-            data=data,
+            json=data,
             params={"do": "1"},
             headers={
                 "Content-Type": "application/json; charset=UTF-8",
