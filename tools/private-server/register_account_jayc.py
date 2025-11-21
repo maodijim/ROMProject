@@ -31,8 +31,9 @@ if __name__ == '__main__':
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36",
             }
         )
-        print(response.json())
-        if response.status_code == 200:
+        res_body = response.json()
+        print(res_body)
+        if response.status_code == 200 and res_body.get("code") != 2:
             print("注册成功")
             csv_file = open("account.csv", "a")
             csv_file.write('\n')
