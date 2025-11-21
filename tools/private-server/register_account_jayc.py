@@ -31,7 +31,7 @@ if __name__ == '__main__':
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36",
             }
         )
-        print(response.content.decode('utf-8'))
+        print(response.json())
         if response.status_code == 200:
             print("注册成功")
             csv_file = open("account.csv", "a")
