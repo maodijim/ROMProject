@@ -58,6 +58,7 @@ loop:
 			distanceXZ := utils.GetDistanceXZ(curPos, pos)
 			if math.Max(distanceXY, distanceXZ) < 200 {
 				arrived = true
+				time.Sleep(2 * time.Second)
 				break loop
 			} else if count > 200 {
 				break loop
@@ -97,6 +98,19 @@ func (g *GameConnection) ChangeMap(mId uint32) {
 	g.MoveChart(g.Role.GetPos())
 }
 
+func (g *GameConnection) ChangeMapWithPos(mId uint32, pos Cmd.ScenePos) {
+	cmd := &Cmd.ChangeSceneUserCmd{
+		MapID: &mId,
+		Pos:   &pos,
+	}
+	log.Infof("%s is sending change scene cmd: %v", g.Role.GetRoleName(), cmd)
+	_ = g.sendProtoCmd(cmd, 5, 23)
+	g.enteringMap = false
+	g.inMap = false
+	// If not moved strange things will happen
+	g.MoveChart(g.Role.GetPos())
+}
+
 func (g *GameConnection) ExitMap(targetMapId uint32) {
 	cmd := &Cmd.GoToExitPosUserCmd{
 		Mapid: &targetMapId,
@@ -121,6 +135,18 @@ func (g *GameConnection) ExitMapWait(mapId uint32) {
 			return
 		}
 	}
+}
+
+func (g *GameConnection) ExitMapPos(targetMapId uint32, exitId uint32, exitPos Cmd.ScenePos) {
+	cmd := &Cmd.ExitPosUserCmd{
+		Mapid:  g.Role.MapId,
+		Exitid: &exitId,
+		Pos:    &exitPos,
+	}
+	g.inMap = false
+	_ = g.sendProtoCmd(cmd, sceneUser2CmdId, Cmd.User2Param_value["USER2PARAM_EXIT_POS"])
+	time.Sleep(3 * time.Second)
+	g.ChangeMapWithPos(targetMapId, g.ParsePos(0, 0, 0))
 }
 
 func (g *GameConnection) MoveToNpcWait(npcName string) error {
