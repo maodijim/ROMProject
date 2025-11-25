@@ -270,7 +270,7 @@ func fightMonstStar(MonsterName string, monsterId uint32) {
 	}
 	nature := m.Nature
 	if nature != "" {
-		if g.Role.GetProfession() >= 41 && g.Role.GetProfession() <= 44 {
+		if g.Role.GetProfession() >= Cmd.EProfession_EPROFESSION_ARCHER && g.Role.GetProfession() <= Cmd.EProfession_EPROFESSION_RANGER {
 			if nature == gameTypes.NatureType_Fire {
 				useElementArrow(gameTypes.WaterArrow)
 			} else if nature == gameTypes.NatureType_Water {
