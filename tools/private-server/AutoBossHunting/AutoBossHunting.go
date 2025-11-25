@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"math"
 	"os"
 	"sync"
 	"time"
@@ -99,6 +100,7 @@ func start() {
 
 	g.GetBossInfo()
 	checkBossLive()
+	lastPos = g.Role.GetPos()
 
 	StartNum := g.Role.GetLottery()
 
@@ -109,32 +111,31 @@ func start() {
 	go func() {
 		lastPosUpdate = time.Now()
 		for {
-			if !HuntHidMVP {
-				if targetId != 0 && g.AtkStat.GetCurrentTargetId() == targetId && g.IsMonsterInRange(g.MonsterItems[*TargetMonster.Id].NameZh) {
-					TargetID := g.AtkStat.GetCurrentTargetId()
-					npcs := g.GetMapNpcs()
-					if _, ok := npcs[TargetID]; ok {
-						HP := utils.GetNpcAttrValByType(g.MapNpcs[TargetID].Attrs, Cmd.EAttrType_EATTRTYPE_HP)
-						if LastHp == 0 || LastHp > HP {
-							LastHp = HP
-							lastPosUpdate = time.Now()
-						} else if time.Since(lastPosUpdate) > time.Second*10 {
-							log.Infof("卡住了")
-							g.AtkStat.SetCurrentTargetId(0)
-							useFlyWing()
-							targetId = 0
-						}
+			if targetId != 0 && g.AtkStat.GetCurrentTargetId() == targetId {
+				TargetID := g.AtkStat.GetCurrentTargetId()
+				npcs := g.GetMapNpcs()
+				if _, ok := npcs[TargetID]; ok {
+					HP := utils.GetNpcAttrValByType(g.MapNpcs[TargetID].Attrs, Cmd.EAttrType_EATTRTYPE_HP)
+					if LastHp == 0 || LastHp != HP {
+						LastHp = HP
+						lastPosUpdate = time.Now()
+					} else if time.Since(lastPosUpdate) > time.Second*10 {
+						log.Infof("卡住了")
+						g.AtkStat.SetCurrentTargetId(0)
+						useFlyWing()
+						targetId = 0
 					}
-				} else if fightStar && targetId == 0 && time.Since(lastPosUpdate) > time.Second*10 {
-					log.Infof("没有目标卡住了")
-					fightStar = false
-					useFlyWing()
-					lastPosUpdate = time.Now()
-				} else if g.AtkStat.GetCurrentTargetId() != targetId {
-					targetId = g.AtkStat.GetCurrentTargetId()
-					lastPosUpdate = time.Now()
 				}
+			} else if fightStar && targetId == 0 && time.Since(lastPosUpdate) > time.Second*10 {
+				log.Infof("没有目标卡住了")
+				fightStar = false
+				useFlyWing()
+				lastPosUpdate = time.Now()
+			} else if g.AtkStat.GetCurrentTargetId() != targetId {
+				targetId = g.AtkStat.GetCurrentTargetId()
+				lastPosUpdate = time.Now()
 			}
+
 			time.Sleep(time.Second * 2)
 		}
 	}()
@@ -175,6 +176,7 @@ func start() {
 					}
 				}
 			}
+
 		}
 	}()
 
@@ -221,7 +223,6 @@ func start() {
 				if !checkTargetBossLive() {
 					log.Infof("%s 死亡，重新查找", g.MonsterItems[*TargetMonster.Id].NameZh)
 					HuntingCount++
-					buyFlyWing()
 					fightStar = false
 					fightCancel()
 					MitionCompelete = true
@@ -296,6 +297,7 @@ func fightMonstStar(MonsterName string, monsterId uint32) {
 func useFlyWing() {
 	flyMutex.Lock()
 	defer flyMutex.Unlock()
+	buyFlyWing()
 	g.UseFlyWing()
 	item := g.FindPackItemById(5024, Cmd.EPackType_EPACKTYPE_MAIN)
 	if item != nil && item.GetBase().GetCount() > 0 {
@@ -491,4 +493,38 @@ func CheckCloseTime() {
 		minutes := -int(remaining.Minutes()) % 60
 		log.Printf("已挂机%d小时，%d分钟", hour, minutes)
 	}
+}
+
+func Distance3D(a, b *Cmd.ScenePos) float64 {
+	if a == nil || b == nil {
+		return -1 // 或 return 0，看你要怎麼處理
+	}
+
+	var ax, ay, az, bx, by, bz int32
+
+	if a.X != nil {
+		ax = *a.X
+	}
+	if a.Y != nil {
+		ay = *a.Y
+	}
+	if a.Z != nil {
+		az = *a.Z
+	}
+
+	if b.X != nil {
+		bx = *b.X
+	}
+	if b.Y != nil {
+		by = *b.Y
+	}
+	if b.Z != nil {
+		bz = *b.Z
+	}
+
+	dx := float64(ax - bx)
+	dy := float64(ay - by)
+	dz := float64(az - bz)
+
+	return math.Sqrt(dx*dx + dy*dy + dz*dz)
 }
