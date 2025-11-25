@@ -74,7 +74,7 @@ func (a *AttackMonsterStat) GetCurrentTargetId() uint64 {
 }
 
 func (g *GameConnection) SkillCmd(skillId uint32, data *Cmd.PhaseData, random1 bool) {
-	if skillItem, ok := g.SkillItems[skillId]; ok && skillItem.NameZh != "普通攻击" {
+	if skillItem, ok := g.SkillItems[skillId]; ok && skillItem.NameZh != "普通攻击" && skillItem.NameZh != "扩散攻击" {
 		log.Infof("%s 释放技能 %d %s", g.Role.GetRoleName(), skillId, skillItem.NameZh)
 	}
 	random := uint32(1)
@@ -488,7 +488,15 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 						}
 						if skillItem.Camps == CampsEnemy {
 							// 这是攻击技能
-							g.AttackClosestByName(skill.GetId(), monsterList)
+							if g.Role.GetProfession() >= 41 && g.Role.GetProfession() <= 44 && skillItem.NameZh == "普通攻击" {
+								if g.Role.GetBuffById(131070) != nil {
+									g.AttackClosestByName(252001, monsterList)
+								} else {
+									g.AttackClosestByName(300001, monsterList)
+								}
+							} else {
+								g.AttackClosestByName(skill.GetId(), monsterList)
+							}
 						}
 					}
 				}
