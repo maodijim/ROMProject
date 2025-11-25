@@ -100,6 +100,8 @@ func (g *GameConnection) GoToMap(mapId uint32) {
 				sceneUser2CmdId,
 				Cmd.User2Param_value["USER2PARAM_GOTO_GEAR"],
 			)
+			time.Sleep(time.Millisecond * 500)
+			g.ChangeMap(mapId)
 			return
 		}
 	}
@@ -231,4 +233,26 @@ func (g *GameConnection) JumpZone(zoneId uint32, npcId uint64) {
 	)
 	g.ChangeMap(g.Role.GetMapId())
 	time.Sleep(8 * time.Second)
+}
+
+func (g *GameConnection) FollowUser(charId uint64) {
+	cmd := Cmd.FollowerUser{
+		Userid: &charId,
+	}
+	_ = g.sendProtoCmd(&cmd,
+		sceneUser2CmdId,
+		Cmd.User2Param_value["USER2PARAM_FOLLOWER"],
+	)
+	g.Role.FollowUserId = charId
+}
+
+func (g *GameConnection) DeFollowUser() {
+	cmd := Cmd.FollowerUser{
+		Userid: nil,
+	}
+	_ = g.sendProtoCmd(&cmd,
+		sceneUser2CmdId,
+		Cmd.User2Param_value["USER2PARAM_FOLLOWER"],
+	)
+	g.Role.FollowUserId = 0
 }

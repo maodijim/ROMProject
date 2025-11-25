@@ -210,6 +210,8 @@ func (r *RoleInfo) SetLoginResult(result uint32) {
 }
 
 func (r *RoleInfo) SetRolePos(pos *Cmd.ScenePos) {
+	r.Mutex.Lock()
+	defer r.Mutex.Unlock()
 	r.Pos = pos
 }
 

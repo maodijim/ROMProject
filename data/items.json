@@ -29,7 +29,7 @@
     "Icon": "item_100",
     "SellPrice": 100,
     "Desc": "用钻石制成的货币",
-    "NameZh": "钻石",
+    "NameZh": "初心币",
     "ValidDate": "",
     "MediaPath": "",
     "TFValidDate": "",
@@ -132120,5 +132120,14 @@
     "Quality": 1,
     "Type": 70,
     "id": 1000000
+  },
+  "191000": {
+    "Icon": "",
+    "MaxNum": 999,
+    "Desc": "",
+    "NameZh": "每日福袋",
+    "SellPrice": 100,,
+    "Type": 30,
+    "id": 191000
   }
 }
