@@ -34,8 +34,8 @@ func (c *EnchantConfig) ParseFromInterface(config map[string]interface{}) Enchan
 	if val, ok := config["enchantEquipPos"].(string); ok {
 		c.EnchantEquipPos = val
 	}
-	if val, ok := config["enchantCount"].(uint32); ok {
-		c.EnchantCount = val
+	if val, ok := config["enchantCount"].(float64); ok {
+		c.EnchantCount = uint32(val)
 	}
 	if val, ok := config["condition"].(map[string]interface{}); ok {
 		if attrs, ok := val["attributes"].([]interface{}); ok {
@@ -84,8 +84,8 @@ func (c *HuntConfig) ParseFromInterface(config map[string]interface{}) HuntConfi
 	if val, ok := config["CarryTeam"].(bool); ok {
 		c.CarryTeam = val
 	}
-	if val, ok := config["GameDuration"].(int); ok {
-		c.GameDuration = val
+	if val, ok := config["GameDuration"].(float64); ok {
+		c.GameDuration = int(val)
 	}
 	if val, ok := config["Mini"].([]interface{}); ok {
 		mini := make([]string, len(val))

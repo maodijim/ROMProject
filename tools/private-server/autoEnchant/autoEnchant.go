@@ -1,27 +1,20 @@
-package main
+package autoEnchant
 
 import (
-	"flag"
+	"context"
 	"fmt"
-	"io"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	Cmd "ROMProject/Cmds"
-	"ROMProject/config"
 	"ROMProject/gameConnection"
 	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 
 	"github.com/manifoldco/promptui"
 	log "github.com/sirupsen/logrus"
-)
-
-const (
-	ver = "0.2.1"
 )
 
 var (
@@ -93,8 +86,7 @@ var (
 		"脸部":  {Cmd.EEquipType_EEQUIPTYPE_FACE},
 		"嘴部":  {Cmd.EEquipType_EEQUIPTYPE_MOUTH},
 	}
-	g            *gameConnection.GameConnection
-	allowRoleIds = []uint64{
+	AllowRoleIds = []uint64{
 		// 100100000223,
 		// 100100001314,
 		// 100100000612,
@@ -102,155 +94,150 @@ var (
 	}
 )
 
-func init() {
-	log.SetFormatter(&log.TextFormatter{
-		FullTimestamp: true,
-	})
-	logFile := "autoEnchant.log"
-	var mw io.Writer
-	f, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err == nil {
-		mw = io.MultiWriter(os.Stdout, f)
-	} else {
-		log.Warnf("无法写入日志文件 %s，使用默认输出", logFile)
-		mw = os.Stdout
-	}
-	log.SetOutput(mw)
+type EnchantTask struct {
+	GC        *gameConnection.GameConnection
+	ctx       context.Context
+	cancel    context.CancelFunc
+	fumoSpeed uint
+	fumoCount int
 }
 
-func main() {
-	log.Infof("自动附魔版本 %s", ver)
-	configPath := flag.String("config", "config.yml", "配置文件路径")
-	enableDebug := flag.Bool("debug", false, "是否开启调试模式")
-	speed := flag.Uint("speed", 850, "附魔速度，单位毫秒")
-	enchantCount := flag.Uint("count", 15, "每次附魔次数")
-	flag.Parse()
-	items := utils.NewItemsLoader("", "", "")
-	conf := config.NewServerConfigs(*configPath)
-	autoSave := conf.EnchantConfig.AutoSave
-	skills := utils.NewSkillParser("")
-	g = gameConnection.NewConnection(conf, skills, items).LoadMonster("")
-	if *enableDebug {
-		g.DebugMsg = true
-		log.SetLevel(log.DebugLevel)
-	}
-	g.ShouldChangeScene = true
-	g.GameServerLogin()
+func (e *EnchantTask) Start() {
+	e.GC.ShouldChangeScene = true
+	e.GC.GameServerLogin()
 
-	if len(allowRoleIds) > 0 && !utils.Contains(allowRoleIds, g.Role.GetRoleId()) {
+	if len(AllowRoleIds) > 0 && !utils.Contains(AllowRoleIds, e.GC.Role.GetRoleId()) {
 		log.Fatalf("当前角色不在允许列表中，退出")
 	}
 
-	_ = g.GetAllPackItems()
+	_ = e.GC.GetAllPackItems()
 
-	if g.Role.GetMapId() != gameTypes.MapId_Geffen.Uint32() {
+	if e.GC.Role.GetMapId() != gameTypes.MapId_Geffen.Uint32() {
 		log.Warnf("当前地图不是积芬，飞去积芬中...")
 		time.Sleep(time.Second * 5)
 		// g.ExitMapWait(gameTypes.MapId_Yuno.Uint32())
 		// g.ExitMapWait(gameTypes.MapId_Geffen.Uint32())
-		_ = g.GoToGear(gameTypes.MapId_Geffen.Uint32())
-		g.ChangeMap(gameTypes.MapId_Geffen.Uint32())
+		_ = e.GC.GoToGear(gameTypes.MapId_Geffen.Uint32())
+		e.GC.ChangeMap(gameTypes.MapId_Geffen.Uint32())
 	}
+
 	time.Sleep(time.Second * 3)
 	log.Infof("寻找猫小友中...")
 	// 猫小友附近
-	g.MoveChartWait(g.ParsePos(10739, 2970, 38585))
-	err := g.MoveToNpcWait("猫小友")
+	e.GC.MoveChartWait(e.GC.ParsePos(10739, 2970, 38585))
+	err := e.GC.MoveToNpcWait("猫小友")
 	if err != nil {
 		log.Errorf("没有找到猫小友%s", err)
 		return
 	}
-	_, err = g.VisitNpcByName("猫小友")
+	_, err = e.GC.VisitNpcByName("猫小友")
 	if err != nil {
 		log.Errorf("无法对话猫小友 %s", err)
 	}
 
-	checkEnchantType()
+	e.CheckEnchantType()
 
-	checkEnchantEquipPos()
+	e.CheckEnchantEquipPos()
 
-	log.Infof("又来附魔送死了吗?, 来吧来吧, 让我看看是谁不知天高地厚. 附魔类型: %s", g.Configs.EnchantConfig.EnchantType)
+	log.Infof("又来附魔送死了吗?, 来吧来吧, 让我看看是谁不知天高地厚. 附魔类型: %s", e.GC.Configs.EnchantConfig.EnchantType)
 
-	targetEquip := getTargetItem()
-	targetEnchant := conditionToEnchantCompare()
-	if g.Configs.EnchantConfig.EnchantCount > 0 {
-		*enchantCount = uint(g.Configs.EnchantConfig.EnchantCount)
+	targetEquip := e.GetTargetItem()
+	targetEnchant := e.ConditionToEnchantCompare()
+	enchantCount := uint(10)
+	if e.GC.Configs.EnchantConfig.EnchantCount > 0 {
+		enchantCount = uint(e.GC.Configs.EnchantConfig.EnchantCount)
 	}
-	log.Infof("附魔装备位置: %s", g.Configs.EnchantConfig.EnchantEquipPos)
-	log.Infof("目标装备: %s", g.Items[targetEquip.GetBase().GetId()].NameZh)
-	log.Infof("附魔停止条件: %v", g.Configs.EnchantConfig.Condition)
+	log.Infof("附魔装备位置: %s", e.GC.Configs.EnchantConfig.EnchantEquipPos)
+	log.Infof("目标装备: %s", e.GC.Items[targetEquip.GetBase().GetId()].NameZh)
+	log.Infof("附魔停止条件: %v", e.GC.Configs.EnchantConfig.Condition)
 	log.Infof("坐稳了要开始附魔了!")
 	time.Sleep(5 * time.Second)
-	count := 1
-	for {
-		if g.EnchantContains(targetEquip.GetBase().GetGuid(), &targetEnchant) && autoSave {
-			enchantMap := enchantToZh(targetEquip.GetEnchant())
-			log.Infof("已经有附魔要求的属性 %s", fumoStr(enchantMap))
-			break
-		}
-		curCoins := getFuMoBi()
-		log.Infof("还有附魔币 %d", curCoins)
-		log.Infof("还有神谕之尘 %d", getDust())
-		log.Infof("还有神谕之晶 %d", getCrystal())
-		log.Infof("第 %d 次 %s附魔 %s", count, g.Configs.EnchantConfig.EnchantType, g.Items[targetEquip.GetBase().GetId()].NameZh)
 
-		// handle auto buy
-		leastCoin := uint32(*enchantCount * 4)
-		if conf.EnchantConfig.AutoBuyCoin.Enable && curCoins <= leastCoin {
-			if uint64(conf.EnchantConfig.AutoBuyCoin.MinZenyToKeep) >= g.Role.GetSilver() {
-				log.Infof("附魔币不足，但银币低于保留阈值，无法自动购买附魔币，停止附魔")
+	go func() {
+		for {
+			select {
+			case <-e.ctx.Done():
+				log.Infof("附魔任务已取消")
 				return
+			default:
+				e.fumoTask(targetEquip, &targetEnchant, enchantCount)
 			}
-			log.Infof("附魔币不足，自动购买中...")
-			numToBuy := math.Max(float64(conf.EnchantConfig.AutoBuyCoin.NumCoinsToBuy), float64(leastCoin))
-			shopConfig, err := g.QueryShopConfig(gameTypes.ShopType_Item, 10)
-			if err != nil {
-				log.Errorf("购买附魔币查询商店配置失败 %s", err)
-			}
-			for _, item := range shopConfig.GetGoods() {
-				if item.GetId() == 6000 {
-					log.Infof("购买%d附魔币", numToBuy)
-					g.BuyShopItem(item, uint32(numToBuy))
-				}
-			}
-			time.Sleep(time.Second * 2)
 		}
-
-		curEnchant := enchantToZh(targetEquip.GetEnchant())
-		g.EnchantEquip(
-			EnchantTypeMap[g.Configs.EnchantConfig.EnchantType],
-			targetEquip.GetBase().GetGuid(),
-			uint32(*enchantCount),
-		)
-		time.Sleep(time.Millisecond * time.Duration(math.Max(float64(*speed), 200)))
-		log.Infof("当前附魔: %s", fumoStr(curEnchant))
-		targetEquip = getTargetItem()
-
-		previewEnchants := targetEquip.GetPreviewenchant()
-		for i, preview := range previewEnchants {
-			enchantZh := enchantToZh(preview)
-			log.Infof("附魔结果%d: %s", i, fumoStr(enchantZh))
-		}
-		shouldSave, targetNum := g.EnchantPreviewContains(
-			targetEquip.GetBase().GetGuid(),
-			&targetEnchant,
-		)
-		if shouldSave && autoSave {
-			log.Infof("自動保存附魔属性")
-			g.EnchantSave(targetEquip.GetBase().GetGuid(), targetNum)
-			time.Sleep(time.Second * 2)
-			return // 保存后退出
-		} else if shouldSave {
-			log.Infof("附魔属性已达到要求，但未保存")
-			time.Sleep(time.Second * 2)
-			return
-		}
-		count++
-	}
+	}()
 }
 
-func checkEnchantType() {
-	if g.Configs.EnchantConfig.EnchantType != "" {
+func (e *EnchantTask) Stop() {
+	e.cancel()
+}
+
+func (e *EnchantTask) fumoTask(targetEquip *Cmd.ItemData, targetEnchant *gameConnection.EnchantCompare, enchantCount uint) {
+	if e.GC.EnchantContains(targetEquip.GetBase().GetGuid(), targetEnchant) && e.GC.Configs.EnchantConfig.AutoSave {
+		enchantMap := e.EnchantToZh(targetEquip.GetEnchant())
+		log.Infof("已经有附魔要求的属性 %s", FumoStr(enchantMap))
+
+	}
+	curCoins := e.GetFuMoBi()
+	log.Infof("还有附魔币 %d", curCoins)
+	log.Infof("还有神谕之尘 %d", e.GetDust())
+	log.Infof("还有神谕之晶 %d", e.GetCrystal())
+	log.Infof("第 %d 次 %s附魔 %s", e.fumoCount, e.GC.Configs.EnchantConfig.EnchantType, e.GC.Items[targetEquip.GetBase().GetId()].NameZh)
+
+	// handle auto buy
+	leastCoin := uint32(enchantCount * 4)
+	if e.GC.Configs.EnchantConfig.AutoBuyCoin.Enable && curCoins <= leastCoin {
+		if uint64(e.GC.Configs.EnchantConfig.AutoBuyCoin.MinZenyToKeep) >= e.GC.Role.GetSilver() {
+			log.Infof("附魔币不足，但银币低于保留阈值，无法自动购买附魔币，停止附魔")
+			return
+		}
+		log.Infof("附魔币不足，自动购买中...")
+		numToBuy := math.Max(float64(e.GC.Configs.EnchantConfig.AutoBuyCoin.NumCoinsToBuy), float64(leastCoin))
+		shopConfig, err := e.GC.QueryShopConfig(gameTypes.ShopType_Item, 10)
+		if err != nil {
+			log.Errorf("购买附魔币查询商店配置失败 %s", err)
+		}
+		for _, item := range shopConfig.GetGoods() {
+			if item.GetId() == 6000 {
+				log.Infof("购买%d附魔币", numToBuy)
+				e.GC.BuyShopItem(item, uint32(numToBuy))
+			}
+		}
+		time.Sleep(time.Second * 2)
+	}
+
+	curEnchant := e.EnchantToZh(targetEquip.GetEnchant())
+	e.GC.EnchantEquip(
+		EnchantTypeMap[e.GC.Configs.EnchantConfig.EnchantType],
+		targetEquip.GetBase().GetGuid(),
+		uint32(enchantCount),
+	)
+	time.Sleep(time.Millisecond * time.Duration(math.Max(float64(e.fumoSpeed), 200)))
+	log.Infof("当前附魔: %s", FumoStr(curEnchant))
+	targetEquip = e.GetTargetItem()
+
+	previewEnchants := targetEquip.GetPreviewenchant()
+	for i, preview := range previewEnchants {
+		enchantZh := e.EnchantToZh(preview)
+		log.Infof("附魔结果%d: %s", i, FumoStr(enchantZh))
+	}
+	shouldSave, targetNum := e.GC.EnchantPreviewContains(
+		targetEquip.GetBase().GetGuid(),
+		targetEnchant,
+	)
+	if shouldSave && e.GC.Configs.EnchantConfig.AutoSave {
+		log.Infof("自動保存附魔属性")
+		e.GC.EnchantSave(targetEquip.GetBase().GetGuid(), targetNum)
+		time.Sleep(time.Second * 2)
+		return // 保存后退出
+	} else if shouldSave {
+		log.Infof("附魔属性已达到要求，但未保存")
+		time.Sleep(time.Second * 2)
+		return
+	}
+	e.fumoCount++
+}
+
+func (e *EnchantTask) CheckEnchantType() {
+	if e.GC.Configs.EnchantConfig.EnchantType != "" {
 		return
 	}
 	enchantTypes := utils.GetMapKeys(EnchantTypeMap)
@@ -263,11 +250,11 @@ func checkEnchantType() {
 		log.Errorf("选择附魔类型失败: %s", err)
 		return
 	}
-	g.Configs.EnchantConfig.EnchantType = result
+	e.GC.Configs.EnchantConfig.EnchantType = result
 }
 
-func checkEnchantEquipPos() {
-	if g.Configs.EnchantConfig.EnchantEquipPos != "" {
+func (e *EnchantTask) CheckEnchantEquipPos() {
+	if e.GC.Configs.EnchantConfig.EnchantEquipPos != "" {
 		return
 	}
 	enchantEquipPos := utils.GetMapKeys(EnchantEquipPosMap)
@@ -280,17 +267,17 @@ func checkEnchantEquipPos() {
 		log.Errorf("选择附魔部位失败: %s", err)
 		return
 	}
-	g.Configs.EnchantConfig.EnchantEquipPos = result
+	e.GC.Configs.EnchantConfig.EnchantEquipPos = result
 }
 
-func getTargetItem() *Cmd.ItemData {
-	equipItems := g.Role.GetPackItemsByType(Cmd.EPackType_EPACKTYPE_EQUIP)
+func (e *EnchantTask) GetTargetItem() *Cmd.ItemData {
+	equipItems := e.GC.Role.GetPackItemsByType(Cmd.EPackType_EPACKTYPE_EQUIP)
 	var targetEquip *Cmd.ItemData
 	for _, item := range equipItems {
-		if utils.Contains(EnchantEquipPosMap[g.Configs.EnchantConfig.EnchantEquipPos], item.GetBase().GetEquipType()) {
-			if g.Configs.EnchantConfig.EnchantEquipPos == "饰品1" && item.GetBase().GetIndex() != 5 {
+		if utils.Contains(EnchantEquipPosMap[e.GC.Configs.EnchantConfig.EnchantEquipPos], item.GetBase().GetEquipType()) {
+			if e.GC.Configs.EnchantConfig.EnchantEquipPos == "饰品1" && item.GetBase().GetIndex() != 5 {
 				continue
-			} else if g.Configs.EnchantConfig.EnchantEquipPos == "饰品2" && item.GetBase().GetIndex() != 6 {
+			} else if e.GC.Configs.EnchantConfig.EnchantEquipPos == "饰品2" && item.GetBase().GetIndex() != 6 {
 				continue
 			}
 			targetEquip = item
@@ -304,8 +291,8 @@ func getTargetItem() *Cmd.ItemData {
 	return targetEquip
 }
 
-func getFuMoBi() uint32 {
-	item := g.FindPackItemByName("莫拉硬币", Cmd.EPackType_EPACKTYPE_MAIN)
+func (e *EnchantTask) GetFuMoBi() uint32 {
+	item := e.GC.FindPackItemByName("莫拉硬币", Cmd.EPackType_EPACKTYPE_MAIN)
 	if item == nil {
 		log.Errorf("没有找到莫拉硬币")
 		return 0
@@ -313,8 +300,8 @@ func getFuMoBi() uint32 {
 	return item.GetBase().GetCount()
 }
 
-func getCrystal() uint32 {
-	item := g.FindPackItemByName("神谕之晶", Cmd.EPackType_EPACKTYPE_MAIN)
+func (e *EnchantTask) GetCrystal() uint32 {
+	item := e.GC.FindPackItemByName("神谕之晶", Cmd.EPackType_EPACKTYPE_MAIN)
 	if item == nil {
 		log.Errorf("没有找到神谕之晶")
 		return 0
@@ -322,8 +309,8 @@ func getCrystal() uint32 {
 	return item.GetBase().GetCount()
 }
 
-func getDust() uint32 {
-	item := g.FindPackItemByName("神谕之尘", Cmd.EPackType_EPACKTYPE_MAIN)
+func (e *EnchantTask) GetDust() uint32 {
+	item := e.GC.FindPackItemByName("神谕之尘", Cmd.EPackType_EPACKTYPE_MAIN)
 	if item == nil {
 		log.Errorf("没有找到神谕之尘")
 		return 0
@@ -331,7 +318,7 @@ func getDust() uint32 {
 	return item.GetBase().GetCount()
 }
 
-func enchantToZh(data *Cmd.EnchantData) map[string][]string {
+func (e *EnchantTask) EnchantToZh(data *Cmd.EnchantData) map[string][]string {
 	result := make(map[string][]string)
 	result["属性"] = []string{}
 	result["词条"] = []string{}
@@ -348,7 +335,7 @@ func enchantToZh(data *Cmd.EnchantData) map[string][]string {
 		)
 	}
 	for _, extra := range data.GetExtras() {
-		zhName, ok := g.BuffItems[extra.GetBuffid()]
+		zhName, ok := e.GC.BuffItems[extra.GetBuffid()]
 		if !ok {
 			log.Errorf("没有找到词条: %d", extra.GetBuffid())
 		}
@@ -357,29 +344,10 @@ func enchantToZh(data *Cmd.EnchantData) map[string][]string {
 	return result
 }
 
-func fumoStr(input map[string][]string) string {
-	result := ""
-	for k, v := range input {
-		switch k {
-		case "属性":
-			result += "\n属性: "
-			for _, attr := range v {
-				result += attr + ", "
-			}
-		case "词条":
-			result += "\n词条: "
-			for _, extra := range v {
-				result += extra + ", "
-			}
-		}
-	}
-	return result
-}
-
-func conditionToEnchantCompare() gameConnection.EnchantCompare {
+func (e *EnchantTask) ConditionToEnchantCompare() gameConnection.EnchantCompare {
 	data := gameConnection.EnchantCompare{}
-	for _, attr := range g.Configs.EnchantConfig.Condition.Attributes {
-		attrType, value, condition := stringToAttr(attr)
+	for _, attr := range e.GC.Configs.EnchantConfig.Condition.Attributes {
+		attrType, value, condition := StringToAttr(attr)
 		data.Attrs = append(data.Attrs, &gameConnection.EnchantAttrCompare{
 			EnchantAttr: Cmd.EnchantAttr{
 				Type:  &attrType,
@@ -389,8 +357,8 @@ func conditionToEnchantCompare() gameConnection.EnchantCompare {
 		},
 		)
 	}
-	for _, extra := range g.Configs.EnchantConfig.Condition.Extras {
-		ids, ok := g.BuffItemsByName[extra]
+	for _, extra := range e.GC.Configs.EnchantConfig.Condition.Extras {
+		ids, ok := e.GC.BuffItemsByName[extra]
 		if !ok {
 			log.Errorf("没有找到词条: %s", extra)
 			continue
@@ -411,11 +379,40 @@ func conditionToEnchantCompare() gameConnection.EnchantCompare {
 	return data
 }
 
-func stringToAttr(in string) (attrType Cmd.EAttrType, value uint32, condition string) {
+func FumoStr(input map[string][]string) string {
+	result := ""
+	for k, v := range input {
+		switch k {
+		case "属性":
+			result += "\n属性: "
+			for _, attr := range v {
+				result += attr + ", "
+			}
+		case "词条":
+			result += "\n词条: "
+			for _, extra := range v {
+				result += extra + ", "
+			}
+		}
+	}
+	return result
+}
+
+func StringToAttr(in string) (attrType Cmd.EAttrType, value uint32, condition string) {
 	p := strings.Split(in, " ")
 	attrType = AttrMap[p[0]]
 	v, _ := strconv.ParseUint(p[2], 10, 32)
 	value = uint32(v)
 	condition = p[1]
 	return attrType, value, condition
+}
+
+func NewEnchantTask(ctx context.Context, gc *gameConnection.GameConnection, fumoSpeed uint) *EnchantTask {
+	newCtx, cancel := context.WithCancel(ctx)
+	return &EnchantTask{
+		GC:        gc,
+		ctx:       newCtx,
+		cancel:    cancel,
+		fumoSpeed: fumoSpeed,
+	}
 }

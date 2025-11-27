@@ -172,6 +172,7 @@ func handleStartFeature(w http.ResponseWriter, r *http.Request) {
 	switch selectedFeature.FunctionName {
 	case "AutoEnchant":
 		task = NewAutoEnchantTask(req.Username)
+		task.StartTask()
 		json.NewEncoder(w).Encode(Response{
 			Success: task.IsRunning(),
 			Message: "Feature started successfully",

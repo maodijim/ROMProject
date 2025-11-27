@@ -1,11 +1,15 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	gameConfig "ROMProject/config"
 	"ROMProject/gameConnection"
+	"ROMProject/tools/private-server/autoEnchant"
+	"ROMProject/utils"
 )
 
 var (
@@ -56,7 +60,8 @@ type AutoEnchantTask struct {
 	running   bool
 	logStream chan string
 	gameConn  *gameConnection.GameConnection
-	stopChan  chan struct{}
+	ctx       context.Context
+	cancel    context.CancelFunc
 	taskMutex sync.RWMutex
 }
 
@@ -92,20 +97,21 @@ func (a *AutoEnchantTask) StartTask() {
 		return
 	}
 	a.running = true
-
+	oneTick := time.After(time.Millisecond * 50)
 	// 启动自动附魔逻辑的协程
 	go func() {
+		enchantTask := autoEnchant.NewEnchantTask(a.ctx, a.gameConn, 850)
 		// 模拟自动附魔过程
 		for {
 			select {
-			case <-a.stopChan:
-				a.logStream <- "自动附魔任务已停止"
+			case <-a.ctx.Done():
+				enchantTask.Stop()
+				// a.logStream <- "自动附魔任务已停止"
 				return
-			default:
+			case <-oneTick:
 				// 这里放置自动附魔的具体实现逻辑
-				a.logStream <- "正在执行自动附魔..."
-				// 模拟工作负载
-				// time.Sleep(2 * time.Second)
+				enchantTask.Start()
+				// a.logStream <- "正在执行自动附魔..."
 			}
 		}
 	}()
@@ -114,10 +120,8 @@ func (a *AutoEnchantTask) StartTask() {
 func (a *AutoEnchantTask) StopTask() {
 	a.taskMutex.Lock()
 	defer a.taskMutex.Unlock()
-	if a.running {
-		close(a.stopChan)
-		a.running = false
-	}
+	a.cancel()
+	a.running = false
 }
 
 func (a *AutoEnchantTask) IsRunning() bool {
@@ -135,14 +139,16 @@ func (a *AutoEnchantTask) GetGameConnection() *gameConnection.GameConnection {
 
 // NewAutoEnchantTask 自动附魔
 func NewAutoEnchantTask(username string) Task {
+	g := gameConnection.NewConnection(configs[username], utils.NewSkillParser(""), utils.NewItemsLoader("", "", "")).LoadMonster("")
+	ctx, cancel := context.WithCancel(context.Background())
 	newTask := &AutoEnchantTask{
 		username:  username,
-		running:   true,
+		running:   false,
 		logStream: make(chan string),
-		gameConn:  nil,
-		stopChan:  make(chan struct{}),
+		gameConn:  g,
+		ctx:       ctx,
+		cancel:    cancel,
 	}
-	newTask.StartTask()
 	registerFeatureTask(username, newTask)
 	return newTask
 }
