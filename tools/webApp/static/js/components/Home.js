@@ -39,7 +39,6 @@ export default {
                         <thead>
                             <tr>
                                 <th>功能名</th>
-                                <th>描述</th>
                                 <th>当前任务</th>
                                 <th>操作</th>
                             </tr>
@@ -47,7 +46,6 @@ export default {
                         <tbody>
                             <tr v-for="feature in features" :key="feature.name">
                                 <td>{{ feature.name }}</td>
-                                <td>{{ feature.desc }}</td>
                                 <td>
                                     <span v-if="getRunningTask(user.username, feature.name)" class="status-badge status-running">
                                         {{ getRunningTask(user.username, feature.name) }}
