@@ -9,10 +9,11 @@ import (
 )
 
 type Feature struct {
-	Name         string   `json:"name"`
-	Desc         string   `json:"desc"`
-	Actions      []string `json:"actions,omitempty"`
-	FunctionName string   `json:"functionName,omitempty"`
+	Name         string                                  `json:"name"`
+	Desc         string                                  `json:"desc"`
+	Actions      []string                                `json:"actions,omitempty"`
+	FunctionName string                                  `json:"functionName,omitempty"`
+	execFunc     func(username string) backendTasks.Task `json:"-"`
 }
 
 type RunningTaskInfoResponse struct {
@@ -22,9 +23,9 @@ type RunningTaskInfoResponse struct {
 }
 
 var features = []Feature{
-	{Name: "自动附魔", Desc: "Description of Feature A", Actions: []string{"Start", "Stop", "Configure", "Log"}, FunctionName: "AutoEnchant"},
-	{Name: "自动MVP", Desc: "Description of Feature B", Actions: []string{"Start", "Stop", "Configure", "Log"}, FunctionName: "AutoMVP"},
-	{Name: "FeatureC", Desc: "Description of Feature C", Actions: []string{"Start", "Stop", "Configure", "Log"}, FunctionName: "FeatureC"},
+	{Name: "自动附魔", Desc: "Description of Feature A", Actions: []string{"Start", "Stop", "Configure", "Log"}, FunctionName: "AutoEnchant", execFunc: backendTasks.NewAutoEnchantTask},
+	{Name: "自动MVP", Desc: "Description of Feature B", Actions: []string{"Start", "Stop", "Configure", "Log"}, FunctionName: "AutoMVP", execFunc: nil},
+	{Name: "自动跟随定位", Desc: "Description of Feature C", Actions: []string{"Start", "Stop", "Log"}, FunctionName: "AutoFollowPosition", execFunc: backendTasks.NewAutoFollowPositionTask},
 }
 
 func handleGetFeatures(w http.ResponseWriter, r *http.Request) {
@@ -172,17 +173,8 @@ func handleStartFeature(w http.ResponseWriter, r *http.Request) {
 
 	// Create and start task based on feature
 	var task backendTasks.Task
-	switch selectedFeature.FunctionName {
-	case "AutoEnchant":
-		task = backendTasks.NewAutoEnchantTask(req.Username)
-		task.StartTask()
-		json.NewEncoder(w).Encode(Response{
-			Success: task.IsRunning(),
-			Message: "Feature started successfully",
-		})
-		return
-	case "AutoMVP":
-		// task = NewAutoMVPTask(req.Username)
+	switch selectedFeature.execFunc {
+	case nil:
 		// TODO: Implement task creation
 		json.NewEncoder(w).Encode(Response{
 			Success: false,
@@ -190,11 +182,8 @@ func handleStartFeature(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	default:
-		json.NewEncoder(w).Encode(Response{
-			Success: false,
-			Message: "Unknown feature",
-		})
-		return
+		task = selectedFeature.execFunc(req.Username)
+		task.StartTask()
 	}
 
 	json.NewEncoder(w).Encode(Response{

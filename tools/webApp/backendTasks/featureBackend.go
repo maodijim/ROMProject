@@ -11,7 +11,7 @@ var (
 	FeatureBackendLock = sync.Mutex{}
 )
 
-type TaskConfig interface{}
+type TaskConfig any
 
 type Task interface {
 	GetTaskName() string

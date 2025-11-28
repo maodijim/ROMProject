@@ -95,11 +95,11 @@ export default {
             chatChannel: '组队',
             chatChannels: ['公会', '组队', '世界', '附近', '朋友'],
             channelMap: {
+                1: "附近",
                 2: "组队",
                 3: "公会",
                 4: "朋友",
-                5: "世界",
-                6: "附近"
+                5: "世界"
             },
             senderIds: {},
             ws: null,
