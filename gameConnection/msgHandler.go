@@ -289,6 +289,14 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 					chatRet.GetName(),
 					chatRet.GetStr(),
 				)
+				g.addChatMessage(chatMessage{
+					MsgChannel: chatRet.GetChannel(),
+					SenderId:   chatRet.GetId(),
+					SenderName: chatRet.GetName(),
+					Content:    chatRet.GetStr(),
+					Timestamp:  uint64(time.Now().Unix()),
+					IsSent:     chatRet.GetId() == g.Role.GetRoleId(),
+				})
 
 			default:
 				continue

@@ -16,15 +16,18 @@ import (
 )
 
 const (
-	ver = "0.2.1"
+	ver     = "0.2.1"
+	logFile = "autoEnchant.log"
+)
+
+var (
+	mw io.Writer
 )
 
 func init() {
 	log.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,
 	})
-	logFile := "autoEnchant.log"
-	var mw io.Writer
 	f, err := os.OpenFile(logFile, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err == nil {
 		mw = io.MultiWriter(os.Stdout, f)
@@ -54,6 +57,7 @@ func main() {
 
 	ctx, _ := context.WithCancel(context.Background())
 	task := autoEnchant.NewEnchantTask(ctx, g, *speed)
+	task.SetLogger(mw)
 	task.Start()
 	<-ctx.Done()
 	time.Sleep(time.Second * 1)

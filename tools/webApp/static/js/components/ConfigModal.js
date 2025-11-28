@@ -212,12 +212,16 @@ export default {
     },
     watch: {
         show(newVal) {
+            this.applyBodyScrollLock(!!newVal);
             if (newVal) {
                 this.loadConfiguration();
             }
         }
     },
     methods: {
+        applyBodyScrollLock(disable) {
+            document.body.style.overflow = disable ? 'hidden' : '';
+        },
         async loadConfiguration() {
             this.loading = true;
             this.config = {};
@@ -289,5 +293,8 @@ export default {
         close() {
             this.$emit('close');
         }
+    },
+    beforeUnmount() {
+        this.applyBodyScrollLock(false);
     }
 };

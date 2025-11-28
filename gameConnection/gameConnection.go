@@ -39,6 +39,30 @@ var (
 	LogInUserProtoCmdId = Cmd.Command_value["LOGIN_USER_PROTOCMD"]
 )
 
+// logWriter implements io.Writer interface
+type logWriter struct {
+	gc *GameConnection
+}
+
+func (lw *logWriter) Write(p []byte) (n int, err error) {
+	if len(p) == 0 {
+		return 0, nil
+	}
+
+	message := string(p)
+	lw.gc.AddLog(message)
+	return len(p), nil
+}
+
+type chatMessage struct {
+	MsgChannel Cmd.EGameChatChannel `json:"msgChannel"`
+	SenderId   uint64               `json:"senderId"`
+	SenderName string               `json:"senderName"`
+	Content    string               `json:"content"`
+	Timestamp  uint64               `json:"timestamp"`
+	IsSent     bool                 `json:"isSent"`
+}
+
 type GameConnection struct {
 	Authed             bool
 	cmdQueue           [][]byte
@@ -83,6 +107,100 @@ type GameConnection struct {
 	MonsterItemsByName map[string]utils.MonsterInfo
 	AtkStat            AttackMonsterStat
 	BossInfo           *Cmd.BossListUserCmd
+	logBuffer          []string
+	logMutex           sync.RWMutex
+	LogNotify          chan string
+	chatHistory        []chatMessage
+	chatMutex          sync.RWMutex
+}
+
+func (g *GameConnection) addChatMessage(msg chatMessage) {
+	g.chatMutex.Lock()
+	defer g.chatMutex.Unlock()
+
+	g.chatHistory = append(g.chatHistory, msg)
+	if len(g.chatHistory) > g.Configs.GetChatMaxSize() {
+		g.chatHistory = g.chatHistory[len(g.chatHistory)-g.Configs.GetChatMaxSize():]
+	}
+}
+
+func (g *GameConnection) GetChatHistory() []chatMessage {
+	g.chatMutex.RLock()
+	defer g.chatMutex.RUnlock()
+
+	history := make([]chatMessage, len(g.chatHistory))
+	copy(history, g.chatHistory)
+	return history
+}
+
+func (g *GameConnection) ClearChatHistory() {
+	g.chatMutex.Lock()
+	defer g.chatMutex.Unlock()
+
+	g.chatHistory = []chatMessage{}
+
+}
+
+func (g *GameConnection) SentChatMessage(channelId int32, content string, destId uint64) error {
+	id := Cmd.EGameChatChannel(channelId)
+	msg := &Cmd.ChatCmd{
+		Channel: &id,
+		Str:     &content,
+	}
+	if destId != 0 {
+		msg.DesID = &destId
+	}
+	_ = g.sendProtoCmd(msg,
+		Cmd.Command_value["CHAT_PROTOCMD"],
+		Cmd.ChatParam_value["CHATPARAM_CHAT"],
+	)
+	return nil
+}
+
+// LogWriter returns an io.Writer that writes to the log buffer
+func (g *GameConnection) LogWriter() io.Writer {
+	return &logWriter{gc: g}
+}
+
+func (g *GameConnection) AddLog(message string) {
+	g.logMutex.Lock()
+	defer g.logMutex.Unlock()
+
+	timestamp := time.Now().Format("2006-01-02 15:04:05")
+
+	// Split message by newlines and add each line separately
+	lines := strings.Split(strings.TrimRight(message, "\n"), "\n")
+	for _, line := range lines {
+		if line == "" {
+			continue
+		}
+		logLine := fmt.Sprintf("[%s] %s", timestamp, line)
+		g.logBuffer = append(g.logBuffer, logLine)
+	}
+
+	if len(g.logBuffer) > 1000 {
+		g.logBuffer = g.logBuffer[len(g.logBuffer)-1000:]
+	}
+	select {
+	case g.LogNotify <- message:
+	default:
+	}
+}
+
+func (g *GameConnection) GetLogs() []string {
+	g.logMutex.RLock()
+	defer g.logMutex.RUnlock()
+
+	logs := make([]string, len(g.logBuffer))
+	copy(logs, g.logBuffer)
+	return logs
+}
+
+func (g *GameConnection) ClearLogs() {
+	g.logMutex.Lock()
+	defer g.logMutex.Unlock()
+
+	g.logBuffer = []string{}
 }
 
 func (g *GameConnection) IsAuthed() bool {
@@ -862,6 +980,14 @@ func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 		MonsterItems:       map[uint32]utils.MonsterInfo{},
 		MonsterItemsByName: map[string]utils.MonsterInfo{},
 		notifier:           map[gameTypes.NotifierType]chan interface{}{},
+		logMutex:           sync.RWMutex{},
+		LogNotify:          make(chan string, 1),
+		chatHistory:        []chatMessage{},
+	}
+	if config.Loglines > 0 {
+		gc.logBuffer = make([]string, 0, config.Loglines)
+	} else {
+		gc.logBuffer = make([]string, 0, 1000)
 	}
 	if gc.MonsterItemsByName == nil {
 		gc.MonsterItemsByName = map[string]utils.MonsterInfo{}

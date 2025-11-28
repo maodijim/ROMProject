@@ -1,4 +1,4 @@
-package main
+package backendTasks
 
 import (
 	"context"
@@ -9,48 +9,9 @@ import (
 	gameConfig "ROMProject/config"
 	"ROMProject/gameConnection"
 	"ROMProject/tools/private-server/autoEnchant"
+	"ROMProject/tools/webApp/usersSpace"
 	"ROMProject/utils"
 )
-
-var (
-	featureTasks       = make(map[string]Task)
-	featureBackendLock = sync.Mutex{}
-)
-
-type TaskConfig interface{}
-
-type Task interface {
-	GetTaskName() string
-	StartTask()
-	StopTask()
-	IsRunning() bool
-	GetLogStream() chan string
-	GetGameConnection() *gameConnection.GameConnection
-	GetConfig() TaskConfig
-	UpdateConfig(config TaskConfig) error
-}
-
-func registerFeatureTask(username string, task Task) {
-	featureBackendLock.Lock()
-	defer featureBackendLock.Unlock()
-	featureTasks[username] = task
-}
-
-func getFeatureTask(username string) Task {
-	featureBackendLock.Lock()
-	defer featureBackendLock.Unlock()
-	return featureTasks[username]
-}
-
-func removeFeatureTask(username string) {
-	task := getFeatureTask(username)
-	if task != nil {
-		task.StopTask()
-	}
-	featureBackendLock.Lock()
-	defer featureBackendLock.Unlock()
-	delete(featureTasks, username)
-}
 
 // 自动附魔 -------------------------------------------------------------------------
 
@@ -58,15 +19,18 @@ func removeFeatureTask(username string) {
 type AutoEnchantTask struct {
 	username  string
 	running   bool
-	logStream chan string
 	gameConn  *gameConnection.GameConnection
 	ctx       context.Context
 	cancel    context.CancelFunc
 	taskMutex sync.RWMutex
 }
 
+func (a *AutoEnchantTask) GetLogs() []string {
+	return a.gameConn.GetLogs()
+}
+
 func (a *AutoEnchantTask) GetConfig() TaskConfig {
-	return configs[a.username].EnchantConfig
+	return usersSpace.Configs[a.username].EnchantConfig
 }
 
 func (a *AutoEnchantTask) UpdateConfig(config TaskConfig) error {
@@ -106,12 +70,10 @@ func (a *AutoEnchantTask) StartTask() {
 			select {
 			case <-a.ctx.Done():
 				enchantTask.Stop()
-				// a.logStream <- "自动附魔任务已停止"
 				return
 			case <-oneTick:
 				// 这里放置自动附魔的具体实现逻辑
 				enchantTask.Start()
-				// a.logStream <- "正在执行自动附魔..."
 			}
 		}
 	}()
@@ -129,8 +91,7 @@ func (a *AutoEnchantTask) IsRunning() bool {
 }
 
 func (a *AutoEnchantTask) GetLogStream() chan string {
-	// TODO implement me
-	panic("implement me")
+	return a.gameConn.LogNotify
 }
 
 func (a *AutoEnchantTask) GetGameConnection() *gameConnection.GameConnection {
@@ -139,17 +100,16 @@ func (a *AutoEnchantTask) GetGameConnection() *gameConnection.GameConnection {
 
 // NewAutoEnchantTask 自动附魔
 func NewAutoEnchantTask(username string) Task {
-	g := gameConnection.NewConnection(configs[username], utils.NewSkillParser(""), utils.NewItemsLoader("", "", "")).LoadMonster("")
+	g := gameConnection.NewConnection(usersSpace.Configs[username], utils.NewSkillParser(""), utils.NewItemsLoader("", "", "")).LoadMonster("")
 	ctx, cancel := context.WithCancel(context.Background())
 	newTask := &AutoEnchantTask{
-		username:  username,
-		running:   false,
-		logStream: make(chan string),
-		gameConn:  g,
-		ctx:       ctx,
-		cancel:    cancel,
+		username: username,
+		running:  false,
+		gameConn: g,
+		ctx:      ctx,
+		cancel:   cancel,
 	}
-	registerFeatureTask(username, newTask)
+	RegisterFeatureTask(username, newTask)
 	return newTask
 }
 

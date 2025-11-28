@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"os"
 
+	"ROMProject/tools/webApp/usersSpace"
+
 	"gopkg.in/yaml.v3"
 )
 
 // Add helper functions here if needed, e.g., for reading/writing config files.
 func saveConfigs() error {
-	updatedData, err := yaml.Marshal(&configs)
+	updatedData, err := yaml.Marshal(&usersSpace.Configs)
 	if err != nil {
 		return fmt.Errorf("failed to marshal configs: %w", err)
 	}

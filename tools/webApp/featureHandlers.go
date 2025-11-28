@@ -3,6 +3,9 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+
+	"ROMProject/tools/webApp/backendTasks"
+	"ROMProject/tools/webApp/usersSpace"
 )
 
 type Feature struct {
@@ -47,9 +50,9 @@ func handleGetRunningTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	featureBackendLock.Lock()
+	backendTasks.FeatureBackendLock.Lock()
 	runningTasks := make([]RunningTaskInfoResponse, 0)
-	for username, task := range featureTasks {
+	for username, task := range backendTasks.FeatureTasks {
 		if task.IsRunning() {
 			runningTasks = append(runningTasks, RunningTaskInfoResponse{
 				Username:    username,
@@ -58,7 +61,7 @@ func handleGetRunningTasks(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 	}
-	featureBackendLock.Unlock()
+	backendTasks.FeatureBackendLock.Unlock()
 
 	response := Response{Success: true, Data: runningTasks}
 	json.NewEncoder(w).Encode(response)
@@ -83,9 +86,9 @@ func handleGetUserRunningTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	featureBackendLock.Lock()
-	task := featureTasks[username]
-	featureBackendLock.Unlock()
+	backendTasks.FeatureBackendLock.Lock()
+	task := backendTasks.FeatureTasks[username]
+	backendTasks.FeatureBackendLock.Unlock()
 
 	if task == nil || !task.IsRunning() {
 		json.NewEncoder(w).Encode(Response{
@@ -138,17 +141,17 @@ func handleStartFeature(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Check if task is already running
-	featureBackendLock.Lock()
-	existingTask := featureTasks[req.Username]
+	backendTasks.FeatureBackendLock.Lock()
+	existingTask := backendTasks.FeatureTasks[req.Username]
 	if existingTask != nil && existingTask.IsRunning() {
-		featureBackendLock.Unlock()
+		backendTasks.FeatureBackendLock.Unlock()
 		json.NewEncoder(w).Encode(Response{
 			Success: false,
 			Message: "User already has a running task",
 		})
 		return
 	}
-	featureBackendLock.Unlock()
+	backendTasks.FeatureBackendLock.Unlock()
 
 	// Find the feature
 	var selectedFeature *Feature
@@ -168,10 +171,10 @@ func handleStartFeature(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Create and start task based on feature
-	var task Task
+	var task backendTasks.Task
 	switch selectedFeature.FunctionName {
 	case "AutoEnchant":
-		task = NewAutoEnchantTask(req.Username)
+		task = backendTasks.NewAutoEnchantTask(req.Username)
 		task.StartTask()
 		json.NewEncoder(w).Encode(Response{
 			Success: task.IsRunning(),
@@ -230,9 +233,9 @@ func handleStopFeature(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	featureBackendLock.Lock()
-	task := featureTasks[req.Username]
-	featureBackendLock.Unlock()
+	backendTasks.FeatureBackendLock.Lock()
+	task := backendTasks.FeatureTasks[req.Username]
+	backendTasks.FeatureBackendLock.Unlock()
 
 	if task == nil {
 		json.NewEncoder(w).Encode(Response{
@@ -250,7 +253,7 @@ func handleStopFeature(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	removeFeatureTask(req.Username)
+	backendTasks.RemoveFeatureTask(req.Username)
 
 	json.NewEncoder(w).Encode(Response{
 		Success: true,
@@ -279,20 +282,20 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	featureBackendLock.Lock()
-	task := featureTasks[username]
-	featureBackendLock.Unlock()
+	backendTasks.FeatureBackendLock.Lock()
+	task := backendTasks.FeatureTasks[username]
+	backendTasks.FeatureBackendLock.Unlock()
 
-	var config TaskConfig
+	var config backendTasks.TaskConfig
 	if task != nil && task.GetTaskName() == functionName {
 		config = task.GetConfig()
 	} else {
 		// Return default config based on feature type
 		switch functionName {
 		case "AutoEnchant":
-			config = configs[username].EnchantConfig
+			config = usersSpace.Configs[username].EnchantConfig
 		case "AutoMVP":
-			config = configs[username].HuntConfig
+			config = usersSpace.Configs[username].HuntConfig
 		default:
 			config = map[string]interface{}{}
 		}
@@ -336,11 +339,11 @@ func handleUpdateFeatureConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	featureBackendLock.Lock()
-	task := featureTasks[req.Username]
-	featureBackendLock.Unlock()
+	backendTasks.FeatureBackendLock.Lock()
+	task := backendTasks.FeatureTasks[req.Username]
+	backendTasks.FeatureBackendLock.Unlock()
 
-	if configs[req.Username] == nil {
+	if usersSpace.Configs[req.Username] == nil {
 		json.NewEncoder(w).Encode(Response{
 			Success: false,
 			Message: "No configuration found for user",
@@ -349,7 +352,7 @@ func handleUpdateFeatureConfig(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Update the config in files
-	userConfigs := configs[req.Username]
+	userConfigs := usersSpace.Configs[req.Username]
 	switch req.FeatureName {
 	case "AutoEnchant":
 		config := userConfigs.EnchantConfig
@@ -389,5 +392,167 @@ func handleUpdateFeatureConfig(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(Response{
 		Success: true,
 		Message: "Configuration updated successfully",
+	})
+}
+
+// Add this handler to featureHandlers.go
+
+func handleGetFeatureTaskLog(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if r.Method != http.MethodGet {
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: "Method not allowed",
+		})
+		return
+	}
+
+	username := r.URL.Query().Get("username")
+	featureName := r.URL.Query().Get("featureName")
+	if username == "" || featureName == "" {
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: "Username and featureName are required",
+		})
+		return
+	}
+
+	backendTasks.FeatureBackendLock.Lock()
+	task := backendTasks.FeatureTasks[username]
+	backendTasks.FeatureBackendLock.Unlock()
+
+	if task == nil || task.GetTaskName() != featureName {
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: "Task not found",
+		})
+		return
+	}
+
+	// Assume Task has GetLogs() []string
+	type LogResponse struct {
+		Logs []string `json:"logs"`
+	}
+	logs := task.GetLogs()
+
+	json.NewEncoder(w).Encode(Response{
+		Success: true,
+		Data:    LogResponse{Logs: logs},
+	})
+}
+
+func handleGetFeatureTaskChatHistory(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if r.Method != http.MethodGet {
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: "Method not allowed",
+		})
+		return
+	}
+	username := r.URL.Query().Get("username")
+	featureName := r.URL.Query().Get("featureName")
+	if username == "" || featureName == "" {
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: "Username and featureName are required",
+		})
+		return
+	}
+
+	backendTasks.FeatureBackendLock.Lock()
+	task := backendTasks.FeatureTasks[username]
+	backendTasks.FeatureBackendLock.Unlock()
+
+	if task == nil || task.GetTaskName() != featureName {
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: "Task not found",
+		})
+		return
+	}
+
+	// Assume Task has GetGameConnection() *gameConnection.GameConnection
+	conn := task.GetGameConnection()
+	if conn == nil {
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: "Game connection not found",
+		})
+		return
+	}
+
+	// Get chat history from the game connection
+	chatHistory := conn.GetChatHistory()
+	json.NewEncoder(w).Encode(Response{
+		Success: true,
+		Data:    chatHistory,
+	})
+}
+
+func handleSendChatMsg(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if r.Method != http.MethodPost {
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: "Method not allowed",
+		})
+		return
+	}
+
+	var req struct {
+		Username    string  `json:"username"`
+		FeatureName string  `json:"featureName"`
+		Message     string  `json:"message"`
+		DestId      float64 `json:"destId"`
+		ChannelId   float64 `json:"channelId"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: "Invalid request body",
+		})
+		return
+	}
+	if req.Username == "" || req.FeatureName == "" || req.Message == "" || req.ChannelId == 0 {
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: "Username, featureName, message and channelId are required",
+		})
+		return
+	}
+	backendTasks.FeatureBackendLock.Lock()
+	task := backendTasks.FeatureTasks[req.Username]
+	backendTasks.FeatureBackendLock.Unlock()
+
+	if task == nil || task.GetTaskName() != req.FeatureName {
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: "Task not found",
+		})
+		return
+	}
+
+	conn := task.GetGameConnection()
+	if conn == nil {
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: "Game connection not found",
+		})
+		return
+	}
+
+	err := conn.SentChatMessage(int32(req.ChannelId), req.Message, uint64(req.DestId))
+	if err != nil {
+		json.NewEncoder(w).Encode(Response{
+			Success: false,
+			Message: "Failed to send chat message",
+		})
+		return
+	}
+
+	json.NewEncoder(w).Encode(Response{
+		Success: true,
+		Message: "Chat message sent successfully",
 	})
 }

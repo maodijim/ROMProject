@@ -21,6 +21,9 @@ func main() {
 	http.HandleFunc("/api/feature/stop", handleStopFeature)
 	http.HandleFunc("/api/feature/config", handleGetFeatureConfig)
 	http.HandleFunc("/api/feature/config/update", handleUpdateFeatureConfig)
+	http.HandleFunc("/api/feature/log", handleGetFeatureTaskLog)
+	http.HandleFunc("/api/feature/chat", handleGetFeatureTaskChatHistory)
+	http.HandleFunc("/api/feature/chat/send", handleSendChatMsg)
 	http.HandleFunc("/ws/logs", webSocketHandler)
 
 	log.Println("Server starting on http://localhost:8081")

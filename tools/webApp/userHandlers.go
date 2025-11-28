@@ -6,12 +6,11 @@ import (
 	"os"
 
 	"ROMProject/config"
+	"ROMProject/tools/webApp/backendTasks"
+	"ROMProject/tools/webApp/usersSpace"
 
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
-)
-
-var (
-	configs = make(map[string]*config.ServerConfigs)
 )
 
 type UserRequest struct {
@@ -101,7 +100,7 @@ func handleUserAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := yaml.Unmarshal(data, &configs); err != nil {
+	if err := yaml.Unmarshal(data, &usersSpace.Configs); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Response{
 			Success: false,
@@ -110,14 +109,14 @@ func handleUserAPI(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(configs) == 0 {
+	if len(usersSpace.Configs) == 0 {
 		sc := config.NewServerConfigs("config.yml")
 		sc.Username = userReq.Username
 		sc.Password = userReq.Password
 		sc.Char = uint(userReq.RoleNum)
-		configs[userReq.Username] = sc
+		usersSpace.Configs[userReq.Username] = sc
 	} else if r.Method == http.MethodPost {
-		if _, exists := configs[userReq.Username]; exists {
+		if _, exists := usersSpace.Configs[userReq.Username]; exists {
 			w.WriteHeader(http.StatusConflict)
 			json.NewEncoder(w).Encode(Response{
 				Success: false,
@@ -129,9 +128,9 @@ func handleUserAPI(w http.ResponseWriter, r *http.Request) {
 		sc.Username = userReq.Username
 		sc.Password = userReq.Password
 		sc.Char = uint(userReq.RoleNum)
-		configs[userReq.Username] = sc
+		usersSpace.Configs[userReq.Username] = sc
 	} else if r.Method == http.MethodPut {
-		if _, exists := configs[userReq.Username]; !exists {
+		if _, exists := usersSpace.Configs[userReq.Username]; !exists {
 			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(Response{
 				Success: false,
@@ -139,10 +138,10 @@ func handleUserAPI(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		configs[userReq.Username].Password = userReq.Password
-		configs[userReq.Username].Char = uint(userReq.RoleNum)
+		usersSpace.Configs[userReq.Username].Password = userReq.Password
+		usersSpace.Configs[userReq.Username].Char = uint(userReq.RoleNum)
 	} else if r.Method == http.MethodDelete {
-		if _, exists := configs[userReq.Username]; !exists {
+		if _, exists := usersSpace.Configs[userReq.Username]; !exists {
 			w.WriteHeader(http.StatusNotFound)
 			json.NewEncoder(w).Encode(Response{
 				Success: false,
@@ -150,11 +149,20 @@ func handleUserAPI(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		task := getFeatureTask(userReq.Username)
+		task := backendTasks.GetFeatureTask(userReq.Username)
 		if task != nil {
 			task.StopTask()
 		}
-		delete(configs, userReq.Username)
+		delete(usersSpace.Configs, userReq.Username)
+	}
+
+	if r.Method != http.MethodDelete {
+		log.Infof("User %s %s successfully", userReq.Username, map[string]string{
+			http.MethodPost: "added",
+			http.MethodPut:  "updated",
+		}[r.Method])
+	} else {
+		log.Infof("User %s deleted successfully", userReq.Username)
 	}
 
 	err = saveConfigs()
@@ -239,7 +247,7 @@ func handleGetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := yaml.Unmarshal(data, &configs); err != nil {
+	if err := yaml.Unmarshal(data, &usersSpace.Configs); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Response{
 			Success: false,
@@ -253,7 +261,7 @@ func handleGetUser(w http.ResponseWriter, r *http.Request) {
 		Message: "User retrieved successfully",
 	}
 	userList := make([]map[string]interface{}, 0)
-	for username, conf := range configs {
+	for username, conf := range usersSpace.Configs {
 		userList = append(userList, map[string]interface{}{
 			"username": username,
 			"roleNum":  conf.Char,
@@ -261,7 +269,7 @@ func handleGetUser(w http.ResponseWriter, r *http.Request) {
 	}
 	res.Data = userList
 
-	if len(configs) == 0 {
+	if len(usersSpace.Configs) == 0 {
 		res.Data = []interface{}{}
 	}
 	json.NewEncoder(w).Encode(res)

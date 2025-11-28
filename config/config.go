@@ -159,6 +159,15 @@ type ServerConfigs struct {
 	AuthParams  map[string]string `yaml:"authParams"`
 	EsConfig    EsConfig          `yaml:"elasticsearch"`
 	TeamConfig  TeamConfig        `yaml:"team"`
+	Loglines    int               `yaml:"-"`
+	ChatMaxSize int               `yaml:"-"`
+}
+
+func (s *ServerConfigs) GetChatMaxSize() int {
+	if s.ChatMaxSize <= 0 {
+		return 500
+	}
+	return s.ChatMaxSize
 }
 
 func (s *ServerConfigs) SetTeamLeader(name string) {
