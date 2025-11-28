@@ -1,7 +1,11 @@
 package task
 
+import (
+	"io"
+)
+
 type Template interface {
-	SetLogger()
+	SetLogger(writer io.Writer)
 	Start()
 	Stop()
 }
