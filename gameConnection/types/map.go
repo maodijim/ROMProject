@@ -11,6 +11,7 @@ const (
 	MapId_SunkenShip            MapId = 8
 	MapId_GhostShip             MapId = 9
 	MapID_ByalanIsland          MapId = 10
+	MapID_UnderseaTemple        MapId = 12
 	MapId_Geffen                MapId = 13
 	MapId_MjolnirMountains      MapId = 14
 	MapId_Morroc                MapId = 16
@@ -48,6 +49,9 @@ const (
 	MapId_Umbala                MapId = 75
 	MapId_Lighthalzen           MapId = 76
 	MapId_LighthalzenPlain      MapId = 77
+	MapId_LhzDun01              MapId = 78
+	MapId_LhzDun02              MapId = 79
+	MapId_LhzDun03              MapId = 81
 	MapId_ThePlainofIda         MapId = 83
 	MapId_Rachel                MapId = 85
 	MapId_Lasagna               MapId = 91
@@ -86,6 +90,7 @@ var (
 		8:     MapId_SunkenShip,
 		9:     MapId_GhostShip,
 		10:    MapID_ByalanIsland,
+		12:    MapID_UnderseaTemple,
 		13:    MapId_Geffen,
 		14:    MapId_MjolnirMountains,
 		16:    MapId_Morroc,
@@ -123,6 +128,9 @@ var (
 		75:    MapId_Umbala,
 		76:    MapId_Lighthalzen,
 		77:    MapId_LighthalzenPlain,
+		78:    MapId_LhzDun01,
+		79:    MapId_LhzDun02,
+		81:    MapId_LhzDun03,
 		83:    MapId_ThePlainofIda,
 		85:    MapId_Rachel,
 		91:    MapId_Lasagna,
@@ -151,6 +159,85 @@ var (
 		10001: MapId_Guild,
 	}
 )
+var MapNameZh = map[string]MapId{
+	"普隆德拉":      MapId_Protera,
+	"普隆德拉南门":    MapId_ProteraSouth,
+	"普隆德拉西门":    MapId_ProteraWest,
+	"迷藏森林":      MapId_LabyrinthForest,
+	"伊斯鲁得岛":     MapId_IzludeIsland,
+	"沉船":        MapId_SunkenShip,
+	"幽灵船":       MapId_GhostShip,
+	"海底洞窟岛":     MapID_ByalanIsland,
+	"海底神殿":      MapID_UnderseaTemple,
+	"吉芬":        MapId_Geffen,
+	"妙勒尼山脉":     MapId_MjolnirMountains,
+	"摩洛克":       MapId_Morroc,
+	"金字塔 1F":    MapId_Pyramid1F,
+	"斐扬":        MapId_Payon,
+	"斐扬南门":      MapId_PayonSouth,
+	"兽人村落":      MapId_OrcVillage,
+	"古城郊外":      MapId_GlastHeimOutskirt,
+	"古城":        MapId_GlastHeim,
+	"斐扬森林":      MapId_PayonForest,
+	"哥布林森林":     MapId_GoblinForest,
+	"科德森林":      MapId_KordtForest,
+	"苏克拉特沙漠":    MapId_SogratDesert,
+	"普隆德拉北门":    MapId_ProteraNorth,
+	"阿尔德巴朗":     MapId_AlDeBaran,
+	"普隆德拉大厅 1F": MapId_ProteraRoom1F,
+	"姜饼城":       MapId_GingerbreadCity,
+	"玩具工厂 1F":   MapId_ToyFactory1F,
+	"波利岛":       MapId_PoringIsland,
+	"斐扬森林南部":    MapId_PayonForestSouth,
+	"兽人村落南部":    MapId_OrcVillageSouth,
+	"古城外围":      MapId_GlastHeimOutskirts,
+	"天水之国·安塔修":  MapId_Amatsu,
+	"尤诺":        MapId_Yuno,
+	"边境检查站":     MapId_BorderCheckpoint,
+	"艾因布洛克原野":   MapId_EinbrochField,
+	"熔岩洞窟 1F":   MapId_MagmaDungeon1F,
+	"熔岩洞窟 2F":   MapId_MagmaDungeon2F,
+	"熔岩洞窟 3F":   MapId_MagmaDungeon3F,
+	"莱斯特灯塔":     MapId_LesterLighthouse,
+	"尼芙海姆":      MapId_Niflheim,
+	"迷雾森林":      MapId_MistyForest,
+	"骷髅洞穴":      MapId_Skellington,
+	"哈姆林":       MapId_Hamelin,
+	"乌帕拉":       MapId_Umbala,
+	"里希塔尔岑":     MapId_Lighthalzen,
+	"里希塔尔岑平原":   MapId_LighthalzenPlain,
+	"生体地下1F":    MapId_LhzDun01,
+	"生体地下2F":    MapId_LhzDun02,
+	"生体地下3F":    MapId_LhzDun03,
+	"伊达平原":      MapId_ThePlainofIda,
+	"瑞秋":        MapId_Rachel,
+	"拉萨尼亚":      MapId_Lasagna,
+	"多拉多岛":      MapId_DoradoIsland,
+	"意大利饺森林":    MapId_RavioliForest,
+	"洛阳":        MapId_Luoyang,
+	"夕阳海岸":      MapId_SunsetBeach,
+	"荒境":        MapId_Wasteland,
+	"月之湖":       MapId_MoonLake,
+	"伊克莱基":      MapId_Eclage,
+	"时间花园":      MapId_TimeGarden,
+	"克雷普特学院":    MapId_CrypturaAcademy,
+	"星泪森林":      MapId_StarTearsForest,
+	"绽放之地":      MapId_BloomingLand,
+	"风之森":       MapId_WindBreath,
+	"科摩多":       MapId_Comodo,
+	"可可蒙海滩":     MapId_KokomoBeach,
+	"流星森林":      MapId_MeteorForest,
+	"阿尔贝塔":      MapId_Alberta,
+	"海龟岛":       MapId_TurtleIsland,
+	"古城之泪":      MapId_TearsoftheAncientCity,
+	"副本·极限挑战":   MapId_ScJfzc001,
+	"深渊之湖":      MapId_AbyssalLake,
+
+	// 特殊地图
+	"高级房间":  MapId_RoomAdvanced,
+	"皇家料理间": MapId_RoyalCooking,
+	"公会领地":  MapId_Guild,
+}
 
 func (m MapId) Uint32() uint32 {
 	return uint32(m)
