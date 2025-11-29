@@ -272,15 +272,33 @@ export default {
                 this.ws = null;
             }
         },
+
+        /*
+         * Append a log line but only auto-scroll if the user was already at the bottom.
+         * This prevents interrupting the user when they've scrolled up to read older logs.
+         */
         addLog(message) {
+            const logArea = this.$refs.logArea;
+            // consider within 20px of bottom as "at bottom"
+            const THRESHOLD_PX = 20;
+            let wasAtBottom = true;
+            if (logArea) {
+                wasAtBottom = (logArea.scrollTop + logArea.clientHeight >= logArea.scrollHeight - THRESHOLD_PX);
+            }
+
             const timestamp = new Date().toLocaleTimeString();
             this.logs += `[${timestamp}] ${message}\n`;
+
             this.$nextTick(() => {
-                if (this.$refs.logArea) {
-                    this.$refs.logArea.scrollTop = this.$refs.logArea.scrollHeight;
+                if (!logArea) return;
+                if (wasAtBottom) {
+                    // keep following new logs
+                    logArea.scrollTop = logArea.scrollHeight;
                 }
+                // otherwise leave user's scroll position untouched
             });
         },
+
         addChatMessage(text, channel) {
             const timestamp = new Date().toLocaleTimeString();
             // ensure channel label is human-readable
@@ -332,6 +350,11 @@ export default {
         },
         clearLogs() {
             this.logs = '';
+            this.$nextTick(() => {
+                if (this.$refs.logArea) {
+                    this.$refs.logArea.scrollTop = 0;
+                }
+            });
         },
         handleOverlayClick() {
             this.close();
