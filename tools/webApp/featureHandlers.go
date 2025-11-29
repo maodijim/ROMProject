@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	gameConfig "ROMProject/config"
 	"ROMProject/tools/webApp/backendTasks"
 	"ROMProject/tools/webApp/usersSpace"
 )
@@ -24,7 +25,7 @@ type RunningTaskInfoResponse struct {
 
 var features = []Feature{
 	{Name: "自动附魔", Desc: "Description of Feature A", Actions: []string{"Start", "Stop", "Configure", "Log"}, FunctionName: "AutoEnchant", execFunc: backendTasks.NewAutoEnchantTask},
-	{Name: "自动MVP", Desc: "Description of Feature B", Actions: []string{"Start", "Stop", "Configure", "Log"}, FunctionName: "AutoMVP", execFunc: nil},
+	{Name: "自动MVP", Desc: "Description of Feature B", Actions: []string{"Start", "Stop", "Configure", "Log"}, FunctionName: "AutoMVP", execFunc: backendTasks.NewAutoBossHuntingTask},
 	{Name: "自动跟随定位", Desc: "Description of Feature C", Actions: []string{"Start", "Stop", "Log"}, FunctionName: "AutoFollowPosition", execFunc: backendTasks.NewAutoFollowPositionTask},
 }
 
@@ -148,7 +149,7 @@ func handleStartFeature(w http.ResponseWriter, r *http.Request) {
 		backendTasks.FeatureBackendLock.Unlock()
 		json.NewEncoder(w).Encode(Response{
 			Success: false,
-			Message: "User already has a running task",
+			Message: "账户已有任务在运行中，请先停止当前任务",
 		})
 		return
 	}
@@ -284,7 +285,24 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 		case "AutoEnchant":
 			config = usersSpace.Configs[username].EnchantConfig
 		case "AutoMVP":
-			config = usersSpace.Configs[username].HuntConfig
+			defaultConfig := usersSpace.Configs[username].HuntConfig.GetDefault()
+			var existingConfig gameConfig.HuntConfig
+			// merge with existing config if any
+			if usersSpace.Configs[username] != nil {
+				existingConfig = usersSpace.Configs[username].HuntConfig
+				if existingConfig.PrepEliteCD == 0 {
+					existingConfig.PrepEliteCD = defaultConfig.PrepEliteCD
+				}
+				if len(existingConfig.MVP) == 0 {
+					existingConfig.MVP = defaultConfig.MVP
+				}
+				if len(existingConfig.Mini) == 0 {
+					existingConfig.Mini = defaultConfig.Mini
+				}
+			} else {
+				existingConfig = defaultConfig
+			}
+			config = existingConfig
 		default:
 			config = map[string]interface{}{}
 		}

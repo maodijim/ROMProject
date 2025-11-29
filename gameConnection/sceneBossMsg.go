@@ -12,7 +12,7 @@ func (g *GameConnection) HandleSceneBossMsg(cmdParamId int32, rawData []byte) (p
 	switch cmdParamId {
 	case Cmd.BossParam_value["BOSS_LIST_USER_CMD"]:
 		param = &Cmd.BossListUserCmd{}
-		err := utils.ParseCmd(rawData, param)
+		err = utils.ParseCmd(rawData, param)
 		if err == nil && g.Notifier(notifier.NtfType_BossListUserCmd) != nil {
 			go func() {
 				g.Notifier(notifier.NtfType_BossListUserCmd) <- param.(*Cmd.BossListUserCmd)

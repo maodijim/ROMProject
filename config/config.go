@@ -112,11 +112,33 @@ func (c *HuntConfig) ParseFromInterface(config map[string]interface{}) HuntConfi
 				hmvp[i] = str
 			}
 		}
+		c.HMVP = hmvp
 	}
-	if val, ok := config["PrepEliteCD"].(int); ok {
-		c.PrepEliteCD = val
+	if val, ok := config["PrepEliteCD"].(float64); ok {
+		c.PrepEliteCD = int(val)
 	}
 	return *c
+}
+
+func (c *HuntConfig) GetDefault() HuntConfig {
+	return HuntConfig{
+		CarryTeam:    false,
+		GameDuration: 0,
+		Mini: []string{
+			"狸猫", "蓝疯兔", "波利之王", "摇滚蝗虫", "蛙王", "直升机哥布灵", "龙蝇", "流浪之狼",
+			"枯树精", "狮鹫兽", "安毕斯", "妖君", "兽人婴儿", "南瓜先生", "半龙人", "草精",
+			"鹗枭首领", "爱丽丝女仆", "艾斯恩魔女", "弑神者", "迷幻之王",
+		},
+		MVP: []string{
+			"天使波利", "黄金虫", "恶魔波利", "海盗之王", "海神", "哥布灵首领", "蜂后", "蚁后",
+			"皮里恩", "虎王", "俄塞里斯", "月夜猫", "兽人英雄", "犬妖首领", "死灵", "阿特罗斯",
+			"兽人酋长", "鹗枭男爵", "血腥骑士", "巴风特", "黑暗之王",
+		},
+		HMVP: []string{
+			"卡仑",
+		},
+		PrepEliteCD: 30,
+	}
 }
 
 type ServerConfigs struct {
