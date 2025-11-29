@@ -8,7 +8,6 @@ logs/
 *.log
 # Ignore build output
 dist//
-build/
 # Ignore environment files
 .env
 .env.local
