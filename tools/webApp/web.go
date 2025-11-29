@@ -6,6 +6,8 @@ import (
 	"net/http"
 )
 
+const _ver = "1.0.0"
+
 var configPath = "config.yml"
 
 func main() {
@@ -31,6 +33,7 @@ func main() {
 	http.HandleFunc("/api/feature/chat/send", handleSendChatMsg)
 	http.HandleFunc("/ws/logs", webSocketHandler)
 
+	log.Println("Version: ", _ver)
 	log.Println("Server starting on http://localhost:8081")
 	if err := http.ListenAndServe(":8081", enableCORS(http.DefaultServeMux)); err != nil {
 		log.Fatal(err)
