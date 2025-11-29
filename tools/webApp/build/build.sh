@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
-# Builds multiple binaries and packages static assets.
+# Builds multiple binaries and packages them per-target.
+# Does NOT bundle the `static` folder in any output.
 # Outputs to: tools/webApp/build/dist/<os>-<arch>/ and creates per-target archives
 # plus a combined archive tools/webApp/build/dist/webapp-all-platforms.{tar.gz,zip}
 
@@ -10,10 +11,9 @@ OUTDIR="$WEBAPP_DIR/build/dist"
 
 mkdir -p "$OUTDIR"
 
-# Optional frontend build (run once)
-FRONTEND_OUT=""
+# Optional frontend build (run if package.json exists) but do not bundle its output
 if [ -f "$WEBAPP_DIR/package.json" ]; then
-  echo "Detected frontend package.json; attempting frontend build..."
+  echo "Detected frontend package.json; attempting frontend build (output will not be bundled)..."
   pushd "$WEBAPP_DIR" > /dev/null
   if command -v npm >/dev/null 2>&1; then
     npm ci || npm install
@@ -23,14 +23,6 @@ if [ -f "$WEBAPP_DIR/package.json" ]; then
     (yarn build || yarn build:prod) || true
   else
     echo "No npm/yarn found; skipping frontend build."
-  fi
-  # prefer common output dirs
-  if [ -d "dist" ]; then
-    FRONTEND_OUT="$WEBAPP_DIR/dist"
-  elif [ -d "build" ]; then
-    FRONTEND_OUT="$WEBAPP_DIR/build"
-  elif [ -d "public" ]; then
-    FRONTEND_OUT="$WEBAPP_DIR/public"
   fi
   popd > /dev/null
 fi
@@ -55,48 +47,36 @@ for t in "${targets[@]}"; do
   echo "Building Go webapp (GOOS=$GOOS GOARCH=$GOARCH) -> $BIN_DIR/$BINARY_NAME"
   env GOOS="$GOOS" GOARCH="$GOARCH" go build -o "$BIN_DIR/$BINARY_NAME" "$WEBAPP_DIR"
 
-  # copy static folder from repo
-  if [ -d "$WEBAPP_DIR/static" ]; then
-    echo "Copying static -> $BIN_DIR/static"
-    mkdir -p "$BIN_DIR/static"
-    rsync -a --delete "$WEBAPP_DIR/static/" "$BIN_DIR/static/"
-  fi
-
-  # copy frontend build output (if any) into static (overlay)
-  if [ -n "$FRONTEND_OUT" ] && [ -d "$FRONTEND_OUT" ]; then
-    echo "Copying frontend build ($FRONTEND_OUT) -> $BIN_DIR/static/"
-    mkdir -p "$BIN_DIR/static"
-    rsync -a --delete "$FRONTEND_OUT/" "$BIN_DIR/static/"
-  fi
-
-  # create per-target compressed archive (zip for windows if zip available, tar.gz otherwise)
+  # create per-target compressed archive (binary only)
   if [ "$GOOS" = "windows" ]; then
     if command -v zip >/dev/null 2>&1; then
-      echo "Creating zip archive for $GOOS-$GOARCH"
-      (cd "$OUTDIR" && zip -r -q "${GOOS}-${GOARCH}.zip" "${GOOS}-${GOARCH}")
+      echo "Creating zip archive for $GOOS-$GOARCH (binary only)"
+      (cd "$OUTDIR" && zip -j -q "${GOOS}-${GOARCH}.zip" "${GOOS}-${GOARCH}/${BINARY_NAME}")
     else
-      echo "zip not found; falling back to tar.gz for $GOOS-$GOARCH"
-      tar -C "$OUTDIR" -czf "$OUTDIR/${GOOS}-${GOARCH}.tar.gz" "${GOOS}-${GOARCH}"
+      echo "zip not found; creating tar.gz with binary only"
+      tar -C "$BIN_DIR" -czf "$OUTDIR/${GOOS}-${GOARCH}.tar.gz" "$(basename "$BINARY_NAME")"
     fi
   else
-    echo "Creating tar.gz archive for $GOOS-$GOARCH"
-    tar -C "$OUTDIR" -czf "$OUTDIR/${GOOS}-${GOARCH}.tar.gz" "${GOOS}-${GOARCH}"
+    echo "Creating tar.gz archive for $GOOS-$GOARCH (binary only)"
+    tar -C "$BIN_DIR" -czf "$OUTDIR/${GOOS}-${GOARCH}.tar.gz" "$(basename "$BINARY_NAME")"
   fi
 done
 
-# create a combined archive containing all built directories
+# create a combined archive containing all per-target directories (no static)
 dirs=()
 for d in "$OUTDIR"/*; do
   [ -d "$d" ] || continue
-  dirs+=("$(basename "$d")")
+  name=$(basename "$d")
+  # include only per-target dirs
+  dirs+=("$name")
 done
 
 if [ "${#dirs[@]}" -gt 0 ]; then
-  echo "Creating combined tar.gz archive for all platforms"
+  echo "Creating combined tar.gz archive for all platforms (no static)"
   tar -C "$OUTDIR" -czf "$OUTDIR/webapp-all-platforms.tar.gz" "${dirs[@]}"
 
   if command -v zip >/dev/null 2>&1; then
-    echo "Also creating combined zip archive for all platforms"
+    echo "Also creating combined zip archive for all platforms (no static)"
     (cd "$OUTDIR" && zip -r -q "webapp-all-platforms.zip" "${dirs[@]}")
   fi
 fi

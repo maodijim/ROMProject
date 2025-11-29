@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io/fs"
 	"log"
 	"net/http"
 )
@@ -8,8 +9,12 @@ import (
 var configPath = "config.yml"
 
 func main() {
+	serverRoot, err := fs.Sub(staticFiles, "static")
+	if err != nil {
+		log.Fatal(err)
+	}
 	// Serve static files
-	http.Handle("/", http.FileServer(http.Dir("./static")))
+	http.Handle("/", http.FileServer(http.FS(serverRoot)))
 
 	// API routes
 	http.HandleFunc("/api/user", handleUserAPI)
