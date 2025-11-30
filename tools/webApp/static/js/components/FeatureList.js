@@ -58,7 +58,7 @@ export default {
             this.alert.show = false;
             try {
                 const response = await api.fetchFeatures();
-                const data = await response.json();
+                const data = await response;
                 if (data.success) {
                     this.features = data.data || [];
                 } else {

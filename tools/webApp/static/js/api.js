@@ -1,6 +1,16 @@
 // File: `tools/webApp/static/js/api.js`
 const PORT = 8081;
-const API_BASE_URL = `http://localhost:${PORT}/api`;
+
+function getApiBaseUrl() {
+    if (typeof window === 'undefined') return `http://localhost:${PORT}/api`;
+    const { protocol, hostname, origin } = window.location;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return `${protocol}//${hostname}:${PORT}/api`;
+    }
+    return `${origin}/api`;
+}
+
+const API_BASE_URL = getApiBaseUrl();
 
 export const api = {
     PORT,
