@@ -89,13 +89,13 @@ export const api = {
         return await response.json();
     },
 
-    async updateFeatureConfig(username, functionName, configData) {
-        const response = await fetch(`${API_BASE_URL}/feature/config/update?username=${username}&functionName=${encodeURIComponent(functionName)}`, {
+    async updateFeatureConfig(username, featureName, configData) {
+        const response = await fetch(`${API_BASE_URL}/feature/config/update`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(configData)
+            body: JSON.stringify({ username: username, featureName: featureName, config: configData })
         });
         return await response.json();
     },
