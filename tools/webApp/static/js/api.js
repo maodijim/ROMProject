@@ -3,9 +3,10 @@ const PORT = 8081;
 
 function getApiBaseUrl() {
     if (typeof window === 'undefined') return `http://localhost:${PORT}/api`;
-    const { protocol, hostname, origin } = window.location;
+    const { protocol, hostname, origin, port } = window.location;
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return `${protocol}//${hostname}:${PORT}/api`;
+        const effectivePort = port || PORT;
+        return `${protocol}//${hostname}:${effectivePort}/api`;
     }
     return `${origin}/api`;
 }
