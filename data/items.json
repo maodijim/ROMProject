@@ -74295,6 +74295,20 @@
     "Type": 70,
     "Quality": 3
   },
+  "52522": {
+    "NameZh": "腐化的吊坠",
+    "ValidDate": "",
+    "id": 52522,
+    "Icon": "item_52522",
+    "MaxNum": 9999,
+    "Desc": "信仰这种东西, 在绝对的恐怖下, 究竟能够坚持到什么程度?",
+    "TFValidDate": "",
+    "AuctionPrice": 1,
+    "MediaPath": "",
+    "SellPrice": 60,
+    "Type": 70,
+    "Quality": 3
+  },
   "52601": {
     "NameZh": "金苹果",
     "ValidDate": "",

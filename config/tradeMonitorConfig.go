@@ -10,6 +10,7 @@ type TradeMonitorConfig struct {
 	WatchItems            []string `yaml:"watchItems" json:"watchItems"`
 	WatchCategories       []string `yaml:"watchCategories" json:"watchCategories"`
 	ElasticsearchHostPort string   `yaml:"elasticsearchHostPort" json:"elasticsearchHostPort"`
+	NumberWorkers         int      `yaml:"numberWorkers" json:"numberWorkers"`
 }
 
 func (c *TradeMonitorConfig) GetESHostPort() string {
@@ -56,6 +57,9 @@ func (c *TradeMonitorConfig) ParseFromInterface(config map[string]interface{}) T
 	if val, ok := config["elasticsearchHostPort"].(string); ok {
 		c.ElasticsearchHostPort = val
 	}
+	if val, ok := config["numberWorkers"].(float64); ok {
+		c.NumberWorkers = int(val)
+	}
 	return *c
 }
 
@@ -64,5 +68,13 @@ func (c *TradeMonitorConfig) GetDefault() TradeMonitorConfig {
 		MonitorInterval: 30,
 		WatchItems:      []string{},
 		WatchCategories: utils.GetMapKeys(gameTypes.TradeZhCategories),
+		NumberWorkers:   3,
 	}
+}
+
+func (c *TradeMonitorConfig) GetNumberWorkers() int {
+	if c.NumberWorkers <= 0 {
+		return 3
+	}
+	return c.NumberWorkers
 }

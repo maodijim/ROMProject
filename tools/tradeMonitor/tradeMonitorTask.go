@@ -62,11 +62,10 @@ func (t *Task) Stop() {
 func (t *Task) monitorTrades() {
 	ch := make(chan uint32)
 	wg := sync.WaitGroup{}
-	workerNum := 5
 	tradeResults := []tradeItem{}
-	log.Infof("starting %d workers", workerNum)
+	log.Infof("starting %d workers", t.GC.Configs.TradeMonitorConfig.GetNumberWorkers())
 
-	for i := 0; i < workerNum; i++ {
+	for i := 0; i < t.GC.Configs.TradeMonitorConfig.GetNumberWorkers(); i++ {
 		wg.Add(1)
 		go queryItems(ch, &tradeResults, &wg, t.GC)
 	}
@@ -98,14 +97,14 @@ func (t *Task) monitorTrades() {
 		// 示例日志输出
 	}
 
+	close(ch)
+	wg.Wait()
+
 	if t.GC.Configs.TradeMonitorConfig.GetESHostPort() != "" {
 		t.logger.Infof("上传交易数据到 Elasticsearch: %s", t.GC.Configs.TradeMonitorConfig.GetESHostPort())
 		// 这里添加具体的上传逻辑
 		t.uploadTradeRecords(tradeResults)
 	}
-
-	close(ch)
-	wg.Wait()
 }
 
 func (t *Task) uploadTradeRecords(detail []tradeItem) {
@@ -169,6 +168,7 @@ func (t *Task) uploadTradeRecords(detail []tradeItem) {
 		}
 		logger.Errorf("failed to send bulk insert: %s", err)
 	} else {
+		logger.Infof("trying to upload %d trade records", len(detail))
 		logger.Infof("response from elasticsearch: %d failed", len(rsp.Failed()))
 	}
 }
