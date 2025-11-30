@@ -1,3 +1,5 @@
+import { api } from '../api.js';
+
 export default {
     template: `
         <div class="container">
@@ -55,7 +57,7 @@ export default {
             this.loading = true;
             this.alert.show = false;
             try {
-                const response = await fetch('http://localhost:8081/api/feature');
+                const response = await api.fetchFeatures();
                 const data = await response.json();
                 if (data.success) {
                     this.features = data.data || [];

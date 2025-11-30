@@ -129,12 +129,12 @@ export default {
             try {
                 const [usersData, featuresResponse, runningTasksResponse] = await Promise.all([
                     api.getUsers(),
-                    fetch('http://localhost:8081/api/feature'),
-                    fetch('http://localhost:8081/api/feature/running')
+                    api.fetchFeatures(),
+                    api.fetchRunningTasks()
                 ]);
 
-                const featuresData = await featuresResponse.json();
-                const runningTasksData = await runningTasksResponse.json();
+                const featuresData = await featuresResponse;
+                const runningTasksData = await runningTasksResponse;
 
                 if (usersData.success) {
                     this.users = usersData.data || [];
@@ -204,17 +204,8 @@ export default {
             }
             if (action.toLowerCase() === 'start') {
                 try {
-                    const response = await fetch('http://localhost:8081/api/feature/start', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            username: username,
-                            featureName: featureName
-                        })
-                    });
-                    const data = await response.json();
+                    const response = await api.startFeatureTask({"username": username, "featureName": featureName});
+                    const data = await response;
 
                     if (data.success) {
                         this.showAlert('success', `成功启动 ${featureName}`);
@@ -227,16 +218,8 @@ export default {
                 }
             } else if (action.toLowerCase() === 'stop') {
                 try {
-                    const response = await fetch('http://localhost:8081/api/feature/stop', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            username: username
-                        })
-                    });
-                    const data = await response.json();
+                    const response = await api.stopFeatureTask({"username": username})
+                    const data = await response;
 
                     if (data.success) {
                         this.showAlert('success', `成功停止 ${featureName}`);

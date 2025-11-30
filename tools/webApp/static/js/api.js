@@ -1,7 +1,10 @@
 // File: `tools/webApp/static/js/api.js`
-const API_BASE_URL = 'http://localhost:8081/api';
+const PORT = 8081;
+const API_BASE_URL = `http://localhost:${PORT}/api`;
 
 export const api = {
+    PORT,
+    API_BASE_URL,
     async getUsers() {
         const response = await fetch(`${API_BASE_URL}/user/get`);
         return await response.json();
@@ -41,7 +44,7 @@ export const api = {
     },
 
     async getUserRunningTask(username) {
-        const response = await fetch(`${API_BASE_URL}/api/feature/running/user?username=${username}`);
+        const response = await fetch(`${API_BASE_URL}/feature/running/user?username=${username}`);
         return await response.json();
     },
 
@@ -74,5 +77,53 @@ export const api = {
             body: JSON.stringify(payload)
         });
         return await response.json();
-    }
+    },
+
+    async fetchFeatures() {
+        const response = await fetch(`${API_BASE_URL}/feature`);
+        return await response.json();
+    },
+
+    async fetchFeatureConfig(username, functionName) {
+        const response = await fetch(`${API_BASE_URL}/feature/config?username=${username}&functionName=${encodeURIComponent(functionName)}`);
+        return await response.json();
+    },
+
+    async updateFeatureConfig(username, functionName, configData) {
+        const response = await fetch(`${API_BASE_URL}/feature/config?username=${username}&functionName=${encodeURIComponent(functionName)}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(configData)
+        });
+        return await response.json();
+    },
+
+    async fetchRunningTasks() {
+        const response = await fetch(`${API_BASE_URL}/feature/running`);
+        return await response.json();
+    },
+
+    async startFeatureTask(taskData) {
+        const response = await fetch(`${API_BASE_URL}/feature/start`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(taskData)
+        });
+        return await response.json();
+    },
+
+    async stopFeatureTask(taskData) {
+        const response = await fetch(`${API_BASE_URL}/feature/stop`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(taskData)
+        });
+        return await response.json();
+    },
 };

@@ -258,7 +258,7 @@ export default {
                 this.ws.close();
             }
 
-            const wsUrl = `ws://localhost:8081/ws/logs?username=${this.username}&feature=${this.featureName}`;
+            const wsUrl = `ws://localhost:${api.PORT}/ws/logs?username=${this.username}&feature=${this.featureName}`;
             this.ws = new WebSocket(wsUrl);
 
             this.ws.onopen = () => {
