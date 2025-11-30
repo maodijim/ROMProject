@@ -1,21 +1,23 @@
 // File: `tools/webApp/static/js/api.js`
 const PORT = 8081;
 
-function getApiBaseUrl() {
-    if (typeof window === 'undefined') return `http://localhost:${PORT}/api`;
+function getBaseUrl() {
+    if (typeof window === 'undefined') return `http://localhost:${PORT}`;
     const { protocol, hostname, origin, port } = window.location;
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
         const effectivePort = port || PORT;
-        return `${protocol}//${hostname}:${effectivePort}/api`;
+        return `${protocol}//${hostname}:${effectivePort}`;
     }
-    return `${origin}/api`;
+    return `${origin}`;
 }
 
-const API_BASE_URL = getApiBaseUrl();
+const API_BASE_URL = getBaseUrl() + '/api';
+const WS_BASE_URL = getBaseUrl().replace(/^http/, 'ws') + '/ws';
 
 export const api = {
     PORT,
     API_BASE_URL,
+    WS_BASE_URL,
     async getUsers() {
         const response = await fetch(`${API_BASE_URL}/user/get`);
         return await response.json();
