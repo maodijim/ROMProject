@@ -73064,6 +73064,20 @@
     "Type": 70,
     "Quality": 1
   },
+  "52111": {
+    "NameZh": "铁矿石",
+    "ValidDate": "",
+    "id": 52111,
+    "Icon": "item_52111",
+    "MaxNum": 9999,
+    "Desc": "含有铁成分的矿石,提炼的话可得到铁。",
+    "TFValidDate": "",
+    "AuctionPrice": 1,
+    "MediaPath": "",
+    "SellPrice": 24,
+    "Type": 70,
+    "Quality": 1
+  },
   "52151": {
     "NameZh": "柔毛",
     "ValidDate": "",
@@ -73212,6 +73226,21 @@
     "Type": 70,
     "Quality": 1
   },
+  "52161": {
+    "NameZh": "化学气瓶",
+    "ValidDate": "",
+    "id": 52161,
+    "Icon": "item_52161",
+    "MaxNum": 9999,
+    "Desc": "里面残留的气体散发着令人呕吐的恶臭......",
+    "TFValidDate": "",
+    "Feature": 1,
+    "AuctionPrice": 1,
+    "MediaPath": "",
+    "SellPrice": 24,
+    "Type": 70,
+    "Quality": 1
+  },
   "52201": {
     "NameZh": "腐烂绷带",
     "ValidDate": "",
@@ -73351,6 +73380,20 @@
     "Icon": "item_52210",
     "MaxNum": 9999,
     "Desc": "从绳子上的痕迹看，这或许曾经捆绑过什么不得了的魔物啊……",
+    "TFValidDate": "",
+    "AuctionPrice": 1,
+    "MediaPath": "",
+    "SellPrice": 24,
+    "Type": 70,
+    "Quality": 1
+  },
+  "52211": {
+    "NameZh": "半导体",
+    "ValidDate": "",
+    "id": 52211,
+    "Icon": "item_52211",
+    "MaxNum": 9999,
+    "Desc": "经过检测里面含有的成分包括了硅,锗, 砷化镓……造价不菲啊, 雷格贝勒到底哪来那么多资金的...?",
     "TFValidDate": "",
     "AuctionPrice": 1,
     "MediaPath": "",
