@@ -11,6 +11,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -107,6 +108,7 @@ type GameConnection struct {
 	MonsterItemsByName map[string]utils.MonsterInfo
 	AtkStat            AttackMonsterStat
 	BossInfo           *Cmd.BossListUserCmd
+	logger             *log.Logger
 	logBuffer          []string
 	logMutex           sync.RWMutex
 	LogNotify          chan string
@@ -983,7 +985,9 @@ func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 		logMutex:           sync.RWMutex{},
 		LogNotify:          make(chan string, 1),
 		chatHistory:        []chatMessage{},
+		logger:             log.New(),
 	}
+	gc.logger.SetOutput(io.MultiWriter(os.Stdout, gc.LogWriter()))
 	if config.Loglines > 0 {
 		gc.logBuffer = make([]string, 0, config.Loglines)
 	} else {

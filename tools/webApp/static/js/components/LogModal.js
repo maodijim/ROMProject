@@ -1,3 +1,4 @@
+// File: `tools/webApp/static/js/components/LogModal.js`
 import {api} from '../api.js';
 
 export default {
@@ -59,7 +60,7 @@ export default {
                                 </div>
                             </div>
 
-                            <div class="log-section">
+                            <div class="log-section" style="position: relative;">
                                 <div class="log-header">
                                     <h3>日志</h3>
                                     <button @click="clearLogs" class="btn btn-secondary btn-xs">清空</button>
@@ -70,6 +71,14 @@ export default {
                                     class="log-textarea"
                                     readonly
                                 ></textarea>
+
+                                <!-- floating bottom-right button -->
+                                <button
+                                    @click="scrollLogsToBottom"
+                                    class="btn btn-primary btn-xs"
+                                    title="滚到底"
+                                    style="position: absolute; right: 8px; bottom: 8px; z-index: 3;"
+                                >到底⬇️</button>
                             </div>
                         </div>
                     </div>
@@ -130,6 +139,18 @@ export default {
         }
     },
     methods: {
+        scrollLogsToBottom() {
+            const logArea = this.$refs.logArea;
+            if (!logArea) return;
+            // immediately jump to bottom
+            logArea.scrollTop = logArea.scrollHeight;
+            // ensure any Vue DOM updates are applied then keep bottom (safe fallback)
+            this.$nextTick(() => {
+                if (this.$refs.logArea) {
+                    this.$refs.logArea.scrollTop = this.$refs.logArea.scrollHeight;
+                }
+            });
+        },
         applyBodyScrollLock(disable) {
             document.body.style.overflow = disable ? 'hidden' : '';
         },

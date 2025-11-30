@@ -72,13 +72,13 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				err = utils.ParseCmd(o, param)
 				returnCode := param.(*Cmd.RegErrUserCmd).GetRet()
 				if returnCode == Cmd.RegErrRet_REG_ERR_DUPLICATE_LOGIN {
-					log.Warnf("%s Account has been logged in on another device: %v", g.Role.GetRoleName(), param)
+					g.logger.Warnf("%s Account has been logged in on another device: %v", g.Role.GetRoleName(), param)
 					g.Close()
 				} else if returnCode == Cmd.RegErrRet_REG_ERR_ACC_FORBID {
-					log.Errorf("%s Account forbidden", g.Role.GetRoleName())
+					g.logger.Errorf("%s Account forbidden", g.Role.GetRoleName())
 					g.Close()
 				} else {
-					log.Errorf("Server return err: %v", param)
+					g.logger.Errorf("Server return err: %v", param)
 					g.Close()
 				}
 				return
@@ -86,7 +86,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 			case Cmd.ErrCmdParam_value["MAINTAIN_USER_CMD"]:
 				param = &Cmd.MaintainUserCmd{}
 				err = utils.ParseCmd(o, param)
-				log.Warnf("Server is under maintanence: %v", param)
+				g.logger.Warnf("Server is under maintanence: %v", param)
 				os.Exit(1)
 			}
 		case Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"]:
@@ -282,7 +282,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				param = &Cmd.ChatRetCmd{}
 				err = utils.ParseCmd(o, param)
 				chatRet := param.(*Cmd.ChatRetCmd)
-				log.Infof(
+				g.logger.Infof(
 					"Receive chat from channel: %s, sender id: %d sender: %s content: %s",
 					chatRet.GetChannel().String(),
 					chatRet.GetId(),
@@ -351,7 +351,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 							log.Infof("only one memeber in team exiting")
 							g.ExitTeam()
 						}
-						log.Infof("accepting team invite from %s team name: %s",
+						g.logger.Infof("accepting team invite from %s team name: %s",
 							invite.GetUsername(), invite.GetTeamname())
 						g.AcceptTeamInvite(invite.Userguid)
 					}()
@@ -556,11 +556,11 @@ func (g *GameConnection) UpdateUserParams(datas []*Cmd.UserData, attrs []*Cmd.Us
 		if data.GetType() == Cmd.EUserDataType_EUSERDATATYPE_SILVER {
 			silver := data.GetValue()
 			g.Role.Silver = &silver
-			log.Infof("%s has %d zeny", g.Role.GetRoleName(), silver)
+			g.logger.Infof("%s has %d zeny", g.Role.GetRoleName(), silver)
 		} else if data.GetType() == Cmd.EUserDataType_EUSERDATATYPE_LOTTERY {
 			lottery := data.GetValue()
 			g.Role.Lottery = &lottery
-			log.Infof("%s has %d lottery", g.Role.GetRoleName(), lottery)
+			g.logger.Infof("%s has %d lottery", g.Role.GetRoleName(), lottery)
 		}
 		for _, d := range g.Role.UserDatas {
 			if d.GetType() == data.GetType() {

@@ -276,7 +276,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 				return
 			} else if time.Since(lastMove) > time.Millisecond*150 {
 				lastMove = time.Now()
-				log.Debugf("%s 跑向目标 怪物id: %d 名字: %s 血量: %d 位置: %v 距离: %f 攻击距离 %f 角度 %f 预计攻击位置: %v",
+				g.logger.Debugf("%s 跑向目标 怪物id: %d 名字: %s 血量: %d 位置: %v 距离: %f 攻击距离 %f 角度 %f 预计攻击位置: %v",
 					g.Role.GetRoleName(),
 					closestId,
 					target.GetName(),
@@ -314,7 +314,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 					}
 					if time.Since(lastPrint) > time.Second*5 {
 						lastPrint = time.Now()
-						log.Infof("%s 跑路中 怪物id: %d 名字: %s 血量: %d 位置: %v 距离: %f 攻击距离 %f 角度 %f",
+						g.logger.Infof("%s 跑路中 怪物id: %d 名字: %s 血量: %d 位置: %v 距离: %f 攻击距离 %f 角度 %f",
 							g.Role.GetRoleName(),
 							closestId,
 							target.GetName(),
@@ -339,7 +339,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 				attrs := target.GetAttrs()
 				for _, a := range attrs {
 					if a.GetType() == Cmd.EAttrType_EATTRTYPE_HIDE && a.GetValue() == 1 {
-						log.Infof("幽灵波利隐身中，拍照显形")
+						g.logger.Infof("幽灵波利隐身中，拍照显形")
 						g.TakePhotoSkill(&Cmd.CameraFocus{
 							Targets: []uint64{target.GetId()},
 						}, *target.GetPos(), []Cmd.MapNpc{target})
@@ -368,19 +368,19 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 		ticker := time.NewTicker(time.Millisecond * 75)
 		g.AtkStat.IsAutoAttacking = true
 		defer func() {
-			log.Infof("stop auto attack")
+			g.logger.Infof("stop auto attack")
 			ticker.Stop()
 			g.AtkStat.IsAutoAttacking = false
 		}()
 		for {
 			select {
 			case <-attackCtx.Done():
-				log.Infof("stop auto attack")
+				g.logger.Infof("stop auto attack")
 				g.AtkStat.SetCurrentTargetId(0)
 				ticker.Stop()
 				return
 			case <-g.quit:
-				log.Infof("stop auto attack")
+				g.logger.Infof("stop auto attack")
 				g.AtkStat.SetCurrentTargetId(0)
 				ticker.Stop()
 				return
@@ -406,7 +406,7 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 						cd, _ := strconv.ParseFloat(skillItem.CD, 64)
 						if time.Since(g.Role.GetSkillCd(skill.GetId())) < time.Duration(cd) {
 							if skill.GetId() != 50057001 {
-								log.Infof("技能CD中:%s", skillItem.NameZh)
+								g.logger.Infof("技能CD中:%s", skillItem.NameZh)
 							}
 							continue skillLoop
 						}
@@ -427,7 +427,7 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 									}
 									g.SkillCmd(skill.GetId(), pData, true)
 									// block other action until 装死 ended'
-									lastPrint := time.Now().Add(10 * time.Second)
+									lastPrint = time.Now().Add(10 * time.Second)
 									for startTime := time.Now(); time.Since(startTime) < 50*time.Second; {
 										select {
 										case <-attackCtx.Done():
@@ -439,7 +439,7 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 										default:
 											if time.Since(lastPrint) > 10*time.Second {
 												lastPrint = time.Now()
-												log.Infof("%s 装死中 血量:%d SP:%d", g.Role.GetRoleName(), g.GetCurrentHp(), g.GetCurrentSp())
+												g.logger.Infof("%s 装死中 血量:%d SP:%d", g.Role.GetRoleName(), g.GetCurrentHp(), g.GetCurrentSp())
 											}
 											if curHpPer > g.GetHpPer() ||
 												g.GetBuffNameByRegex("原地休息") == "" ||
