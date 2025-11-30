@@ -90,7 +90,7 @@ export const api = {
     },
 
     async updateFeatureConfig(username, functionName, configData) {
-        const response = await fetch(`${API_BASE_URL}/feature/config?username=${username}&functionName=${encodeURIComponent(functionName)}`, {
+        const response = await fetch(`${API_BASE_URL}/feature/config/update?username=${username}&functionName=${encodeURIComponent(functionName)}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
