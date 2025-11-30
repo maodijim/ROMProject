@@ -1,4 +1,4 @@
-package utils
+package gameConnection
 
 import (
 	"sync"
@@ -6,6 +6,7 @@ import (
 
 	Cmd "ROMProject/Cmds"
 	"ROMProject/config"
+	"ROMProject/utils"
 
 	"github.com/mohae/deepcopy"
 )
@@ -70,17 +71,17 @@ func (r *RoleInfo) GetSkillCd(skillId uint32) time.Time {
 }
 
 func (r *RoleInfo) GetProfession() Cmd.EProfession {
-	val := GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_PROFESSION)
+	val := utils.GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_PROFESSION)
 	return Cmd.EProfession(val)
 }
 
 func (r *RoleInfo) GetSkillPoint() int32 {
-	val := GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_SKILL_POINT)
+	val := utils.GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_SKILL_POINT)
 	return int32(val)
 }
 
 func (r *RoleInfo) GetTotalPoint() int32 {
-	val := GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_TOTALPOINT)
+	val := utils.GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_TOTALPOINT)
 	return int32(val)
 }
 
@@ -302,7 +303,7 @@ func (r *RoleInfo) GetMapName() (mapName string) {
 func (r *RoleInfo) GetRoleExp() uint64 {
 	r.Mutex.RLock()
 	defer r.Mutex.RUnlock()
-	return GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_ROLEEXP)
+	return utils.GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_ROLEEXP)
 }
 
 func (r *RoleInfo) IsEqualPos(pos Cmd.ScenePos) bool {

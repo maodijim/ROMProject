@@ -231,7 +231,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 						ca = g.Role.MatchInfos[matchInfo.GetEtype()].CreatedAt
 					}
 
-					detail := &utils.MatchDetail{
+					detail := &MatchDetail{
 						MatchInfo:     matchInfo,
 						TeamPrepInfos: tInfo,
 						PrepedMember:  pMember,
@@ -246,7 +246,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 						}
 					}(matchInfo.GetEtype())
 				} else if matchInfo.GetEtype() == 108 && !matchInfo.GetIsmatch() {
-					g.Role.MatchInfos = map[Cmd.EPvpType]*utils.MatchDetail{}
+					g.Role.MatchInfos = map[Cmd.EPvpType]*MatchDetail{}
 				}
 
 			case Cmd.MatchCParam_value["MATCHCPARAM_TEAMPWS_PREPARE_LIST"]:
