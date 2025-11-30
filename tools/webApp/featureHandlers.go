@@ -24,9 +24,34 @@ type RunningTaskInfoResponse struct {
 }
 
 var features = []Feature{
-	{Name: "自动附魔", Desc: "Description of Feature A", Actions: []string{"Start", "Stop", "Configure", "Log"}, FunctionName: "AutoEnchant", execFunc: backendTasks.NewAutoEnchantTask},
-	{Name: "自动MVP", Desc: "Description of Feature B", Actions: []string{"Start", "Stop", "Configure", "Log"}, FunctionName: "AutoMVP", execFunc: backendTasks.NewAutoBossHuntingTask},
-	{Name: "自动跟随定位", Desc: "Description of Feature C", Actions: []string{"Start", "Stop", "Log"}, FunctionName: "AutoFollowPosition", execFunc: backendTasks.NewAutoFollowPositionTask},
+	{
+		Name:         "自动附魔",
+		Desc:         "Description of Feature A",
+		Actions:      []string{"Start", "Stop", "Configure", "Log"},
+		FunctionName: "AutoEnchant",
+		execFunc:     backendTasks.NewAutoEnchantTask,
+	},
+	{
+		Name:         "自动MVP",
+		Desc:         "Description of Feature B",
+		Actions:      []string{"Start", "Stop", "Configure", "Log"},
+		FunctionName: "AutoMVP",
+		execFunc:     backendTasks.NewAutoBossHuntingTask,
+	},
+	{
+		Name:         "自动跟随定位",
+		Desc:         "Description of Feature C",
+		Actions:      []string{"Start", "Stop", "Log"},
+		FunctionName: "AutoFollowPosition",
+		execFunc:     backendTasks.NewAutoFollowPositionTask,
+	},
+	{
+		Name:         "交易所监控",
+		Desc:         "Description of Feature D",
+		Actions:      []string{"Start", "Stop", "Configure", "Log"},
+		FunctionName: "MarketMonitor",
+		execFunc:     backendTasks.NewTradeMonitorTask,
+	},
 }
 
 func handleGetFeatures(w http.ResponseWriter, r *http.Request) {
@@ -303,6 +328,23 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 				existingConfig = defaultConfig
 			}
 			config = existingConfig
+		case "MarketMonitor":
+			defaultConfig := usersSpace.Configs[username].TradeMonitorConfig.GetDefault()
+			var existingConfig gameConfig.TradeMonitorConfig
+			// merge with existing config if any
+			if usersSpace.Configs[username] != nil {
+				existingConfig = usersSpace.Configs[username].TradeMonitorConfig
+				if len(existingConfig.GetWatchItems()) == 0 {
+					existingConfig.WatchItems = defaultConfig.WatchItems
+				}
+				if len(existingConfig.GetWatchCategories()) == 0 {
+					existingConfig.WatchCategories = defaultConfig.WatchCategories
+				}
+				if existingConfig.MonitorInterval == 0 {
+					existingConfig.MonitorInterval = defaultConfig.MonitorInterval
+				}
+			}
+			config = existingConfig
 		default:
 			config = map[string]interface{}{}
 		}
@@ -369,6 +411,10 @@ func handleUpdateFeatureConfig(w http.ResponseWriter, r *http.Request) {
 		config := userConfigs.HuntConfig
 		config.ParseFromInterface(req.Config)
 		userConfigs.HuntConfig = config
+	case "MarketMonitor":
+		config := userConfigs.TradeMonitorConfig
+		config.ParseFromInterface(req.Config)
+		userConfigs.TradeMonitorConfig = config
 	default:
 		json.NewEncoder(w).Encode(Response{
 			Success: false,

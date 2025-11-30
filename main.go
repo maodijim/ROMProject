@@ -15,6 +15,7 @@ import (
 	"ROMProject/esClient"
 	"ROMProject/gameConnection"
 	"ROMProject/utils"
+
 	"github.com/olivere/elastic/v7"
 	log "github.com/sirupsen/logrus"
 )
@@ -165,7 +166,11 @@ func main() {
 				log.Info("End Query")
 				// Insert to elasticsearch
 				ctx := context.Background()
-				client := esClient.NewEsClient(conf.EsConfig.Urls)
+				client, err := esClient.NewEsClient(conf.EsConfig.Urls)
+				if err != nil {
+					log.Errorf("failed to create elasticsearch client: %s", err)
+					log.Exit(1)
+				}
 				bulk := client.Bulk()
 				now := time.Now()
 				for _, val := range detail {

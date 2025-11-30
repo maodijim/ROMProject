@@ -73,8 +73,8 @@ type GameConnection struct {
 	ShouldChangeScene  bool
 	Configs            *config.ServerConfigs
 	conn               net.Conn
-	Role               *utils.RoleInfo
-	AvailableRoles     map[uint32]*utils.RoleInfo
+	Role               *RoleInfo
+	AvailableRoles     map[uint32]*RoleInfo
 	DebugMsg           bool
 	quit               chan bool
 	shouldQuit         bool
@@ -114,6 +114,25 @@ type GameConnection struct {
 	LogNotify          chan string
 	chatHistory        []chatMessage
 	chatMutex          sync.RWMutex
+}
+
+func (g *GameConnection) GetItemCat(itemId uint32) uint32 {
+	if g.ExchangeItems != nil {
+		if _, ok := g.ExchangeItems[itemId]; ok {
+			catInt, _ := strconv.ParseUint(g.ExchangeItems[itemId].Category, 10, 32)
+			return uint32(catInt)
+		}
+		log.Warnf("item id %d not found", itemId)
+	}
+	return 0
+}
+
+func (g *GameConnection) SetLogLevel(level log.Level) {
+	g.logger.SetLevel(level)
+}
+
+func (g *GameConnection) GetLogger() *log.Logger {
+	return g.logger
 }
 
 func (g *GameConnection) addChatMessage(msg chatMessage) {
@@ -443,8 +462,8 @@ func (g *GameConnection) Reconnect() {
 	if g.conn != nil {
 		g.Close()
 		g.enteringMap = false
-		roleOptions := utils.RoleTeamOption(g.Configs.TeamConfig)
-		g.Role = utils.NewRole(roleOptions)
+		roleOptions := RoleTeamOption(g.Configs.TeamConfig)
+		g.Role = NewRole(roleOptions)
 	}
 	g.GameServerLogin()
 }
@@ -954,11 +973,11 @@ func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 	if items != nil && items.ItemsByName != nil {
 		allItemsByName = items.ItemsByName
 	}
-	roleOption := utils.RoleTeamOption(config.TeamConfig)
+	roleOption := RoleTeamOption(config.TeamConfig)
 	gc := &GameConnection{
 		Configs:            config,
-		Role:               utils.NewRole(roleOption),
-		AvailableRoles:     map[uint32]*utils.RoleInfo{},
+		Role:               NewRole(roleOption),
+		AvailableRoles:     map[uint32]*RoleInfo{},
 		currentIndex:       1,
 		tradeBrief:         map[uint32]*Cmd.BriefPendingListRecordTradeCmd{},
 		tradeDetail:        map[uint32]*Cmd.DetailPendingListRecordTradeCmd{},
