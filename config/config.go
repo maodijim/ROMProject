@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"ROMProject/data"
+	"ROMProject/utils"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -24,39 +25,8 @@ type EnchantConfig struct {
 	EnchantCount    uint32            `yaml:"enchantCount" json:"enchantCount"`
 }
 
-func (c *EnchantConfig) ParseFromInterface(config map[string]interface{}) EnchantConfig {
-	if val, ok := config["autoSave"].(bool); ok {
-		c.AutoSave = val
-	}
-	if val, ok := config["enchantType"].(string); ok {
-		c.EnchantType = val
-	}
-	if val, ok := config["enchantEquipPos"].(string); ok {
-		c.EnchantEquipPos = val
-	}
-	if val, ok := config["enchantCount"].(float64); ok {
-		c.EnchantCount = uint32(val)
-	}
-	if val, ok := config["condition"].(map[string]interface{}); ok {
-		if attrs, ok := val["attributes"].([]interface{}); ok {
-			attr := make([]string, len(attrs))
-			for i, v := range attrs {
-				if str, ok := v.(string); ok {
-					attr[i] = str
-				}
-			}
-			c.Condition.Attributes = attr
-		}
-		if extras, ok := val["extras"].([]interface{}); ok {
-			extr := make([]string, len(extras))
-			for i, v := range extras {
-				if str, ok := v.(string); ok {
-					extr[i] = str
-				}
-			}
-			c.Condition.Extras = extr
-		}
-	}
+func (c *EnchantConfig) ParseFromInterface(config map[string]any) EnchantConfig {
+	utils.ParseConfigFromInterface(config, c)
 	return *c
 }
 
@@ -80,43 +50,8 @@ type HuntConfig struct {
 	PrepEliteCD  int      `yaml:"PrepEliteCD" json:"PrepEliteCD"`
 }
 
-func (c *HuntConfig) ParseFromInterface(config map[string]interface{}) HuntConfig {
-	if val, ok := config["CarryTeam"].(bool); ok {
-		c.CarryTeam = val
-	}
-	if val, ok := config["GameDuration"].(float64); ok {
-		c.GameDuration = int(val)
-	}
-	if val, ok := config["Mini"].([]interface{}); ok {
-		mini := make([]string, len(val))
-		for i, v := range val {
-			if str, ok := v.(string); ok {
-				mini[i] = str
-			}
-		}
-		c.Mini = mini
-	}
-	if val, ok := config["MVP"].([]interface{}); ok {
-		mvp := make([]string, len(val))
-		for i, v := range val {
-			if str, ok := v.(string); ok {
-				mvp[i] = str
-			}
-		}
-		c.MVP = mvp
-	}
-	if val, ok := config["HMVP"].([]interface{}); ok {
-		hmvp := make([]string, len(val))
-		for i, v := range val {
-			if str, ok := v.(string); ok {
-				hmvp[i] = str
-			}
-		}
-		c.HMVP = hmvp
-	}
-	if val, ok := config["PrepEliteCD"].(float64); ok {
-		c.PrepEliteCD = int(val)
-	}
+func (c *HuntConfig) ParseFromInterface(config map[string]any) HuntConfig {
+	utils.ParseConfigFromInterface(config, c)
 	return *c
 }
 

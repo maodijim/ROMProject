@@ -6,11 +6,11 @@ import (
 )
 
 type TradeMonitorConfig struct {
-	MonitorInterval       int      `yaml:"monitorInterval" json:"monitorInterval"` // in seconds
-	WatchItems            []string `yaml:"watchItems" json:"watchItems"`
-	WatchCategories       []string `yaml:"watchCategories" json:"watchCategories"`
+	MonitorInterval       int      `yaml:"monitorInterval" json:"监控间隔"` // in seconds
+	WatchItems            []string `yaml:"watchItems" json:"监控物品"`
+	WatchCategories       []string `yaml:"watchCategories" json:"监控类别"`
 	ElasticsearchHostPort string   `yaml:"elasticsearchHostPort" json:"elasticsearchHostPort"`
-	NumberWorkers         int      `yaml:"numberWorkers" json:"numberWorkers"`
+	NumberWorkers         int      `yaml:"numberWorkers" json:"工作线程数"`
 }
 
 func (c *TradeMonitorConfig) GetESHostPort() string {
@@ -33,33 +33,7 @@ func (c *TradeMonitorConfig) GetWatchCategories() []string {
 }
 
 func (c *TradeMonitorConfig) ParseFromInterface(config map[string]interface{}) TradeMonitorConfig {
-	if val, ok := config["monitorInterval"].(float64); ok {
-		c.MonitorInterval = int(val)
-	}
-	if val, ok := config["watchItems"].([]interface{}); ok {
-		items := make([]string, len(val))
-		for i, v := range val {
-			if str, ok := v.(string); ok {
-				items[i] = str
-			}
-		}
-		c.WatchItems = items
-	}
-	if val, ok := config["watchCategories"].([]interface{}); ok {
-		categories := make([]string, len(val))
-		for i, v := range val {
-			if str, ok := v.(string); ok {
-				categories[i] = str
-			}
-		}
-		c.WatchCategories = categories
-	}
-	if val, ok := config["elasticsearchHostPort"].(string); ok {
-		c.ElasticsearchHostPort = val
-	}
-	if val, ok := config["numberWorkers"].(float64); ok {
-		c.NumberWorkers = int(val)
-	}
+	utils.ParseConfigFromInterface(config, c)
 	return *c
 }
 

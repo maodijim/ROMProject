@@ -13,6 +13,8 @@ import (
 	"math"
 	"math/rand"
 	"reflect"
+	"strconv"
+	"strings"
 	"time"
 
 	Cmd "ROMProject/Cmds"
@@ -447,4 +449,141 @@ func RevertMap[K comparable, V comparable](m map[K]V) map[V]K {
 
 func PosEqual(pos1, pos2 Cmd.ScenePos) bool {
 	return pos1.GetX() == pos2.GetX() && pos1.GetY() == pos2.GetY() && pos1.GetZ() == pos2.GetZ()
+}
+
+func GetFieldNameByTag(inputStruct interface{}, tagKey, tagValue string) (fieldName string, found bool) {
+	val := reflect.ValueOf(inputStruct).Elem()
+	typ := val.Type()
+
+	for i := 0; i < val.NumField(); i++ {
+		field := typ.Field(i)
+		if field.Tag.Get(tagKey) == tagValue {
+			return field.Name, true
+		}
+	}
+	return "", false
+}
+
+// helpers
+func GetFloat64(v interface{}) (float64, bool) {
+	switch t := v.(type) {
+	case float64:
+		return t, true
+	case float32:
+		return float64(t), true
+	case int:
+		return float64(t), true
+	case int64:
+		return float64(t), true
+	case string:
+		s := strings.TrimSpace(t)
+		if s == "" {
+			return 0, false
+		}
+		if n, err := strconv.ParseFloat(s, 64); err == nil {
+			return n, true
+		}
+	}
+	return 0, false
+}
+
+func GetInt(v interface{}) (int, bool) {
+	switch t := v.(type) {
+	case float64:
+		return int(t), true
+	case float32:
+		return int(t), true
+	case int:
+		return t, true
+	case int64:
+		return int(t), true
+	case string:
+		s := strings.TrimSpace(t)
+		if s == "" {
+			return 0, false
+		}
+		if n, err := strconv.Atoi(s); err == nil {
+			return n, true
+		}
+	}
+	return 0, false
+}
+
+func GetString(v interface{}) (string, bool) {
+	switch t := v.(type) {
+	case string:
+		return t, true
+	case []byte:
+		return string(t), true
+	default:
+		return "", false
+	}
+}
+
+func GetStringSlice(v interface{}) ([]string, bool) {
+	switch t := v.(type) {
+	case []interface{}:
+		out := make([]string, 0, len(t))
+		for _, it := range t {
+			if s, ok := it.(string); ok {
+				out = append(out, s)
+			}
+		}
+		return out, true
+	case []string:
+		return t, true
+	case string:
+		s := strings.TrimSpace(t)
+		if s == "" {
+			return []string{}, true
+		}
+		parts := strings.Split(s, ",")
+		for i := range parts {
+			parts[i] = strings.TrimSpace(parts[i])
+		}
+		return parts, true
+	default:
+		return nil, false
+	}
+}
+
+func ParseConfigFromInterface(config map[string]any, target any) {
+	val := reflect.ValueOf(target).Elem()
+
+	for k, v := range config {
+		var fieldName string
+		var found bool
+
+		// resolve field name by yaml then json tag
+		if fieldName, found = GetFieldNameByTag(target, "yaml", k); !found {
+			if fieldName, found = GetFieldNameByTag(target, "json", k); !found {
+				continue
+			}
+		}
+
+		field := val.FieldByName(fieldName)
+		if !field.IsValid() || !field.CanSet() {
+			continue
+		}
+
+		switch field.Kind() {
+		case reflect.Int, reflect.Int32, reflect.Int64:
+			if n, ok := GetInt(v); ok {
+				field.SetInt(int64(n))
+			}
+		case reflect.String:
+			if s, ok := GetString(v); ok {
+				field.SetString(s)
+			}
+		case reflect.Slice:
+			// only handle []string currently
+			if field.Type().Elem().Kind() == reflect.String {
+				if s, ok := GetStringSlice(v); ok {
+					field.Set(reflect.ValueOf(s))
+				}
+			}
+		default:
+			// unsupported kinds are ignored
+		}
+	}
 }
