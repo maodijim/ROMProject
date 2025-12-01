@@ -51,6 +51,10 @@ type BossHuntTask struct {
 	findCarlen      bool
 }
 
+func (b *BossHuntTask) GetContext() context.Context {
+	return b.ctx
+}
+
 func (b *BossHuntTask) SetLogger(writer io.Writer) {
 	mw := io.MultiWriter(b.GC.LogWriter(), writer)
 	b.logWriter = mw
@@ -471,7 +475,9 @@ func (b *BossHuntTask) CheckCloseTime() {
 		minutes := int(remaining.Minutes()) % 60
 		seconds := int(remaining.Seconds()) % 3600
 		if GameDuration > 0 && hour <= 0 && minutes <= 0 && seconds <= 0 {
-			os.Exit(0)
+			b.logger.Info("游戏时间到，准备关闭游戏")
+			b.Stop()
+			return
 		} else {
 			b.logger.Infof("距离关闭还有%d小时，%d分钟", hour, minutes)
 		}

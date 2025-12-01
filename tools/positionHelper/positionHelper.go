@@ -21,6 +21,10 @@ type PositionTask struct {
 	logger    *log.Logger
 }
 
+func (p *PositionTask) GetContext() context.Context {
+	return p.ctx
+}
+
 func (p *PositionTask) SetLogger(writer io.Writer) {
 	mw := io.MultiWriter(p.GC.LogWriter(), writer)
 	p.logWriter = mw

@@ -28,6 +28,10 @@ type Task struct {
 	logger    *log.Logger
 }
 
+func (t *Task) GetContext() context.Context {
+	return t.ctx
+}
+
 func (t *Task) SetLogger(writer io.Writer) {
 	mw := io.MultiWriter(t.GC.LogWriter(), writer)
 	t.logWriter = mw

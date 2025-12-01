@@ -1,7 +1,6 @@
 package gameConnection
 
 import (
-	"os"
 	"time"
 
 	Cmd "ROMProject/Cmds"
@@ -87,7 +86,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				param = &Cmd.MaintainUserCmd{}
 				err = utils.ParseCmd(o, param)
 				g.logger.Warnf("Server is under maintanence: %v", param)
-				os.Exit(1)
+				g.Close()
 			}
 		case Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"]:
 			switch cmdParamId {

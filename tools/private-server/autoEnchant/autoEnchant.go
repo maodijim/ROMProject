@@ -106,6 +106,10 @@ type EnchantTask struct {
 	logger    *log.Logger
 }
 
+func (e *EnchantTask) GetContext() context.Context {
+	return e.ctx
+}
+
 func (e *EnchantTask) SetLogger(writer io.Writer) {
 	mw := io.MultiWriter(e.GC.LogWriter(), writer)
 	e.logWriter = mw

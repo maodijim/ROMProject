@@ -77,5 +77,12 @@ func main() {
 
 	bossHuntTask := AutoBossHunting.NewBossHuntTask(context.Background(), g)
 	bossHuntTask.Start()
-	select {}
+	ctx := bossHuntTask.GetContext()
+	for {
+		select {
+		case <-ctx.Done():
+			log.Info("自动BOSS狩猎任务已停止")
+			return
+		}
+	}
 }
