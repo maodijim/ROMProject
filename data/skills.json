@@ -135578,6 +135578,7 @@
     "Target_EP": "3",
     "damChangePer": "1",
     "effect": "ArcherAttack",
+    "range": "5",
     "id": "300000",
     "num": "1",
     "speed": "30",
