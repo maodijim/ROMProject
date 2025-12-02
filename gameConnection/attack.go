@@ -118,7 +118,7 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 			Damage: &damage,
 		},
 	}
-	if skillItem.Range != "" && skillItem.Logic == attackLogic["SkillLockedTarget"] {
+	if skillItem.Range != "" && (skillItem.Logic == attackLogic["SkillLockedTarget"] || skillItem.Logic == attackLogic["SkillPointRange"]) {
 		DmgRange, _ := strconv.ParseFloat(skillItem.Range, 64)
 		targetDict, targetRange := g.GetTargetByRange([]string{"all"}, *target.GetPos(), DmgRange)
 		for _, t := range targetRange {
