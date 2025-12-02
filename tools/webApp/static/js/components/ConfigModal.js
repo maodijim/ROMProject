@@ -33,21 +33,30 @@ const ConfigField = {
                             :show-label="false"
                             @update="propagateUpdate"
                         />
-                        <button 
-                            type="button" 
-                            @click="removeArrayItem(index)" 
+                        <button
+                            type="button"
+                            @click="removeArrayItem(index)"
                             class="btn btn-danger btn-xs"
                         >
                             ×
                         </button>
                     </div>
                 </div>
-                <button 
-                    type="button" 
-                    @click="addArrayItem" 
+                <button
+                    type="button"
+                    @click="addArrayItem"
                     class="btn btn-secondary btn-xs"
                 >
                     + Add Item
+                </button>
+                <button
+                    type="button"
+                    @click="clearArrayItems"
+                    class="btn btn-danger btn-xs"
+                    :disabled="!fieldValue || fieldValue.length === 0"
+                    style="margin-left: 8px;"
+                >
+                    Clear All
                 </button>
             </div>
 
@@ -160,6 +169,10 @@ const ConfigField = {
         },
         formatFieldName(key) {
             return String(key).replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+        },
+        clearArrayItems() {
+            // replace the array at this.path with an empty array
+            this.$emit('update', this.path, []);
         }
     }
 };

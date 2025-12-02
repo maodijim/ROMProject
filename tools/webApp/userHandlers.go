@@ -247,7 +247,7 @@ func handleGetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := yaml.Unmarshal(data, &usersSpace.Configs); err != nil {
+	if err = yaml.Unmarshal(data, &usersSpace.Configs); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Response{
 			Success: false,

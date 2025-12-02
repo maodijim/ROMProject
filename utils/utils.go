@@ -487,6 +487,28 @@ func GetFloat64(v interface{}) (float64, bool) {
 	return 0, false
 }
 
+func GetUint64(v interface{}) (uint64, bool) {
+	switch t := v.(type) {
+	case float64:
+		return uint64(t), true
+	case float32:
+		return uint64(t), true
+	case int:
+		return uint64(t), true
+	case int64:
+		return uint64(t), true
+	case string:
+		s := strings.TrimSpace(t)
+		if s == "" {
+			return 0, false
+		}
+		if n, err := strconv.ParseUint(s, 10, 64); err == nil {
+			return n, true
+		}
+	}
+	return 0, false
+}
+
 func GetInt(v interface{}) (int, bool) {
 	switch t := v.(type) {
 	case float64:
@@ -565,25 +587,74 @@ func ParseConfigFromInterface(config map[string]any, target any) {
 		if !field.IsValid() || !field.CanSet() {
 			continue
 		}
-
+		log.Tracef("parsing field %s with value %v; kind: %s", fieldName, v, field.Kind())
 		switch field.Kind() {
-		case reflect.Int, reflect.Int32, reflect.Int64:
+		case reflect.Int, reflect.Int32, reflect.Int64, reflect.Int8, reflect.Int16:
 			if n, ok := GetInt(v); ok {
 				field.SetInt(int64(n))
+			}
+		case reflect.Uint, reflect.Uint32, reflect.Uint64, reflect.Uint8, reflect.Uint16:
+			if n, ok := GetUint64(v); ok {
+				field.SetUint(n)
+			}
+		case reflect.Float32, reflect.Float64:
+			if f, ok := GetFloat64(v); ok {
+				field.SetFloat(f)
 			}
 		case reflect.String:
 			if s, ok := GetString(v); ok {
 				field.SetString(s)
 			}
 		case reflect.Slice:
-			// only handle []string currently
+			// handle []string
 			if field.Type().Elem().Kind() == reflect.String {
 				if s, ok := GetStringSlice(v); ok {
 					field.Set(reflect.ValueOf(s))
 				}
+			} else if field.Type().Elem().Kind() == reflect.Interface {
+				if s, ok := v.([]any); ok {
+					field.Set(reflect.ValueOf(s))
+				} else if s, ok := v.([]interface{}); ok {
+					field.Set(reflect.ValueOf(s))
+				} else if key, ok := v.(map[string]interface{}); ok {
+					ParseConfigFromInterface(key, field.Addr().Interface())
+				} else {
+					log.Warnf("unsupported slice type for field %s", fieldName)
+				}
+			} else if field.Type().Elem().Kind() == reflect.Struct {
+				if s, ok := v.([]interface{}); ok {
+					sliceTarget := reflect.MakeSlice(field.Type(), len(s), len(s))
+					for i := 0; i < len(s); i++ {
+						ParseConfigFromInterface(s[i].(map[string]any), sliceTarget.Index(i).Addr().Interface())
+					}
+				} else {
+					log.Warnf("unsupported slice struct type for field %s", fieldName)
+				}
+			}
+		case reflect.Bool:
+			if b, ok := v.(bool); ok {
+				field.SetBool(b)
+			}
+		case reflect.Map:
+			if key, ok := v.(map[string]interface{}); ok {
+				ParseConfigFromInterface(key, field.Addr().Interface())
+			}
+		case reflect.Struct:
+			if key, ok := v.(map[string]interface{}); ok {
+				ParseConfigFromInterface(key, field.Addr().Interface())
+			}
+		case reflect.Interface:
+			if key, ok := v.(map[string]interface{}); ok {
+				ParseConfigFromInterface(key, field.Addr().Interface())
 			}
 		default:
 			// unsupported kinds are ignored
 		}
+	}
+}
+
+func ParseSliceConfigFromInterface(config []any, target []any) {
+	for i := 0; i < len(config) && i < len(target); i++ {
+		ParseConfigFromInterface(config[i].(map[string]any), target[i])
 	}
 }
