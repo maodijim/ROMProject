@@ -1,6 +1,4 @@
 // Define ConfigField component outside to allow recursive rendering
-import { api } from '../api.js';
-
 const ConfigField = {
     name: 'ConfigField',
     template: `
@@ -21,25 +19,47 @@ const ConfigField = {
                     />
                 </div>
             </div>
-
             <div v-else-if="isArray" class="array-field">
                 <label>{{ formatFieldName(fieldKey) }}</label>
                 <div class="array-items">
                     <div v-for="(item, index) in fieldValue" :key="index" class="array-item">
-                        <config-field
-                            :field-key="index"
-                            :field-value="item"
-                            :path="path + '[' + index + ']'"
-                            :show-label="false"
-                            @update="propagateUpdate"
-                        />
-                        <button
-                            type="button"
-                            @click="removeArrayItem(index)"
-                            class="btn btn-danger btn-xs"
-                        >
-                            ×
-                        </button>
+                        <!-- ✅ 如果是陣列 → 用 combobox -->
+                        <template v-if="fieldKey && optionsMap.hasOwnProperty(String(fieldKey).toLowerCase())">
+                            <select
+                                :id="'config-' + path + '-' + index"
+                                class="config-form-control"
+                                :value="item"
+                                @change="handleArraySelect(index, $event.target.value)"
+                            >
+                                <option value="">请选择</option>
+                                <option
+                                    v-for="opt in getAvailableOptions(
+                                    index,
+                                    optionsMap[String(fieldKey).toLowerCase()]
+                                )"
+                                :key="opt"
+                                :value="opt"
+                                >
+                                {{ opt }}
+                                </option>
+                            </select>
+                        </template>
+                        <template v-else>
+                            <config-field
+                                :field-key="index"
+                                :field-value="item"
+                                :path="path + '[' + index + ']'"
+                                :show-label="false"
+                                @update="propagateUpdate"
+                            />
+                        </template>
+                            <button 
+                                type="button" 
+                                @click="removeArrayItem(index)" 
+                                class="btn btn-danger btn-xs"
+                            >
+                                ×
+                            </button>
                     </div>
                 </div>
                 <button
@@ -74,9 +94,29 @@ const ConfigField = {
 
     <div v-else>
         <label v-if="showLabel" :for="'config-' + path">{{ formatFieldName(fieldKey) }}</label>
+        
+        <select
+            v-if="typeof fieldValue === 'string' 
+                && fieldKey 
+                && optionsMap.hasOwnProperty(String(fieldKey).toLowerCase())"
+            :id="'config-' + path"
+            class="config-form-control"
+            :value="fieldValue"
+            @change="handleInput($event.target.value)"
+        >
+            <option value="">请选择</option>
+            <option
+                v-for="opt in optionsMap[String(fieldKey).toLowerCase()]"
+                :key="opt"
+                :value="opt"
+            >       
+                {{ opt }}
+            </option>
+        </select>
 
+        <!-- ✅ 否则维持原本 textbox -->
         <input
-            v-if="typeof fieldValue === 'string'"
+            v-else-if="typeof fieldValue === 'string'"
             :id="'config-' + path"
             :value="fieldValue"
             @input="handleInput($event.target.value)"
@@ -125,7 +165,13 @@ const ConfigField = {
     },
     data() {
         return {
-            collapsed: false
+            collapsed: false,
+            optionsMap: {
+                mini: [],
+                mvp: [],
+                hmvp: [],
+                map: [],
+            }
         };
     },
     computed: {
@@ -136,6 +182,16 @@ const ConfigField = {
         },
         isArray() {
             return Array.isArray(this.fieldValue);
+        },
+    },
+    mounted() {
+        if (!this.fieldKey) return
+
+        const key = String(this.fieldKey).toLowerCase()
+
+        // ✅ 只要是你定义过的类型，就自动载入
+        if (this.optionsMap.hasOwnProperty(key)) {
+            this.loadOptions(key)
         }
     },
     methods: {
@@ -173,7 +229,48 @@ const ConfigField = {
         clearArrayItems() {
             // replace the array at this.path with an empty array
             this.$emit('update', this.path, []);
-        }
+        },
+        async loadOptions(type) {
+            try {
+                if (!type) return
+
+                // ✅ 统一一个 API 规则：/api/options/{type}
+                // 例如： mini / mvp / boss
+                const res = await fetch(`/api/options/${type}`)
+                const json = await res.json()
+
+                if (json && json.success && Array.isArray(json.data)) {
+                    // ✅ 动态存到对应的 options 容器
+                    this.optionsMap[type] = json.data
+                } else {
+                    this.optionsMap[type] = []
+                }
+            } catch (err) {
+                console.error(`载入 ${type} 选项失败`, err)
+                this.optionsMap[type] = []
+            }
+        },
+
+        //陣列某一列选取
+        handleArraySelect(index, value) {
+            const itemPath = this.path + '[' + index + ']'
+            this.$emit('update', itemPath, value)
+        },
+
+        // ✅ 动态过滤掉已选过
+        getAvailableOptions(index, sourceOptions) {
+            if (!Array.isArray(sourceOptions)) return []
+
+            const selected = Array.isArray(this.fieldValue)
+                ? this.fieldValue.slice()
+                : []
+
+            const current = selected[index]
+
+            return sourceOptions.filter(opt =>
+                opt === current || !selected.includes(opt)
+            )
+        },
     }
 };
 
@@ -231,7 +328,7 @@ export default {
             if (newVal) {
                 this.loadConfiguration();
             }
-        }
+        },
     },
     methods: {
         applyBodyScrollLock(disable) {
@@ -242,8 +339,10 @@ export default {
             this.config = {};
 
             try {
-                const response = await api.fetchFeatureConfig(this.username, this.functionName);
-                const data = await response;
+                const response = await fetch(
+                    `http://localhost:8081/api/feature/config?username=${this.username}&functionName=${this.functionName}`
+                );
+                const data = await response.json();
 
                 if (data.success) {
                     this.config = JSON.parse(JSON.stringify(data.data || {}));
@@ -279,12 +378,16 @@ export default {
         },
         async handleSubmit() {
             try {
-                const response = await api.updateFeatureConfig(
-                    this.username,
-                    this.functionName,
-                    this.config
-                )
-                const data = await response;
+                const response = await fetch('http://localhost:8081/api/feature/config/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: this.username,
+                        featureName: this.functionName,
+                        config: this.config
+                    })
+                });
+                const data = await response.json();
 
                 if (data.success) {
                     this.$emit('success', '配置更新成功');

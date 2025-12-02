@@ -38,6 +38,10 @@ func main() {
 	http.HandleFunc("/api/feature/chat", handleGetFeatureTaskChatHistory)
 	http.HandleFunc("/api/feature/chat/send", handleSendChatMsg)
 	http.HandleFunc("/ws/logs", webSocketHandler)
+	http.HandleFunc("/api/options/mini", GetMiniList)
+	http.HandleFunc("/api/options/mvp", GetMVPList)
+	http.HandleFunc("/api/options/hmvp", GetHMVPList)
+	http.HandleFunc("/api/options/map", GetHMAPList)
 
 	log.Println("Version: ", _ver)
 	log.Println(fmt.Sprintf("Server starting on http://localhost:%s", *port))

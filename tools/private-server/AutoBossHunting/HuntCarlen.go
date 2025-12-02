@@ -10,48 +10,46 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-type Work int
-
-const (
-	Init Work = iota
-	TeleportMap
-	MOVE_RABBIDSPOS
-	CHECK_RABBIDS
-	HUNT_RABBIDS
-	MOVE_CARLENPOS
-	CHECK_CARLEN
-	HUNT_CARLEN
-	End
-)
-
-func i32(v int32) *int32 { return &v }
-
-var RabbidsPos = []Cmd.ScenePos{
+var CarlenPos = []Cmd.ScenePos{
 	{X: i32(10165), Y: i32(27), Z: i32(-57086)},
 	{X: i32(20845), Y: i32(27), Z: i32(-85483)},
 	{X: i32(-29854), Y: i32(27), Z: i32(-84827)},
 	{X: i32(-41499), Y: i32(127), Z: i32(-51326)},
+	{X: i32(-29854), Y: i32(62), Z: i32(-87337)},
+}
+
+var BigBadWolfPos = []Cmd.ScenePos{
+	{X: i32(-2277), Y: i32(11032), Z: i32(-48103)},
+	{X: i32(-30273), Y: i32(11032), Z: i32(-63487)},
+	{X: i32(-54962), Y: i32(11032), Z: i32(-62435)},
+	{X: i32(38268), Y: i32(8490), Z: i32(-305)},
 }
 
 func (b *BossHuntTask) huntCarlen() {
+	TargetMVP := b.targetHiddenMVP.Info
+
+	PrerequisiteMonsters := b.targetHiddenMVP.PrerequisiteMonsters
+
+	PosList := b.targetHiddenMVP.PosList
+
 	for {
-		b.checkCarlonApear() // 确认卡伦是否复活
+		b.checkApear(TargetMVP.NameZh) // 确认卡伦是否复活
 		switch b.workState {
 		// 初始化
 		case Init:
-			log.Infof("开始狩猎卡仑")
-			b.findCarlen = false
-			b.haveCarlen = false
+			log.Infof("开始狩猎%s", TargetMVP.NameZh)
+			b.findBoss = false
+			b.haveBoss = false
 			b.posCount = 0
 			b.transition(TeleportMap)
 			break
-		// 传送到姜饼城
+		// 传送到目标地图
 		case TeleportMap:
-			b.logger.Infof("传送到姜饼城")
+			b.logger.Infof("传送到%s", gameTypes.MapIdToZh[b.targetHiddenMVP.Map])
 			if b.GC.Configs.HuntConfig.CarryTeam {
-				b.GC.TeamGoToMap(gameTypes.MapId_GingerbreadCity.Uint32())
+				b.GC.TeamGoToMap(b.targetHiddenMVP.Map.Uint32())
 			} else {
-				b.GC.GoToMap(gameTypes.MapId_GingerbreadCity.Uint32())
+				b.GC.GoToMap(b.targetHiddenMVP.Map.Uint32())
 			}
 
 			time.Sleep(time.Millisecond * 1000)
@@ -61,76 +59,70 @@ func (b *BossHuntTask) huntCarlen() {
 			time.Sleep(time.Millisecond * 1000)
 			b.useSkill()
 			time.Sleep(time.Millisecond * 1000)
-			b.transition(MOVE_RABBIDSPOS)
+			b.transition(MOVE_PrerequisiteMonstersPOS)
 			break
-		// 移动到疯兔地点
-		case MOVE_RABBIDSPOS:
-			if int(b.posCount) < len(RabbidsPos) {
-				if b.GC.MoveChartWait(RabbidsPos[b.posCount]) {
-					log.Infof("抵达疯兔出生点%d", b.posCount+1)
-					b.transition(CHECK_RABBIDS)
+		// 移动到前置怪物地点
+		case MOVE_PrerequisiteMonstersPOS:
+			if int(b.posCount) < len(PosList)-1 {
+				if b.GC.MoveChartWait(PosList[b.posCount]) {
+					log.Infof("抵达%s出生点%d", PrerequisiteMonsters.NameZh, b.posCount+1)
+					b.transition(CHECK_PrerequisiteMonsters)
 				}
 			} else {
-				if b.haveCarlen {
-					log.Infof("疯兔狩猎完成，开始狩猎卡仑")
-					b.transition(MOVE_CARLENPOS)
+				if b.haveBoss {
+					log.Infof("%s狩猎完成，开始狩猎%s", PrerequisiteMonsters.NameZh, TargetMVP.NameZh)
+					b.transition(MOVE_BOSSPOS)
 				} else {
-					if _, ok := b.hiddenMVPList["卡仑"]; ok {
-						obj := b.hiddenMVPList["卡仑"]
-						obj.RespawnTime = time.Now().Add(10 * time.Minute)
-						b.hiddenMVPList["卡仑"] = obj
-					} else {
-						log.Error("卡仑不在列表中")
-					}
-					log.Infof("未搜寻到卡仑，重新查找时间:%s", b.hiddenMVPList["卡仑"].RespawnTime.Format("2006-01-02 15:04:05"))
+					b.targetHiddenMVP.RespawnTime = time.Now().Add(10 * time.Minute)
+					log.Infof("未搜寻到%s，重新查找时间:%s", TargetMVP.NameZh, b.targetHiddenMVP.RespawnTime.Format("2006-01-02 15:04:05"))
 					b.transition(Init)
 					return
 				}
 			}
 			break
-		// 确认有疯兔
-		case CHECK_RABBIDS:
-			if b.GC.IsMonsterInRange("疯兔") {
-				b.logger.Infof("出生点%d发现疯兔，开始狩猎疯兔", b.posCount+1)
-				b.haveCarlen = true
-				b.fightMonstStar("疯兔", 0)
-				b.transition(HUNT_RABBIDS)
+		// 确认有前置怪物
+		case CHECK_PrerequisiteMonsters:
+			if b.GC.IsMonsterInRange(PrerequisiteMonsters.NameZh) {
+				b.logger.Infof("出生点%d发现%s，开始狩猎%s", b.posCount+1, PrerequisiteMonsters.NameZh, PrerequisiteMonsters.NameZh)
+				b.haveBoss = true
+				b.fightMonstStar(PrerequisiteMonsters.NameZh, 0)
+				b.transition(HUNT_PrerequisiteMonsters)
 			} else {
-				b.logger.Infof("出生点%d未发现疯兔，到疯兔点%d", b.posCount+1, b.posCount+2)
+				b.logger.Infof("出生点%d未发现%s，到%s点%d", b.posCount+1, PrerequisiteMonsters.NameZh, PrerequisiteMonsters.NameZh, b.posCount+2)
 				b.fightCancel()
 				b.posCount++
-				b.transition(MOVE_RABBIDSPOS)
+				b.transition(MOVE_PrerequisiteMonstersPOS)
 			}
 			break
 		// 狩猎疯兔
-		case HUNT_RABBIDS:
-			if !b.GC.IsMonsterInRange("疯兔") {
-				b.logger.Infof("出生点%d疯兔狩猎完成，到疯兔点%d", b.posCount+1, b.posCount+2)
+		case HUNT_PrerequisiteMonsters:
+			if !b.GC.IsMonsterInRange(PrerequisiteMonsters.NameZh) {
+				b.logger.Infof("%s点%d狩猎完成，到%s点%d", PrerequisiteMonsters.NameZh, b.posCount+1, PrerequisiteMonsters.NameZh, b.posCount+2)
 				b.posCount++
 				b.fightCancel()
-				b.transition(MOVE_RABBIDSPOS)
+				b.transition(MOVE_PrerequisiteMonstersPOS)
 			}
 			break
 		// 移动到卡伦出生位置
-		case MOVE_CARLENPOS:
-			if b.GC.MoveChartWait(b.GC.ParsePos(-29854, 62, -87337)) {
-				b.transition(CHECK_RABBIDS)
+		case MOVE_BOSSPOS:
+			if b.GC.MoveChartWait(PosList[len(PosList)-1]) {
+				b.transition(CHECK_BOSS)
 			}
 			break
 		// 确认卡伦
-		case CHECK_CARLEN:
-			if b.GC.IsMonsterInRange("卡仑") {
-				b.fightMonstStar("卡仑", 0)
-				b.transition(HUNT_CARLEN)
+		case CHECK_BOSS:
+			if b.GC.IsMonsterInRange(TargetMVP.NameZh) {
+				b.fightMonstStar(TargetMVP.NameZh, 0)
+				b.transition(HUNT_BOSS)
 			} else {
 				b.fightCancel()
 				b.posCount++
-				b.transition(MOVE_RABBIDSPOS)
+				b.transition(MOVE_PrerequisiteMonstersPOS)
 			}
 			break
 		// 狩猎卡伦
-		case HUNT_CARLEN:
-			if b.GC.IsMonsterInRange("卡仑") {
+		case HUNT_BOSS:
+			if b.GC.IsMonsterInRange(TargetMVP.NameZh) {
 				TargetID := b.GC.AtkStat.GetCurrentTargetId()
 				MapNPC := b.GC.GetMapNpcs()
 				if TargetID != 0 && MapNPC[TargetID].Attrs != nil {
@@ -139,7 +131,7 @@ func (b *BossHuntTask) huntCarlen() {
 					if MonsterHP != b.tempMHP || MHP != b.tempUHP {
 						b.tempMHP = MonsterHP
 						b.tempUHP = MHP
-						b.logger.Infof("%s 未死亡，剩余血量:%d", "卡仑", MonsterHP)
+						b.logger.Infof("%s 未死亡，剩余血量:%d", TargetMVP.NameZh, MonsterHP)
 						b.logger.Infof("我的血量:%d", MHP)
 					} else if MonsterHP == 0 {
 						b.transition(End)
@@ -151,15 +143,9 @@ func (b *BossHuntTask) huntCarlen() {
 			break
 		// 结束
 		case End:
-			if _, ok := b.hiddenMVPList["卡仑"]; ok {
-				obj := b.hiddenMVPList["卡仑"]
-				obj.RespawnTime = time.Now().Add(30 * time.Minute)
-				b.hiddenMVPList["卡仑"] = obj
-			} else {
-				b.logger.Error("卡仑不在列表中")
-			}
+			b.targetHiddenMVP.RespawnTime = time.Now().Add(30 * time.Minute)
 			b.fightCancel()
-			b.logger.Infof("卡仑已死亡，复活时间:%s", b.hiddenMVPList["卡仑"].RespawnTime.Format("2006-01-02 15:04:05"))
+			b.logger.Infof("%s已死亡，复活时间:%s", TargetMVP.NameZh, b.targetHiddenMVP.RespawnTime.Format("2006-01-02 15:04:05"))
 			time.Sleep(time.Millisecond * 3000)
 			b.transition(Init)
 			return
@@ -168,22 +154,16 @@ func (b *BossHuntTask) huntCarlen() {
 		time.Sleep(time.Millisecond * 100)
 	}
 }
-func (b *BossHuntTask) checkCarlonApear() bool {
-	if !b.findCarlen && b.GC.IsMonsterInRange("卡仑") {
-		b.findCarlen = true
-		b.logger.Infof("发现卡仑，开始狩猎")
+func (b *BossHuntTask) checkApear(BossName string) bool {
+	if !b.findBoss && b.GC.IsMonsterInRange(BossName) {
+		b.findBoss = true
+		b.logger.Infof("发现%s，开始狩猎", BossName)
 		b.fightCancel()
-		b.fightMonstStar("卡仑", 0)
-		b.transition(HUNT_CARLEN)
+		b.fightMonstStar(BossName, 0)
+		b.transition(HUNT_BOSS)
 		return true
 	} else {
 		return false
-	}
-}
-
-func (b *BossHuntTask) transition(SwitchState Work) {
-	if b.workState != SwitchState {
-		b.workState = SwitchState
 	}
 }
 

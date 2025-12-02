@@ -1018,6 +1018,12 @@ func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 	if gc.MonsterItems == nil {
 		gc.MonsterItems = map[uint32]utils.MonsterInfo{}
 	}
+
+	for zh, id := range gameTypes.MapNameZh {
+		// 如果同一个 MapId 有多个中文名，后面的会覆盖前面的
+		gameTypes.MapIdToZh[id] = zh
+	}
+
 	return gc
 }
 

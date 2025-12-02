@@ -39,8 +39,15 @@ var features = []Feature{
 		execFunc:     backendTasks.NewAutoBossHuntingTask,
 	},
 	{
-		Name:         "自动跟随定位",
+		Name:         "自动挂机打怪",
 		Desc:         "Description of Feature C",
+		Actions:      []string{"Start", "Stop", "Configure", "Log"},
+		FunctionName: "AutoHunt",
+		execFunc:     backendTasks.NewAutoHuntingTask,
+	},
+	{
+		Name:         "自动跟随定位",
+		Desc:         "Description of Feature D",
 		Actions:      []string{"Start", "Stop", "Log"},
 		FunctionName: "AutoFollowPosition",
 		execFunc:     backendTasks.NewAutoFollowPositionTask,
@@ -327,7 +334,16 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 			} else {
 				existingConfig = defaultConfig
 			}
-			config = existingConfig
+
+			viewConfig := map[string]interface{}{
+				"GameDuration": existingConfig.GameDuration,
+				"CarryTeam":    existingConfig.CarryTeam,
+				"PrepEliteCD":  existingConfig.PrepEliteCD,
+				"Mini":         existingConfig.Mini,
+				"MVP":          existingConfig.MVP,
+				"HMVP":         existingConfig.HMVP,
+			}
+			config = viewConfig
 		case "MarketMonitor":
 			defaultConfig := usersSpace.Configs[username].TradeMonitorConfig.GetDefault()
 			var existingConfig gameConfig.TradeMonitorConfig
@@ -345,6 +361,24 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			config = existingConfig
+		case "AutoHunt":
+			huntconfig := usersSpace.Configs[username].HuntConfig
+
+			if huntconfig.TargetMonsters == nil {
+				huntconfig.TargetMonsters = []string{}
+			}
+			if huntconfig.TargetItems == nil {
+				huntconfig.TargetItems = []string{}
+			}
+
+			viewConfig := map[string]interface{}{
+				"TimerFly":       huntconfig.TimerFly,
+				"PrepEliteCD":    huntconfig.PrepEliteCD,
+				"TargetMonsters": huntconfig.TargetMonsters,
+				"TargetItems":    huntconfig.TargetItems,
+				"Map":            huntconfig.Map,
+			}
+			config = viewConfig
 		default:
 			config = map[string]interface{}{}
 		}
@@ -409,12 +443,16 @@ func handleUpdateFeatureConfig(w http.ResponseWriter, r *http.Request) {
 		userConfigs.EnchantConfig = config
 	case "AutoMVP":
 		config := userConfigs.HuntConfig
-		config.ParseFromInterface(req.Config)
+		config.BossInfoParseFromInterface(req.Config)
 		userConfigs.HuntConfig = config
 	case "MarketMonitor":
 		config := userConfigs.TradeMonitorConfig
 		config.ParseFromInterface(req.Config)
 		userConfigs.TradeMonitorConfig = config
+	case "AutoHunt":
+		config := userConfigs.HuntConfig
+		config.HuntInfoParseFromInterface(req.Config)
+		userConfigs.HuntConfig = config
 	default:
 		json.NewEncoder(w).Encode(Response{
 			Success: false,
@@ -607,5 +645,186 @@ func handleSendChatMsg(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(Response{
 		Success: true,
 		Message: "Chat message sent successfully",
+	})
+}
+
+func GetMiniList(w http.ResponseWriter, r *http.Request) {
+	list := []string{
+		"狸猫",
+		"蓝疯兔",
+		"波利之王",
+		"摇滚蝗虫",
+		"幽灵波利",
+		"蛙王",
+		"直升机哥布灵",
+		"龙蝇",
+		"流浪之狼",
+		"枯树精",
+		"狮鹫兽",
+		"安毕斯",
+		"妖君",
+		"兽人婴儿",
+		"南瓜先生",
+		"半龙人",
+		"草精",
+		"鹗枭首领",
+		"爱丽丝女仆",
+		"艾斯恩魔女",
+		"弑神者",
+		"迷幻之王",
+		"大笨钟",
+		"钟塔守护者",
+		"魔灵娃娃",
+		"炎之小魔女",
+		"吹笛人",
+		"银月魔女",
+		"暗赛尼亚",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    list,
+	})
+}
+
+func GetMVPList(w http.ResponseWriter, r *http.Request) {
+	list := []string{
+		"天使波利",
+		"黄金虫",
+		"恶魔波利",
+		"海盗之王",
+		"海神",
+		"哥布灵首领",
+		"蜂后",
+		"蚁后",
+		"皮里恩",
+		"虎王",
+		"俄塞里斯",
+		"月夜猫",
+		"兽人英雄",
+		"犬妖首领",
+		"死灵",
+		"阿特罗斯",
+		"兽人酋长",
+		"迪塔勒泰晤勒",
+		"鹗枭男爵",
+		"血腥骑士",
+		"巴风特",
+		"黑暗之王",
+		"时间管理人",
+		"斯佩夏尔",
+		"冰暴骑士",
+		"炎之领主卡浩",
+		"圣天使波利",
+		"凯特莉娜",
+		"艾勒梅斯",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    list,
+	})
+}
+
+func GetHMVPList(w http.ResponseWriter, r *http.Request) {
+	list := []string{
+		"卡仑",
+		"狼外婆",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    list,
+	})
+}
+
+func GetHMAPList(w http.ResponseWriter, r *http.Request) {
+	list := []string{
+		"普隆德拉",
+		"普隆德拉南门",
+		"普隆德拉西门",
+		"迷藏森林",
+		"伊斯鲁得岛",
+		"沉船",
+		"幽灵船",
+		"海底洞窟岛",
+		"海底神殿",
+		"吉芬",
+		"妙勒尼山脉",
+		"摩洛克",
+		"金字塔 1F",
+		"斐扬",
+		"斐扬南门",
+		"兽人村落",
+		"古城郊外",
+		"古城",
+		"斐扬森林",
+		"哥布林森林",
+		"科德森林",
+		"苏克拉特沙漠",
+		"普隆德拉北门",
+		"阿尔德巴朗",
+		"普隆德拉大厅 1F",
+		"姜饼城",
+		"玩具工厂 1F",
+		"波利岛",
+		"斐扬森林南部",
+		"兽人村落南部",
+		"古城外围",
+		"天水之国·安塔修",
+		"尤诺",
+		"边境检查站",
+		"艾因布洛克原野",
+		"熔岩洞窟 1F",
+		"熔岩洞窟 2F",
+		"熔岩洞窟 3F",
+		"莱斯特灯塔",
+		"尼芙海姆",
+		"迷雾森林",
+		"骷髅洞穴",
+		"哈姆林",
+		"乌帕拉",
+		"里希塔尔岑",
+		"里希塔尔岑平原",
+		"生体地下1F",
+		"生体地下2F",
+		"生体地下3F",
+		"伊达平原",
+		"瑞秋",
+		"拉萨尼亚",
+		"多拉多岛",
+		"意大利饺森林",
+		"洛阳",
+		"夕阳海岸",
+		"荒境",
+		"月之湖",
+		"伊克莱基",
+		"时间花园",
+		"克雷普特学院",
+		"星泪森林",
+		"绽放之地",
+		"风之森",
+		"科摩多",
+		"可可蒙海滩",
+		"流星森林",
+		"阿尔贝塔",
+		"海龟岛",
+		"古城之泪",
+		"副本·极限挑战",
+		"深渊之湖",
+
+		// 特殊地图
+		"高级房间",
+		"皇家料理间",
+		"公会领地",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    list,
 	})
 }

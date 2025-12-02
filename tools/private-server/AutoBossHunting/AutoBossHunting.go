@@ -17,8 +17,11 @@ import (
 )
 
 type HiddenMVP struct {
-	Info        utils.MonsterInfo
-	RespawnTime time.Time
+	Info                 utils.MonsterInfo
+	Map                  gameTypes.MapId
+	RespawnTime          time.Time
+	PrerequisiteMonsters utils.MonsterInfo
+	PosList              []Cmd.ScenePos
 }
 
 type BossHuntTask struct {
@@ -47,13 +50,29 @@ type BossHuntTask struct {
 	fightCancel     context.CancelFunc
 	workState       Work
 	posCount        int32
-	haveCarlen      bool
-	findCarlen      bool
+	haveBoss        bool
+	findBoss        bool
 }
 
 func (b *BossHuntTask) GetContext() context.Context {
 	return b.ctx
 }
+
+type Work int
+
+const (
+	Init Work = iota
+	TeleportMap
+	MOVE_PrerequisiteMonstersPOS
+	CHECK_PrerequisiteMonsters
+	HUNT_PrerequisiteMonsters
+	MOVE_BOSSPOS
+	CHECK_BOSS
+	HUNT_BOSS
+	End
+)
+
+func i32(v int32) *int32 { return &v }
 
 func (b *BossHuntTask) SetLogger(writer io.Writer) {
 	mw := io.MultiWriter(b.GC.LogWriter(), writer)
@@ -176,9 +195,20 @@ func (b *BossHuntTask) startHunt() {
 	b.hiddenMVPList = map[string]HiddenMVP{}
 	for _, v := range ConfigMVPName {
 		if b.GC.GetMonsterIdByName(v) != 0 {
-			HMVP := HiddenMVP{
-				Info:        b.GC.MonsterItemsByName[v],
-				RespawnTime: time.Now(),
+			var HMVP HiddenMVP
+			switch v {
+			case "卡仑":
+				HMVP.Info = b.GC.MonsterItemsByName[v]
+				HMVP.RespawnTime = time.Now()
+				HMVP.Map = gameTypes.MapId_GingerbreadCity
+				HMVP.PrerequisiteMonsters = b.GC.MonsterItemsByName["疯兔"]
+				HMVP.PosList = CarlenPos
+			case "狼外婆":
+				HMVP.Info = b.GC.MonsterItemsByName[v]
+				HMVP.RespawnTime = time.Now()
+				HMVP.Map = gameTypes.MapId_MistyForest
+				HMVP.PrerequisiteMonsters = b.GC.MonsterItemsByName["尖叫魔"]
+				HMVP.PosList = BigBadWolfPos
 			}
 			b.hiddenMVPList[v] = HMVP
 		}
@@ -575,5 +605,11 @@ func NewBossHuntTask(ctx context.Context, gc *gameConnection.GameConnection) *Bo
 		fightCtx:        fiightCtx,
 		workState:       Init,
 		targetHiddenMVP: HiddenMVP{},
+	}
+}
+
+func (b *BossHuntTask) transition(SwitchState Work) {
+	if b.workState != SwitchState {
+		b.workState = SwitchState
 	}
 }

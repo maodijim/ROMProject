@@ -1,12 +1,12 @@
 package config
 
 import (
+	"ROMProject/utils"
 	"bytes"
 	"io"
 	"os"
 
 	"ROMProject/data"
-	"ROMProject/utils"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -42,16 +42,85 @@ type EnchantCondition struct {
 }
 
 type HuntConfig struct {
-	CarryTeam    bool     `yaml:"CarryTeam" json:"组队一起飞"`
-	GameDuration int      `yaml:"GameDuration" json:"狩猎时长(小时) 0为无限制"`
-	Mini         []string `yaml:"Mini" json:"Mini"`
-	MVP          []string `yaml:"MVP" json:"MVP"`
-	HMVP         []string `yaml:"HMVP" json:"隐藏MVP"`
-	PrepEliteCD  int      `yaml:"PrepEliteCD" json:"备战精英技能冷却时间(秒)"`
+	CarryTeam      bool     `yaml:"CarryTeam" json:"组队一起飞"`
+	GameDuration   int      `yaml:"GameDuration" json:"狩猎时长(小时) 0为无限制"`
+	Mini           []string `yaml:"Mini" json:"Mini狩猎清单"`
+	MVP            []string `yaml:"MVP" json:"MVP狩猎清单"`
+	HMVP           []string `yaml:"HMVP" json:"HMVP狩猎清单"`
+	PrepEliteCD    int      `yaml:"PrepEliteCD" json:"备战精英技能冷却时间(秒)"`
+	TimerFly       int      `yaml:"TimerFly" json:"固定时间使用翅膀(0为不使用)"`
+	TargetMonsters []string `yaml:"TargetMonsters" json:"狩猎魔物清单"`
+	TargetItems    []string `yaml:"TargetItems" json:"狩猎物品清单"`
+	Map            string   `yaml:"TargetMap" json:"狩猎地图"`
 }
 
-func (c *HuntConfig) ParseFromInterface(config map[string]any) HuntConfig {
-	utils.ParseConfigFromInterface(config, c)
+func (c *HuntConfig) BossInfoParseFromInterface(config map[string]interface{}) HuntConfig {
+	if val, ok := config["CarryTeam"].(bool); ok {
+		c.CarryTeam = val
+	}
+	if val, ok := config["GameDuration"].(float64); ok {
+		c.GameDuration = int(val)
+	}
+	if val, ok := config["Mini"].([]interface{}); ok {
+		mini := make([]string, len(val))
+		for i, v := range val {
+			if str, ok := v.(string); ok {
+				mini[i] = str
+			}
+		}
+		c.Mini = mini
+	}
+	if val, ok := config["MVP"].([]interface{}); ok {
+		mvp := make([]string, len(val))
+		for i, v := range val {
+			if str, ok := v.(string); ok {
+				mvp[i] = str
+			}
+		}
+		c.MVP = mvp
+	}
+	if val, ok := config["HMVP"].([]interface{}); ok {
+		hmvp := make([]string, len(val))
+		for i, v := range val {
+			if str, ok := v.(string); ok {
+				hmvp[i] = str
+			}
+		}
+		c.HMVP = hmvp
+	}
+	if val, ok := config["PrepEliteCD"].(float64); ok {
+		c.PrepEliteCD = int(val)
+	}
+	return *c
+}
+func (c *HuntConfig) HuntInfoParseFromInterface(config map[string]interface{}) HuntConfig {
+	if val, ok := config["PrepEliteCD"].(float64); ok {
+		c.PrepEliteCD = int(val)
+	}
+	if val, ok := config["TargetMonsters"].([]interface{}); ok {
+		TargetMonsters := make([]string, len(val))
+		for i, v := range val {
+			if str, ok := v.(string); ok {
+				TargetMonsters[i] = str
+			}
+		}
+		c.TargetMonsters = TargetMonsters
+	}
+	if val, ok := config["TargetItems"].([]interface{}); ok {
+		TargetItems := make([]string, len(val))
+		for i, v := range val {
+			if str, ok := v.(string); ok {
+				TargetItems[i] = str
+			}
+		}
+		c.TargetItems = TargetItems
+	}
+	if val, ok := config["Map"].(string); ok {
+		c.Map = string(val)
+	}
+	if val, ok := config["TimerFly"].(float64); ok {
+		c.TimerFly = int(val)
+	}
 	return *c
 }
 
@@ -60,7 +129,7 @@ func (c *HuntConfig) GetDefault() HuntConfig {
 		CarryTeam:    false,
 		GameDuration: 0,
 		Mini: []string{
-			"狸猫", "蓝疯兔", "波利之王", "摇滚蝗虫", "蛙王", "直升机哥布灵", "龙蝇", "流浪之狼",
+			"狸猫", "蓝疯兔", "波利之王", "摇滚蝗虫", "幽灵波利", "蛙王", "直升机哥布灵", "龙蝇", "流浪之狼",
 			"枯树精", "狮鹫兽", "安毕斯", "妖君", "兽人婴儿", "南瓜先生", "半龙人", "草精",
 			"鹗枭首领", "爱丽丝女仆", "艾斯恩魔女", "弑神者", "迷幻之王",
 		},
@@ -70,7 +139,7 @@ func (c *HuntConfig) GetDefault() HuntConfig {
 			"兽人酋长", "鹗枭男爵", "血腥骑士", "巴风特", "黑暗之王",
 		},
 		HMVP: []string{
-			"卡仑",
+			"卡仑", "狼外婆",
 		},
 		PrepEliteCD: 30,
 	}
