@@ -17,12 +17,12 @@ type EsConfig struct {
 }
 
 type EnchantConfig struct {
-	AutoSave        bool              `yaml:"autoSave" json:"autoSave"`
-	EnchantType     string            `yaml:"enchantType" json:"enchantType"`
-	EnchantEquipPos string            `yaml:"enchantEquipPos" json:"enchantEquipPos"`
-	Condition       EnchantCondition  `yaml:"condition" json:"condition"`
-	AutoBuyCoin     AutoBuyCoinConfig `yaml:"autoBuyCoin" json:"autoBuyCoin"`
-	EnchantCount    uint32            `yaml:"enchantCount" json:"enchantCount"`
+	AutoSave        bool              `yaml:"autoSave" json:"自动保存"`
+	EnchantType     string            `yaml:"enchantType" json:"附魔类型(高级/中级/低级)"`
+	EnchantEquipPos string            `yaml:"enchantEquipPos" json:"附魔部位(武器/副手/盔甲/鞋子/披风/头饰/饰品1/饰品2/背部/尾部/脸部/嘴部)"`
+	Condition       EnchantCondition  `yaml:"condition" json:"附魔目标条件"`
+	AutoBuyCoin     AutoBuyCoinConfig `yaml:"autoBuyCoin" json:"自动购买金币"`
+	EnchantCount    uint32            `yaml:"enchantCount" json:"附魔次数"`
 }
 
 func (c *EnchantConfig) ParseFromInterface(config map[string]any) EnchantConfig {
@@ -37,17 +37,17 @@ type AutoBuyCoinConfig struct {
 }
 
 type EnchantCondition struct {
-	Attributes []string `yaml:"attributes" json:"attributes"`
-	Extras     []string `yaml:"extras" json:"extras"`
+	Attributes []string `yaml:"attributes" json:"属性(必须跟游戏里面的属性描述一样要不然可能无法识别 比如 '暴伤% > 80')"`
+	Extras     []string `yaml:"extras" json:"词条(比如 '尖锐4')"`
 }
 
 type HuntConfig struct {
-	CarryTeam    bool     `yaml:"CarryTeam" json:"CarryTeam"`
-	GameDuration int      `yaml:"GameDuration" json:"GameDuration"`
+	CarryTeam    bool     `yaml:"CarryTeam" json:"组队一起飞"`
+	GameDuration int      `yaml:"GameDuration" json:"狩猎时长(小时) 0为无限制"`
 	Mini         []string `yaml:"Mini" json:"Mini"`
 	MVP          []string `yaml:"MVP" json:"MVP"`
-	HMVP         []string `yaml:"HMVP" json:"HMVP"`
-	PrepEliteCD  int      `yaml:"PrepEliteCD" json:"PrepEliteCD"`
+	HMVP         []string `yaml:"HMVP" json:"隐藏MVP"`
+	PrepEliteCD  int      `yaml:"PrepEliteCD" json:"备战精英技能冷却时间(秒)"`
 }
 
 func (c *HuntConfig) ParseFromInterface(config map[string]any) HuntConfig {
