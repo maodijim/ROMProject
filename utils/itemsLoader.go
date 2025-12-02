@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"ROMProject/data"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -19,7 +20,7 @@ type ExchangeItem struct {
 	Overlap       string      `json:"Overlap,omitempty"`
 	UnTradeTime   string      `json:"UnTradeTime,omitempty"`
 	TFTradeTime   string      `json:"TFTradeTime,omitempty"`
-	TFUnTradeTime string      `json:"TRUnTradeTime,,omitempty"`
+	TFUnTradeTime string      `json:"TRUnTradeTime,omitempty"`
 }
 
 type BuffItem struct {
@@ -30,13 +31,13 @@ type BuffItem struct {
 	BuffName    string      `json:"BuffName"`
 	IconType    string      `json:"IconType,omitempty"`
 	NoAttack    string      `json:"NoAttack,omitempty"`
-	Odds        string      `json:"Odds,,omitempty"`
-	TransformID string      `json:"TransformID,,omitempty"`
+	Odds        string      `json:"Odds,omitempty"`
+	TransformID string      `json:"TransformID,omitempty"`
 	IsDisperse  string      `json:"isdisperse,omitempty"`
-	IsGain      string      `json:"isgain,,omitempty"`
+	IsGain      string      `json:"isgain,omitempty"`
 	Rate        json.Number `json:"rate,omitempty"`
 	Shape       string      `json:"shape,omitempty"`
-	Type        string      `json:"type,,omitempty"`
+	Type        string      `json:"type,omitempty"`
 }
 
 type BuffItemByName struct {
@@ -44,9 +45,9 @@ type BuffItemByName struct {
 }
 
 type BuffEffect struct {
-	AtkDistancePer float64 `json:"AtkDistancePer"`
-	Hit            int     `json:"Hit"`
-	Type           string  `json:"type"`
+	AtkDistancePer json.Number `json:"AtkDistancePer"`
+	Hit            json.Number `json:"Hit"`
+	Type           string      `json:"type"`
 }
 
 // Items All Available items
@@ -60,11 +61,11 @@ type Items struct {
 	Icon           string      `json:"Icon"`
 	Level          json.Number `json:"Level"`
 	LoadShowSize   string      `json:"LoadShowSize"`
-	MaxNum         uint32      `json:"MaxNum"`
+	MaxNum         json.Number `json:"MaxNum"`
 	NameZh         string      `json:"NameZh"`
 	NoStorage      string      `json:"NoStorage"`
 	Quality        json.Number `json:"Quality"`
-	SellPrice      string      `json:"SellPrice"`
+	SellPrice      json.Number `json:"SellPrice"`
 	Type           json.Number `json:"Type"`
 	Id             json.Number `json:"id"`
 }

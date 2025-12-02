@@ -11,7 +11,7 @@ import (
 
 func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 	type fields struct {
-		Role            *utils.RoleInfo
+		Role            *RoleInfo
 		Mutex           *sync.RWMutex
 		BuffItems       map[uint32]utils.BuffItem
 		BuffItemsByName map[string]utils.BuffItemByName
