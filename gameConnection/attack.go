@@ -290,7 +290,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 				g.MoveChart(*target.GetPos())
 			}
 			after := time.After(75 * time.Millisecond)
-			check := time.NewTicker(75 * time.Millisecond)
+			check := time.NewTicker(50 * time.Millisecond)
 			defer check.Stop()
 		moveToTargetLoop:
 			for {
