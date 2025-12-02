@@ -78,7 +78,7 @@ func start() {
 		ItemCount = append(ItemCount, curCount)
 	}
 
-	MapID := gameTypes.MapNameZh[g.Configs.HuntConfig.TargetMap].Uint32()
+	MapID := gameTypes.MapNameZh[g.Configs.HuntConfig.Map].Uint32()
 
 	ticker := time.NewTicker(time.Second * 5)
 	ticker2 := time.NewTicker(time.Second * 30)
