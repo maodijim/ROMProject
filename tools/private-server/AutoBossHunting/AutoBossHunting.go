@@ -3,7 +3,6 @@ package AutoBossHunting
 import (
 	"context"
 	"io"
-	"math"
 	"os"
 	"sync"
 	"time"
@@ -21,7 +20,8 @@ type HiddenMVP struct {
 	Map                  gameTypes.MapId
 	RespawnTime          time.Time
 	PrerequisiteMonsters utils.MonsterInfo
-	PosList              []Cmd.ScenePos
+	PrerequisitePosList  []Cmd.ScenePos
+	BossPosList          []Cmd.ScenePos
 }
 
 type BossHuntTask struct {
@@ -44,12 +44,13 @@ type BossHuntTask struct {
 	tempMHP         int32
 	tempUHP         int32
 	huntHidMVP      bool
-	targetHiddenMVP HiddenMVP
-	hiddenMVPList   map[string]HiddenMVP
+	targetHiddenMVP *HiddenMVP
+	hiddenMVPList   map[string]*HiddenMVP
 	fightCtx        context.Context
 	fightCancel     context.CancelFunc
 	workState       Work
 	posCount        int32
+	BossposCount    int32
 	haveBoss        bool
 	findBoss        bool
 }
@@ -92,7 +93,7 @@ func (b *BossHuntTask) Start() {
 		for {
 			select {
 			case <-ticker.C:
-				b.checkBossLive()
+				//b.checkBossLive()
 			case <-b.ctx.Done():
 				b.logger.Info("停止自动BOSS狩猎任务")
 				b.cancel()
@@ -121,7 +122,7 @@ func (b *BossHuntTask) checkBossLive() bool {
 				if time.Since(b.hiddenMVPList[v].RespawnTime) > time.Second*0 {
 					b.huntHidMVP = true
 					b.targetHiddenMVP = b.hiddenMVPList[v]
-					b.logger.Info("卡仑已复活，进行狩猎")
+					b.logger.Info("%s已复活，进行狩猎", v)
 					return true
 				} else {
 					remaining := time.Until(b.hiddenMVPList[v].RespawnTime)
@@ -192,23 +193,25 @@ func (b *BossHuntTask) startHunt() {
 	targetId := uint64(0)
 	// 隐藏MVP清单
 	ConfigMVPName := b.GC.Configs.HuntConfig.HMVP
-	b.hiddenMVPList = map[string]HiddenMVP{}
+	b.hiddenMVPList = map[string]*HiddenMVP{}
 	for _, v := range ConfigMVPName {
 		if b.GC.GetMonsterIdByName(v) != 0 {
-			var HMVP HiddenMVP
+			HMVP := &HiddenMVP{}
 			switch v {
 			case "卡仑":
 				HMVP.Info = b.GC.MonsterItemsByName[v]
 				HMVP.RespawnTime = time.Now()
 				HMVP.Map = gameTypes.MapId_GingerbreadCity
 				HMVP.PrerequisiteMonsters = b.GC.MonsterItemsByName["疯兔"]
-				HMVP.PosList = CarlenPos
+				HMVP.PrerequisitePosList = CrazyRabbitPos
+				HMVP.BossPosList = CarlenPos
 			case "狼外婆":
 				HMVP.Info = b.GC.MonsterItemsByName[v]
 				HMVP.RespawnTime = time.Now()
 				HMVP.Map = gameTypes.MapId_MistyForest
 				HMVP.PrerequisiteMonsters = b.GC.MonsterItemsByName["尖叫魔"]
-				HMVP.PosList = BigBadWolfPos
+				HMVP.PrerequisitePosList = ScreamingDemonPos
+				HMVP.BossPosList = BigBadWolfPos
 			}
 			b.hiddenMVPList[v] = HMVP
 		}
@@ -360,12 +363,8 @@ func (b *BossHuntTask) startHunt() {
 					time.Sleep(time.Millisecond * 1000)
 
 				} else if b.huntHidMVP {
-					switch b.targetHiddenMVP.Info.NameZh {
-					case "卡仑":
-						b.huntCarlen()
-						b.huntHidMVP = false
-						break
-					}
+					b.huntCarlen()
+					b.huntHidMVP = false
 				} else {
 					time.Sleep(time.Millisecond * 1000)
 				}
@@ -546,40 +545,6 @@ func IsPastTime(timestamp uint32) (bool, int64) {
 	return targetTime.Before(now), int64(diff)
 }
 
-func Distance3D(a, b *Cmd.ScenePos) float64 {
-	if a == nil || b == nil {
-		return -1 // 或 return 0，看你要怎麼處理
-	}
-
-	var ax, ay, az, bx, by, bz int32
-
-	if a.X != nil {
-		ax = *a.X
-	}
-	if a.Y != nil {
-		ay = *a.Y
-	}
-	if a.Z != nil {
-		az = *a.Z
-	}
-
-	if b.X != nil {
-		bx = *b.X
-	}
-	if b.Y != nil {
-		by = *b.Y
-	}
-	if b.Z != nil {
-		bz = *b.Z
-	}
-
-	dx := float64(ax - bx)
-	dy := float64(ay - by)
-	dz := float64(az - bz)
-
-	return math.Sqrt(dx*dx + dy*dy + dz*dz)
-}
-
 func NewBossHuntTask(ctx context.Context, gc *gameConnection.GameConnection) *BossHuntTask {
 	newCtx, cancel := context.WithCancel(ctx)
 	mw := io.MultiWriter(os.Stdout, gc.LogWriter())
@@ -597,14 +562,14 @@ func NewBossHuntTask(ctx context.Context, gc *gameConnection.GameConnection) *Bo
 		logger:          logger,
 		startTime:       time.Now(),
 		lastPosUpdate:   time.Now(),
-		hiddenMVPList:   make(map[string]HiddenMVP),
+		hiddenMVPList:   make(map[string]*HiddenMVP),
 		flyMutex:        sync.Mutex{},
 		lastPos:         Cmd.ScenePos{},
 		targetMonster:   Cmd.BossInfoItem{},
 		fightCancel:     fightCancel,
 		fightCtx:        fiightCtx,
 		workState:       Init,
-		targetHiddenMVP: HiddenMVP{},
+		targetHiddenMVP: &HiddenMVP{},
 	}
 }
 
