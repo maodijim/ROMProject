@@ -43,6 +43,7 @@ type EnchantCondition struct {
 
 type HuntConfig struct {
 	CarryTeam      bool     `yaml:"CarryTeam" json:"组队一起飞"`
+	UseDoubleEXP   bool     `yaml:"UseDoubleEXP" json:"使用洋洋"`
 	GameDuration   int      `yaml:"GameDuration" json:"狩猎时长(小时) 0为无限制"`
 	Mini           []string `yaml:"Mini" json:"Mini狩猎清单"`
 	MVP            []string `yaml:"MVP" json:"MVP狩猎清单"`
@@ -91,6 +92,9 @@ func (c *HuntConfig) BossInfoParseFromInterface(config map[string]interface{}) H
 	if val, ok := config["PrepEliteCD"].(float64); ok {
 		c.PrepEliteCD = int(val)
 	}
+	if val, ok := config["UseDoubleEXP"].(bool); ok {
+		c.UseDoubleEXP = val
+	}
 	return *c
 }
 func (c *HuntConfig) HuntInfoParseFromInterface(config map[string]interface{}) HuntConfig {
@@ -120,6 +124,9 @@ func (c *HuntConfig) HuntInfoParseFromInterface(config map[string]interface{}) H
 	}
 	if val, ok := config["TimerFly"].(float64); ok {
 		c.TimerFly = int(val)
+	}
+	if val, ok := config["UseDoubleEXP"].(bool); ok {
+		c.UseDoubleEXP = val
 	}
 	return *c
 }
