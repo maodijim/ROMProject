@@ -4,6 +4,7 @@ import (
 	"math"
 
 	Cmd "ROMProject/Cmds"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -22,27 +23,27 @@ func CalcDir(angleY float64) float64 {
 }
 
 func GetDistanceXYZ(src Cmd.ScenePos, target Cmd.ScenePos) float64 {
-	x := src.GetX() - target.GetX()
-	y := src.GetY() - target.GetY()
-	z := src.GetZ() - target.GetZ()
-	return math.Sqrt(float64(x*x + y*y + z*z))
+	x := float64(src.GetX() - target.GetX())
+	y := float64(src.GetY() - target.GetY())
+	z := float64(src.GetZ() - target.GetZ())
+	return math.Sqrt(float64(x*x) + float64(y*y) + float64(z*z))
 }
 
 func GetDistanceXY(src Cmd.ScenePos, target Cmd.ScenePos) float64 {
-	x := src.GetX() - target.GetX()
-	y := src.GetY() - target.GetY()
+	x := float64(src.GetX() - target.GetX())
+	y := float64(src.GetY() - target.GetY())
 	return math.Sqrt(float64(x*x + y*y))
 }
 
 func GetDistanceXZ(src Cmd.ScenePos, target Cmd.ScenePos) float64 {
-	x := src.GetX() - target.GetX()
-	z := src.GetZ() - target.GetZ()
+	x := float64(src.GetX() - target.GetX())
+	z := float64(src.GetZ() - target.GetZ())
 	return math.Sqrt(float64(x*x + z*z))
 }
 
 func GetDistanceXZSquare(src *Cmd.ScenePos, target *Cmd.ScenePos) float64 {
-	x := src.GetX() - target.GetX()
-	z := src.GetZ() - target.GetZ()
+	x := float64(src.GetX() - target.GetX())
+	z := float64(src.GetZ() - target.GetZ())
 	return float64(x*x + z*z)
 }
 
