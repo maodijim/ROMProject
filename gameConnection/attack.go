@@ -118,10 +118,15 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 			Damage: &damage,
 		},
 	}
+	// 判断技能范围伤害目标
 	if skillItem.Range != "" && (skillItem.Logic == attackLogic["SkillLockedTarget"] || skillItem.Logic == attackLogic["SkillPointRange"]) {
 		DmgRange, _ := strconv.ParseFloat(skillItem.Range, 64)
 		targetDict, targetRange := g.GetTargetByRange([]string{"all"}, *target.GetPos(), DmgRange)
 		for _, t := range targetRange {
+			// 跳过第一个目标（已经包含在hitTargets中了）
+			if targetDict[t] == target.GetId() {
+				continue
+			}
 			newTarget := targetDict[t]
 			newHitedTarget := &Cmd.HitedTarget{
 				Charid: &newTarget,
@@ -129,6 +134,10 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 				Damage: &damage,
 			}
 			hitTargets = append(hitTargets, newHitedTarget)
+			// 判断技能范围伤害目标数量是否超过上限
+			if skillItem.GetRangeNum() > 0 && len(hitTargets) > skillItem.GetRangeNum() {
+				break
+			}
 		}
 	}
 	num := int32(1)
@@ -165,6 +174,7 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 	g.AtkStat.SetCurrentTargetId(target.GetId())
 }
 
+// GetTargetByRange returns a map of distance to target ID and a sorted list of distances
 func (g *GameConnection) GetTargetByRange(monsterList []string, srcPos Cmd.ScenePos, targetRange float64) (distDict map[float64]uint64, distanceList []float64) {
 	distDict = map[float64]uint64{}
 	g.Mutex.RLock()
@@ -488,7 +498,7 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 						}
 						if skillItem.Camps == CampsEnemy {
 							// 这是攻击技能
-							if g.Role.GetProfession() >= 41 && g.Role.GetProfession() <= 44 && skillItem.NameZh == "普通攻击" {
+							if g.Role.GetProfession() >= Cmd.EProfession_EPROFESSION_ARCHER && g.Role.GetProfession() <= Cmd.EProfession_EPROFESSION_RANGER && skillItem.NameZh == "普通攻击" {
 								if g.Role.GetBuffById(131070) != nil {
 									g.AttackClosestByName(252001, monsterList)
 								} else {

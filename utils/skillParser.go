@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"ROMProject/data"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -60,7 +61,7 @@ type SkillItem struct {
 	TeamRange             string      `json:"team_range"`
 	TrapEffect            string      `json:"trap_effect"`
 	Range                 string      `json:"range"`
-	RangeNum              string      `json:"range_num"`
+	RangeNum              json.Number `json:"range_num"`
 	RiskId                string      `json:"riskId"`
 	ProType               string      `json:"ProType"`
 	SP                    string      `json:"sp"`
@@ -68,6 +69,11 @@ type SkillItem struct {
 	Spotter               string      `json:"spotter"`
 	Time                  string      `json:"time"`
 	Value                 string      `json:"value"`
+}
+
+func (i SkillItem) GetRangeNum() int {
+	n, _ := i.RangeNum.Int64()
+	return int(n)
 }
 
 func readSkillItem(skillJson string) map[uint32]SkillItem {
