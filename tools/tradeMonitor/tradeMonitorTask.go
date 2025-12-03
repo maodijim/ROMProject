@@ -377,7 +377,7 @@ func (t *Task) tradeItem(tradeHistory *Cmd.MyTradeLogRecordTradeCmd, pItem confi
 		t.logger.Infof("交易所%s最低保有量%d大于出售量%d 跳过购买", itemName, leaveCount, itemCounts)
 		return
 	}
-	time.Sleep(2 * time.Second)
+	time.Sleep(time.Second)
 	if itemInfo.GetUpRate() != 0 {
 		itemCurPrice = uint32(math.Round(float64(itemCurPrice) * float64(1+itemInfo.GetUpRate()) / 1000 * pointDiscount))
 	}
@@ -395,6 +395,9 @@ func (t *Task) tradeItem(tradeHistory *Cmd.MyTradeLogRecordTradeCmd, pItem confi
 	}
 
 	if mismatches, err := pItem.CompareRefineLv(itemInfo); itemInfo.GetItemData() != nil && (len(mismatches) > 0 || err != nil) {
+		if err != nil {
+			t.logger.Errorf("交易所 %s 精炼等级 设定购买等级 %s 比较失败: %s 跳过购买", itemName, pItem.RefineLv, err)
+		}
 		for _, _ = range mismatches {
 			t.logger.Infof("交易所 %s 精炼等级 %d 设定购买等级 %s 跳过购买",
 				itemName,
