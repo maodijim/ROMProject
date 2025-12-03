@@ -129,6 +129,10 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 				Damage: &damage,
 			}
 			hitTargets = append(hitTargets, newHitedTarget)
+			// 判断技能范围伤害数量
+			if skillItem.GetRangeNum() > 0 && len(hitTargets) > skillItem.GetRangeNum() {
+				break
+			}
 		}
 	}
 	num := int32(1)
