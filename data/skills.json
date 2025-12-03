@@ -135579,7 +135579,7 @@
     "damChangePer": "1",
     "effect": "ArcherAttack",
     "range": "5",
-    "range_num": "2"
+    "range_num": "2",
     "id": "300000",
     "num": "1",
     "speed": "30",
