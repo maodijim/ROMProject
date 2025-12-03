@@ -355,6 +355,9 @@ func TranslateMsg(output [][]byte) {
 			case Cmd.ItemParam_value["ITEMPARAM_PACKAGEUPDATE"]:
 				param = &Cmd.PackageUpdate{}
 
+			case Cmd.ItemParam_value["ITEMPARAM_EQUIPCARD"]:
+				param = &Cmd.EquipCard{}
+
 			default:
 				log.Infof("没有parsing")
 				continue
