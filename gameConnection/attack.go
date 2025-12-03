@@ -488,7 +488,7 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 						}
 						if skillItem.Camps == CampsEnemy {
 							// 这是攻击技能
-							if g.Role.GetProfession() >= 41 && g.Role.GetProfession() <= 44 && skillItem.NameZh == "普通攻击" {
+							if g.Role.GetProfession() >= Cmd.EProfession_EPROFESSION_ARCHER && g.Role.GetProfession() <= Cmd.EProfession_EPROFESSION_RANGER && skillItem.NameZh == "普通攻击" {
 								if g.Role.GetBuffById(131070) != nil {
 									g.AttackClosestByName(252001, monsterList)
 								} else {
