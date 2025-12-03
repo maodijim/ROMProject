@@ -377,6 +377,7 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 				"TargetMonsters": huntconfig.TargetMonsters,
 				"TargetItems":    huntconfig.TargetItems,
 				"Map":            huntconfig.Map,
+				"UseDoubleEXP":   huntconfig.UseDoubleEXP,
 			}
 			config = viewConfig
 		default:
