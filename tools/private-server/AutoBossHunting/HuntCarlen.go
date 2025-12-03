@@ -10,19 +10,26 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var CarlenPos = []Cmd.ScenePos{
+var CrazyRabbitPos = []Cmd.ScenePos{
 	{X: i32(10165), Y: i32(27), Z: i32(-57086)},
 	{X: i32(20845), Y: i32(27), Z: i32(-85483)},
 	{X: i32(-29854), Y: i32(27), Z: i32(-84827)},
 	{X: i32(-41499), Y: i32(127), Z: i32(-51326)},
-	{X: i32(-29854), Y: i32(62), Z: i32(-87337)},
 }
 
-var BigBadWolfPos = []Cmd.ScenePos{
+var CarlenPos = []Cmd.ScenePos{
+	{X: i32(-29854), Y: i32(62), Z: i32(-87337)},
+}
+var ScreamingDemonPos = []Cmd.ScenePos{
 	{X: i32(-2277), Y: i32(11032), Z: i32(-48103)},
 	{X: i32(-30273), Y: i32(11032), Z: i32(-63487)},
 	{X: i32(-54962), Y: i32(11032), Z: i32(-62435)},
-	{X: i32(38268), Y: i32(8490), Z: i32(-305)},
+}
+
+var BigBadWolfPos = []Cmd.ScenePos{
+	{X: i32(5907), Y: i32(11032), Z: i32(-82878)},
+	{X: i32(89144), Y: i32(8432), Z: i32(7776)},
+	{X: i32(-9598), Y: i32(8499), Z: i32(10583)},
 }
 
 func (b *BossHuntTask) huntCarlen() {
@@ -30,7 +37,9 @@ func (b *BossHuntTask) huntCarlen() {
 
 	PrerequisiteMonsters := b.targetHiddenMVP.PrerequisiteMonsters
 
-	PosList := b.targetHiddenMVP.PosList
+	PosList := b.targetHiddenMVP.PrerequisitePosList
+
+	BossPosList := b.targetHiddenMVP.BossPosList
 
 	for {
 		b.checkApear(TargetMVP.NameZh) // 确认卡伦是否复活
@@ -41,6 +50,7 @@ func (b *BossHuntTask) huntCarlen() {
 			b.findBoss = false
 			b.haveBoss = false
 			b.posCount = 0
+			b.BossposCount = 0
 			b.transition(TeleportMap)
 			break
 		// 传送到目标地图
@@ -105,8 +115,11 @@ func (b *BossHuntTask) huntCarlen() {
 			break
 		// 移动到卡伦出生位置
 		case MOVE_BOSSPOS:
-			if b.GC.MoveChartWait(PosList[len(PosList)-1]) {
+			if int(b.BossposCount) < len(BossPosList) {
+				b.GC.MoveChartWait(BossPosList[b.BossposCount])
 				b.transition(CHECK_BOSS)
+			} else {
+				b.transition(End)
 			}
 			break
 		// 确认卡伦
@@ -116,8 +129,9 @@ func (b *BossHuntTask) huntCarlen() {
 				b.transition(HUNT_BOSS)
 			} else {
 				b.fightCancel()
-				b.posCount++
-				b.transition(MOVE_PrerequisiteMonstersPOS)
+				b.fightStar = false
+				b.BossposCount++
+				b.transition(MOVE_BOSSPOS)
 			}
 			break
 		// 狩猎卡伦
@@ -145,6 +159,7 @@ func (b *BossHuntTask) huntCarlen() {
 		case End:
 			b.targetHiddenMVP.RespawnTime = time.Now().Add(30 * time.Minute)
 			b.fightCancel()
+			b.fightStar = false
 			b.logger.Infof("%s已死亡，复活时间:%s", TargetMVP.NameZh, b.targetHiddenMVP.RespawnTime.Format("2006-01-02 15:04:05"))
 			time.Sleep(time.Millisecond * 3000)
 			b.transition(Init)
