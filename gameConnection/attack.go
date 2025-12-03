@@ -307,6 +307,16 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 				select {
 				case <-check.C:
 					target, ok = g.GetMapNpcs()[closestId]
+					//寻路时如果有更近的目标自动切换
+					distDict, distanceList := g.GetTargetByRange(monsterName, g.Role.GetPos(), DefaultTargetRange)
+					if len(distanceList) > 0 {
+						closestId := distDict[distanceList[0]]
+						newtarget, ok2 := g.GetMapNpcs()[closestId]
+						if ok2 && newtarget.Id != target.Id {
+							break moveToTargetLoop
+						}
+					}
+
 					if !ok {
 						break moveToTargetLoop
 					}
@@ -372,11 +382,12 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 		log.Warnf("auto attack is already enabled")
 		return
 	}
+	g.AtkStat.IsAutoAttacking = true
 	var attackCtx context.Context
 	attackCtx, g.cancelAtkCtx = context.WithCancel(ctx)
 	go func() {
 		ticker := time.NewTicker(time.Millisecond * 75)
-		g.AtkStat.IsAutoAttacking = true
+
 		defer func() {
 			g.logger.Infof("stop auto attack")
 			ticker.Stop()
