@@ -123,6 +123,10 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 		DmgRange, _ := strconv.ParseFloat(skillItem.Range, 64)
 		targetDict, targetRange := g.GetTargetByRange([]string{"all"}, *target.GetPos(), DmgRange)
 		for _, t := range targetRange {
+			// 跳过第一个目标（已经包含在hitTargets中了）
+			if targetDict[t] == target.GetId() {
+				continue
+			}
 			newTarget := targetDict[t]
 			newHitedTarget := &Cmd.HitedTarget{
 				Charid: &newTarget,
@@ -170,6 +174,7 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 	g.AtkStat.SetCurrentTargetId(target.GetId())
 }
 
+// GetTargetByRange returns a map of distance to target ID and a sorted list of distances
 func (g *GameConnection) GetTargetByRange(monsterList []string, srcPos Cmd.ScenePos, targetRange float64) (distDict map[float64]uint64, distanceList []float64) {
 	distDict = map[float64]uint64{}
 	g.Mutex.RLock()
