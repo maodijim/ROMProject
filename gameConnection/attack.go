@@ -118,6 +118,7 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 			Damage: &damage,
 		},
 	}
+	// 判断技能范围伤害目标
 	if skillItem.Range != "" && (skillItem.Logic == attackLogic["SkillLockedTarget"] || skillItem.Logic == attackLogic["SkillPointRange"]) {
 		DmgRange, _ := strconv.ParseFloat(skillItem.Range, 64)
 		targetDict, targetRange := g.GetTargetByRange([]string{"all"}, *target.GetPos(), DmgRange)
@@ -129,7 +130,7 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 				Damage: &damage,
 			}
 			hitTargets = append(hitTargets, newHitedTarget)
-			// 判断技能范围伤害数量
+			// 判断技能范围伤害目标数量是否超过上限
 			if skillItem.GetRangeNum() > 0 && len(hitTargets) > skillItem.GetRangeNum() {
 				break
 			}
