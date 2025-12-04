@@ -128,6 +128,8 @@ func (b *HuntTask) StartHunt() {
 
 		b.GC.InMap(gameTypes.MapNameZh[b.GC.Configs.HuntConfig.Map].Uint32())
 
+		b.UseNature(gameTypes.GetNatureTypeFromZhFast(b.GC.Configs.HuntConfig.NatureType))
+
 		if b.GC.Configs.HuntConfig.UseDoubleEXP && b.GC.Role.GetBuffById(6062) == nil {
 			b.UsesEXP()
 		} else if b.GC.Configs.HuntConfig.TimerFly > 0 && time.Since(lastFlyTime) > time.Second*time.Duration(b.GC.Configs.HuntConfig.TimerFly) {
@@ -138,7 +140,6 @@ func (b *HuntTask) StartHunt() {
 			b.GC.CheckuseFlyWing()
 		} else if !b.fightStar {
 			b.logger.Infof("附近找到目标怪物，开始自动挂机，坐稳了")
-			b.UseNature(gameTypes.GetNatureTypeFromZhFast(b.GC.Configs.HuntConfig.NatureType))
 			b.fightCtx, b.fightCancel = context.WithCancel(context.Background())
 			b.GC.EnableAutoAttack(b.fightCtx, b.GC.Configs.HuntConfig.TargetMonsters...)
 			b.GC.Role.SetSkillCd(50057001, time.Now().Add(time.Second*4))

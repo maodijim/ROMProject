@@ -1230,21 +1230,24 @@ func (g *GameConnection) InMap(MapID uint32) {
 func (g *GameConnection) UseElementStone(stoneType gameTypes.ElementArrowType) {
 	item := g.FindPackItemByName(string(stoneType), Cmd.EPackType_EPACKTYPE_MAIN)
 	if item == nil {
-		g.logger.Warnf("%s没有找到", string(stoneType))
+		g.logger.Trace("%s没有找到", string(stoneType))
 	} else {
-		g.logger.Infof("使用%s", string(stoneType))
-		g.UseItem(item.GetBase().GetGuid(), 1)
-		time.Sleep(time.Millisecond * 1000)
+		if g.GetBuffByName(string(stoneType)).BuffName == "" {
+			g.logger.Infof("使用%s", string(stoneType))
+			g.UseItem(item.GetBase().GetGuid(), 1)
+			time.Sleep(time.Millisecond * 1000)
+		}
+
 	}
 }
 
 func (g *GameConnection) UseElementArrow(arrowType gameTypes.ElementArrowType) {
 	item := g.FindPackItemByName(string(arrowType), Cmd.EPackType_EPACKTYPE_MAIN)
 	if item == nil {
-		g.logger.Warnf("%s没有找到", arrowType)
+		g.logger.Trace("%s没有找到", arrowType)
 	} else {
 		if item.GetBase().GetIsactive() {
-			g.logger.Infof("%s已装备", arrowType)
+			g.logger.Trace("%s已装备", arrowType)
 			return
 		}
 		g.logger.Infof("使用%s", arrowType)
