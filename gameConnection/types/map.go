@@ -136,7 +136,7 @@ var MapNameZh = map[string]MapId{
 	"瑞秋":        MapId_Rachel,
 	"拉萨尼亚":      MapId_Lasagna,
 	"多拉多岛":      MapId_DoradoIsland,
-	"意大利饺森林":    MapId_RavioliForest,
+	"拉維奧利森林":    MapId_RavioliForest,
 	"洛阳":        MapId_Luoyang,
 	"夕阳海岸":      MapId_SunsetBeach,
 	"荒境":        MapId_Wasteland,
