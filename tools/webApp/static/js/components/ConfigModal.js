@@ -1,4 +1,6 @@
 // Define ConfigField component outside to allow recursive rendering
+import { api } from '../api.js';
+
 const ConfigField = {
     name: 'ConfigField',
     template: `
@@ -19,6 +21,7 @@ const ConfigField = {
                     />
                 </div>
             </div>
+
             <div v-else-if="isArray" class="array-field">
                 <label>{{ formatFieldName(fieldKey) }}</label>
                 <div class="array-items">
@@ -339,10 +342,8 @@ export default {
             this.config = {};
 
             try {
-                const response = await fetch(
-                    `http://localhost:8081/api/feature/config?username=${this.username}&functionName=${this.functionName}`
-                );
-                const data = await response.json();
+                const response = await api.fetchFeatureConfig(this.username, this.functionName);
+                const data = await response;
 
                 if (data.success) {
                     this.config = JSON.parse(JSON.stringify(data.data || {}));
@@ -378,16 +379,12 @@ export default {
         },
         async handleSubmit() {
             try {
-                const response = await fetch('http://localhost:8081/api/feature/config/update', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username: this.username,
-                        featureName: this.functionName,
-                        config: this.config
-                    })
-                });
-                const data = await response.json();
+                const response = await api.updateFeatureConfig(
+                    this.username,
+                    this.functionName,
+                    this.config
+                )
+                const data = await response;
 
                 if (data.success) {
                     this.$emit('success', '配置更新成功');

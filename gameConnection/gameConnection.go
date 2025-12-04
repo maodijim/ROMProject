@@ -248,7 +248,8 @@ func (g *GameConnection) GameServerLogin() {
 	if g.Configs.AccId == 0 {
 		err := g.getAccId()
 		if err != nil {
-			log.Fatalf("get accId failed: %v", err)
+			log.Errorf("get accId failed: %v", err)
+			return
 		}
 	}
 	log.Infof("Account Id: %d", g.Configs.AccId)
@@ -488,7 +489,8 @@ func (g *GameConnection) httpAuth(authHost string) (*authJson, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodPost, authHost, nil)
 	if err != nil {
-		log.Fatalf("failed to create http newRequest: %s", err)
+		log.Errorf("failed to create http newRequest: %s", err)
+		return nil, err
 	}
 
 	q := req.URL.Query()
@@ -1029,4 +1031,100 @@ func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 
 func (g *GameConnection) IsTCPConnected() bool {
 	return g.conn != nil
+}
+
+func (g *GameConnection) EquipCard(cardGuid, EquipGuid string, slot uint32, operation Cmd.ECardOper) error {
+	cmd := &Cmd.EquipCard{
+		Cardguid:  &cardGuid,
+		Equipguid: &EquipGuid,
+		Pos:       &slot,
+		Oper:      &operation,
+	}
+	return g.sendProtoCmd(
+		cmd,
+		Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"],
+		Cmd.ItemParam_value["ITEMPARAM_EQUIPCARD"],
+	)
+}
+
+func (g *GameConnection) EquipCardOn(cardGuid, EquipGuid string, slot uint32) error {
+	op := Cmd.ECardOper_ECARDOPER_EQUIPON
+	return g.EquipCard(cardGuid, EquipGuid, slot, op)
+}
+
+func (g *GameConnection) EquipCardOff(cardGuid, EquipGuid string, slot uint32) error {
+	op := Cmd.ECardOper_ECARDOPER_EQUIPOFF
+	return g.EquipCard(cardGuid, EquipGuid, slot, op)
+}
+
+func (g *GameConnection) CheckDraculaBuff() {
+	if g.GetBuffByName("德古拉男爵卡片").BuffName != "" {
+		g.logger.Info("德古拉男爵卡片已激活")
+		return
+	}
+	g.logger.Info("使用德古拉男爵卡片")
+	draculaCard := g.FindPackItemByName("德古拉男爵卡片", Cmd.EPackType_EPACKTYPE_MAIN)
+	if draculaCard == nil {
+		g.logger.Warn("没有找到德古拉男爵卡片")
+		return
+	}
+	// get current equip card
+	var weapon *Cmd.ItemData
+	equipItems := g.Role.GetPackItemsByType(Cmd.EPackType_EPACKTYPE_EQUIP)
+	for _, equipItem := range equipItems {
+		if equipItem.GetBase().GetEquipType() == Cmd.EEquipType_EEQUIPTYPE_WEAPON {
+			weapon = equipItem
+			break
+		}
+	}
+	if weapon == nil {
+		g.logger.Warn("没有找到装备的武器，无法装备德古拉男爵卡片")
+		return
+	}
+	firstCard := &Cmd.CardData{}
+	equipedCards := weapon.GetCard()
+	for i, card := range equipedCards {
+		if i == 0 {
+			firstCard = card
+		}
+		if card.GetId() == draculaCard.GetBase().GetId() {
+			g.logger.Info("德古拉男爵卡片已装备")
+			return
+		}
+	}
+	// equip card
+	err := g.EquipCardOn(draculaCard.GetBase().GetGuid(), weapon.GetBase().GetGuid(), 1)
+	if err != nil {
+		g.logger.Errorf("装备德古拉男爵卡片失败: %s", err)
+		return
+	}
+	time.Sleep(time.Millisecond * 500)
+
+	// add go routine to reequip previous card after buff is applied
+	go func() {
+		ticker := time.NewTicker(time.Second * 2)
+		timeOut := time.After(time.Minute * 2)
+		for {
+			select {
+			case <-timeOut:
+				g.logger.Info("德古拉男爵卡片监控协程超时，停止监控")
+				ticker.Stop()
+				return
+			case <-ticker.C:
+				if g.GetBuffByName("德古拉男爵卡片").BuffName != "" {
+					g.logger.Info("德古拉男爵卡片buff已应用，重新装备之前的卡片")
+					err := g.EquipCardOn(firstCard.GetGuid(), weapon.GetBase().GetGuid(), 1)
+					if err != nil {
+						g.logger.Errorf("重新装备之前的卡片失败: %s", err)
+					}
+					ticker.Stop()
+					return
+				}
+			case <-g.quit:
+				g.logger.Info("停止德古拉男爵卡片监控协程")
+				ticker.Stop()
+				return
+			}
+		}
+	}()
 }

@@ -84,6 +84,7 @@ func (b *BossHuntTask) SetLogger(writer io.Writer) {
 func (b *BossHuntTask) Start() {
 	b.GC.ShouldChangeScene = true
 	b.GC.GameServerLogin()
+	b.GC.GetAllPackItems()
 
 	go func() {
 		ticker := time.NewTicker(time.Second * 10)
@@ -93,7 +94,7 @@ func (b *BossHuntTask) Start() {
 		for {
 			select {
 			case <-ticker.C:
-				//b.checkBossLive()
+				// b.checkBossLive()
 			case <-b.ctx.Done():
 				b.logger.Info("停止自动BOSS狩猎任务")
 				b.cancel()
@@ -122,7 +123,7 @@ func (b *BossHuntTask) checkBossLive() bool {
 				if time.Since(b.hiddenMVPList[v].RespawnTime) > time.Second*0 {
 					b.huntHidMVP = true
 					b.targetHiddenMVP = b.hiddenMVPList[v]
-					b.logger.Info("%s已复活，进行狩猎", v)
+					b.logger.Infof("%s已复活，进行狩猎", v)
 					return true
 				} else {
 					remaining := time.Until(b.hiddenMVPList[v].RespawnTime)
@@ -401,6 +402,8 @@ func (b *BossHuntTask) fightMonstStar(MonsterName string, monsterId uint32) {
 			}
 		}
 	}
+
+	b.GC.CheckDraculaBuff()
 
 	b.fightCancel()
 	b.fightStar = true

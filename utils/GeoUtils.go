@@ -14,6 +14,10 @@ func GetAngleByAxisY(src Cmd.ScenePos, target Cmd.ScenePos) float64 {
 	return math.Atan2(float64(target.GetX()-src.GetX()), float64(target.GetZ()-src.GetZ())) * 57.29578
 }
 
+func GetAngleByAxisZ(src Cmd.ScenePos, target Cmd.ScenePos) float64 {
+	return math.Atan2(float64(target.GetX()-src.GetX()), float64(target.GetY()-src.GetY())) * 57.29578
+}
+
 func CalcDir(angleY float64) float64 {
 	dir := float64(int32(angleY)%360) + (angleY - float64(int32(angleY)))
 	if dir < 0 {
