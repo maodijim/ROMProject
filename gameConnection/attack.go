@@ -295,14 +295,32 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 					utils.GetAngleByAxisY(g.Role.GetPos(), *target.GetPos()),
 					&launchSkillPos,
 				)
-				g.MoveChart(*target.GetPos())
+				g.MoveChart(launchSkillPos)
 			}
+			lastPos := g.Role.GetPos()
 			after := time.After(50 * time.Millisecond)
-			check := time.NewTicker(50 * time.Millisecond)
+			check := time.NewTicker(100 * time.Millisecond)
+			launchPosCheck := time.NewTicker(200 * time.Millisecond)
+			newLaunchSkillDis := launchSkillDis
 			defer check.Stop()
+			defer launchPosCheck.Stop()
 		moveToTargetLoop:
 			for {
 				select {
+				case <-launchPosCheck.C:
+					curPos := g.Role.GetPos()
+					if lastPos.X == curPos.X && lastPos.Z == curPos.Z {
+						// 卡住了
+						newLaunchSkillDis = newLaunchSkillDis * 0.85
+						if launchSkillDis < 2000 {
+							g.MoveChart(*target.GetPos())
+						} else {
+							g.logger.Info("卡住了调整位置, 攻击距离:", newLaunchSkillDis)
+							launchSkillPos = utils.GetPosAwayFromTarget(g.Role.GetPos(), *target.GetPos(), newLaunchSkillDis)
+							g.MoveChart(launchSkillPos)
+						}
+					}
+					lastPos = g.Role.GetPos()
 				case <-check.C:
 					target, ok = g.GetMapNpcs()[closestId]
 					// 寻路时如果有更近的目标自动切换
@@ -318,10 +336,9 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 					if !ok {
 						break moveToTargetLoop
 					}
-					distance = utils.GetDistanceXZ(g.Role.GetPos(), *target.GetPos())
+					distance = utils.GetDistanceXYZ(g.Role.GetPos(), *target.GetPos())
 					if distance <= launchSkillDis {
 						check.Stop()
-						g.MoveChart(g.Role.GetPos())
 						break moveToTargetLoop
 					}
 				case <-after:
