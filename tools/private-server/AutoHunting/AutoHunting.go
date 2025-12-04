@@ -203,6 +203,8 @@ func (b *HuntTask) getItemCount(ItemName string) uint32 {
 func (b *HuntTask) useFlyWing() {
 	b.flyMutex.Lock()
 	defer b.flyMutex.Unlock()
+	b.fightCancel()
+	b.fightStar = false
 	b.buyFlyWing()
 	b.GC.UseFlyWing()
 	item := b.GC.FindPackItemById(5024, Cmd.EPackType_EPACKTYPE_MAIN)
@@ -212,8 +214,6 @@ func (b *HuntTask) useFlyWing() {
 		b.logger.Warn("没有找到苍蝇翅膀")
 		_ = b.GC.GetMainPackItems()
 	}
-	b.fightCancel()
-	b.fightStar = false
 	lastFlyTime = time.Now()
 	time.Sleep(time.Second * 2)
 }
