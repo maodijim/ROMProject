@@ -315,7 +315,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 						if launchSkillDis < 2000 {
 							g.MoveChart(*target.GetPos())
 						} else {
-							g.logger.Info("卡住了调整位置, 攻击距离:", newLaunchSkillDis)
+							g.logger.Debugf("卡住了调整位置, 攻击距离: %f", newLaunchSkillDis)
 							launchSkillPos = utils.GetPosAwayFromTarget(g.Role.GetPos(), *target.GetPos(), newLaunchSkillDis)
 							g.MoveChart(launchSkillPos)
 						}
