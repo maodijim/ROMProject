@@ -40,6 +40,12 @@ type AttackMonsterStat struct {
 	IsAutoAttacking bool
 }
 
+type TargetScore struct {
+	Id      uint64
+	Dist2   int64 // 距離平方（不用 sqrt）
+	Density int   // 半徑 r 內怪物數
+}
+
 func (a *AttackMonsterStat) IsStandstill() bool {
 	return a.Standstill
 }
@@ -201,6 +207,134 @@ func (g *GameConnection) GetTargetByRange(monsterList []string, srcPos Cmd.Scene
 	sort.Float64s(distanceList)
 	return distDict, distanceList
 }
+func DistSquaredXZ(a, b Cmd.ScenePos) int64 {
+	dx := int64(a.GetX() - b.GetX())
+	dz := int64(a.GetZ() - b.GetZ())
+	return dx*dx + dz*dz
+}
+
+// Selects the best target by balancing distance and cluster density.
+func (g *GameConnection) GetTargetByDensitySameReturn(
+	monsterList []string,
+	srcPos Cmd.ScenePos,
+	densityRange float64, // ✅ 只用來算密集度
+) (distDict map[float64]uint64, distanceList []float64) {
+
+	distDict = make(map[float64]uint64)
+	distanceList = make([]float64, 0)
+
+	type blockInfo struct {
+		Count     int
+		MinDist2  float64
+		NearestId uint64
+	}
+
+	blocks := make(map[[2]int]*blockInfo)
+
+	srcX := float64(srcPos.GetX())
+	srcZ := float64(srcPos.GetZ())
+	blockSize := densityRange
+
+	// ✅ 记录全场最近
+	globalMinDist2 := math.MaxFloat64
+	var globalNearestBlock *blockInfo
+
+	// ✅ 记录所有目标（给 else 用）
+	type allTarget struct {
+		Dist2 float64
+		Id    uint64
+	}
+	allTargets := make([]allTarget, 0)
+
+	// ✅ 一、分区块 + 密集度 + 最近距离 + 全目标收集
+	for _, npc := range g.GetMapNpcs() {
+
+		if npc.GetOwner() != 0 || npc.GetId() < 10000 {
+			continue
+		}
+		if !(utils.Contains(monsterList, "all") || utils.Contains(monsterList, npc.GetName())) {
+			continue
+		}
+		if npc.GetPos() == nil || len(npc.GetAttrs()) == 1 {
+			continue
+		}
+
+		pos := npc.GetPos()
+		x := float64(pos.GetX())
+		z := float64(pos.GetZ())
+
+		dx := x - srcX
+		dz := z - srcZ
+		dist2 := dx*dx + dz*dz
+
+		// ✅ 记录全部目标（给 else 排序用）
+		allTargets = append(allTargets, allTarget{
+			Dist2: dist2,
+			Id:    npc.GetId(),
+		})
+
+		bx := int(math.Floor(x / blockSize))
+		bz := int(math.Floor(z / blockSize))
+		key := [2]int{bx, bz}
+
+		if _, ok := blocks[key]; !ok {
+			blocks[key] = &blockInfo{
+				Count:    0,
+				MinDist2: math.MaxFloat64,
+			}
+		}
+
+		info := blocks[key]
+		info.Count++
+
+		// ✅ 区块内最近
+		if dist2 < info.MinDist2 {
+			info.MinDist2 = dist2
+			info.NearestId = npc.GetId()
+		}
+
+		// ✅ 全场最近
+		if dist2 < globalMinDist2 {
+			globalMinDist2 = dist2
+			globalNearestBlock = info
+		}
+	}
+
+	// ✅ 二、找最密集区块
+	var bestDenseBlock *blockInfo
+	for _, b := range blocks {
+		if bestDenseBlock == nil || b.Count > bestDenseBlock.Count {
+			bestDenseBlock = b
+		}
+	}
+
+	// ✅ 三、是否触发 2 倍密集度规则
+	if bestDenseBlock != nil &&
+		globalNearestBlock != nil &&
+		bestDenseBlock.Count >= globalNearestBlock.Count*2 {
+
+		// ✅ 仅回传「最密集区块的最近目标」
+		finalDist := math.Sqrt(bestDenseBlock.MinDist2)
+		distDict[finalDist] = bestDenseBlock.NearestId
+		distanceList = append(distanceList, finalDist)
+
+		return
+	}
+
+	// ✅ ✅ ✅ else：回传「附近所有目标 → 依距离排序」
+
+	sort.Slice(allTargets, func(i, j int) bool {
+		return allTargets[i].Dist2 < allTargets[j].Dist2
+	})
+
+	for _, t := range allTargets {
+		dist := math.Sqrt(t.Dist2)
+		distDict[dist] = t.Id
+		distanceList = append(distanceList, dist)
+	}
+
+	return
+}
 
 func (g *GameConnection) IsMonsterInRange(monsterList ...string) bool {
 	g.Mutex.RLock()
@@ -254,7 +388,20 @@ func (g *GameConnection) copyTarget(org *Cmd.MapNpc) *Cmd.MapNpc {
 }
 
 func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []string) {
-	distDict, distanceList := g.GetTargetByRange(monsterName, g.Role.GetPos(), DefaultTargetRange)
+	var (
+		distDict     map[float64]uint64
+		distanceList []float64
+	)
+	/*skillItem, ok := g.SkillItems[skillId]
+
+	IsRangeSkill := ok && skillItem.Range != "" && (skillItem.Logic == attackLogic["SkillLockedTarget"] || skillItem.Logic == attackLogic["SkillPointRange"])
+
+	if IsRangeSkill {
+		distDict, distanceList = g.GetTargetByDensitySameReturn(monsterName, g.Role.GetPos(), 20000)
+	} else {*/
+	distDict, distanceList = g.GetTargetByRange(monsterName, g.Role.GetPos(), DefaultTargetRange)
+	//}
+
 	if len(distanceList) > 0 {
 		distance := distanceList[0]
 		closestId := distDict[distanceList[0]]
@@ -324,7 +471,8 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 				case <-check.C:
 					target, ok = g.GetMapNpcs()[closestId]
 					// 寻路时如果有更近的目标自动切换
-					distDict, distanceList := g.GetTargetByRange(monsterName, g.Role.GetPos(), DefaultTargetRange)
+					distDict, distanceList = g.GetTargetByRange(monsterName, g.Role.GetPos(), DefaultTargetRange)
+
 					if len(distanceList) > 0 {
 						closestId := distDict[distanceList[0]]
 						newtarget, ok2 := g.GetMapNpcs()[closestId]
