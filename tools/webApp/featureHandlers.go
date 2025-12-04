@@ -378,6 +378,7 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 				"TargetItems":    huntconfig.TargetItems,
 				"Map":            huntconfig.Map,
 				"UseDoubleEXP":   huntconfig.UseDoubleEXP,
+				"NatureType":     huntconfig.NatureType,
 			}
 			config = viewConfig
 		default:
@@ -822,6 +823,28 @@ func GetHMAPList(w http.ResponseWriter, r *http.Request) {
 		"高级房间",
 		"皇家料理间",
 		"公会领地",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    list,
+	})
+}
+
+func GetNatureList(w http.ResponseWriter, r *http.Request) {
+	var list = []string{
+		"火属性",
+		"水属性",
+		"地属性",
+		"风属性",
+		"念属性",
+		"无属性",
+		"圣属性",
+		"不死属性",
+		"暗属性",
+		"毒属性",
+		"无形属性",
 	}
 
 	w.Header().Set("Content-Type", "application/json")

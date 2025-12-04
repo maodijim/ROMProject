@@ -53,6 +53,7 @@ type HuntConfig struct {
 	TargetMonsters []string `yaml:"TargetMonsters" json:"狩猎魔物清单"`
 	TargetItems    []string `yaml:"TargetItems" json:"狩猎物品清单"`
 	Map            string   `yaml:"TargetMap" json:"狩猎地图"`
+	NatureType     string   `yaml:"naturetype" json:"攻击属性"`
 }
 
 func (c *HuntConfig) BossInfoParseFromInterface(config map[string]interface{}) HuntConfig {
@@ -127,6 +128,9 @@ func (c *HuntConfig) HuntInfoParseFromInterface(config map[string]interface{}) H
 	}
 	if val, ok := config["UseDoubleEXP"].(bool); ok {
 		c.UseDoubleEXP = val
+	}
+	if val, ok := config["NatureType"].(string); ok {
+		c.NatureType = string(val)
 	}
 	return *c
 }

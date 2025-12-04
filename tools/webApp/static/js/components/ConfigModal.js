@@ -174,6 +174,7 @@ const ConfigField = {
                 mvp: [],
                 hmvp: [],
                 map: [],
+                naturetype:[],
             }
         };
     },

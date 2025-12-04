@@ -42,6 +42,7 @@ func main() {
 	http.HandleFunc("/api/options/mvp", GetMVPList)
 	http.HandleFunc("/api/options/hmvp", GetHMVPList)
 	http.HandleFunc("/api/options/map", GetHMAPList)
+	http.HandleFunc("/api/options/naturetype", GetNatureList)
 
 	log.Println("Version: ", _ver)
 	log.Println(fmt.Sprintf("Server starting on http://localhost:%s", *port))
