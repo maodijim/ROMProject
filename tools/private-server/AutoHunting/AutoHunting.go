@@ -166,6 +166,7 @@ func (b *HuntTask) StartHunt() {
 			b.GC.CheckDraculaBuff()
 
 		} else {
+			b.GC.CheckDraculaBuff()
 			if b.GC.Configs.HuntConfig.UseDoubleEXP && b.GC.Role.GetBuffById(6062) == nil {
 				b.UsesEXP()
 			} else if b.GC.Configs.HuntConfig.TimerFly > 0 && time.Since(lastFlyTime) > time.Second*time.Duration(b.GC.Configs.HuntConfig.TimerFly) {
