@@ -1059,7 +1059,7 @@ func (g *GameConnection) EquipCardOff(cardGuid, EquipGuid string, slot uint32) e
 
 func (g *GameConnection) CheckDraculaBuff() {
 	if g.GetBuffByName("德古拉男爵卡片").BuffName != "" {
-		g.logger.Info("德古拉男爵卡片已激活")
+		g.logger.Trace("德古拉男爵卡片已激活")
 		return
 	}
 	g.logger.Info("使用德古拉男爵卡片")

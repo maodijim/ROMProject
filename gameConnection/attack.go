@@ -30,7 +30,6 @@ var (
 		"SkillForwardRect":  "SkillForwardRect",
 	}
 	lastPrint = time.Now()
-	lastMove  = time.Now()
 )
 
 type AttackMonsterStat struct {
@@ -284,8 +283,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 					launchSkillDis,
 				)
 				return
-			} else if time.Since(lastMove) > time.Millisecond*100 {
-				lastMove = time.Now()
+			} else {
 				g.logger.Debugf("%s 跑向目标 怪物id: %d 名字: %s 血量: %d 位置: %v 距离: %f 攻击距离 %f 角度 %f 预计攻击位置: %v",
 					g.Role.GetRoleName(),
 					closestId,
