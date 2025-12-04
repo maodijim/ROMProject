@@ -73,8 +73,6 @@ const (
 	End
 )
 
-func i32(v int32) *int32 { return &v }
-
 func (b *BossHuntTask) SetLogger(writer io.Writer) {
 	mw := io.MultiWriter(b.GC.LogWriter(), writer)
 	b.logWriter = mw
@@ -307,22 +305,10 @@ func (b *BossHuntTask) startHunt() {
 				return
 			default:
 				if !b.mitionCompelete && b.targetMonster.GetMapid() != 0 {
-					if b.GC.Role.GetMapId() != b.targetMonster.GetMapid() {
-						if b.GC.Configs.HuntConfig.CarryTeam {
-							b.GC.TeamGoToMap(b.targetMonster.GetMapid())
-						} else {
-							b.GC.GoToMap(b.targetMonster.GetMapid())
-						}
 
-						b.GC.ChangeMap(b.targetMonster.GetMapid())
-						time.Sleep(time.Millisecond * 1000)
-						b.useFlyWing()
-						time.Sleep(time.Millisecond * 3200)
-						b.useSkill()
-						time.Sleep(time.Millisecond * 1000)
-						b.useSkill()
-						time.Sleep(time.Millisecond * 1000)
-					} else if b.GC.IsMonsterInRange(b.GC.MonsterItems[b.targetMonster.GetId()].NameZh) && !b.fightStar {
+					b.GC.InMap(b.targetMonster.GetMapid())
+
+					if b.GC.IsMonsterInRange(b.GC.MonsterItems[b.targetMonster.GetId()].NameZh) && !b.fightStar {
 						b.logger.Infof("找到%s", b.GC.MonsterItems[b.targetMonster.GetId()].NameZh)
 						b.fightMonstStar(b.GC.MonsterItems[b.targetMonster.GetId()].NameZh, b.targetMonster.GetId())
 						b.flyWingUseCount = 0
@@ -388,17 +374,17 @@ func (b *BossHuntTask) fightMonstStar(MonsterName string, monsterId uint32) {
 	if nature != "" {
 		if b.GC.Role.GetProfession() >= Cmd.EProfession_EPROFESSION_ARCHER && b.GC.Role.GetProfession() <= Cmd.EProfession_EPROFESSION_RANGER {
 			if nature == gameTypes.NatureType_Fire {
-				b.useElementArrow(gameTypes.WaterArrow)
+				b.GC.UseElementArrow(gameTypes.WaterArrow)
 			} else if nature == gameTypes.NatureType_Water {
-				b.useElementArrow(gameTypes.WindArrow)
+				b.GC.UseElementArrow(gameTypes.WindArrow)
 			} else if nature == gameTypes.NatureType_Wind {
-				b.useElementArrow(gameTypes.EarthArrow)
+				b.GC.UseElementArrow(gameTypes.EarthArrow)
 			} else if nature == gameTypes.NatureType_Earth {
-				b.useElementArrow(gameTypes.FireArrow)
-			} else if nature == gameTypes.NatureType_Undead || nature == gameTypes.NatureType_Shawdow {
-				b.useElementArrow(gameTypes.SliverArrow)
+				b.GC.UseElementArrow(gameTypes.FireArrow)
+			} else if nature == gameTypes.NatureType_Undead || nature == gameTypes.NatureType_Shadow {
+				b.GC.UseElementArrow(gameTypes.SliverArrow)
 			} else {
-				b.useElementArrow(gameTypes.FireArrow)
+				b.GC.UseElementArrow(gameTypes.FireArrow)
 			}
 		}
 	}
@@ -437,8 +423,8 @@ func (b *BossHuntTask) buyFlyWing() {
 	}
 	for _, item := range shopConfig.GetGoods() {
 		if item.GetItemid() == 5024 {
-			b.logger.Infof("购买1000苍蝇翅膀")
-			b.GC.BuyShopItem(item, 1000)
+			b.logger.Infof("购买999苍蝇翅膀")
+			b.GC.BuyShopItem(item, 999)
 		}
 	}
 }
@@ -485,18 +471,6 @@ func (b *BossHuntTask) checkTargetBossLive() bool {
 		}
 	}
 	return false
-}
-
-func (b *BossHuntTask) useSkill() {
-	b.logger.Infof("使用装死!")
-	num := int32(1)
-	dir := int32(utils.GetNpcDataValByType(b.GC.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_DIR))
-	pData := &Cmd.PhaseData{
-		Number: &num,
-		Pos:    b.GC.Role.Pos,
-		Dir:    &dir,
-	}
-	b.GC.SkillCmd(10020001, pData, true)
 }
 
 func (b *BossHuntTask) CheckCloseTime() {

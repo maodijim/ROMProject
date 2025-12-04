@@ -84,12 +84,6 @@ func (b *HuntTask) StartHunt() {
 
 	b.GC.GetAllPackItems()
 
-	MapID := gameTypes.MapNameZh[b.GC.Configs.HuntConfig.Map].Uint32()
-
-	if b.GC.Role.GetMapId() == MapID {
-		b.EnableGodMode()
-	}
-
 	ticker := time.NewTicker(time.Second * 1)
 	ticker2 := time.NewTicker(time.Second * 30)
 
@@ -105,10 +99,10 @@ func (b *HuntTask) StartHunt() {
 					b.logger.Infof("卡住了")
 					b.GC.AtkStat.SetCurrentTargetId(0)
 					targetId = 0
-					b.useFlyWing()
+					b.GC.CheckuseFlyWing()
 				} else if b.fightStar && targetId == 0 && time.Since(lastPosUpdate) > time.Second*10 {
 					b.logger.Infof("没有目标卡住了")
-					b.useFlyWing()
+					b.GC.CheckuseFlyWing()
 					lastPosUpdate = time.Now()
 				} else if b.GC.AtkStat.GetCurrentTargetId() != targetId {
 					targetId = b.GC.AtkStat.GetCurrentTargetId()
@@ -123,6 +117,7 @@ func (b *HuntTask) StartHunt() {
 			time.Sleep(time.Millisecond * 100)
 		}
 	}()
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -131,58 +126,24 @@ func (b *HuntTask) StartHunt() {
 		default:
 		}
 
-		if b.GC.Role.GetMapId() != MapID {
-			if MapID == gameTypes.MapId_LhzDun03.Uint32() {
-				b.GC.GoToMap(gameTypes.MapId_LhzDun01.Uint32())
-				time.Sleep(time.Millisecond * 500)
-				b.GC.MoveChartWait(Pos_03[0])
-				time.Sleep(time.Millisecond * 500)
-				b.GC.ExitMapPos(gameTypes.MapId_LhzDun01.Uint32(), 2, b.GC.Role.GetPos())
-				time.Sleep(time.Millisecond * 500)
-				b.GC.MoveChartWait(Pos_03[1])
-				time.Sleep(time.Millisecond * 500)
-				b.GC.ExitMapPos(gameTypes.MapId_LhzDun02.Uint32(), 3, b.GC.Role.GetPos())
-				time.Sleep(time.Millisecond * 500)
-			} else if MapID == gameTypes.MapId_LhzDun02.Uint32() {
-				b.GC.GoToMap(gameTypes.MapId_LhzDun01.Uint32())
-				time.Sleep(time.Millisecond * 500)
-				b.GC.MoveChartWait(Pos_03[1])
-				time.Sleep(time.Millisecond * 500)
-				b.GC.ExitMapPos(gameTypes.MapId_LhzDun01.Uint32(), 2, b.GC.Role.GetPos())
-				time.Sleep(time.Millisecond * 500)
-			} else if MapID == gameTypes.MapId_LhzDun02West.Uint32() {
-				b.GC.GoToMap(gameTypes.MapId_LhzDun01.Uint32())
-				time.Sleep(time.Millisecond * 500)
-				b.GC.MoveChartWait(Pos_03[0])
-				time.Sleep(time.Millisecond * 500)
-				b.GC.ExitMapPos(gameTypes.MapId_LhzDun01.Uint32(), 2, b.GC.Role.GetPos())
-				time.Sleep(time.Millisecond * 500)
-				b.GC.MoveChartWait(Pos_03[2])
-				time.Sleep(time.Millisecond * 500)
-				b.GC.ExitMapPos(gameTypes.MapId_LhzDun02.Uint32(), 2, b.GC.Role.GetPos())
-			}
+		b.GC.InMap(gameTypes.MapNameZh[b.GC.Configs.HuntConfig.Map].Uint32())
 
-			b.EnableGodMode()
-			b.GC.CheckDraculaBuff()
-
-		} else {
-			b.GC.CheckDraculaBuff()
-			if b.GC.Configs.HuntConfig.UseDoubleEXP && b.GC.Role.GetBuffById(6062) == nil {
-				b.UsesEXP()
-			} else if b.GC.Configs.HuntConfig.TimerFly > 0 && time.Since(lastFlyTime) > time.Second*time.Duration(b.GC.Configs.HuntConfig.TimerFly) {
-				b.useFlyWing()
-				lastFlyTime = time.Now()
-			} else if !b.GC.IsMonsterInRange(b.GC.Configs.HuntConfig.TargetMonsters...) {
-				b.logger.Infof("没有找到目标怪物")
-				b.useFlyWing()
-			} else if !b.fightStar {
-				b.logger.Infof("附近找到目标怪物，开始自动挂机，坐稳了")
-				b.fightCtx, b.fightCancel = context.WithCancel(context.Background())
-				b.GC.EnableAutoAttack(b.fightCtx, b.GC.Configs.HuntConfig.TargetMonsters...)
-				b.GC.Role.SetSkillCd(50057001, time.Now().Add(time.Second*4))
-				b.fightStar = true
-				lastPosUpdate = time.Now()
-			}
+		if b.GC.Configs.HuntConfig.UseDoubleEXP && b.GC.Role.GetBuffById(6062) == nil {
+			b.UsesEXP()
+		} else if b.GC.Configs.HuntConfig.TimerFly > 0 && time.Since(lastFlyTime) > time.Second*time.Duration(b.GC.Configs.HuntConfig.TimerFly) {
+			b.GC.CheckuseFlyWing()
+			lastFlyTime = time.Now()
+		} else if !b.GC.IsMonsterInRange(b.GC.Configs.HuntConfig.TargetMonsters...) {
+			b.logger.Infof("没有找到目标怪物")
+			b.GC.CheckuseFlyWing()
+		} else if !b.fightStar {
+			b.logger.Infof("附近找到目标怪物，开始自动挂机，坐稳了")
+			b.UseNature(gameTypes.GetNatureTypeFromZhFast(b.GC.Configs.HuntConfig.NatureType))
+			b.fightCtx, b.fightCancel = context.WithCancel(context.Background())
+			b.GC.EnableAutoAttack(b.fightCtx, b.GC.Configs.HuntConfig.TargetMonsters...)
+			b.GC.Role.SetSkillCd(50057001, time.Now().Add(time.Second*4))
+			b.fightStar = true
+			lastPosUpdate = time.Now()
 		}
 
 		time.Sleep(time.Second) // ✅ 控制主循环节奏
@@ -199,53 +160,6 @@ func (b *HuntTask) getItemCount(ItemName string) uint32 {
 		return 0
 	}
 	return iData.GetBase().GetCount()
-}
-
-func (b *HuntTask) useFlyWing() {
-	b.flyMutex.Lock()
-	defer b.flyMutex.Unlock()
-	b.fightCancel()
-	b.fightStar = false
-	b.buyFlyWing()
-	b.GC.UseFlyWing()
-	item := b.GC.FindPackItemById(5024, Cmd.EPackType_EPACKTYPE_MAIN)
-	if item != nil && item.GetBase().GetCount() > 0 {
-		b.logger.Infof("使用苍蝇翅膀 还有%d个", item.GetBase().GetCount())
-	} else {
-		b.logger.Warn("没有找到苍蝇翅膀")
-		_ = b.GC.GetMainPackItems()
-	}
-	lastFlyTime = time.Now()
-	time.Sleep(time.Second * 2)
-}
-
-func (b *HuntTask) buyFlyWing() {
-	if item := b.GC.FindPackItemByName("苍蝇翅膀", Cmd.EPackType_EPACKTYPE_MAIN); item == nil || item.GetBase().GetCount() > 1000 {
-		return
-	}
-	shopConfig, err := b.GC.QueryShopConfig(gameTypes.ShopType_Item, 1)
-	if err != nil {
-		b.logger.Errorf("查询商店配置失败 %s", err)
-		return
-	}
-	for _, item := range shopConfig.GetGoods() {
-		if item.GetItemid() == 5024 {
-			b.logger.Infof("购买10000苍蝇翅膀")
-			b.GC.BuyShopItem(item, 10000)
-		}
-	}
-}
-
-func (b *HuntTask) Useskill() {
-	b.logger.Infof("使用装死!")
-	num := int32(1)
-	dir := int32(utils.GetNpcDataValByType(b.GC.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_DIR))
-	pData := &Cmd.PhaseData{
-		Number: &num,
-		Pos:    b.GC.Role.Pos,
-		Dir:    &dir,
-	}
-	b.GC.SkillCmd(10020001, pData, true)
 }
 
 func (b *HuntTask) UsesEXP() {
@@ -284,12 +198,31 @@ func NewHuntTask(ctx context.Context, gc *gameConnection.GameConnection) *HuntTa
 	}
 }
 
-func (b *HuntTask) EnableGodMode() {
-	time.Sleep(time.Millisecond * 1000)
-	b.useFlyWing()
-	time.Sleep(time.Millisecond * 3200)
-	b.Useskill()
-	time.Sleep(time.Millisecond * 1000)
-	b.Useskill()
-	time.Sleep(time.Millisecond * 1000)
+func (b *HuntTask) UseNature(Nature gameTypes.NatureType) {
+	if Nature != "" {
+		if b.GC.Role.GetProfession() >= Cmd.EProfession_EPROFESSION_ARCHER && b.GC.Role.GetProfession() <= Cmd.EProfession_EPROFESSION_RANGER {
+			if Nature == gameTypes.NatureType_Fire {
+				b.GC.UseElementArrow(gameTypes.FireArrow)
+			} else if Nature == gameTypes.NatureType_Water {
+				b.GC.UseElementArrow(gameTypes.WaterArrow)
+			} else if Nature == gameTypes.NatureType_Wind {
+				b.GC.UseElementArrow(gameTypes.WindArrow)
+			} else if Nature == gameTypes.NatureType_Earth {
+				b.GC.UseElementArrow(gameTypes.EarthArrow)
+			} else if Nature == gameTypes.NatureType_Holy {
+				b.GC.UseElementArrow(gameTypes.SliverArrow)
+			}
+		} else {
+			if Nature == gameTypes.NatureType_Fire {
+				b.GC.UseElementStone(gameTypes.FireStone)
+			} else if Nature == gameTypes.NatureType_Water {
+				b.GC.UseElementStone(gameTypes.WaterStone)
+			} else if Nature == gameTypes.NatureType_Wind {
+				b.GC.UseElementStone(gameTypes.WindStone)
+			} else if Nature == gameTypes.NatureType_Earth {
+				b.GC.UseElementStone(gameTypes.EarthStone)
+			}
+		}
+
+	}
 }
