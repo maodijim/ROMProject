@@ -80,6 +80,8 @@ func (b *HuntTask) StartHunt() {
 		ItemCount = append(ItemCount, curCount)
 	}
 
+	b.GC.GetAllPackItems()
+
 	MapID := gameTypes.MapNameZh[b.GC.Configs.HuntConfig.Map].Uint32()
 
 	if b.GC.Role.GetMapId() == MapID {
@@ -144,6 +146,7 @@ func (b *HuntTask) StartHunt() {
 			}
 
 			b.EnableGodMode()
+			b.GC.CheckDraculaBuff()
 
 		} else {
 			if b.GC.Configs.HuntConfig.UseDoubleEXP && b.GC.Role.GetBuffById(6062) == nil {
