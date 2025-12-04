@@ -51,6 +51,7 @@ const (
 	MapId_LighthalzenPlain      MapId = 77
 	MapId_LhzDun01              MapId = 78
 	MapId_LhzDun02              MapId = 79
+	MapId_LhzDun02West          MapId = 80
 	MapId_LhzDun03              MapId = 81
 	MapId_ThePlainofIda         MapId = 83
 	MapId_Rachel                MapId = 85
@@ -129,6 +130,7 @@ var MapNameZh = map[string]MapId{
 	"里希塔尔岑平原":   MapId_LighthalzenPlain,
 	"生体地下1F":    MapId_LhzDun01,
 	"生体地下2F":    MapId_LhzDun02,
+	"生体地下2F西区":  MapId_LhzDun02West,
 	"生体地下3F":    MapId_LhzDun03,
 	"伊达平原":      MapId_ThePlainofIda,
 	"瑞秋":        MapId_Rachel,

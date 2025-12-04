@@ -792,6 +792,7 @@ func GetHMAPList(w http.ResponseWriter, r *http.Request) {
 		"里希塔尔岑平原",
 		"生体地下1F",
 		"生体地下2F",
+		"生体地下2F西区",
 		"生体地下3F",
 		"伊达平原",
 		"瑞秋",

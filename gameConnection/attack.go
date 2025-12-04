@@ -192,7 +192,7 @@ func (g *GameConnection) GetTargetByRange(monsterList []string, srcPos Cmd.Scene
 			if npc.GetPos() == nil {
 				continue
 			}
-			distance := utils.GetDistanceXYZ(srcPos, *npc.GetPos())
+			distance := utils.GetDistanceXZ(srcPos, *npc.GetPos())
 			if distance <= targetRange*utils.AtkRangeScale {
 				distanceList = append(distanceList, distance)
 				distDict[distance] = npc.GetId()
@@ -284,7 +284,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 					launchSkillDis,
 				)
 				return
-			} else if time.Since(lastMove) > time.Millisecond*150 {
+			} else if time.Since(lastMove) > time.Millisecond*100 {
 				lastMove = time.Now()
 				g.logger.Debugf("%s 跑向目标 怪物id: %d 名字: %s 血量: %d 位置: %v 距离: %f 攻击距离 %f 角度 %f 预计攻击位置: %v",
 					g.Role.GetRoleName(),
@@ -299,7 +299,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 				)
 				g.MoveChart(*target.GetPos())
 			}
-			after := time.After(75 * time.Millisecond)
+			after := time.After(50 * time.Millisecond)
 			check := time.NewTicker(50 * time.Millisecond)
 			defer check.Stop()
 		moveToTargetLoop:
@@ -307,7 +307,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 				select {
 				case <-check.C:
 					target, ok = g.GetMapNpcs()[closestId]
-					//寻路时如果有更近的目标自动切换
+					// 寻路时如果有更近的目标自动切换
 					distDict, distanceList := g.GetTargetByRange(monsterName, g.Role.GetPos(), DefaultTargetRange)
 					if len(distanceList) > 0 {
 						closestId := distDict[distanceList[0]]

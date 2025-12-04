@@ -6,6 +6,7 @@ import (
 	Cmd "ROMProject/Cmds"
 	notifier "ROMProject/gameConnection/types"
 	"ROMProject/utils"
+
 	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
 )
@@ -21,7 +22,7 @@ func (g *GameConnection) HandleSceneUserProtoCmd(cmdParamId int32, rawData []byt
 		param = &Cmd.GoToUserCmd{}
 		err = utils.ParseCmd(rawData, param)
 		goTo := param.(*Cmd.GoToUserCmd)
-		if goTo.GetPos() != nil {
+		if goTo.GetPos() != nil && goTo.GetCharid() == g.Role.GetRoleId() {
 			g.Role.Pos = goTo.GetPos()
 			log.Debugf("%s moved to %v", g.Role.GetRoleName(), g.Role.Pos)
 		}

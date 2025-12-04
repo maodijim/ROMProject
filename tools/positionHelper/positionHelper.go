@@ -59,7 +59,8 @@ func (p *PositionTask) doFollow() {
 	if p.GC.GetTeamLeaderName(true) != "" {
 		leader := p.GC.GetTeamLeaderData(true)
 		if utils.GetMemberDataByType(leader.GetDatas(), Cmd.EMemberData_EMEMBERDATA_MAPID) != uint64(p.GC.Role.GetMapId()) {
-			p.logger.Infof("队长 %s (ID: %d) 不在当前地图", leader.GetName(), leader.GetGuid())
+			pos := p.GC.Role.GetPos()
+			p.logger.Infof("队长 %s (ID: %d) 不在当前地图, 角色坐标: x:%d y:%d z:%d", leader.GetName(), leader.GetGuid(), pos.GetX(), pos.GetY(), pos.GetZ())
 			p.GC.Role.FollowUserId = 0
 		} else if p.GC.Role.FollowUserId != 0 {
 			pos := p.GC.Role.GetPos()
@@ -72,9 +73,10 @@ func (p *PositionTask) doFollow() {
 		p.logger.Infof("丢失队长，等待中...")
 		p.GC.Role.FollowUserId = 0
 	} else {
-		p.logger.Infof("当前没有队长，等待中...")
+		pos := p.GC.Role.GetPos()
+		p.logger.Infof("当前没有队长，等待中... 坐标: x:%d y:%d z:%d", pos.GetX(), pos.GetY(), pos.GetZ())
 	}
-	time.Sleep(time.Second * 5)
+	time.Sleep(time.Second * 3)
 }
 
 func NewPositionTask(ctx context.Context, gc *gameConnection.GameConnection) *PositionTask {
