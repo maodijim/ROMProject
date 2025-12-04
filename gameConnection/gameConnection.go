@@ -1062,12 +1062,15 @@ func (g *GameConnection) CheckDraculaBuff() {
 		g.logger.Trace("德古拉男爵卡片已激活")
 		return
 	}
-	g.logger.Info("使用德古拉男爵卡片")
+
 	draculaCard := g.FindPackItemByName("德古拉男爵卡片", Cmd.EPackType_EPACKTYPE_MAIN)
 	if draculaCard == nil {
-		g.logger.Warn("没有找到德古拉男爵卡片")
+		g.logger.Trace("没有找到德古拉男爵卡片")
 		return
 	}
+
+	g.logger.Info("使用德古拉男爵卡片")
+
 	// get current equip card
 	var weapon *Cmd.ItemData
 	equipItems := g.Role.GetPackItemsByType(Cmd.EPackType_EPACKTYPE_EQUIP)
@@ -1127,4 +1130,125 @@ func (g *GameConnection) CheckDraculaBuff() {
 			}
 		}
 	}()
+}
+
+func (g *GameConnection) UsesPlayDead() {
+	g.logger.Infof("使用装死!")
+	num := int32(1)
+	dir := int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_DIR))
+	pData := &Cmd.PhaseData{
+		Number: &num,
+		Pos:    g.Role.Pos,
+		Dir:    &dir,
+	}
+	g.SkillCmd(10020001, pData, true)
+}
+
+func (g *GameConnection) EnableGodMode() {
+	if g.GetBuffByName("装死(无敌)").BuffName == "" {
+		time.Sleep(time.Millisecond * 1000)
+		g.CheckuseFlyWing()
+		time.Sleep(time.Millisecond * 3200)
+		g.UsesPlayDead()
+		time.Sleep(time.Millisecond * 1000)
+		g.UsesPlayDead()
+		time.Sleep(time.Millisecond * 1000)
+	}
+}
+
+func (g *GameConnection) CheckuseFlyWing() {
+	g.buyFlyWing()
+	g.UseFlyWing()
+	item := g.FindPackItemById(5024, Cmd.EPackType_EPACKTYPE_MAIN)
+	if item != nil && item.GetBase().GetCount() > 0 {
+		g.logger.Infof("使用苍蝇翅膀 还有%d个", item.GetBase().GetCount())
+	} else {
+		g.logger.Warn("没有找到苍蝇翅膀")
+		_ = g.GetMainPackItems()
+	}
+	time.Sleep(time.Second * 2)
+}
+
+func (g *GameConnection) buyFlyWing() {
+	if item := g.FindPackItemByName("苍蝇翅膀", Cmd.EPackType_EPACKTYPE_MAIN); item == nil || item.GetBase().GetCount() > 1000 {
+		return
+	}
+	shopConfig, err := g.QueryShopConfig(gameTypes.ShopType_Item, 1)
+	if err != nil {
+		g.logger.Errorf("查询商店配置失败 %s", err)
+		return
+	}
+	for _, item := range shopConfig.GetGoods() {
+		if item.GetItemid() == 5024 {
+			g.logger.Infof("购买999苍蝇翅膀")
+			g.BuyShopItem(item, 999)
+		}
+	}
+}
+
+func (g *GameConnection) InMap(MapID uint32) {
+	if g.Role.GetMapId() != MapID {
+		if MapID == gameTypes.MapId_LhzDun03.Uint32() {
+			g.GoToMap(gameTypes.MapId_LhzDun01.Uint32())
+			time.Sleep(time.Millisecond * 500)
+			g.MoveChartWait(g.ParsePos(21948, -583, 43399))
+			time.Sleep(time.Millisecond * 500)
+			g.ExitMapPos(gameTypes.MapId_LhzDun01.Uint32(), 2, g.Role.GetPos())
+			time.Sleep(time.Millisecond * 500)
+			g.MoveChartWait(g.ParsePos(-14088, 357, -56505))
+			time.Sleep(time.Millisecond * 500)
+			g.ExitMapPos(gameTypes.MapId_LhzDun02.Uint32(), 3, g.Role.GetPos())
+			time.Sleep(time.Millisecond * 500)
+		} else if MapID == gameTypes.MapId_LhzDun02.Uint32() {
+			g.GoToMap(gameTypes.MapId_LhzDun01.Uint32())
+			time.Sleep(time.Millisecond * 500)
+			g.MoveChartWait(g.ParsePos(21948, -583, 43399))
+			time.Sleep(time.Millisecond * 500)
+			g.ExitMapPos(gameTypes.MapId_LhzDun01.Uint32(), 2, g.Role.GetPos())
+			time.Sleep(time.Millisecond * 500)
+		} else if MapID == gameTypes.MapId_LhzDun02West.Uint32() {
+			g.GoToMap(gameTypes.MapId_LhzDun01.Uint32())
+			time.Sleep(time.Millisecond * 500)
+			g.MoveChartWait(g.ParsePos(21948, -583, 43399))
+			time.Sleep(time.Millisecond * 500)
+			g.ExitMapPos(gameTypes.MapId_LhzDun01.Uint32(), 2, g.Role.GetPos())
+			time.Sleep(time.Millisecond * 500)
+			g.MoveChartWait(g.ParsePos(46754, 357, 857))
+			time.Sleep(time.Millisecond * 500)
+			g.ExitMapPos(gameTypes.MapId_LhzDun02.Uint32(), 2, g.Role.GetPos())
+		} else {
+			g.GoToMap(MapID)
+		}
+	}
+
+	g.EnableGodMode()
+
+	g.CheckDraculaBuff()
+
+}
+
+func (g *GameConnection) UseElementStone(stoneType gameTypes.ElementArrowType) {
+	item := g.FindPackItemByName(string(stoneType), Cmd.EPackType_EPACKTYPE_MAIN)
+	if item == nil {
+		g.logger.Warnf("%s没有找到", string(stoneType))
+	} else {
+		g.logger.Infof("使用%s", string(stoneType))
+		g.UseItem(item.GetBase().GetGuid(), 1)
+		time.Sleep(time.Millisecond * 1000)
+	}
+}
+
+func (g *GameConnection) UseElementArrow(arrowType gameTypes.ElementArrowType) {
+	item := g.FindPackItemByName(string(arrowType), Cmd.EPackType_EPACKTYPE_MAIN)
+	if item == nil {
+		g.logger.Warnf("%s没有找到", arrowType)
+	} else {
+		if item.GetBase().GetIsactive() {
+			g.logger.Infof("%s已装备", arrowType)
+			return
+		}
+		g.logger.Infof("使用%s", arrowType)
+		g.UseItem(item.GetBase().GetGuid(), 0)
+		time.Sleep(time.Millisecond * 1000)
+	}
 }
