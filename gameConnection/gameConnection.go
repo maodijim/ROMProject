@@ -1105,7 +1105,7 @@ func (g *GameConnection) CheckDraculaBuff() {
 
 	// add go routine to reequip previous card after buff is applied
 	go func() {
-		ticker := time.NewTicker(time.Second * 2)
+		ticker := time.NewTicker(time.Second * 3)
 		timeOut := time.After(time.Minute * 2)
 		for {
 			select {
