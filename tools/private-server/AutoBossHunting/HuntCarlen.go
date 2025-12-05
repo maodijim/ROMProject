@@ -30,6 +30,7 @@ var ScreamingDemonPos = []Cmd.ScenePos{
 
 var BigBadWolfPos = []Cmd.ScenePos{
 	{X: i32(5907), Y: i32(11032), Z: i32(-82878)},
+	{X: i32(65253), Y: i32(8432), Z: i32(-24051)},
 	{X: i32(89144), Y: i32(8432), Z: i32(7776)},
 	{X: i32(-9598), Y: i32(8499), Z: i32(10583)},
 }
@@ -58,7 +59,7 @@ func (b *BossHuntTask) huntCarlen() {
 		// 传送到目标地图
 		case TeleportMap:
 			b.logger.Infof("传送到%s", gameTypes.MapIdToZh[b.targetHiddenMVP.Map])
-			b.GC.InMap(b.targetHiddenMVP.Map.Uint32())
+			b.GC.InMap(b.targetHiddenMVP.Map.Uint32(), b.GC.Configs.HuntConfig.CarryTeam)
 			b.transition(MOVE_PrerequisiteMonstersPOS)
 			break
 		// 移动到前置怪物地点
@@ -69,15 +70,8 @@ func (b *BossHuntTask) huntCarlen() {
 					b.transition(CHECK_PrerequisiteMonsters)
 				}
 			} else {
-				if b.haveBoss {
-					log.Infof("%s狩猎完成，开始狩猎%s", PrerequisiteMonsters.NameZh, TargetMVP.NameZh)
-					b.transition(MOVE_BOSSPOS)
-				} else {
-					b.targetHiddenMVP.RespawnTime = time.Now().Add(10 * time.Minute)
-					log.Infof("未搜寻到%s，重新查找时间:%s", TargetMVP.NameZh, b.targetHiddenMVP.RespawnTime.Format("2006-01-02 15:04:05"))
-					b.transition(Init)
-					return
-				}
+				log.Infof("%s狩猎完成，开始狩猎%s", PrerequisiteMonsters.NameZh, TargetMVP.NameZh)
+				b.transition(MOVE_BOSSPOS)
 			}
 			break
 		// 确认有前置怪物
@@ -107,6 +101,7 @@ func (b *BossHuntTask) huntCarlen() {
 		case MOVE_BOSSPOS:
 			if int(b.BossposCount) < len(BossPosList) {
 				b.GC.MoveChartWait(BossPosList[b.BossposCount])
+				log.Infof("抵达%s出生点%d", TargetMVP.NameZh, b.BossposCount+1)
 				b.transition(CHECK_BOSS)
 			} else {
 				b.transition(End)
@@ -127,6 +122,7 @@ func (b *BossHuntTask) huntCarlen() {
 		// 狩猎卡伦
 		case HUNT_BOSS:
 			if b.GC.IsMonsterInRange(TargetMVP.NameZh) {
+				b.haveBoss = true
 				TargetID := b.GC.AtkStat.GetCurrentTargetId()
 				MapNPC := b.GC.GetMapNpcs()
 				if TargetID != 0 && MapNPC[TargetID].Attrs != nil {
@@ -147,7 +143,11 @@ func (b *BossHuntTask) huntCarlen() {
 			break
 		// 结束
 		case End:
-			b.targetHiddenMVP.RespawnTime = time.Now().Add(30 * time.Minute)
+			if b.haveBoss {
+				b.targetHiddenMVP.RespawnTime = time.Now().Add(30 * time.Minute)
+			} else {
+				b.targetHiddenMVP.RespawnTime = time.Now().Add(10 * time.Minute)
+			}
 			b.fightCancel()
 			b.fightStar = false
 			b.logger.Infof("%s已死亡，复活时间:%s", TargetMVP.NameZh, b.targetHiddenMVP.RespawnTime.Format("2006-01-02 15:04:05"))
