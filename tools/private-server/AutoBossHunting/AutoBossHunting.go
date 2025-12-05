@@ -389,8 +389,6 @@ func (b *BossHuntTask) fightMonstStar(MonsterName string, monsterId uint32) {
 		}
 	}
 
-	b.GC.CheckDraculaBuff()
-
 	b.fightCancel()
 	b.fightStar = true
 	b.fightCtx, b.fightCancel = context.WithCancel(context.Background())
