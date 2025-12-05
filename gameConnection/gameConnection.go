@@ -1105,7 +1105,7 @@ func (g *GameConnection) CheckDraculaBuff() {
 
 	// add go routine to reequip previous card after buff is applied
 	go func() {
-		ticker := time.NewTicker(time.Second * 3)
+		ticker := time.NewTicker(time.Second * 2)
 		timeOut := time.After(time.Minute * 2)
 		for {
 			select {
@@ -1186,7 +1186,7 @@ func (g *GameConnection) buyFlyWing() {
 	}
 }
 
-func (g *GameConnection) InMap(MapID uint32) {
+func (g *GameConnection) InMap(MapID uint32, CarryTeam bool) {
 	if g.Role.GetMapId() != MapID {
 		if MapID == gameTypes.MapId_LhzDun03.Uint32() {
 			g.GoToMap(gameTypes.MapId_LhzDun01.Uint32())
@@ -1217,14 +1217,16 @@ func (g *GameConnection) InMap(MapID uint32) {
 			time.Sleep(time.Millisecond * 500)
 			g.ExitMapPos(gameTypes.MapId_LhzDun02.Uint32(), 2, g.Role.GetPos())
 		} else {
-			g.GoToMap(MapID)
+			if CarryTeam {
+				g.TeamGoToMap(MapID)
+			} else {
+				g.GoToMap(MapID)
+			}
 		}
-		g.DelBuffByName("德古拉男爵卡片")
+		g.DelBuffByName("装死(无敌)")
 	}
 
 	g.EnableGodMode()
-
-	g.CheckDraculaBuff()
 
 }
 
