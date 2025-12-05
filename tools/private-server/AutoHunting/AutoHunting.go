@@ -127,10 +127,9 @@ func (b *HuntTask) StartHunt() {
 			return
 		default:
 		}
-
-		b.GC.InMap(gameTypes.MapNameZh[b.GC.Configs.HuntConfig.Map].Uint32())
-
 		b.UseNature(gameTypes.GetNatureTypeFromZhFast(b.GC.Configs.HuntConfig.NatureType))
+
+		b.GC.InMap(gameTypes.MapNameZh[b.GC.Configs.HuntConfig.Map].Uint32(), false)
 
 		if b.GC.Configs.HuntConfig.UseDoubleEXP && b.GC.Role.GetBuffById(6062) == nil {
 			b.UsesEXP()
