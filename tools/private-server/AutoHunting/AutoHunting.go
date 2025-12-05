@@ -118,6 +118,8 @@ func (b *HuntTask) StartHunt() {
 		}
 	}()
 
+	b.GC.CheckDraculaBuff()
+
 	for {
 		select {
 		case <-ctx.Done():
