@@ -59,7 +59,7 @@ func (b *BossHuntTask) huntCarlen() {
 		// 传送到目标地图
 		case TeleportMap:
 			b.logger.Infof("传送到%s", gameTypes.MapIdToZh[b.targetHiddenMVP.Map])
-			b.GC.InMap(b.targetHiddenMVP.Map.Uint32(), b.GC.Configs.HuntConfig.CarryTeam)
+			b.GC.InMap(b.targetHiddenMVP.Map.Uint32())
 			b.transition(MOVE_PrerequisiteMonstersPOS)
 			break
 		// 移动到前置怪物地点
