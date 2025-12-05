@@ -306,7 +306,7 @@ func (b *BossHuntTask) startHunt() {
 			default:
 				if !b.mitionCompelete && b.targetMonster.GetMapid() != 0 {
 
-					b.GC.InMap(b.targetMonster.GetMapid())
+					b.GC.InMap(b.targetMonster.GetMapid(), b.GC.Configs.HuntConfig.CarryTeam)
 
 					if b.GC.IsMonsterInRange(b.GC.MonsterItems[b.targetMonster.GetId()].NameZh) && !b.fightStar {
 						b.logger.Infof("找到%s", b.GC.MonsterItems[b.targetMonster.GetId()].NameZh)
@@ -388,8 +388,6 @@ func (b *BossHuntTask) fightMonstStar(MonsterName string, monsterId uint32) {
 			}
 		}
 	}
-
-	b.GC.CheckDraculaBuff()
 
 	b.fightCancel()
 	b.fightStar = true
