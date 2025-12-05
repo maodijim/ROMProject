@@ -1219,6 +1219,7 @@ func (g *GameConnection) InMap(MapID uint32) {
 		} else {
 			g.GoToMap(MapID)
 		}
+		g.DelBuffByName("德古拉男爵卡片")
 	}
 
 	g.EnableGodMode()
