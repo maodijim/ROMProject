@@ -53,7 +53,7 @@ type HuntConfig struct {
 	TargetMonsters []string `yaml:"TargetMonsters" json:"狩猎魔物清单"`
 	TargetItems    []string `yaml:"TargetItems" json:"狩猎物品清单"`
 	Map            string   `yaml:"TargetMap" json:"狩猎地图"`
-	NatureType     string   `yaml:"naturetype" json:"攻击属性"`
+	NatureType     string   `yaml:"NatureType" json:"使用属性类型"`
 }
 
 func (c *HuntConfig) BossInfoParseFromInterface(config map[string]interface{}) HuntConfig {
