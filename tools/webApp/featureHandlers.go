@@ -798,7 +798,7 @@ func GetHMAPList(w http.ResponseWriter, r *http.Request) {
 		"瑞秋",
 		"拉萨尼亚",
 		"多拉多岛",
-		"意大利饺森林",
+		"拉維奧利森林",
 		"洛阳",
 		"夕阳海岸",
 		"荒境",

@@ -10,6 +10,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+func i32(v int32) *int32 { return &v }
+
 var CrazyRabbitPos = []Cmd.ScenePos{
 	{X: i32(10165), Y: i32(27), Z: i32(-57086)},
 	{X: i32(20845), Y: i32(27), Z: i32(-85483)},
@@ -56,19 +58,7 @@ func (b *BossHuntTask) huntCarlen() {
 		// 传送到目标地图
 		case TeleportMap:
 			b.logger.Infof("传送到%s", gameTypes.MapIdToZh[b.targetHiddenMVP.Map])
-			if b.GC.Configs.HuntConfig.CarryTeam {
-				b.GC.TeamGoToMap(b.targetHiddenMVP.Map.Uint32())
-			} else {
-				b.GC.GoToMap(b.targetHiddenMVP.Map.Uint32())
-			}
-
-			time.Sleep(time.Millisecond * 1000)
-			b.useFlyWing()
-			time.Sleep(time.Millisecond * 3200)
-			b.useSkill()
-			time.Sleep(time.Millisecond * 1000)
-			b.useSkill()
-			time.Sleep(time.Millisecond * 1000)
+			b.GC.InMap(b.targetHiddenMVP.Map.Uint32())
 			b.transition(MOVE_PrerequisiteMonstersPOS)
 			break
 		// 移动到前置怪物地点
@@ -179,31 +169,5 @@ func (b *BossHuntTask) checkApear(BossName string) bool {
 		return true
 	} else {
 		return false
-	}
-}
-
-func (b *BossHuntTask) useElementStone() {
-	item := b.GC.FindPackItemByName("风灵原石", Cmd.EPackType_EPACKTYPE_MAIN)
-	if item == nil {
-		b.logger.Warnf("风灵原石没有找到")
-	} else {
-		b.logger.Infof("使用风灵原石")
-		b.GC.UseItem(item.GetBase().GetGuid(), 1)
-		time.Sleep(time.Millisecond * 1000)
-	}
-}
-
-func (b *BossHuntTask) useElementArrow(arrowType gameTypes.ElementArrowType) {
-	item := b.GC.FindPackItemByName(string(arrowType), Cmd.EPackType_EPACKTYPE_MAIN)
-	if item == nil {
-		b.logger.Warnf("%s没有找到", arrowType)
-	} else {
-		if item.GetBase().GetIsactive() {
-			b.logger.Infof("%s已装备", arrowType)
-			return
-		}
-		b.logger.Infof("使用%s", arrowType)
-		b.GC.UseItem(item.GetBase().GetGuid(), 0)
-		time.Sleep(time.Millisecond * 1000)
 	}
 }
