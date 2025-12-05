@@ -348,7 +348,7 @@ func (g *GameConnection) IsMonsterInRange(monsterList ...string) bool {
 		if npc.GetId() < 10000 {
 			continue
 		}
-		if utils.Contains(monsterList, npc.GetName()) && len(npc.GetAttrs()) != 1 {
+		if utils.Contains(monsterList, "all") || (utils.Contains(monsterList, npc.GetName()) && len(npc.GetAttrs()) != 1) {
 			return true
 		}
 	}
