@@ -322,6 +322,7 @@ func (b *BossHuntTask) startHunt() {
 						time.Sleep(time.Millisecond * 1000)
 						b.useSkill()
 						time.Sleep(time.Millisecond * 1000)
+						b.GC.DelBuffByName("德古拉男爵卡片")
 					} else if b.GC.IsMonsterInRange(b.GC.MonsterItems[b.targetMonster.GetId()].NameZh) && !b.fightStar {
 						b.logger.Infof("找到%s", b.GC.MonsterItems[b.targetMonster.GetId()].NameZh)
 						b.fightMonstStar(b.GC.MonsterItems[b.targetMonster.GetId()].NameZh, b.targetMonster.GetId())

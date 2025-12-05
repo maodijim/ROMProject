@@ -642,3 +642,17 @@ func (g *GameConnection) GetBuffByName(name string) utils.BuffItem {
 	}
 	return utils.BuffItem{}
 }
+
+func (g *GameConnection) DelBuffByName(name string) {
+	g.Role.Mutex.Lock()
+	defer g.Role.Mutex.Unlock()
+	if buffs, ok := g.BuffItemsByName[name]; ok {
+		for _, buff := range buffs.Items {
+			id, _ := buff.Id.Int64()
+			if _, ok := g.Role.Buffs[uint32(id)]; !ok {
+				continue
+			}
+			delete(g.Role.Buffs, uint32(id))
+		}
+	}
+}

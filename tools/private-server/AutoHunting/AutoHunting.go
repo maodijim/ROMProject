@@ -230,8 +230,8 @@ func (b *HuntTask) buyFlyWing() {
 	}
 	for _, item := range shopConfig.GetGoods() {
 		if item.GetItemid() == 5024 {
-			b.logger.Infof("购买10000苍蝇翅膀")
-			b.GC.BuyShopItem(item, 10000)
+			b.logger.Infof("购买999苍蝇翅膀")
+			b.GC.BuyShopItem(item, 999)
 		}
 	}
 }
