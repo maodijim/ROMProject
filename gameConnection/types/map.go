@@ -162,6 +162,12 @@ var MapNameZh = map[string]MapId{
 	"公会领地":  MapId_Guild,
 }
 
-var MapIdToZh = make(map[MapId]string)
+var MapIdToZh = func() map[MapId]string {
+	m := make(map[MapId]string, len(MapNameZh))
+	for zh, id := range MapNameZh {
+		m[id] = zh
+	}
+	return m
+}()
 
 func (m MapId) Uint32() uint32 { return uint32(m) }
