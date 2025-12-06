@@ -133,6 +133,7 @@ func (b *BossHuntTask) huntHMVP() {
 						b.tempUHP = MHP
 						b.logger.Infof("%s 未死亡，剩余血量:%d", TargetMVP.NameZh, MonsterHP)
 						b.logger.Infof("我的血量:%d", MHP)
+						time.Sleep(time.Millisecond * 1000)
 					} else if MonsterHP == 0 {
 						b.transition(End)
 					}
