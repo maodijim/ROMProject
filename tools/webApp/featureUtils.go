@@ -99,7 +99,7 @@ func GetHMVPList(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func GetHMAPList(w http.ResponseWriter, r *http.Request) {
+func GetMAPList(w http.ResponseWriter, r *http.Request) {
 	list := make([]string, 0, len(gameTypes.MapIdToZh))
 	for _, zh := range gameTypes.MapIdToZh {
 		list = append(list, zh)
