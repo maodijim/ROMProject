@@ -35,7 +35,7 @@ var BigBadWolfPos = []Cmd.ScenePos{
 	{X: i32(-9598), Y: i32(8499), Z: i32(10583)},
 }
 
-func (b *BossHuntTask) huntCarlen() {
+func (b *BossHuntTask) huntHMVP() {
 	TargetMVP := b.targetHiddenMVP.Info
 
 	PrerequisiteMonsters := b.targetHiddenMVP.PrerequisiteMonsters

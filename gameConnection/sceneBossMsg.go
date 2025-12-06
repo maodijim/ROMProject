@@ -34,10 +34,13 @@ func (g *GameConnection) HandleSceneBossMsg(cmdParamId int32, rawData []byte) (p
 	return param, err
 }
 
-func (g *GameConnection) GetBossInfo() chan interface{} {
+func (g *GameConnection) GetBossInfo() {
 	cmd := &Cmd.BossListUserCmd{}
+
 	g.AddNotifier(notifier.NtfType_BossListUserCmd)
-	ntf := g.Notifier(notifier.NtfType_BossListUserCmd)
-	_ = g.sendProtoCmd(cmd, Cmd.Command_value["SCENE_BOSS_PROTOCMD"], Cmd.BossParam_value["BOSS_LIST_USER_CMD"])
-	return ntf
+
+	g.sendProtoCmd(cmd, Cmd.Command_value["SCENE_BOSS_PROTOCMD"], Cmd.BossParam_value["BOSS_LIST_USER_CMD"])
+
+	<-g.Notifier(notifier.NtfType_BossListUserCmd)
+
 }
