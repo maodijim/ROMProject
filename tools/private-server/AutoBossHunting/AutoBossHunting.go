@@ -112,7 +112,7 @@ func (b *BossHuntTask) Stop() {
 func (b *BossHuntTask) SelectHuntBoss() bool {
 	b.GC.GetBossInfo()
 
-	/*targetHidMvpList := b.GC.Configs.HuntConfig.HMVP
+	targetHidMvpList := b.GC.Configs.HuntConfig.HMVP
 	// 查找隐藏BOSS
 	for _, v := range targetHidMvpList {
 		if _, ok := b.hiddenMVPList[v]; ok {
@@ -127,7 +127,7 @@ func (b *BossHuntTask) SelectHuntBoss() bool {
 				b.logger.Infof("%s 目標時間尚未到，還有約 %d 分鐘\n", v, minutes)
 			}
 		}
-	}*/
+	}
 
 	// 查找BOSS清单
 	for _, v := range b.GC.Configs.HuntConfig.MVP {
