@@ -82,7 +82,7 @@ func (b *BossHuntTask) Start() {
 	b.GC.ShouldChangeScene = true
 	b.GC.GameServerLogin()
 	b.GC.GetAllPackItems()
-
+	<-b.GC.GetBossInfo()
 	go func() {
 		ticker := time.NewTicker(time.Second * 10)
 		// 等待登录完成
