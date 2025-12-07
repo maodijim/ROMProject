@@ -41,7 +41,7 @@ func main() {
 	http.HandleFunc("/api/options/mini", GetMiniList)
 	http.HandleFunc("/api/options/mvp", GetMVPList)
 	http.HandleFunc("/api/options/hmvp", GetHMVPList)
-	http.HandleFunc("/api/options/map", GetHMAPList)
+	http.HandleFunc("/api/options/map", GetMAPList)
 	http.HandleFunc("/api/options/naturetype", GetNatureList)
 
 	log.Println("Version: ", _ver)

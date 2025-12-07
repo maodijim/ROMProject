@@ -35,7 +35,7 @@ var BigBadWolfPos = []Cmd.ScenePos{
 	{X: i32(-9598), Y: i32(8499), Z: i32(10583)},
 }
 
-func (b *BossHuntTask) huntCarlen() {
+func (b *BossHuntTask) huntHMVP() {
 	TargetMVP := b.targetHiddenMVP.Info
 
 	PrerequisiteMonsters := b.targetHiddenMVP.PrerequisiteMonsters
@@ -133,6 +133,7 @@ func (b *BossHuntTask) huntCarlen() {
 						b.tempUHP = MHP
 						b.logger.Infof("%s 未死亡，剩余血量:%d", TargetMVP.NameZh, MonsterHP)
 						b.logger.Infof("我的血量:%d", MHP)
+						time.Sleep(time.Millisecond * 1000)
 					} else if MonsterHP == 0 {
 						b.transition(End)
 					}
