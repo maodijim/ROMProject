@@ -135,10 +135,12 @@ type TradeMonitorConfig struct {
 	BuyItems1             PurchaseItem `yaml:"buyItem1" json:"购买物品1"`
 	BuyItems2             PurchaseItem `yaml:"buyItem2" json:"购买物品2"`
 	BuyItems3             PurchaseItem `yaml:"buyItem3" json:"购买物品3"`
+	BuyItems4             PurchaseItem `yaml:"buyItem4" json:"购买物品4"`
+	BuyItems5             PurchaseItem `yaml:"buyItem5" json:"购买物品5"`
 }
 
 func (c *TradeMonitorConfig) GetPurchaseItems() []PurchaseItem {
-	return []PurchaseItem{c.BuyItems1, c.BuyItems2, c.BuyItems3}
+	return []PurchaseItem{c.BuyItems1, c.BuyItems2, c.BuyItems3, c.BuyItems4, c.BuyItems5}
 }
 
 func (c *TradeMonitorConfig) GetEnablePurchase() bool {
