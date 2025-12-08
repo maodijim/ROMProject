@@ -266,37 +266,39 @@ func (b *BossHuntTask) startHunt() {
 
 					b.GC.InMap(b.targetMonster.GetMapid(), b.GC.Configs.HuntConfig.HuntBossConfig.CarryTeam)
 
-					if b.GC.IsMonsterInRange(b.GC.MonsterItems[b.targetMonster.GetId()].NameZh) && !b.fightStar {
-						b.logger.Infof("找到%s", b.GC.MonsterItems[b.targetMonster.GetId()].NameZh)
-						b.fightMonstStar(b.GC.MonsterItems[b.targetMonster.GetId()].NameZh, b.targetMonster.GetId())
-						b.flyWingUseCount = 0
-						b.pickupCount = 0
-						b.tempMHP = 0
-						b.tempUHP = 0
-					} else if !b.GC.IsMonsterInRange(b.GC.MonsterItems[b.targetMonster.GetId()].NameZh) {
+					if b.GC.IsMonsterInRange(b.GC.MonsterItems[b.targetMonster.GetId()].NameZh) {
+						if !b.fightStar {
+							b.logger.Infof("找到%s", b.GC.MonsterItems[b.targetMonster.GetId()].NameZh)
+							b.fightMonstStar(b.GC.MonsterItems[b.targetMonster.GetId()].NameZh, b.targetMonster.GetId())
+							b.flyWingUseCount = 0
+							b.pickupCount = 0
+							b.tempMHP = 0
+							b.tempUHP = 0
+						} else {
+							TargetID := b.GC.AtkStat.GetCurrentTargetId()
+							MapNPC := b.GC.GetMapNpcs()
+							if _, ok := MapNPC[TargetID]; ok {
+								MonsterHP := utils.GetNpcAttrValByType(MapNPC[TargetID].Attrs, Cmd.EAttrType_EATTRTYPE_HP)
+								MHP := utils.GetNpcAttrValByType(b.GC.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_HP)
+								if MonsterHP != b.tempMHP || MHP != b.tempUHP {
+									b.tempMHP = MonsterHP
+									b.tempUHP = MHP
+									b.logger.Infof("%s 未死亡，剩余血量:%d", b.GC.MonsterItems[b.targetMonster.GetId()].NameZh, MonsterHP)
+									b.logger.Infof("我的血量:%d", MHP)
+								} else if MonsterHP == 0 {
+									time.Sleep(time.Second * 2) //捡东西
+									b.mitionCompelete = true
+									b.fightStar = false
+									b.fightCancel()
+								}
+							}
+						}
+					} else {
 						b.logger.Infof("找不到%s 使用翅膀", b.GC.MonsterItems[b.targetMonster.GetId()].NameZh)
 						b.GC.CheckuseFlyWing()
 						b.flyWingUseCount++
 						b.fightStar = false
 						b.fightCancel()
-					} else if b.fightStar {
-						TargetID := b.GC.AtkStat.GetCurrentTargetId()
-						MapNPC := b.GC.GetMapNpcs()
-						if _, ok := MapNPC[TargetID]; ok {
-							MonsterHP := utils.GetNpcAttrValByType(MapNPC[TargetID].Attrs, Cmd.EAttrType_EATTRTYPE_HP)
-							MHP := utils.GetNpcAttrValByType(b.GC.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_HP)
-							if MonsterHP != b.tempMHP || MHP != b.tempUHP {
-								b.tempMHP = MonsterHP
-								b.tempUHP = MHP
-								b.logger.Infof("%s 未死亡，剩余血量:%d", b.GC.MonsterItems[b.targetMonster.GetId()].NameZh, MonsterHP)
-								b.logger.Infof("我的血量:%d", MHP)
-							} else if MonsterHP == 0 {
-								time.Sleep(time.Second * 2) //捡东西
-								b.mitionCompelete = true
-								b.fightStar = false
-								b.fightCancel()
-							}
-						}
 					}
 
 					time.Sleep(time.Millisecond * 1000)
@@ -313,6 +315,7 @@ func (b *BossHuntTask) startHunt() {
 	}()
 	<-ctx.Done()
 }
+
 func (b *BossHuntTask) CheckBossLive(name string) bool {
 	BossInfo := b.GC.GetBossInfoByNmae(name)
 	if BossInfo != nil && BossInfo.GetSettime() == 0 && *BossInfo.Mapid != gameTypes.MapId_LabyrinthForest.Uint32() {
