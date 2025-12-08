@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"sort"
 
 	"ROMProject/config"
 	"ROMProject/tools/webApp/backendTasks"
@@ -267,6 +268,12 @@ func handleGetUser(w http.ResponseWriter, r *http.Request) {
 			"roleNum":  conf.Char,
 		})
 	}
+
+	// 排列（按 username 排序）
+	sort.Slice(userList, func(i, j int) bool {
+		return userList[i]["username"].(string) < userList[j]["username"].(string)
+	})
+
 	res.Data = userList
 
 	if len(usersSpace.Configs) == 0 {
