@@ -135555,7 +135555,7 @@
     "id": "30000000",
     "riskid": "1001"
   },
-    "252001": {
+  "252001": {
     "Attack_EP": "3",
     "CD": "0",
     "Camps": "Enemy",
@@ -135586,7 +135586,29 @@
     "type": "1",
     "value": "1"
   },
-    "469001": {
+  "406001": {
+    "Attack_EP": "3",
+    "CD": "0",
+    "Camps": "Enemy",
+    "Cost": "0",
+    "Fire_EP": "3",
+    "Icon": "skill_10000",
+    "Launch_Range": "2",
+    "Level": "1",
+    "Logic": "SkillLockedTarget",
+    "NameZh": "普通攻击",
+    "RollType": "1",
+    "SE_hit": "Skill/FireWall_hit",
+    "SkillType": "Attack",
+    "Target_EP": "3",
+    "_id": "234",
+    "damChangePer": "1",
+    "id": "406000",
+    "type": "1",
+    "value": "1",
+    "range": "3"
+  },
+  "469001": {
     "Attack_EP": "3",
     "CD": "0",
     "Camps": "Enemy",

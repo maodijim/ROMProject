@@ -672,12 +672,8 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 						}
 						if skillItem.Camps == CampsEnemy {
 							// 这是攻击技能
-							if g.Role.GetProfession() >= Cmd.EProfession_EPROFESSION_ARCHER && g.Role.GetProfession() <= Cmd.EProfession_EPROFESSION_RANGER && skillItem.NameZh == "普通攻击" {
-								if g.Role.GetBuffById(131070) != nil {
-									g.AttackClosestByName(252001, monsterList)
-								} else {
-									g.AttackClosestByName(300001, monsterList)
-								}
+							if skillItem.NameZh == "普通攻击" {
+								g.AttackClosestByName(g.ChangeAttackID(skill.GetId()), monsterList)
 							} else {
 								g.AttackClosestByName(skill.GetId(), monsterList)
 							}
@@ -814,4 +810,25 @@ func (g *GameConnection) DelBuffByName(name string) {
 			delete(g.Role.Buffs, uint32(id))
 		}
 	}
+}
+
+func (g *GameConnection) ChangeAttackID(skillID uint32) uint32 {
+
+	Profession := g.Role.GetProfession()
+
+	if Profession >= Cmd.EProfession_EPROFESSION_ARCHER && Profession <= Cmd.EProfession_EPROFESSION_RANGER {
+		if g.Role.GetBuffById(131070) != nil {
+			return 252001
+		} else {
+			return 300001
+		}
+	} else if Profession >= Cmd.EProfession_EPROFESSION_PRIEST && Profession <= Cmd.EProfession_EPROFESSION_ARCHBISHOP {
+		if g.Role.GetBuffById(129040) != nil {
+			return 406001
+		} else {
+			return 143001
+		}
+	}
+
+	return skillID
 }
