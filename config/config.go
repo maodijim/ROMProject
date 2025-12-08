@@ -1,12 +1,12 @@
 package config
 
 import (
+	"ROMProject/data"
 	"ROMProject/utils"
 	"bytes"
 	"io"
 	"os"
-
-	"ROMProject/data"
+	"reflect"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -17,12 +17,12 @@ type EsConfig struct {
 }
 
 type EnchantConfig struct {
-	AutoSave        bool              `yaml:"autoSave" json:"自动保存"`
-	EnchantType     string            `yaml:"enchantType" json:"附魔类型(高级/中级/低级)"`
-	EnchantEquipPos string            `yaml:"enchantEquipPos" json:"附魔部位(武器/副手/盔甲/鞋子/披风/头饰/饰品1/饰品2/背部/尾部/脸部/嘴部)"`
-	Condition       EnchantCondition  `yaml:"condition" json:"附魔目标条件"`
-	AutoBuyCoin     AutoBuyCoinConfig `yaml:"autoBuyCoin" json:"自动购买金币"`
-	EnchantCount    uint32            `yaml:"enchantCount" json:"附魔次数"`
+	AutoSave        bool              `yaml:"autoSave" json:"autoSave" label:"自动保存"`
+	EnchantType     string            `yaml:"enchantType" json:"enchantType" label:"附魔类型(高级/中级/低级)"`
+	EnchantEquipPos string            `yaml:"enchantEquipPos" json:"enchantEquipPos" label:"附魔部位(武器/副手/盔甲/鞋子/披风/头饰/饰品1/饰品2/背部/尾部/脸部/嘴部)"`
+	Condition       EnchantCondition  `yaml:"condition" json:"condition" label:"附魔目标条件"`
+	AutoBuyCoin     AutoBuyCoinConfig `yaml:"autoBuyCoin" json:"autoBuyCoin" label:"自动购买附魔材料"`
+	EnchantCount    uint32            `yaml:"enchantCount" json:"enchantCount" label:"单次附魔次数"`
 }
 
 func (c *EnchantConfig) ParseFromInterface(config map[string]any) EnchantConfig {
@@ -31,112 +31,80 @@ func (c *EnchantConfig) ParseFromInterface(config map[string]any) EnchantConfig 
 }
 
 type AutoBuyCoinConfig struct {
-	Enable        bool  `yaml:"enable" json:"enable"`
-	MinZenyToKeep int64 `yaml:"minZenyToKeep" json:"min_zeny_to_keep"`
-	NumCoinsToBuy int   `yaml:"numCoinsToBuy" default:"1000" json:"num_coins_to_buy"`
+	Enable        bool  `yaml:"enable" json:"enable" label:"开启/关闭"`
+	MinZenyToKeep int64 `yaml:"minZenyToKeep" json:"minZenyToKeep" label:"金钱下限停止补充附魔币"`
+	NumCoinsToBuy int   `yaml:"numCoinsToBuy" json:"numCoinsToBuy" default:"1000" label:"单次购买附魔币数量"`
 }
 
 type EnchantCondition struct {
-	Attributes []string `yaml:"attributes" json:"属性(必须跟游戏里面的属性描述一样要不然可能无法识别 比如 '暴伤% > 80')"`
-	Extras     []string `yaml:"extras" json:"词条(比如 '尖锐4')"`
+	Attributes []string `yaml:"attributes" json:"attributes" label:"属性(必须跟游戏里面的属性描述一样要不然可能无法识别 比如 '暴伤% > 80')"`
+	Extras     []string `yaml:"extras" json:"extras" label:"词条(比如 '尖锐4')"`
 }
-
+type HuntBossConfig struct {
+	CarryTeam    bool     `yaml:"CarryTeam" json:"CarryTeam" label:"组队一起飞"`
+	GameDuration int      `yaml:"GameDuration" json:"GameDuration" label:"狩猎时长(小时) 0为无限制"`
+	Mini         []string `yaml:"Mini" json:"Mini" label:"Mini狩猎清单"`
+	MVP          []string `yaml:"MVP" json:"MVP" label:"MVP狩猎清单"`
+	HMVP         []string `yaml:"HMVP" json:"HMVP" label:"HMVP狩猎清单"`
+}
+type HuntMonsterConfig struct {
+	UseDoubleEXP   bool     `yaml:"UseDoubleEXP" json:"UseDoubleEXP" label:"使用洋洋"`
+	TimerFly       int      `yaml:"TimerFly" json:"TimerFly" label:"固定时间使用翅膀(0为不使用)"`
+	TargetMonsters []string `yaml:"TargetMonsters" json:"TargetMonsters" label:"狩猎魔物清单，设置all自动全部狩猎"`
+	TargetItems    []string `yaml:"TargetItems" json:"TargetItems" label:"狩猎物品清单"`
+	Map            string   `yaml:"Map" json:"Map" label:"狩猎地图"`
+	NatureType     string   `yaml:"NatureType" json:"NatureType" label:"使用属性类型"`
+}
 type HuntConfig struct {
-	CarryTeam      bool     `yaml:"CarryTeam" json:"组队一起飞"`
-	UseDoubleEXP   bool     `yaml:"UseDoubleEXP" json:"使用洋洋"`
-	GameDuration   int      `yaml:"GameDuration" json:"狩猎时长(小时) 0为无限制"`
-	Mini           []string `yaml:"Mini" json:"Mini狩猎清单"`
-	MVP            []string `yaml:"MVP" json:"MVP狩猎清单"`
-	HMVP           []string `yaml:"HMVP" json:"HMVP狩猎清单"`
-	PrepEliteCD    int      `yaml:"PrepEliteCD" json:"备战精英技能冷却时间(秒)"`
-	TimerFly       int      `yaml:"TimerFly" json:"固定时间使用翅膀(0为不使用)"`
-	TargetMonsters []string `yaml:"TargetMonsters" json:"狩猎魔物清单"`
-	TargetItems    []string `yaml:"TargetItems" json:"狩猎物品清单"`
-	Map            string   `yaml:"TargetMap" json:"狩猎地图"`
-	NatureType     string   `yaml:"NatureType" json:"使用属性类型"`
+	PrepEliteCD       int                `yaml:"PrepEliteCD" json:"PrepEliteCD" label:"备战精英技能冷却时间(秒)"`
+	HuntMonsterConfig *HuntMonsterConfig `yaml:"HuntMonsterConfig" json:"HuntMonsterConfig" label:"自动狩猎设置"`
+	HuntBossConfig    *HuntBossConfig    `yaml:"HuntBossConfig" json:"HuntBossConfig" label:"自动狩猎Boss设置"`
 }
 
-func (c *HuntConfig) BossInfoParseFromInterface(config map[string]interface{}) HuntConfig {
-	if val, ok := config["CarryTeam"].(bool); ok {
-		c.CarryTeam = val
-	}
-	if val, ok := config["GameDuration"].(float64); ok {
-		c.GameDuration = int(val)
-	}
-	if val, ok := config["Mini"].([]interface{}); ok {
-		mini := make([]string, len(val))
-		for i, v := range val {
-			if str, ok := v.(string); ok {
-				mini[i] = str
-			}
-		}
-		c.Mini = mini
-	}
-	if val, ok := config["MVP"].([]interface{}); ok {
-		mvp := make([]string, len(val))
-		for i, v := range val {
-			if str, ok := v.(string); ok {
-				mvp[i] = str
-			}
-		}
-		c.MVP = mvp
-	}
-	if val, ok := config["HMVP"].([]interface{}); ok {
-		hmvp := make([]string, len(val))
-		for i, v := range val {
-			if str, ok := v.(string); ok {
-				hmvp[i] = str
-			}
-		}
-		c.HMVP = hmvp
-	}
-	if val, ok := config["PrepEliteCD"].(float64); ok {
-		c.PrepEliteCD = int(val)
-	}
-	if val, ok := config["UseDoubleEXP"].(bool); ok {
-		c.UseDoubleEXP = val
-	}
-	return *c
-}
-func (c *HuntConfig) HuntInfoParseFromInterface(config map[string]interface{}) HuntConfig {
-	if val, ok := config["PrepEliteCD"].(float64); ok {
-		c.PrepEliteCD = int(val)
-	}
-	if val, ok := config["TargetMonsters"].([]interface{}); ok {
-		TargetMonsters := make([]string, len(val))
-		for i, v := range val {
-			if str, ok := v.(string); ok {
-				TargetMonsters[i] = str
-			}
-		}
-		c.TargetMonsters = TargetMonsters
-	}
-	if val, ok := config["TargetItems"].([]interface{}); ok {
-		TargetItems := make([]string, len(val))
-		for i, v := range val {
-			if str, ok := v.(string); ok {
-				TargetItems[i] = str
-			}
-		}
-		c.TargetItems = TargetItems
-	}
-	if val, ok := config["Map"].(string); ok {
-		c.Map = string(val)
-	}
-	if val, ok := config["TimerFly"].(float64); ok {
-		c.TimerFly = int(val)
-	}
-	if val, ok := config["UseDoubleEXP"].(bool); ok {
-		c.UseDoubleEXP = val
-	}
-	if val, ok := config["NatureType"].(string); ok {
-		c.NatureType = string(val)
-	}
+func (c *HuntConfig) ParseFromInterface(config map[string]any) HuntConfig {
+	utils.ParseConfigFromInterface(config, c)
 	return *c
 }
 
-func (c *HuntConfig) GetDefault() HuntConfig {
-	return HuntConfig{
+func (c *HuntConfig) Merge(newCfg HuntConfig) {
+	cv := reflect.ValueOf(c).Elem()
+	nv := reflect.ValueOf(newCfg)
+
+	for i := 0; i < cv.NumField(); i++ {
+		oldField := cv.Field(i)
+		newField := nv.Field(i)
+
+		switch newField.Kind() {
+
+		// --- Pointer / Slice / Map 需要处理 nil ---
+		case reflect.Ptr, reflect.Slice, reflect.Map:
+			if newField.IsNil() {
+				// ⭐ 新值是 nil → 跳过（不覆盖）
+				continue
+			}
+			oldField.Set(newField)
+
+		// --- Struct → 递归深入 Merge ---
+		case reflect.Struct:
+			// 若旧值也是 struct，则递归
+			mergeMethod := oldField.Addr().MethodByName("Merge")
+			if mergeMethod.IsValid() {
+				// ⭐ 调用子 struct 的 Merge
+				mergeMethod.Call([]reflect.Value{newField})
+			} else {
+				// 没有 Merge 方法就直接覆盖
+				oldField.Set(newField)
+			}
+
+		// --- 其他类型（int/string/bool）直接覆盖 ---
+		default:
+			oldField.Set(newField)
+		}
+	}
+}
+
+func (c *HuntBossConfig) GetDefault() HuntBossConfig {
+	return HuntBossConfig{
 		CarryTeam:    false,
 		GameDuration: 0,
 		Mini: []string{
@@ -152,7 +120,17 @@ func (c *HuntConfig) GetDefault() HuntConfig {
 		HMVP: []string{
 			"卡仑", "狼外婆",
 		},
-		PrepEliteCD: 30,
+	}
+}
+
+func (c *HuntMonsterConfig) GetDefault() HuntMonsterConfig {
+	return HuntMonsterConfig{
+		UseDoubleEXP:   true,
+		TimerFly:       0,
+		TargetMonsters: []string{"all"},
+		TargetItems:    []string{},
+		Map:            "",
+		NatureType:     "",
 	}
 }
 

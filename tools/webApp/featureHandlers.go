@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"reflect"
+	"strings"
 
 	gameConfig "ROMProject/config"
 	"ROMProject/tools/webApp/backendTasks"
@@ -317,33 +319,20 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 		case "AutoEnchant":
 			config = usersSpace.Configs[username].EnchantConfig
 		case "AutoMVP":
-			defaultConfig := usersSpace.Configs[username].HuntConfig.GetDefault()
+			defaultConfig := usersSpace.Configs[username].HuntConfig.HuntBossConfig.GetDefault()
 			var existingConfig gameConfig.HuntConfig
 			// merge with existing config if any
 			if usersSpace.Configs[username] != nil {
 				existingConfig = usersSpace.Configs[username].HuntConfig
-				if existingConfig.PrepEliteCD == 0 {
-					existingConfig.PrepEliteCD = defaultConfig.PrepEliteCD
-				}
-				if len(existingConfig.MVP) == 0 {
-					existingConfig.MVP = defaultConfig.MVP
-				}
-				if len(existingConfig.Mini) == 0 {
-					existingConfig.Mini = defaultConfig.Mini
+				if existingConfig.HuntBossConfig == nil {
+					existingConfig.HuntBossConfig = &defaultConfig
 				}
 			} else {
-				existingConfig = defaultConfig
+				existingConfig.HuntBossConfig = &defaultConfig
 			}
+			existingConfig.HuntMonsterConfig = nil
 
-			viewConfig := map[string]interface{}{
-				"GameDuration": existingConfig.GameDuration,
-				"CarryTeam":    existingConfig.CarryTeam,
-				"PrepEliteCD":  existingConfig.PrepEliteCD,
-				"Mini":         existingConfig.Mini,
-				"MVP":          existingConfig.MVP,
-				"HMVP":         existingConfig.HMVP,
-			}
-			config = viewConfig
+			config = existingConfig
 		case "MarketMonitor":
 			defaultConfig := usersSpace.Configs[username].TradeMonitorConfig.GetDefault()
 			var existingConfig gameConfig.TradeMonitorConfig
@@ -362,34 +351,129 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 			}
 			config = existingConfig
 		case "AutoHunt":
-			huntconfig := usersSpace.Configs[username].HuntConfig
+			defaultConfig := usersSpace.Configs[username].HuntConfig.HuntMonsterConfig.GetDefault()
+			var existingConfig gameConfig.HuntConfig
+			// merge with existing config if any
+			if usersSpace.Configs[username] != nil {
+				existingConfig = usersSpace.Configs[username].HuntConfig
+				if existingConfig.HuntMonsterConfig == nil {
+					existingConfig.HuntMonsterConfig = &defaultConfig
+				}
+			} else {
+				existingConfig.HuntMonsterConfig = &defaultConfig
+			}
+			existingConfig.HuntBossConfig = nil
 
-			if huntconfig.TargetMonsters == nil {
-				huntconfig.TargetMonsters = []string{}
-			}
-			if huntconfig.TargetItems == nil {
-				huntconfig.TargetItems = []string{}
-			}
-
-			viewConfig := map[string]interface{}{
-				"TimerFly":       huntconfig.TimerFly,
-				"PrepEliteCD":    huntconfig.PrepEliteCD,
-				"TargetMonsters": huntconfig.TargetMonsters,
-				"TargetItems":    huntconfig.TargetItems,
-				"Map":            huntconfig.Map,
-				"UseDoubleEXP":   huntconfig.UseDoubleEXP,
-				"NatureType":     huntconfig.NatureType,
-			}
-			config = viewConfig
+			config = existingConfig
 		default:
 			config = map[string]interface{}{}
 		}
 	}
 
+	labeled := StructToLabeledJSON(config)
+
 	json.NewEncoder(w).Encode(Response{
 		Success: true,
-		Data:    config,
+		Data:    labeled,
 	})
+}
+
+// 自动将 struct 转成带有 label 的 JSON 格式
+func StructToLabeledJSON(data interface{}) map[string]interface{} {
+	return convertValue(reflect.ValueOf(data))
+}
+
+func convertValue(v reflect.Value) map[string]interface{} {
+	// 解指针
+	if v.Kind() == reflect.Ptr {
+		if v.IsNil() {
+			return nil
+		}
+		v = v.Elem()
+	}
+
+	// 必须是 struct 才能继续
+	if v.Kind() != reflect.Struct {
+		return nil
+	}
+
+	result := make(map[string]interface{})
+	t := v.Type()
+
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		fv := v.Field(i)
+
+		// 读取 JSON 字段名
+		jsonTag := field.Tag.Get("json")
+		jsonKey := strings.Split(jsonTag, ",")[0]
+		if jsonKey == "" {
+			jsonKey = field.Name
+		}
+
+		// label
+		label := field.Tag.Get("label")
+
+		// nil 检查
+		if (fv.Kind() == reflect.Ptr ||
+			fv.Kind() == reflect.Map ||
+			fv.Kind() == reflect.Slice ||
+			fv.Kind() == reflect.Interface) &&
+			fv.IsNil() {
+			continue
+		}
+
+		var packedValue interface{}
+
+		switch fv.Kind() {
+
+		// ⭐ struct → 递归处理
+		case reflect.Struct:
+			packedValue = convertValue(fv)
+
+		// ⭐ 指针 → 递归
+		case reflect.Ptr:
+			packedValue = convertValue(fv)
+
+		// ⭐ slice → 循环处理
+		case reflect.Slice:
+			arr := make([]interface{}, 0)
+
+			for j := 0; j < fv.Len(); j++ {
+				elem := fv.Index(j)
+				if elem.Kind() == reflect.Struct || elem.Kind() == reflect.Ptr {
+					arr = append(arr, convertValue(elem))
+				} else {
+					arr = append(arr, elem.Interface())
+				}
+			}
+			packedValue = arr
+
+		// ⭐ map → 保留原样或处理 struct
+		case reflect.Map:
+			mapResult := map[string]interface{}{}
+			for _, key := range fv.MapKeys() {
+				item := fv.MapIndex(key)
+				if item.Kind() == reflect.Struct || item.Kind() == reflect.Ptr {
+					mapResult[key.String()] = convertValue(item)
+				} else {
+					mapResult[key.String()] = item.Interface()
+				}
+			}
+			packedValue = mapResult
+
+		default:
+			packedValue = fv.Interface()
+		}
+
+		// 最终包装格式
+		result[jsonKey] = map[string]interface{}{
+			"value": packedValue,
+			"label": label,
+		}
+	}
+
+	return result
 }
 
 func handleUpdateFeatureConfig(w http.ResponseWriter, r *http.Request) {
@@ -439,22 +523,24 @@ func handleUpdateFeatureConfig(w http.ResponseWriter, r *http.Request) {
 	// Update the config in files
 	userConfigs := usersSpace.Configs[req.Username]
 	switch req.FeatureName {
-	case "AutoEnchant":
-		config := userConfigs.EnchantConfig
-		config.ParseFromInterface(req.Config)
-		userConfigs.EnchantConfig = config
-	case "AutoMVP":
+	case "AutoEnchant", "AutoMVP", "AutoHunt", "MarketMonitor":
 		config := userConfigs.HuntConfig
-		config.BossInfoParseFromInterface(req.Config)
-		userConfigs.HuntConfig = config
-	case "MarketMonitor":
-		config := userConfigs.TradeMonitorConfig
-		config.ParseFromInterface(req.Config)
-		userConfigs.TradeMonitorConfig = config
-	case "AutoHunt":
-		config := userConfigs.HuntConfig
-		config.HuntInfoParseFromInterface(req.Config)
-		userConfigs.HuntConfig = config
+
+		cleanConfig := StripLabelRecursive(req.Config)
+
+		// 把 cleanConfig 转成 JSON
+		jsonBytes, _ := json.Marshal(cleanConfig)
+
+		// 塞进你的 config struct
+		if err := json.Unmarshal(jsonBytes, &config); err != nil {
+			json.NewEncoder(w).Encode(Response{
+				Success: false,
+				Message: "Config parse error",
+			})
+			return
+		}
+
+		userConfigs.HuntConfig.Merge(config)
 	default:
 		json.NewEncoder(w).Encode(Response{
 			Success: false,
@@ -648,4 +734,36 @@ func handleSendChatMsg(w http.ResponseWriter, r *http.Request) {
 		Success: true,
 		Message: "Chat message sent successfully",
 	})
+}
+
+// StripLabelRecursive 递归解析前端传来的 config，移除所有 label 并提取 value
+func StripLabelRecursive(v interface{}) interface{} {
+
+	// 如果是 map
+	if m, ok := v.(map[string]interface{}); ok {
+
+		// case1: 这是 {value, label} 结构
+		if val, exists := m["value"]; exists {
+			return StripLabelRecursive(val) // 继续往下拆
+		}
+
+		// case2: 普通 map，需要继续递归处理每个字段
+		cleaned := make(map[string]interface{})
+		for k, v2 := range m {
+			cleaned[k] = StripLabelRecursive(v2)
+		}
+		return cleaned
+	}
+
+	// 如果是 array/slice
+	if arr, ok := v.([]interface{}); ok {
+		newArr := make([]interface{}, len(arr))
+		for i, item := range arr {
+			newArr[i] = StripLabelRecursive(item)
+		}
+		return newArr
+	}
+
+	// 否则是基本类型（string, int, bool...）直接返回
+	return v
 }

@@ -112,7 +112,7 @@ func (b *BossHuntTask) Stop() {
 func (b *BossHuntTask) SelectHuntBoss() bool {
 	b.GC.GetBossInfo()
 
-	targetHidMvpList := b.GC.Configs.HuntConfig.HMVP
+	targetHidMvpList := b.GC.Configs.HuntConfig.HuntBossConfig.HMVP
 	// 查找隐藏BOSS
 	for _, v := range targetHidMvpList {
 		if _, ok := b.hiddenMVPList[v]; ok {
@@ -130,14 +130,14 @@ func (b *BossHuntTask) SelectHuntBoss() bool {
 	}
 
 	// 查找BOSS清单
-	for _, v := range b.GC.Configs.HuntConfig.MVP {
+	for _, v := range b.GC.Configs.HuntConfig.HuntBossConfig.MVP {
 		if b.CheckBossLive(v) {
 			return true
 		}
 	}
 
 	// 查找Mini清单
-	for _, v := range b.GC.Configs.HuntConfig.Mini {
+	for _, v := range b.GC.Configs.HuntConfig.HuntBossConfig.Mini {
 		if b.CheckBossLive(v) {
 			return true
 		}
@@ -157,7 +157,7 @@ func (b *BossHuntTask) startHunt() {
 
 	targetId := uint64(0)
 	// 隐藏MVP清单
-	ConfigMVPName := b.GC.Configs.HuntConfig.HMVP
+	ConfigMVPName := b.GC.Configs.HuntConfig.HuntBossConfig.HMVP
 	b.hiddenMVPList = map[string]*HiddenMVP{}
 	for _, v := range ConfigMVPName {
 		if b.GC.GetMonsterIdByName(v) != 0 {
@@ -264,7 +264,7 @@ func (b *BossHuntTask) startHunt() {
 			default:
 				if !b.mitionCompelete && b.targetMonster.GetMapid() != 0 {
 
-					b.GC.InMap(b.targetMonster.GetMapid(), b.GC.Configs.HuntConfig.CarryTeam)
+					b.GC.InMap(b.targetMonster.GetMapid(), b.GC.Configs.HuntConfig.HuntBossConfig.CarryTeam)
 
 					if b.GC.IsMonsterInRange(b.GC.MonsterItems[b.targetMonster.GetId()].NameZh) && !b.fightStar {
 						b.logger.Infof("找到%s", b.GC.MonsterItems[b.targetMonster.GetId()].NameZh)
@@ -290,6 +290,11 @@ func (b *BossHuntTask) startHunt() {
 								b.tempUHP = MHP
 								b.logger.Infof("%s 未死亡，剩余血量:%d", b.GC.MonsterItems[b.targetMonster.GetId()].NameZh, MonsterHP)
 								b.logger.Infof("我的血量:%d", MHP)
+							} else if MonsterHP == 0 {
+								time.Sleep(time.Second * 2) //捡东西
+								b.mitionCompelete = true
+								b.fightStar = false
+								b.fightCancel()
 							}
 						}
 					}
@@ -378,6 +383,8 @@ func (b *BossHuntTask) checkTargetBossLive() bool {
 		if v.GetId() == b.targetMonster.GetId() && v.GetMapid() == b.targetMonster.GetMapid() {
 			if v.RefreshTime == nil {
 				return true
+			} else if v.Settime != nil {
+				return false
 			} else {
 				past, _ := IsPastTime(v.GetRefreshTime())
 				if past {
@@ -396,7 +403,7 @@ func (b *BossHuntTask) checkTargetBossLive() bool {
 }
 
 func (b *BossHuntTask) CheckCloseTime() {
-	GameDuration := b.GC.Configs.HuntConfig.GameDuration
+	GameDuration := b.GC.Configs.HuntConfig.HuntBossConfig.GameDuration
 	if GameDuration > 0 {
 		remaining := time.Until(b.startTime) + time.Duration(GameDuration)*time.Hour
 		hour := int(remaining.Hours())

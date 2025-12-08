@@ -2,8 +2,10 @@ package main
 
 import (
 	gameTypes "ROMProject/gameConnection/types"
+	"ROMProject/tools/private-server/autoEnchant"
 	"encoding/json"
 	"net/http"
+	"sort"
 )
 
 func GetMiniList(w http.ResponseWriter, r *http.Request) {
@@ -100,9 +102,15 @@ func GetHMVPList(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetMAPList(w http.ResponseWriter, r *http.Request) {
-	list := make([]string, 0, len(gameTypes.MapIdToZh))
-	for _, zh := range gameTypes.MapIdToZh {
-		list = append(list, zh)
+	ids := make([]int, 0, len(gameTypes.MapIdToZh))
+	for id := range gameTypes.MapIdToZh {
+		ids = append(ids, int(id))
+	}
+	sort.Ints(ids)
+
+	list := make([]string, 0, len(ids))
+	for _, id := range ids {
+		list = append(list, gameTypes.MapIdToZh[gameTypes.MapId(id)])
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -114,8 +122,70 @@ func GetMAPList(w http.ResponseWriter, r *http.Request) {
 
 func GetNatureList(w http.ResponseWriter, r *http.Request) {
 	list := make([]string, 0, len(gameTypes.NatureTypeZhMap))
-	for _, zh := range gameTypes.NatureTypeZhMap {
-		list = append(list, zh)
+
+	// 1. 先取得所有 key
+	keys := make([]gameTypes.NatureType, 0, len(gameTypes.NatureTypeZhMap))
+	for k := range gameTypes.NatureTypeZhMap {
+		keys = append(keys, k)
+	}
+
+	// 2. 排序 key（NatureType 底层应该是 int）
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] < keys[j]
+	})
+
+	// 3. 按照排序后的 key 顺序取值
+	for _, k := range keys {
+		list = append(list, gameTypes.NatureTypeZhMap[k])
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    list,
+	})
+}
+
+func GetEnchantEquipPosList(w http.ResponseWriter, r *http.Request) {
+
+	// 1. 先取得所有 key
+	list := make([]string, 0, len(autoEnchant.EnchantEquipPosMap))
+	for k := range autoEnchant.EnchantEquipPosMap {
+		list = append(list, k)
+	}
+
+	sort.Strings(list)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    list,
+	})
+}
+
+func GetEnchantTypeList(w http.ResponseWriter, r *http.Request) {
+
+	// 1. 先取得所有 key
+	list := make([]string, 0, len(autoEnchant.EnchantTypeMap))
+	for k := range autoEnchant.EnchantTypeMap {
+		list = append(list, k)
+	}
+
+	sort.Strings(list)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    list,
+	})
+}
+
+func GetExtrasList(w http.ResponseWriter, r *http.Request) {
+
+	// 1. 先取得所有 key
+	list := make([]string, 0, len(autoEnchant.ExtraZhMap))
+	for _, k := range autoEnchant.ExtraZhMap {
+		list = append(list, k)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

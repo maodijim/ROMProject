@@ -8,22 +8,23 @@ const ConfigField = {
             <div v-if="isObject" class="nested-object">
                 <div class="nested-header" @click="toggleCollapse">
                     <span class="collapse-icon">{{ collapsed ? '▶' : '▼' }}</span>
-                    <label>{{ formatFieldName(fieldKey) }}</label>
+                    <label>{{ fieldLabel }}</label>
                 </div>
                 <div v-show="!collapsed" class="nested-content">
                     <config-field
                         v-for="(value, key) in fieldValue"
                         :key="key"
                         :field-key="key"
-                        :field-value="value"
-                        :path="path + '.' + key"
+                        :field-value="value.value"
+                        :field-label="value.label"
+                        :path="path + '.' + 'value' + '.' + key"
                         @update="propagateUpdate"
                     />
                 </div>
             </div>
 
             <div v-else-if="isArray" class="array-field">
-                <label>{{ formatFieldName(fieldKey) }}</label>
+                <label>{{ fieldLabel }}</label>
                 <div class="array-items">
                     <div v-for="(item, index) in fieldValue" :key="index" class="array-item">
                         <!-- ✅ 如果是陣列 → 用 combobox -->
@@ -84,70 +85,70 @@ const ConfigField = {
             </div>
 
             <div v-else>
-    <div v-if="typeof fieldValue === 'boolean'" class="config-form-group checkbox-group">
-        <label :for="'config-' + path">{{ formatFieldName(fieldKey) }}</label>
-        <input
-            :id="'config-' + path"
-            :checked="fieldValue"
-            @change="handleInput($event.target.checked)"
-            type="checkbox"
-            class="config-form-checkbox"
-        />
-    </div>
+                <div v-if="typeof fieldValue === 'boolean'" class="config-form-group checkbox-group">
+                    <label :for="'config-' + path">{{ fieldLabel }}</label>
+                    <input
+                        :id="'config-' + path"
+                        :checked="fieldValue"
+                        @change="handleInput($event.target.checked)"
+                        type="checkbox"
+                        class="config-form-checkbox"
+                    />
+                </div>
 
-    <div v-else>
-        <label v-if="showLabel" :for="'config-' + path">{{ formatFieldName(fieldKey) }}</label>
-        
-        <select
-            v-if="typeof fieldValue === 'string' 
-                && fieldKey 
-                && optionsMap.hasOwnProperty(String(fieldKey).toLowerCase())"
-            :id="'config-' + path"
-            class="config-form-control"
-            :value="fieldValue"
-            @change="handleInput($event.target.value)"
-        >
-            <option value="">请选择</option>
-            <option
-                v-for="opt in optionsMap[String(fieldKey).toLowerCase()]"
-                :key="opt"
-                :value="opt"
-            >       
-                {{ opt }}
-            </option>
-        </select>
+                <div v-else>
+                    <label v-if="showLabel" :for="'config-' + path">{{ fieldLabel }}</label>
+                    
+                    <select
+                        v-if="typeof fieldValue === 'string' 
+                            && fieldKey 
+                            && optionsMap.hasOwnProperty(String(fieldKey).toLowerCase())"
+                        :id="'config-' + path"
+                        class="config-form-control"
+                        :value="fieldValue"
+                        @change="handleInput($event.target.value)"
+                    >
+                        <option value="">请选择</option>
+                        <option
+                            v-for="opt in optionsMap[String(fieldKey).toLowerCase()]"
+                            :key="opt"
+                            :value="opt"
+                        >       
+                            {{ opt }}
+                        </option>
+                    </select>
+            
+                    <!-- ✅ 否则维持原本 textbox -->
+                    <input
+                        v-else-if="typeof fieldValue === 'string'"
+                        :id="'config-' + path"
+                        :value="fieldValue"
+                        @input="handleInput($event.target.value)"
+                        type="text"
+                        class="config-form-control"
+                    />
 
-        <!-- ✅ 否则维持原本 textbox -->
-        <input
-            v-else-if="typeof fieldValue === 'string'"
-            :id="'config-' + path"
-            :value="fieldValue"
-            @input="handleInput($event.target.value)"
-            type="text"
-            class="config-form-control"
-        />
+                    <input
+                        v-else-if="typeof fieldValue === 'number'"
+                        :id="'config-' + path"
+                        :value="fieldValue"
+                        @input="handleInput(Number($event.target.value))"
+                        type="number"
+                        class="config-form-control"
+                    />
 
-        <input
-            v-else-if="typeof fieldValue === 'number'"
-            :id="'config-' + path"
-            :value="fieldValue"
-            @input="handleInput(Number($event.target.value))"
-            type="number"
-            class="config-form-control"
-        />
-
-        <input
-            v-else
-            :id="'config-' + path"
-            :value="String(fieldValue)"
-            @input="handleInput($event.target.value)"
-            type="text"
-            class="config-form-control"
-        />
-    </div>
-</div>
-
+                    <input
+                        v-else
+                        :id="'config-' + path"
+                        :value="String(fieldValue)"
+                        @input="handleInput($event.target.value)"
+                        type="text"
+                        class="config-form-control"
+                    />
+                </div>
         </div>
+
+</div>
     `,
     props: {
         fieldKey: {
@@ -155,6 +156,9 @@ const ConfigField = {
             required: true
         },
         fieldValue: {
+            required: true
+        },
+        fieldLabel: {
             required: true
         },
         path: {
@@ -175,6 +179,9 @@ const ConfigField = {
                 hmvp: [],
                 map: [],
                 naturetype:[],
+                enchantequippos:[],
+                enchanttype:[],
+                extras:[],
             }
         };
     },
@@ -249,6 +256,7 @@ const ConfigField = {
                 } else {
                     this.optionsMap[type] = []
                 }
+                this.$forceUpdate();
             } catch (err) {
                 console.error(`载入 ${type} 选项失败`, err)
                 this.optionsMap[type] = []
@@ -257,7 +265,7 @@ const ConfigField = {
 
         //陣列某一列选取
         handleArraySelect(index, value) {
-            const itemPath = this.path + '[' + index + ']'
+            const itemPath = this.path + '.' + 'value' + '[' + index + ']'
             this.$emit('update', itemPath, value)
         },
 
@@ -299,7 +307,8 @@ export default {
                                 v-for="(value, key) in config"
                                 :key="key"
                                 :field-key="key"
-                                :field-value="value"
+                                :field-value="value.value"
+                                :field-label="value.label"
                                 :path="String(key)"
                                 @update="updateField"
                             />
@@ -376,7 +385,14 @@ export default {
                 current = current[part];
             }
 
-            current[parts[parts.length - 1]] = value;
+            let lastKey = parts[parts.length - 1]
+
+            // ⭐ 若原本是 {value,label} 的结构 → 必须保留 label
+            if (current[lastKey] && typeof current[lastKey] === 'object' && 'label' in current[lastKey]) {
+                current[lastKey].value = value
+            } else {
+                current[lastKey] = value
+            }
         },
         async handleSubmit() {
             try {

@@ -19,17 +19,17 @@ const (
 )
 
 type PurchaseItem struct {
-	ItemName         string `yaml:"itemName" json:"物品名称"`
-	MaxPurchasePrice uint64 `yaml:"maxPurchasePrice" json:"最大购买价格"`
-	PurchaseCount    uint32 `yaml:"purchaseCount" json:"购买数量"`
-	MaxPossession    uint32 `yaml:"maxPossession" json:"最大拥有数量"`
-	Action           string `yaml:"action" json:"操作(买/卖)"`
-	MaxExchangeCount uint32 `yaml:"maxExchangeCount" json:"交易所保留最大数量"`
-	MinSellPrice     uint64 `yaml:"minSellPrice" json:"最小出售价格"`
-	LeaveMinCount    uint32 `yaml:"leaveMinCount" json:"交易所保留最小数量"`
-	RefineLv         string `yaml:"refineLv" json:"精炼等级比较=0 >=5 <10"`
-	DamageEquip      bool   `yaml:"damageEquip" json:"是否购买损坏装备"`
-	MinZenyKeep      uint64 `yaml:"minZenyKeep" json:"购买后保留最小zeny"`
+	ItemName         string `yaml:"itemName" json:"itemName" label:"物品名称"`
+	MaxPurchasePrice uint64 `yaml:"maxPurchasePrice" json:"maxPurchasePrice" label:"最大购买价格"`
+	PurchaseCount    uint32 `yaml:"purchaseCount" json:"purchaseCount" label:"购买数量"`
+	MaxPossession    uint32 `yaml:"maxPossession" json:"maxPossession" label:"最大拥有数量"`
+	Action           string `yaml:"action" json:"action" label:"操作(买/卖)"`
+	MaxExchangeCount uint32 `yaml:"maxExchangeCount" json:"maxExchangeCount" label:"交易所保留最大数量"`
+	MinSellPrice     uint64 `yaml:"minSellPrice" json:"minSellPrice" label:"最小出售价格"`
+	LeaveMinCount    uint32 `yaml:"leaveMinCount" json:"leaveMinCount" label:"交易所保留最小数量"`
+	RefineLv         string `yaml:"refineLv" json:"refineLv" label:"精炼等级比较(=0, >=5, <10)"`
+	DamageEquip      bool   `yaml:"damageEquip" json:"damageEquip" label:"是否购买损坏装备"`
+	MinZenyKeep      uint64 `yaml:"minZenyKeep" json:"minZenyKeep" label:"购买后保留最小zeny"`
 }
 
 func (p *PurchaseItem) ParseConfigFromInterface(config map[string]any) PurchaseItem {
@@ -126,17 +126,17 @@ func (p *PurchaseItem) ParseRefineLv() (compare []string, lv []uint32, err error
 }
 
 type TradeMonitorConfig struct {
-	MonitorInterval       int          `yaml:"monitorInterval" json:"监控间隔"` // in seconds
-	WatchItems            []string     `yaml:"watchItems" json:"监控物品"`
-	WatchCategories       []string     `yaml:"watchCategories" json:"监控类别"`
-	ElasticsearchHostPort string       `yaml:"elasticsearchHostPort" json:"elasticsearchHostPort"`
-	NumberWorkers         int          `yaml:"numberWorkers" json:"工作线程数"`
-	EnablePurchase        bool         `yaml:"enablePurchase" json:"启用买卖物品"`
-	BuyItems1             PurchaseItem `yaml:"buyItem1" json:"购买物品1"`
-	BuyItems2             PurchaseItem `yaml:"buyItem2" json:"购买物品2"`
-	BuyItems3             PurchaseItem `yaml:"buyItem3" json:"购买物品3"`
-	BuyItems4             PurchaseItem `yaml:"buyItem4" json:"购买物品4"`
-	BuyItems5             PurchaseItem `yaml:"buyItem5" json:"购买物品5"`
+	MonitorInterval       int          `yaml:"monitorInterval" json:"monitorInterval" label:"监控间隔"` // in seconds
+	WatchItems            []string     `yaml:"watchItems" json:"watchItems" label:"监控物品"`
+	WatchCategories       []string     `yaml:"watchCategories" json:"watchCategories" label:"监控类别"`
+	ElasticsearchHostPort string       `yaml:"elasticsearchHostPort" json:"elasticsearchHostPort" label:"elasticsearchHostPort"`
+	NumberWorkers         int          `yaml:"numberWorkers" json:"numberWorkers" label:"工作线程数"`
+	EnablePurchase        bool         `yaml:"enablePurchase" json:"enablePurchase" label:"启用买卖物品"`
+	BuyItems1             PurchaseItem `yaml:"buyItem1" json:"buyItem1" label:"购买物品1"`
+	BuyItems2             PurchaseItem `yaml:"buyItem2" json:"buyItem2" label:"购买物品2"`
+	BuyItems3             PurchaseItem `yaml:"buyItem3" json:"buyItem3" label:"购买物品3"`
+	BuyItems4             PurchaseItem `yaml:"buyItem4" json:"buyItem4" json:"购买物品4"`
+	BuyItems5             PurchaseItem `yaml:"buyItem5" json:"buyItem5" json:"购买物品5"`
 }
 
 func (c *TradeMonitorConfig) GetPurchaseItems() []PurchaseItem {
