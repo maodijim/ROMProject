@@ -64,7 +64,7 @@ func (b *BossHuntTask) huntHMVP() {
 			break
 		// 移动到前置怪物地点
 		case MOVE_PrerequisiteMonstersPOS:
-			if int(b.posCount) < len(PosList)-1 {
+			if int(b.posCount) < len(PosList) {
 				if b.GC.MoveChartWait(PosList[b.posCount]) {
 					log.Infof("抵达%s出生点%d", PrerequisiteMonsters.NameZh, b.posCount+1)
 					b.transition(CHECK_PrerequisiteMonsters)
