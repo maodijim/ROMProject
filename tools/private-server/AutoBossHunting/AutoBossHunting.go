@@ -112,9 +112,10 @@ func (b *BossHuntTask) Stop() {
 func (b *BossHuntTask) SelectHuntBoss() bool {
 	b.GC.GetBossInfo()
 
-	targetHidMvpList := b.GC.Configs.HuntConfig.HuntBossConfig.HMVP
+	time.Sleep(time.Millisecond * 1000)
+
 	// 查找隐藏BOSS
-	for _, v := range targetHidMvpList {
+	for _, v := range b.GC.Configs.HuntConfig.HuntBossConfig.HMVP {
 		if _, ok := b.hiddenMVPList[v]; ok {
 			if time.Since(b.hiddenMVPList[v].RespawnTime) > 0 {
 				b.huntHidMVP = true
@@ -379,6 +380,8 @@ func (b *BossHuntTask) checkTargetBossLive() bool {
 	}
 
 	b.GC.GetBossInfo()
+
+	time.Sleep(time.Millisecond * 1000)
 
 	BossInfo := b.GC.GetBossInfoList()
 	// 确认目标复活时间
