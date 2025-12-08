@@ -389,8 +389,10 @@ func (b *BossHuntTask) checkTargetBossLive() bool {
 		if v.GetId() == b.targetMonster.GetId() && v.GetMapid() == b.targetMonster.GetMapid() {
 			if v.RefreshTime == nil {
 				return true
-			} else if v.Settime != nil || *v.Settime != 0 {
-				return false
+			} else if v.Settime != nil {
+				if *v.Settime != 0 {
+					return false
+				}
 			} else {
 				past, _ := IsPastTime(v.GetRefreshTime())
 				if past {
