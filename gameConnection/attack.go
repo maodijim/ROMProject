@@ -791,6 +791,17 @@ func (g *GameConnection) GetBuffByName(name string) utils.BuffItem {
 	return utils.BuffItem{}
 }
 
+func (g *GameConnection) GetBuffByID(BuffID uint32) utils.BuffItem {
+	g.Role.Mutex.RLock()
+	defer g.Role.Mutex.RUnlock()
+	for _, v := range g.Role.Buffs {
+		if BuffID == v.GetId() {
+			return g.BuffItems[v.GetId()]
+		}
+	}
+	return utils.BuffItem{}
+}
+
 func (g *GameConnection) DelBuffByName(name string) {
 	g.Role.Mutex.Lock()
 	defer g.Role.Mutex.Unlock()
