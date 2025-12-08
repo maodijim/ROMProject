@@ -139,6 +139,25 @@ export default {
         }
     },
     methods: {
+        formatTimestamp(ts) {
+            if (ts == null || ts === '') return '';
+            if (ts instanceof Date) {
+                return isNaN(ts.getTime()) ? '' : ts.toLocaleString();
+            }
+            const asNum = (typeof ts === 'string') ? Number(ts) : ts;
+            if (typeof asNum === 'number' && !isNaN(asNum)) {
+                // treat epoch seconds (small numbers) as seconds, else milliseconds
+                let ms = asNum;
+                if (Math.abs(asNum) < 1e12) ms = asNum * 1000;
+                const d = new Date(ms);
+                if (!isNaN(d.getTime())) return d.toLocaleString();
+            }
+            // fallback: try parsing string timestamps like "2023-01-01T12:34:56Z"
+            const parsed = new Date(String(ts));
+            if (!isNaN(parsed.getTime())) return parsed.toLocaleString();
+            return String(ts);
+        },
+
         scrollLogsToBottom() {
             const logArea = this.$refs.logArea;
             if (!logArea) return;
@@ -178,6 +197,7 @@ export default {
             // fallback to channel string
             return String(channel);
         },
+
 
         async fetchLogs() {
             if (!this.username || !this.featureName) return;
@@ -219,20 +239,8 @@ export default {
                     const rawChannel = item.msgChannel || null;
                     const channelLabel = this.mapChannel(rawChannel);
                     let tsVal = item.timestamp || null;
-                    let timestamp = new Date().toLocaleTimeString();
+                    let timestamp = this.formatTimestamp(tsVal);
                     this.senderIds[item.senderName] = item.senderId;
-                    if (tsVal) {
-                        try {
-                            const parsed = new Date(tsVal);
-                            if (!isNaN(parsed.getTime())) {
-                                timestamp = parsed.toLocaleTimeString();
-                            } else {
-                                timestamp = String(tsVal);
-                            }
-                        } catch (e) {
-                            timestamp = String(tsVal);
-                        }
-                    }
                     return {
                         timestamp,
                         text,

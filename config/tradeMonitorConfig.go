@@ -27,14 +27,14 @@ type PurchaseItem struct {
 	MaxExchangeCount uint32 `yaml:"maxExchangeCount" json:"交易所保留最大数量"`
 	MinSellPrice     uint64 `yaml:"minSellPrice" json:"最小出售价格"`
 	LeaveMinCount    uint32 `yaml:"leaveMinCount" json:"交易所保留最小数量"`
-	RefineLv         string `yaml:"refineLv" json:"精炼等级比较(=0, >=5, <10)"`
+	RefineLv         string `yaml:"refineLv" json:"精炼等级比较=0 >=5 <10"`
 	DamageEquip      bool   `yaml:"damageEquip" json:"是否购买损坏装备"`
 	MinZenyKeep      uint64 `yaml:"minZenyKeep" json:"购买后保留最小zeny"`
 }
 
 func (p *PurchaseItem) ParseConfigFromInterface(config map[string]any) PurchaseItem {
 	utils.ParseConfigFromInterface(config, p)
-	if p.RefineLv == "" {
+	if p.RefineLv == "" || p.RefineLv == "0" {
 		p.RefineLv = "=0"
 	}
 	return *p
@@ -135,10 +135,12 @@ type TradeMonitorConfig struct {
 	BuyItems1             PurchaseItem `yaml:"buyItem1" json:"购买物品1"`
 	BuyItems2             PurchaseItem `yaml:"buyItem2" json:"购买物品2"`
 	BuyItems3             PurchaseItem `yaml:"buyItem3" json:"购买物品3"`
+	BuyItems4             PurchaseItem `yaml:"buyItem4" json:"购买物品4"`
+	BuyItems5             PurchaseItem `yaml:"buyItem5" json:"购买物品5"`
 }
 
 func (c *TradeMonitorConfig) GetPurchaseItems() []PurchaseItem {
-	return []PurchaseItem{c.BuyItems1, c.BuyItems2, c.BuyItems3}
+	return []PurchaseItem{c.BuyItems1, c.BuyItems2, c.BuyItems3, c.BuyItems4, c.BuyItems5}
 }
 
 func (c *TradeMonitorConfig) GetEnablePurchase() bool {

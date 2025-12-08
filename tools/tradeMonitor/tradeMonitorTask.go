@@ -54,6 +54,7 @@ func (t *Task) Start() {
 	t.GC.GameServerLogin()
 
 	go func() {
+		puConfig := t.GC.Configs.TradeMonitorConfig.GetPurchaseItems()
 		for {
 			select {
 			case <-t.ctx.Done():
@@ -64,7 +65,6 @@ func (t *Task) Start() {
 			default:
 				if t.GC.Configs.TradeMonitorConfig.GetEnablePurchase() {
 					// 处理自动交易
-					puConfig := t.GC.Configs.TradeMonitorConfig.GetPurchaseItems()
 					t.autoTrade(puConfig)
 				}
 
