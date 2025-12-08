@@ -933,14 +933,14 @@ func (g *GameConnection) SetEnteringMap() {
 	g.enteringMap = true
 }
 
-func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.SkillItem, items *utils.ItemsLoader) *GameConnection {
+func NewConnection(Config *config.ServerConfigs, skillItems map[uint32]utils.SkillItem, items *utils.ItemsLoader) *GameConnection {
 	si := map[uint32]utils.SkillItem{}
 	siName := map[string][]utils.SkillItem{}
 	if skillItems != nil {
 		si = skillItems
-		if config.HuntConfig.PrepEliteCD > 0 {
+		if Config.HuntConfig.PrepEliteCD > 0 {
 			if skill, ok := si[uint32(50057001)]; ok {
-				skill.CD = strconv.Itoa(config.HuntConfig.PrepEliteCD)
+				skill.CD = strconv.Itoa(Config.HuntConfig.PrepEliteCD)
 				si[uint32(50057001)] = skill
 			}
 		}
@@ -975,9 +975,9 @@ func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 	if items != nil && items.ItemsByName != nil {
 		allItemsByName = items.ItemsByName
 	}
-	roleOption := RoleTeamOption(config.TeamConfig)
+	roleOption := RoleTeamOption(Config.TeamConfig)
 	gc := &GameConnection{
-		Configs:            config,
+		Configs:            Config,
 		Role:               NewRole(roleOption),
 		AvailableRoles:     map[uint32]*RoleInfo{},
 		currentIndex:       1,
@@ -1009,8 +1009,8 @@ func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 		logger:             log.New(),
 	}
 	gc.logger.SetOutput(io.MultiWriter(os.Stdout, gc.LogWriter()))
-	if config.Loglines > 0 {
-		gc.logBuffer = make([]string, 0, config.Loglines)
+	if Config.Loglines > 0 {
+		gc.logBuffer = make([]string, 0, Config.Loglines)
 	} else {
 		gc.logBuffer = make([]string, 0, 1000)
 	}
@@ -1020,7 +1020,12 @@ func NewConnection(config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 	if gc.MonsterItems == nil {
 		gc.MonsterItems = map[uint32]utils.MonsterInfo{}
 	}
-
+	if gc.Configs.HuntConfig.HuntBossConfig == nil {
+		gc.Configs.HuntConfig.HuntBossConfig = &config.HuntBossConfig{}
+	}
+	if gc.Configs.HuntConfig.HuntBossConfig == nil {
+		gc.Configs.HuntConfig.HuntBossConfig = &config.HuntBossConfig{}
+	}
 	return gc
 }
 
@@ -1053,7 +1058,7 @@ func (g *GameConnection) EquipCardOff(cardGuid, EquipGuid string, slot uint32) e
 }
 
 func (g *GameConnection) CheckDraculaBuff() {
-	if g.GetBuffByName("德古拉男爵卡片").BuffName != "" {
+	if g.GetBuffByID(51551).BuffName != "" {
 		g.logger.Trace("德古拉男爵卡片已激活")
 		return
 	}
@@ -1109,7 +1114,7 @@ func (g *GameConnection) CheckDraculaBuff() {
 				ticker.Stop()
 				return
 			case <-ticker.C:
-				if g.GetBuffByName("德古拉男爵卡片").BuffName != "" {
+				if g.GetBuffByID(51551).BuffName != "" {
 					g.logger.Info("德古拉男爵卡片buff已应用，重新装备之前的卡片")
 					err := g.EquipCardOn(firstCard.GetGuid(), weapon.GetBase().GetGuid(), 1)
 					if err != nil {
