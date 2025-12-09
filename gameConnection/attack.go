@@ -401,7 +401,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 		distDict, distanceList = g.GetTargetByDensitySameReturn(monsterName, g.Role.GetPos(), 20000)
 	} else {*/
 	distDict, distanceList = g.GetTargetByRange(monsterName, g.Role.GetPos(), DefaultTargetRange)
-	//}
+	// }
 
 	if len(distanceList) > 0 {
 		distance := distanceList[0]
@@ -424,7 +424,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 
 		if targetDis >= launchSkillDis {
 			if g.AtkStat.IsStandstill() {
-				log.Warnf(
+				g.logger.Warnf(
 					"attack mode is standstill but monster %s distance is %f greater than range %f, skip attack",
 					target.GetName(),
 					targetDis,
@@ -510,7 +510,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 						)
 					}
 					if g.GetMapNpcs()[closestId].Id == nil {
-						log.Warnf("target %s is dead, skip attack", target.GetName())
+						g.logger.Warnf("target %s is dead, skip attack", target.GetName())
 						return
 					} else if distance <= launchSkillDis {
 						break moveToTargetLoop
@@ -543,7 +543,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 
 func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...string) {
 	if g.AtkStat.IsAutoAttacking == true {
-		log.Warnf("auto attack is already enabled")
+		g.logger.Warnf("auto attack is already enabled")
 		return
 	}
 	g.AtkStat.IsAutoAttacking = true
@@ -575,18 +575,18 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 				for _, skill := range autoSkills {
 					select {
 					case <-attackCtx.Done():
-						log.Debugf("stop auto attack skill loop")
+						g.logger.Debugf("stop auto attack skill loop")
 						g.AtkStat.SetCurrentTargetId(0)
 						ticker.Stop()
 						return
 					case <-g.quit:
-						log.Debugf("stop auto attack skill loop")
+						g.logger.Debugf("stop auto attack skill loop")
 						g.AtkStat.SetCurrentTargetId(0)
 						ticker.Stop()
 						return
 					case <-ticker.C:
 						skillItem := g.SkillItems[skill.GetId()]
-						log.Debugf("自动技能位置: %d, 技能id: %d, 技能名字: %s",
+						g.logger.Debugf("自动技能位置: %d, 技能id: %d, 技能名字: %s",
 							skill.GetShortcuts()[len(skill.GetShortcuts())-1].GetPos(), skill.GetId(), skillItem.NameZh)
 						cd, _ := strconv.ParseFloat(skillItem.CD, 64)
 						if time.Since(g.Role.GetSkillCd(skill.GetId())) < time.Duration(cd) {
@@ -642,18 +642,18 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 							} else if skillItem.SkillType == "Reborn" {
 								continue skillLoop
 							} else if buff != "" {
-								log.Debugf("找到技能buff: %s -> %s", skillItem.NameZh, buff)
+								g.logger.Debugf("找到技能buff: %s -> %s", skillItem.NameZh, buff)
 								continue skillLoop
 							} else if skill.GetId() == 50057001 {
 								// 这是备战精英
 								if time.Since(g.Role.GetSkillCd(skill.GetId())) < time.Duration(cd) {
-									log.Tracef("备战精英CD中:%s", skillItem.NameZh)
+									g.logger.Tracef("备战精英CD中:%s", skillItem.NameZh)
 									continue skillLoop
 								}
 								g.SkillCmd(skill.GetId(), nil, true)
 								g.Role.SetSkillCd(skill.GetId(), time.Now().Add(time.Duration(cd)*time.Second))
 							} else {
-								log.Debugf("没有找到技能buff %s", skillItem.NameZh)
+								g.logger.Debugf("没有找到技能buff %s", skillItem.NameZh)
 								num := int32(1)
 								dir := int32(utils.GetNpcDataValByType(g.Role.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_DIR))
 								pData := &Cmd.PhaseData{
