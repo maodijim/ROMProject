@@ -82,7 +82,7 @@ func (b *BossHuntTask) Start() {
 	b.GC.ShouldChangeScene = true
 	b.GC.GameServerLogin()
 	b.GC.GetAllPackItems()
-	<-b.GC.GetBossInfo()
+
 	go func() {
 		ticker := time.NewTicker(time.Second * 10)
 		// 等待登录完成
@@ -387,12 +387,15 @@ func (b *BossHuntTask) checkTargetBossLive() bool {
 	// 确认目标复活时间
 	for _, v := range BossInfo {
 		if v.GetId() == b.targetMonster.GetId() && v.GetMapid() == b.targetMonster.GetMapid() {
-			if v.RefreshTime == nil {
-				return true
-			} else if v.Settime != nil {
+			//检查是否为亡者
+			if v.Settime != nil {
 				if *v.Settime != 0 {
 					return false
 				}
+			}
+			//检查是否存活
+			if v.RefreshTime == nil {
+				return true
 			} else {
 				past, _ := IsPastTime(v.GetRefreshTime())
 				if past {
