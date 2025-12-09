@@ -392,8 +392,8 @@ type BossListUserCmd struct {
 
 	Cmd      *Command        `protobuf:"varint,1,opt,name=cmd,enum=Cmd.Command,def=15" json:"cmd,omitempty"`
 	Param    *BossParam      `protobuf:"varint,2,opt,name=param,enum=Cmd.BossParam,def=1" json:"param,omitempty"`
-	Bosslist []BossInfoItem  `protobuf:"bytes,3,rep,name=bosslist" json:"bosslist,omitempty"`
-	Minilist []BossInfoItem  `protobuf:"bytes,4,rep,name=minilist" json:"minilist,omitempty"`
+	Bosslist []*BossInfoItem `protobuf:"bytes,3,rep,name=bosslist" json:"bosslist,omitempty"`
+	Minilist []*BossInfoItem `protobuf:"bytes,4,rep,name=minilist" json:"minilist,omitempty"`
 	Deadlist []*BossInfoItem `protobuf:"bytes,5,rep,name=deadlist" json:"deadlist,omitempty"`
 }
 
@@ -449,14 +449,14 @@ func (x *BossListUserCmd) GetParam() BossParam {
 	return Default_BossListUserCmd_Param
 }
 
-func (x *BossListUserCmd) GetBosslist() []BossInfoItem {
+func (x *BossListUserCmd) GetBosslist() []*BossInfoItem {
 	if x != nil {
 		return x.Bosslist
 	}
 	return nil
 }
 
-func (x *BossListUserCmd) GetMinilist() []BossInfoItem {
+func (x *BossListUserCmd) GetMinilist() []*BossInfoItem {
 	if x != nil {
 		return x.Minilist
 	}

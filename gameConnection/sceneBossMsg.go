@@ -43,26 +43,34 @@ func (g *GameConnection) GetBossInfo() chan interface{} {
 }
 
 func (g *GameConnection) GetMvpInfoList() []Cmd.BossInfoItem {
-	g.Mutex.Lock()
-	defer g.Mutex.Unlock()
+	g.Mutex.RLock()
+	defer g.Mutex.RUnlock()
 
-	if g.BossInfo != nil && g.BossInfo.Bosslist != nil {
-		original := g.BossInfo.Bosslist
+	if len(g.BossInfo.GetBosslist()) > 0 {
+		original := g.BossInfo.GetBosslist()
 		copied := make([]Cmd.BossInfoItem, len(original))
-		copy(copied, original)
+		for i, v := range original {
+			if v != nil {
+				copied[i] = *v
+			}
+		}
 		return copied
 	}
 	return nil
 }
 
 func (g *GameConnection) GetMiniInfoList() []Cmd.BossInfoItem {
-	g.Mutex.Lock()
-	defer g.Mutex.Unlock()
+	g.Mutex.RLock()
+	defer g.Mutex.RUnlock()
 
-	if g.BossInfo != nil && g.BossInfo.Minilist != nil {
+	if len(g.BossInfo.GetMinilist()) > 0 {
 		original := g.BossInfo.Minilist
 		copied := make([]Cmd.BossInfoItem, len(original))
-		copy(copied, original)
+		for i, v := range original {
+			if v != nil {
+				copied[i] = *v
+			}
+		}
 		return copied
 	}
 	return nil
@@ -78,7 +86,7 @@ func (g *GameConnection) GetBossInfoList() []Cmd.BossInfoItem {
 	return BossInfoList
 }
 
-func (g *GameConnection) GetMvpInfoByNmae(name string) *Cmd.BossInfoItem {
+func (g *GameConnection) GetMvpInfoByName(name string) Cmd.BossInfoItem {
 
 	MVPList := g.GetMvpInfoList()
 
@@ -87,15 +95,15 @@ func (g *GameConnection) GetMvpInfoByNmae(name string) *Cmd.BossInfoItem {
 	if ok {
 		for _, v := range MVPList {
 			if int(*v.Id) == MonsterInfo.Id {
-				return &v
+				return v
 			}
 		}
 	}
 
-	return nil
+	return Cmd.BossInfoItem{}
 }
 
-func (g *GameConnection) GetMiniInfoByNmae(name string) *Cmd.BossInfoItem {
+func (g *GameConnection) GetMiniInfoByName(name string) Cmd.BossInfoItem {
 
 	MiniList := g.GetMiniInfoList()
 
@@ -104,14 +112,14 @@ func (g *GameConnection) GetMiniInfoByNmae(name string) *Cmd.BossInfoItem {
 	if ok {
 		for _, v := range MiniList {
 			if int(*v.Id) == MonsterInfo.Id {
-				return &v
+				return v
 			}
 		}
 	}
-	return nil
+	return Cmd.BossInfoItem{}
 }
 
-func (g *GameConnection) GetBossInfoByNmae(name string) *Cmd.BossInfoItem {
+func (g *GameConnection) GetBossInfoByName(name string) Cmd.BossInfoItem {
 
 	BossInfolist := g.GetBossInfoList()
 
@@ -119,9 +127,9 @@ func (g *GameConnection) GetBossInfoByNmae(name string) *Cmd.BossInfoItem {
 		MonsterInfo := g.GetMonsterItemById(*v.Id)
 
 		if MonsterInfo.NameZh == name {
-			return &v
+			return v
 		}
 	}
 
-	return nil
+	return Cmd.BossInfoItem{}
 }

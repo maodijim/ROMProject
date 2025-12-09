@@ -287,7 +287,7 @@ func (b *BossHuntTask) startHunt() {
 									b.logger.Infof("%s 未死亡，剩余血量:%d", b.GC.MonsterItems[b.targetMonster.GetId()].NameZh, MonsterHP)
 									b.logger.Infof("我的血量:%d", MHP)
 								} else if MonsterHP == 0 {
-									time.Sleep(time.Second * 2) //捡东西
+									time.Sleep(time.Second * 2) // 捡东西
 									b.mitionCompelete = true
 									b.fightStar = false
 									b.fightCancel()
@@ -318,18 +318,18 @@ func (b *BossHuntTask) startHunt() {
 }
 
 func (b *BossHuntTask) CheckBossLive(name string) bool {
-	BossInfo := b.GC.GetBossInfoByNmae(name)
-	if BossInfo != nil && BossInfo.GetSettime() == 0 && *BossInfo.Mapid != gameTypes.MapId_LabyrinthForest.Uint32() {
+	BossInfo := b.GC.GetBossInfoByName(name)
+	if BossInfo.GetId() != 0 && BossInfo.GetSettime() == 0 && *BossInfo.Mapid != gameTypes.MapId_LabyrinthForest.Uint32() {
 		if BossInfo.RefreshTime == nil {
 			b.logger.Infof("%s 已复活，进行狩猎", name)
-			b.targetMonster = *BossInfo
+			b.targetMonster = BossInfo
 			b.mitionCompelete = false
 			return true
 		} else {
 			past, diffMin := IsPastTime(BossInfo.GetRefreshTime())
 			if past {
 				b.logger.Infof("%s 已复活，进行狩猎", name)
-				b.targetMonster = *BossInfo
+				b.targetMonster = BossInfo
 				b.mitionCompelete = false
 				return true
 			} else {
@@ -387,13 +387,13 @@ func (b *BossHuntTask) checkTargetBossLive() bool {
 	// 确认目标复活时间
 	for _, v := range BossInfo {
 		if v.GetId() == b.targetMonster.GetId() && v.GetMapid() == b.targetMonster.GetMapid() {
-			//检查是否为亡者
+			// 检查是否为亡者
 			if v.Settime != nil {
 				if *v.Settime != 0 {
 					return false
 				}
 			}
-			//检查是否存活
+			// 检查是否存活
 			if v.RefreshTime == nil {
 				return true
 			} else {
