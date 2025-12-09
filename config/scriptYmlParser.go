@@ -1,10 +1,12 @@
 package config
 
 import (
+	"os"
+
 	Cmd "ROMProject/Cmds"
+
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
-	"os"
 )
 
 var (
@@ -53,7 +55,7 @@ func ScriptParser(scriptPath string) *ScriptActions {
 	f, err := os.Open(scriptPath)
 	if err != nil {
 		log.Errorf("failed to open %s: %v", scriptPath, err)
-		log.Exit(2)
+		return scripActions
 	}
 	defer f.Close()
 	decoder := yaml.NewDecoder(f)
@@ -61,7 +63,7 @@ func ScriptParser(scriptPath string) *ScriptActions {
 	err = decoder.Decode(&scripActions)
 	if err != nil {
 		log.Errorf("parse script actions failed: %v", err)
-		log.Exit(3)
+		return scripActions
 	}
 
 	return scripActions
