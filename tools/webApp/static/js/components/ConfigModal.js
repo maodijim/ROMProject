@@ -70,7 +70,7 @@ const ConfigField = {
                             <config-field
                                 :field-key="index"
                                 :field-value="item"
-                                :path="path + '[' + index + ']'"
+                                :path="path + '.' + 'value' + '[' + index + ']' "
                                 :show-label="false"
                                 @update="propagateUpdate"
                             />
