@@ -349,6 +349,11 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 					existingConfig.MonitorInterval = defaultConfig.MonitorInterval
 				}
 			}
+
+			if existingConfig.BuyItems == nil || len(existingConfig.BuyItems) == 0 {
+				existingConfig.BuyItems = make([]gameConfig.PurchaseItem, 1)
+			}
+
 			config = existingConfig
 		case "AutoHunt":
 			defaultConfig := usersSpace.Configs[username].HuntConfig.HuntMonsterConfig.GetDefault()
@@ -523,7 +528,25 @@ func handleUpdateFeatureConfig(w http.ResponseWriter, r *http.Request) {
 	// Update the config in files
 	userConfigs := usersSpace.Configs[req.Username]
 	switch req.FeatureName {
-	case "AutoEnchant", "AutoMVP", "AutoHunt", "MarketMonitor":
+	case "AutoEnchant":
+		config := userConfigs.EnchantConfig
+
+		cleanConfig := StripLabelRecursive(req.Config)
+
+		// 把 cleanConfig 转成 JSON
+		jsonBytes, _ := json.Marshal(cleanConfig)
+
+		// 塞进你的 config struct
+		if err := json.Unmarshal(jsonBytes, &config); err != nil {
+			json.NewEncoder(w).Encode(Response{
+				Success: false,
+				Message: "Config parse error",
+			})
+			return
+		}
+
+		userConfigs.EnchantConfig = config
+	case "AutoHunt", "AutoMVP":
 		config := userConfigs.HuntConfig
 
 		cleanConfig := StripLabelRecursive(req.Config)
@@ -541,6 +564,24 @@ func handleUpdateFeatureConfig(w http.ResponseWriter, r *http.Request) {
 		}
 
 		userConfigs.HuntConfig.Merge(config)
+	case "MarketMonitor":
+		config := userConfigs.TradeMonitorConfig
+
+		cleanConfig := StripLabelRecursive(req.Config)
+
+		// 把 cleanConfig 转成 JSON
+		jsonBytes, _ := json.Marshal(cleanConfig)
+
+		// 塞进你的 config struct
+		if err := json.Unmarshal(jsonBytes, &config); err != nil {
+			json.NewEncoder(w).Encode(Response{
+				Success: false,
+				Message: "Config parse error",
+			})
+			return
+		}
+
+		userConfigs.TradeMonitorConfig = config
 	default:
 		json.NewEncoder(w).Encode(Response{
 			Success: false,

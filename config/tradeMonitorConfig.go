@@ -23,7 +23,7 @@ type PurchaseItem struct {
 	MaxPurchasePrice uint64 `yaml:"maxPurchasePrice" json:"maxPurchasePrice" label:"最大购买价格"`
 	PurchaseCount    uint32 `yaml:"purchaseCount" json:"purchaseCount" label:"购买数量"`
 	MaxPossession    uint32 `yaml:"maxPossession" json:"maxPossession" label:"最大拥有数量"`
-	Action           string `yaml:"action" json:"action" label:"操作(买/卖)"`
+	TradeAction      string `yaml:"TradeAction" json:"TradeAction" label:"操作(买/卖)"`
 	MaxExchangeCount uint32 `yaml:"maxExchangeCount" json:"maxExchangeCount" label:"交易所保留最大数量"`
 	MinSellPrice     uint64 `yaml:"minSellPrice" json:"minSellPrice" label:"最小出售价格"`
 	LeaveMinCount    uint32 `yaml:"leaveMinCount" json:"leaveMinCount" label:"交易所保留最小数量"`
@@ -45,11 +45,11 @@ func (p *PurchaseItem) GetLeaveMinCount() uint32 {
 }
 
 func (p *PurchaseItem) IsBuyAction() bool {
-	return p.Action == "买" || strings.ToLower(p.Action) == BuyAction
+	return p.TradeAction == "买" || strings.ToLower(p.TradeAction) == BuyAction
 }
 
 func (p *PurchaseItem) IsSellAction() bool {
-	return p.Action == "卖" || strings.ToLower(p.Action) == SellAction
+	return p.TradeAction == "卖" || strings.ToLower(p.TradeAction) == SellAction
 }
 
 func (p *PurchaseItem) CompareRefineLv(info *Cmd.TradeItemBaseInfo) (mismatches []string, err error) {
@@ -126,21 +126,17 @@ func (p *PurchaseItem) ParseRefineLv() (compare []string, lv []uint32, err error
 }
 
 type TradeMonitorConfig struct {
-	MonitorInterval       int          `yaml:"monitorInterval" json:"monitorInterval" label:"监控间隔"` // in seconds
-	WatchItems            []string     `yaml:"watchItems" json:"watchItems" label:"监控物品"`
-	WatchCategories       []string     `yaml:"watchCategories" json:"watchCategories" label:"监控类别"`
-	ElasticsearchHostPort string       `yaml:"elasticsearchHostPort" json:"elasticsearchHostPort" label:"elasticsearchHostPort"`
-	NumberWorkers         int          `yaml:"numberWorkers" json:"numberWorkers" label:"工作线程数"`
-	EnablePurchase        bool         `yaml:"enablePurchase" json:"enablePurchase" label:"启用买卖物品"`
-	BuyItems1             PurchaseItem `yaml:"buyItem1" json:"buyItem1" label:"购买物品1"`
-	BuyItems2             PurchaseItem `yaml:"buyItem2" json:"buyItem2" label:"购买物品2"`
-	BuyItems3             PurchaseItem `yaml:"buyItem3" json:"buyItem3" label:"购买物品3"`
-	BuyItems4             PurchaseItem `yaml:"buyItem4" json:"buyItem4" json:"购买物品4"`
-	BuyItems5             PurchaseItem `yaml:"buyItem5" json:"buyItem5" json:"购买物品5"`
+	MonitorInterval       int            `yaml:"monitorInterval" json:"monitorInterval" label:"监控间隔"` // in seconds
+	WatchItems            []string       `yaml:"watchItems" json:"watchItems" label:"监控物品"`
+	WatchCategories       []string       `yaml:"watchCategories" json:"watchCategories" label:"监控类别"`
+	ElasticsearchHostPort string         `yaml:"elasticsearchHostPort" json:"elasticsearchHostPort" label:"elasticsearchHostPort"`
+	NumberWorkers         int            `yaml:"numberWorkers" json:"numberWorkers" label:"工作线程数"`
+	EnablePurchase        bool           `yaml:"enablePurchase" json:"enablePurchase" label:"启用买卖物品"`
+	BuyItems              []PurchaseItem `yaml:"buyItem" json:"buyItem" label:"购买物品"`
 }
 
 func (c *TradeMonitorConfig) GetPurchaseItems() []PurchaseItem {
-	return []PurchaseItem{c.BuyItems1, c.BuyItems2, c.BuyItems3, c.BuyItems4, c.BuyItems5}
+	return c.BuyItems
 }
 
 func (c *TradeMonitorConfig) GetEnablePurchase() bool {
@@ -177,6 +173,7 @@ func (c *TradeMonitorConfig) GetDefault() TradeMonitorConfig {
 		WatchItems:      []string{},
 		WatchCategories: utils.GetMapKeys(gameTypes.TradeZhCategories),
 		NumberWorkers:   3,
+		BuyItems:        make([]PurchaseItem, 1),
 	}
 }
 

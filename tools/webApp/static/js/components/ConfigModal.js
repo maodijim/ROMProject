@@ -28,7 +28,25 @@ const ConfigField = {
                 <div class="array-items">
                     <div v-for="(item, index) in fieldValue" :key="index" class="array-item">
                         <!-- ✅ 如果是陣列 → 用 combobox -->
-                        <template v-if="fieldKey && optionsMap.hasOwnProperty(String(fieldKey).toLowerCase())">
+                        <div v-if="isObjectItem(item)" class="nested-object">
+                            <div class="nested-header" @click="toggleCollapseArray(index)">
+                                <span class="collapse-icon">{{ collapsedArray[index] ? '▶' : '▼' }}</span>
+                                <label>{{ fieldLabel + index }}</label>
+                            </div>
+                            
+                            <div v-show="!collapsedArray[index]" class="nested-content">
+                                <config-field
+                                    v-for="(value, key) in item"
+                                    :key="key"
+                                    :field-key="key"
+                                    :field-value="value.value"
+                                    :field-label="value.label"
+                                    :path="path  + '.' + 'value' + '[' +  + index + ']' + '.' + key"
+                                    @update="propagateUpdate"
+                                />
+                            </div>
+                        </div>
+                        <template v-else-if="fieldKey && optionsMap.hasOwnProperty(String(fieldKey).toLowerCase())">
                             <select
                                 :id="'config-' + path + '-' + index"
                                 class="config-form-control"
@@ -173,6 +191,7 @@ const ConfigField = {
     data() {
         return {
             collapsed: false,
+            collapsedArray: {},
             optionsMap: {
                 mini: [],
                 mvp: [],
@@ -182,6 +201,8 @@ const ConfigField = {
                 enchantequippos:[],
                 enchanttype:[],
                 extras:[],
+                tradeaction:[],
+                watchcategories:[]
             }
         };
     },
@@ -215,6 +236,9 @@ const ConfigField = {
         toggleCollapse() {
             this.collapsed = !this.collapsed;
         },
+        toggleCollapseArray(index) {
+            this.collapsedArray[index] = !this.collapsedArray[index];
+        },
         addArrayItem() {
             const newArray = [...this.fieldValue];
             if (newArray.length > 0) {
@@ -223,7 +247,9 @@ const ConfigField = {
                 else if (typeof firstItem === 'number') newArray.push(0);
                 else if (typeof firstItem === 'boolean') newArray.push(false);
                 else if (Array.isArray(firstItem)) newArray.push([]);
-                else if (typeof firstItem === 'object') newArray.push({});
+                else if (typeof firstItem === 'object' && !Array.isArray(firstItem)) {
+                    newArray.push(this.cloneWithDefaults(firstItem));
+                }
             } else {
                 newArray.push('');
             }
@@ -283,6 +309,51 @@ const ConfigField = {
                 opt === current || !selected.includes(opt)
             )
         },
+
+        isObjectItem(value) {
+            return value && typeof value === "object" && !Array.isArray(value);
+        },
+
+        cloneWithDefaults(obj) {
+            const newObj = {};
+
+            for (const key in obj) {
+                const val = obj[key];
+
+                // 如果是 node object → 只 clone value
+                if (this.isNodeObject(val)) {
+                    newObj[key] = {
+                        label: val.label,
+                        value: this.cloneValue(val.value)
+                    };
+                    continue;
+                }
+
+                // 普通结构保持你的逻辑
+                newObj[key] = this.cloneValue(val);
+            }
+
+            return newObj;
+        },
+
+        isNodeObject(v) {
+            return v && typeof v === 'object' && 'label' in v && 'value' in v;
+        },
+
+        cloneValue(val) {
+            if (Array.isArray(val)) {
+                return [];
+            } else if (val !== null && typeof val === 'object') {
+                return cloneWithDefaults(val);
+            } else if (typeof val === 'number') {
+                return 0;
+            } else if (typeof val === 'boolean') {
+                return false;
+            } else if (typeof val === 'string') {
+                return '';
+            }
+            return null;
+        }
     }
 };
 

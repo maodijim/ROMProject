@@ -3,6 +3,7 @@ package main
 import (
 	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/tools/private-server/autoEnchant"
+	"ROMProject/utils"
 	"encoding/json"
 	"net/http"
 	"sort"
@@ -187,6 +188,26 @@ func GetExtrasList(w http.ResponseWriter, r *http.Request) {
 	for _, k := range autoEnchant.ExtraZhMap {
 		list = append(list, k)
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    list,
+	})
+}
+
+func GetTradeActionList(w http.ResponseWriter, r *http.Request) {
+	list := []string{"买", "卖"}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    list,
+	})
+}
+
+func GetTradeZhCategoriesList(w http.ResponseWriter, r *http.Request) {
+	list := utils.GetMapKeys(gameTypes.TradeZhCategories)
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]any{

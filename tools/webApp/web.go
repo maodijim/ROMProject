@@ -46,6 +46,8 @@ func main() {
 	http.HandleFunc("/api/options/enchantequippos", GetEnchantEquipPosList)
 	http.HandleFunc("/api/options/enchanttype", GetEnchantTypeList)
 	http.HandleFunc("/api/options/extras", GetExtrasList)
+	http.HandleFunc("/api/options/tradeaction", GetTradeActionList)
+	http.HandleFunc("/api/options/watchcategories", GetTradeZhCategoriesList)
 
 	log.Println("Version: ", _ver)
 	log.Println(fmt.Sprintf("Server starting on http://localhost:%s", *port))
