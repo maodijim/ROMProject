@@ -1,12 +1,13 @@
 package config
 
 import (
-	"ROMProject/data"
-	"ROMProject/utils"
 	"bytes"
 	"io"
 	"os"
 	"reflect"
+
+	"ROMProject/data"
+	"ROMProject/utils"
 
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
@@ -232,7 +233,7 @@ func NewServerConfigs(configYaml string) *ServerConfigs {
 	f, err := os.Open(configYaml)
 	if err != nil {
 		log.Errorf("failed to load %s: %s", configPath, err)
-		log.Exit(2)
+		return configs
 	}
 	defer f.Close()
 	err = parseConfigYaml(f, configs)

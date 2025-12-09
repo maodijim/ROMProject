@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	Cmd "ROMProject/Cmds"
+
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 )
@@ -140,14 +141,14 @@ func PurchaseConfigParser(purchaseYml string) *PurchaseConfig {
 	f, err := os.Open(ymlPath)
 	if err != nil {
 		log.Errorf("failed to open %s: %s", ymlPath, err)
-		log.Exit(2)
+		return pConfig
 	}
 	defer f.Close()
 	decoder := yaml.NewDecoder(f)
 	err = decoder.Decode(&pConfig)
 	if err != nil {
 		log.Errorf("parse purchase item yaml failed: %s", err)
-		log.Exit(3)
+		return pConfig
 	}
 
 	if pConfig.BuyInterval == 0 {
