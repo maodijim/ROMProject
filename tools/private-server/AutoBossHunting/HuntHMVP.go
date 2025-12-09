@@ -166,7 +166,7 @@ func (b *BossHuntTask) checkApear(BossName string) bool {
 		b.logger.Infof("发现%s，开始狩猎", BossName)
 		b.fightCancel()
 		b.fightMonstStar(BossName, 0)
-		b.transition(HUNT_BOSS)
+		b.transition(MOVE_BOSSPOS)
 		return true
 	} else {
 		return false
