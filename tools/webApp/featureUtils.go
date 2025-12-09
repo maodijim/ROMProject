@@ -78,8 +78,9 @@ func GetMVPList(w http.ResponseWriter, r *http.Request) {
 		"冰暴骑士",
 		"炎之领主卡浩",
 		"圣天使波利",
-		"凯特莉娜",
-		"艾勒梅斯",
+		"暗·神射手迪文",
+		"暗·超魔导师凯特莉娜",
+		"暗·十字刺客艾勒梅斯",
 	}
 
 	w.Header().Set("Content-Type", "application/json")

@@ -24649,7 +24649,7 @@
   "30051":{
     "ShowName": 0,
     "AdventureValue": 134,
-    "NameZh": "暗 超魔导师凯特莉娜",
+    "NameZh": "暗·超魔导师凯特莉娜",
     "Guild": "",
     "NoAutoAttack": 1,
     "HeadDefaultColor": 0,
@@ -24659,7 +24659,7 @@
     "MAtk": 6413,
     "Icon": "Wolf_Grandam",
     "Zone": "Field",
-    "id": 30052,
+    "id": 30051,
     "Dex": 128,
     "Flee": 298,
     "Agi": 115,
@@ -24695,7 +24695,7 @@
     "Behaviors": 8716387,
     "Nature": "Ghost",
     "DeathEffect": "",
-    "Body": 30053,
+    "Body": 30051,
     "Dead_Reward": [
       30360,
       30363
@@ -24704,7 +24704,7 @@
   "30052":{
     "ShowName": 0,
     "AdventureValue": 134,
-    "NameZh": "暗 神射手迪文",
+    "NameZh": "暗·神射手迪文",
     "Guild": "",
     "NoAutoAttack": 1,
     "HeadDefaultColor": 0,
@@ -24759,7 +24759,7 @@
   "30053":{
     "ShowName": 0,
     "AdventureValue": 134,
-    "NameZh": "暗 十字刺客艾勒梅斯",
+    "NameZh": "暗·十字刺客艾勒梅斯",
     "Guild": "",
     "NoAutoAttack": 1,
     "HeadDefaultColor": 0,
@@ -24769,7 +24769,7 @@
     "MAtk": 3904,
     "Icon": "Wolf_Grandam",
     "Zone": "Field",
-    "id": 30052,
+    "id": 30053,
     "Dex": 122,
     "Flee": 302,
     "Agi": 115,
