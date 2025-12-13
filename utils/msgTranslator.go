@@ -128,6 +128,9 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER2_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.User2Param_value["USER2PARAM_EFFECT"]:
+				param = &Cmd.EffectUserCmd{}
+
 			case Cmd.User2Param_value["USER2PARAM_SERVANT_GROWTH"]:
 				param = &Cmd.GrowthServantUserCmd{}
 

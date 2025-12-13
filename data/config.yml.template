@@ -1,6 +1,6 @@
 zoneId: 10002
 #version: "1.0.81"
-version: "1.3.35"
+version: "1.2.7"
 #authServer: "http://www.lovero.online:9090/gm/user/gameUserLogin"
 #authServer: "http://47.97.160.87:81/login/index.php"
 authServer: "http://103.70.76.250/login/index.php"
