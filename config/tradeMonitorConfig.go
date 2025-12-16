@@ -132,7 +132,7 @@ type TradeMonitorConfig struct {
 	ElasticsearchHostPort string         `yaml:"elasticsearchHostPort" json:"elasticsearchHostPort" label:"elasticsearchHostPort"`
 	NumberWorkers         int            `yaml:"numberWorkers" json:"numberWorkers" label:"工作线程数"`
 	EnablePurchase        bool           `yaml:"enablePurchase" json:"enablePurchase" label:"启用买卖物品"`
-	BuyItems              []PurchaseItem `yaml:"buyItem" json:"buyItem" label:"购买物品"`
+	BuyItems              []PurchaseItem `yaml:"buyItem" json:"buyItem" label:"买卖物品"`
 }
 
 func (c *TradeMonitorConfig) GetPurchaseItems() []PurchaseItem {
