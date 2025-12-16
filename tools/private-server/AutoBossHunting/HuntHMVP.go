@@ -45,7 +45,7 @@ func (b *BossHuntTask) huntHMVP() {
 	BossPosList := b.targetHiddenMVP.BossPosList
 
 	for {
-		b.checkApear(TargetMVP.NameZh) // 确认卡伦是否复活
+		//b.checkApear(TargetMVP.NameZh) // 确认卡伦是否复活
 		switch b.workState {
 		// 初始化
 		case Init:
@@ -84,6 +84,7 @@ func (b *BossHuntTask) huntHMVP() {
 			} else {
 				b.logger.Infof("出生点%d未发现%s，到%s点%d", b.posCount+1, PrerequisiteMonsters.NameZh, PrerequisiteMonsters.NameZh, b.posCount+2)
 				b.fightCancel()
+				b.fightStar = false
 				b.posCount++
 				b.transition(MOVE_PrerequisiteMonstersPOS)
 			}
