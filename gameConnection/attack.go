@@ -7,6 +7,7 @@ import (
 	"math"
 	"sort"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -190,7 +191,11 @@ func (g *GameConnection) GetTargetByRange(monsterList []string, srcPos Cmd.Scene
 			continue
 		}
 		// This is not a monster
-		if npc.GetId() < 10000 {
+		if npc.GetId() < 10000 || npc.GetNpcID() < 10000 {
+			continue
+		}
+		// This is player followers
+		if strings.HasPrefix(strconv.FormatUint(npc.GetId(), 10), "43000000") {
 			continue
 		}
 		if (utils.Contains(monsterList, "all") || utils.Contains(monsterList, npc.GetName())) && len(npc.GetAttrs()) != 1 {

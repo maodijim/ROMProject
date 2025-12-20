@@ -31,13 +31,9 @@ type HuntTask struct {
 	huntingCount    uint32
 	fightCtx        context.Context
 	fightCancel     context.CancelFunc
+	ItemCount       []uint32
+	lastFlyTime     time.Time
 }
-
-var (
-	ItemCount     []uint32
-	lastPosUpdate time.Time
-	lastFlyTime   time.Time
-)
 
 func i32(v int32) *int32 { return &v }
 
@@ -79,7 +75,7 @@ func (b *HuntTask) StartHunt() {
 	for i := 0; i < len(b.GC.Configs.HuntConfig.HuntMonsterConfig.TargetItems); i++ {
 		curCount := b.getItemCount(b.GC.Configs.HuntConfig.HuntMonsterConfig.TargetItems[i])
 		b.logger.Infof("当前%s数量 %d", b.GC.Configs.HuntConfig.HuntMonsterConfig.TargetItems[i])
-		ItemCount = append(ItemCount, curCount)
+		b.ItemCount = append(b.ItemCount, curCount)
 	}
 
 	b.GC.GetAllPackItems()
@@ -95,23 +91,23 @@ func (b *HuntTask) StartHunt() {
 				b.logger.Info("停止自动狩猎任务监控协程1")
 				return
 			case <-ticker.C:
-				if targetId != 0 && b.GC.AtkStat.GetCurrentTargetId() == targetId && time.Since(lastPosUpdate) > time.Second*10 {
+				if targetId != 0 && b.GC.AtkStat.GetCurrentTargetId() == targetId && time.Since(b.lastPosUpdate) > time.Second*10 {
 					b.logger.Infof("卡住了")
 					b.GC.AtkStat.SetCurrentTargetId(0)
 					targetId = 0
 					b.GC.CheckuseFlyWing()
-				} else if b.fightStar && targetId == 0 && time.Since(lastPosUpdate) > time.Second*10 {
+				} else if b.fightStar && targetId == 0 && time.Since(b.lastPosUpdate) > time.Second*10 {
 					b.logger.Infof("没有目标卡住了")
 					b.GC.CheckuseFlyWing()
-					lastPosUpdate = time.Now()
+					b.lastPosUpdate = time.Now()
 				} else if b.GC.AtkStat.GetCurrentTargetId() != targetId {
 					targetId = b.GC.AtkStat.GetCurrentTargetId()
-					lastPosUpdate = time.Now()
+					b.lastPosUpdate = time.Now()
 				}
 			case <-ticker2.C:
 				for i := 0; i < len(b.GC.Configs.HuntConfig.HuntMonsterConfig.TargetItems); i++ {
 					curCount := b.getItemCount(b.GC.Configs.HuntConfig.HuntMonsterConfig.TargetItems[i])
-					b.logger.Infof("当前%s数量 %d, 打了 %d", b.GC.Configs.HuntConfig.HuntMonsterConfig.TargetItems[i], curCount, curCount-ItemCount[i])
+					b.logger.Infof("当前%s数量 %d, 打了 %d", b.GC.Configs.HuntConfig.HuntMonsterConfig.TargetItems[i], curCount, curCount-b.ItemCount[i])
 				}
 			}
 			time.Sleep(time.Millisecond * 100)
@@ -135,9 +131,9 @@ func (b *HuntTask) StartHunt() {
 		if b.GC.Configs.HuntConfig.HuntMonsterConfig.UseDoubleEXP && b.GC.Role.GetBuffById(6062) == nil {
 			b.UsesEXP()
 		} else if b.GC.Configs.HuntConfig.HuntMonsterConfig.TimerFly > 0 &&
-			time.Since(lastFlyTime) > time.Second*time.Duration(b.GC.Configs.HuntConfig.HuntMonsterConfig.TimerFly) {
+			time.Since(b.lastFlyTime) > time.Second*time.Duration(b.GC.Configs.HuntConfig.HuntMonsterConfig.TimerFly) {
 			b.GC.CheckuseFlyWing()
-			lastFlyTime = time.Now()
+			b.lastFlyTime = time.Now()
 		} else if !b.GC.IsMonsterInRange(b.GC.Configs.HuntConfig.HuntMonsterConfig.TargetMonsters...) {
 			b.logger.Infof("没有找到目标怪物")
 			b.GC.CheckuseFlyWing()
@@ -147,7 +143,7 @@ func (b *HuntTask) StartHunt() {
 			b.GC.EnableAutoAttack(b.fightCtx, b.GC.Configs.HuntConfig.HuntMonsterConfig.TargetMonsters...)
 			b.GC.Role.SetSkillCd(50057001, time.Now().Add(time.Second*4))
 			b.fightStar = true
-			lastPosUpdate = time.Now()
+			b.lastPosUpdate = time.Now()
 		}
 
 		time.Sleep(time.Second) // ✅ 控制主循环节奏
