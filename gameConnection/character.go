@@ -256,3 +256,14 @@ func (g *GameConnection) DeFollowUser() {
 	)
 	g.Role.FollowUserId = 0
 }
+
+func (g *GameConnection) Relive() {
+	t := uint32(1)
+	cmd := Cmd.ReliveUserCmd{
+		Type: &t,
+	}
+	_ = g.sendProtoCmd(&cmd,
+		sceneUser2CmdId,
+		Cmd.User2Param_value["USER2PARAM_RELIVE"],
+	)
+}

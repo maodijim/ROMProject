@@ -572,6 +572,7 @@ func (g *GameConnection) UpdateUserParams(datas []*Cmd.UserData, attrs []*Cmd.Us
 			g.Role.UserDatas = append(g.Role.UserDatas, data)
 		}
 	}
+
 	for _, attr := range attrs {
 		addData := false
 		for _, a := range g.Role.UserAttrs {
@@ -583,6 +584,11 @@ func (g *GameConnection) UpdateUserParams(datas []*Cmd.UserData, attrs []*Cmd.Us
 		}
 		if !addData {
 			g.Role.UserAttrs = append(g.Role.UserAttrs, attr)
+		}
+		if attr.GetType() == Cmd.EAttrType_EATTRTYPE_HP && attr.GetValue() == 0 {
+			time.Sleep(time.Millisecond * 2500)
+			g.logger.Warnf("%s has 0 HP, character dead, reliving", g.Role.GetRoleName())
+			g.Relive()
 		}
 	}
 }

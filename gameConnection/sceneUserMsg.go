@@ -86,12 +86,16 @@ func (g *GameConnection) HandleSceneUserProtoCmd(cmdParamId int32, rawData []byt
 		if param.(*Cmd.UserSyncCmd).GetType() == Cmd.EUserSyncType_EUSERSYNCTYPE_SYNC {
 			datas := param.(*Cmd.UserSyncCmd).GetDatas()
 			attrs := param.(*Cmd.UserSyncCmd).GetAttrs()
+			// pointAttrs := param.(*Cmd.UserSyncCmd).GetPointattrs()
+			// attrs = append(attrs, pointAttrs...)
 			g.Mutex.Lock()
 			g.UpdateUserParams(datas, attrs)
 			g.Mutex.Unlock()
 		} else if param.(*Cmd.UserSyncCmd).GetType() == Cmd.EUserSyncType_EUSERSYNCTYPE_INIT {
 			datas := param.(*Cmd.UserSyncCmd).GetDatas()
 			attrs := param.(*Cmd.UserSyncCmd).GetAttrs()
+			// pointAttrs := param.(*Cmd.UserSyncCmd).GetPointattrs()
+			// attrs = append(attrs, pointAttrs...)
 			g.Mutex.Lock()
 			g.UpdateUserParams(datas, attrs)
 			g.Mutex.Unlock()
