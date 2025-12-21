@@ -1194,7 +1194,7 @@ func (g *GameConnection) InMap(MapID uint32, CarryTeam bool) {
 			time.Sleep(time.Millisecond * 500)
 			g.ExitMapPos(gameTypes.MapId_LhzDun01.Uint32(), 2, g.Role.GetPos())
 			time.Sleep(time.Millisecond * 500)
-			g.EnableGodMode()
+			// g.EnableGodMode()
 			g.MoveChartWait(g.ParsePos(-14088, 357, -56505))
 			time.Sleep(time.Millisecond * 500)
 			g.ExitMapPos(gameTypes.MapId_LhzDun02.Uint32(), 3, g.Role.GetPos())
@@ -1213,7 +1213,7 @@ func (g *GameConnection) InMap(MapID uint32, CarryTeam bool) {
 			time.Sleep(time.Millisecond * 500)
 			g.ExitMapPos(gameTypes.MapId_LhzDun01.Uint32(), 2, g.Role.GetPos())
 			time.Sleep(time.Millisecond * 500)
-			g.EnableGodMode()
+			// g.EnableGodMode()
 			g.MoveChartWait(g.ParsePos(46754, 357, 857))
 			time.Sleep(time.Millisecond * 500)
 			g.ExitMapPos(gameTypes.MapId_LhzDun02.Uint32(), 2, g.Role.GetPos())
@@ -1227,7 +1227,7 @@ func (g *GameConnection) InMap(MapID uint32, CarryTeam bool) {
 		g.DelBuffByName("装死(无敌)")
 	}
 
-	g.EnableGodMode()
+	// g.EnableGodMode()
 
 }
 
