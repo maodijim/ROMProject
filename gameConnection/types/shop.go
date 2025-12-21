@@ -5,6 +5,7 @@ type ShopType uint32
 const (
 	ShopType_Item    ShopType = 600
 	ShopType_Lottery ShopType = 650
+	ShopType_Pringle ShopType = 3005
 )
 
 func (s ShopType) Uint32() uint32 {

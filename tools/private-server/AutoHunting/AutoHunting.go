@@ -117,10 +117,37 @@ func (b *HuntTask) StartHunt() {
 	b.GC.InMap(gameTypes.MapNameZh[b.GC.Configs.HuntConfig.HuntMonsterConfig.Map].Uint32(), false)
 	b.GC.CheckDraculaBuff()
 
+	ticker3 := time.NewTicker(time.Second * 2)
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				b.logger.Info("停止自动狩猎任务恢复协程")
+				return
+			case <-ticker3.C:
+				hpPer := b.GC.GetHpPer()
+				if hpPer < 0.3 {
+					b.logger.Infof("当前血量 %f, 自动使用回血道具天地树果实", hpPer)
+					b.GC.UseYggdrasilBerry()
+				}
+				if hpPer < 0.6 {
+					b.logger.Infof("当前血量 %f, 自动使用回血道具蜂蜜", hpPer)
+					b.GC.UseHoney()
+				}
+				spPer := b.GC.GetSpPer()
+				if spPer < 0.3 {
+					b.logger.Infof("当前蓝量 %f, 自动使用回蓝道具蜂蜜", spPer)
+					b.GC.UseHoney()
+				}
+			}
+		}
+	}()
+
 	for {
 		select {
 		case <-ctx.Done():
 			b.logger.Infof("主循环结束")
+			b.fightCancel()
 			return
 		default:
 		}

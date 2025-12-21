@@ -49,3 +49,7 @@ func (g *GameConnection) BuyShopItem(shopItem *Cmd.ShopItem, count uint32) {
 	}
 	log.Infof("buy shop item %v", res)
 }
+
+func (g *GameConnection) QueryPringleShopConfig() (*Cmd.QueryShopConfigCmd, error) {
+	return g.QueryShopConfig(gameTypes.ShopType_Pringle, 1)
+}

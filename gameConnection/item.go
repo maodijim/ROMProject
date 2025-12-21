@@ -2,9 +2,9 @@ package gameConnection
 
 import (
 	"errors"
+	"time"
 
 	Cmd "ROMProject/Cmds"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -53,10 +53,10 @@ func (g *GameConnection) QuickSellItems() {
 		Items: sellItems,
 	}
 	if len(sellItems) > 0 {
-		log.Infof("%s quick selling %d items", g.Role.GetRoleName(), len(sellItems))
+		g.logger.Infof("%s quick selling %d items", g.Role.GetRoleName(), len(sellItems))
 		g.sendProtoCmd(cmd, SceneUserItemCmdId, Cmd.ItemParam_value["ITEMPARAM_QUICK_SELLITEM"])
 	} else {
-		log.Infof("%s no quick sell items found", g.Role.GetRoleName())
+		g.logger.Infof("%s no quick sell items found", g.Role.GetRoleName())
 	}
 }
 
@@ -98,7 +98,7 @@ func (g *GameConnection) FindPackItemByName(name string, packType Cmd.EPackType)
 	}
 	g.Mutex.RUnlock()
 	if itemId == 0 {
-		log.Warnf("item name for id %s not found", name)
+		g.logger.Warnf("item name for id %s not found", name)
 	}
 	items := g.Role.GetPackItems()
 	g.Mutex.RLock()
@@ -125,7 +125,7 @@ func (g *GameConnection) FindPackItemById(itemId uint32, packType Cmd.EPackType)
 			return itemData
 		}
 	}
-	log.Warnf("item id %d not found", itemId)
+	g.logger.Warnf("item id %d not found", itemId)
 	return itemData
 }
 
@@ -178,8 +178,36 @@ func (g *GameConnection) GetItemEquipPos(item *Cmd.ItemInfo) Cmd.EEquipPos {
 func (g *GameConnection) UseFlyWing() {
 	item := g.FindPackItemById(5024, Cmd.EPackType_EPACKTYPE_MAIN)
 	if item == nil {
-		log.Warnf("fly wing not found")
+		g.logger.Warnf("fly wing not found")
 		return
 	}
 	g.UseItem(item.GetBase().GetGuid(), 1)
+}
+
+func (g *GameConnection) UseYggdrasilBerry() {
+	item := g.FindPackItemByName("天地树果实", Cmd.EPackType_EPACKTYPE_MAIN)
+	if time.Since(time.UnixMilli(int64(item.GetBase().GetCd()))) < 0 {
+		g.logger.Warnf("Yggdrasil Berry is in cooldown")
+		return
+	}
+	if item == nil {
+		g.logger.Warnf("Yggdrasil Berry not found")
+		return
+	}
+	g.UseItem(item.GetBase().GetGuid(), 1)
+	g.logger.Debugf("Used Yggdrasil Berry")
+}
+
+func (g *GameConnection) UseHoney() {
+	item := g.FindPackItemByName("蜂蜜", Cmd.EPackType_EPACKTYPE_MAIN)
+	if time.Since(time.UnixMilli(int64(item.GetBase().GetCd()))) < 0 {
+		g.logger.Warnf("Honey is in cooldown")
+		return
+	}
+	if item == nil {
+		g.logger.Warnf("Honey not found")
+		return
+	}
+	g.UseItem(item.GetBase().GetGuid(), 1)
+	g.logger.Debugf("Used Honey")
 }

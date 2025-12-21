@@ -70,6 +70,21 @@ func (r *RoleInfo) GetSkillCd(skillId uint32) time.Time {
 	return time.Time{}
 }
 
+func (r *RoleInfo) SetItemCd(itemId uint32, cd time.Time) {
+	r.Mutex.Lock()
+	defer r.Mutex.Unlock()
+	r.CDs[itemId] = cd
+}
+
+func (r *RoleInfo) GetItemCd(itemId uint32) time.Time {
+	r.Mutex.RLock()
+	defer r.Mutex.RUnlock()
+	if cd, ok := r.CDs[itemId]; ok {
+		return cd
+	}
+	return time.Time{}
+}
+
 func (r *RoleInfo) GetProfession() Cmd.EProfession {
 	val := utils.GetNpcDataValByType(r.UserDatas, Cmd.EUserDataType_EUSERDATATYPE_PROFESSION)
 	return Cmd.EProfession(val)
