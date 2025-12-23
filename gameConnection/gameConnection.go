@@ -473,7 +473,9 @@ func (g *GameConnection) Close() {
 	g.shouldQuit = true
 	g.SetAuthed(false)
 	g.quit <- true
-	_ = g.conn.Close()
+	if g.conn != nil {
+		_ = g.conn.Close()
+	}
 }
 
 func (g *GameConnection) connectGameServer() {

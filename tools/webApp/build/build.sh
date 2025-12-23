@@ -45,7 +45,7 @@ for t in "${targets[@]}"; do
   fi
 
   echo "Building Go webapp (GOOS=$GOOS GOARCH=$GOARCH) -> $BIN_DIR/$BINARY_NAME"
-  env GOOS="$GOOS" GOARCH="$GOARCH" go build -o "$BIN_DIR/$BINARY_NAME" "$WEBAPP_DIR"
+  env GOOS="$GOOS" GOARCH="$GOARCH" go build -trimpath -ldflags="-s -w" -o "$BIN_DIR/$BINARY_NAME" "$WEBAPP_DIR"
 
   # create per-target compressed archive (binary only)
   if [ "$GOOS" = "windows" ]; then

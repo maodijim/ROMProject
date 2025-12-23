@@ -51,7 +51,7 @@ foreach ($t in $targets) {
     Write-Host "Building Go webapp (GOOS=$goos GOARCH=$goarch) -> $binDir\$binaryName"
     $env:GOOS = $goos
     $env:GOARCH = $goarch
-    & go build -o (Join-Path $binDir $binaryName) (Join-Path $WebAppDir)
+    & go build -trimpath -ldflags="-s -w" -o (Join-Path $binDir $binaryName) (Join-Path $WebAppDir)
 
     # create per-target compressed archive (binary only)
     if ($goos -eq "windows") {
