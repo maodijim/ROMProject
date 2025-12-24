@@ -208,7 +208,8 @@ func (e *EnchantTask) fumoTask(targetEquip *Cmd.ItemData, targetEnchant *gameCon
 	if e.GC.EnchantContains(targetEquip.GetBase().GetGuid(), targetEnchant) && e.GC.Configs.EnchantConfig.AutoSave {
 		enchantMap := e.EnchantToZh(targetEquip.GetEnchant())
 		e.logger.Infof("已经有附魔要求的属性 %s", FumoStr(enchantMap))
-
+		e.cancel()
+		return
 	}
 	curCoins := e.GetFuMoBi()
 	e.logger.Infof("还有附魔币 %d", curCoins)
@@ -261,10 +262,12 @@ func (e *EnchantTask) fumoTask(targetEquip *Cmd.ItemData, targetEnchant *gameCon
 		e.logger.Infof("自動保存附魔属性")
 		e.GC.EnchantSave(targetEquip.GetBase().GetGuid(), targetNum)
 		time.Sleep(time.Second * 2)
+		e.cancel()
 		return // 保存后退出
 	} else if shouldSave {
 		e.logger.Infof("附魔属性已达到要求，但未保存")
 		time.Sleep(time.Second * 2)
+		e.cancel()
 		return
 	}
 	e.fumoCount++
