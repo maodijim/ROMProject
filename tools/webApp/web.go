@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-const _ver = "1.0.7"
+const _ver = "1.0.8"
 
 var configPath = "config.yml"
 

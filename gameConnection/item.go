@@ -199,7 +199,7 @@ func (g *GameConnection) UseYggdrasilBerry() {
 }
 
 func (g *GameConnection) UseHoney() {
-	item := g.FindPackItemByName("蜂蜜", Cmd.EPackType_EPACKTYPE_MAIN)
+	item := g.FindPackItemById(12117, Cmd.EPackType_EPACKTYPE_MAIN)
 	if time.Since(time.UnixMilli(int64(item.GetBase().GetCd()))) < 0 {
 		g.logger.Warnf("Honey is in cooldown")
 		return

@@ -81,7 +81,7 @@ func (a *AttackMonsterStat) GetCurrentTargetId() uint64 {
 
 func (g *GameConnection) SkillCmd(skillId uint32, data *Cmd.PhaseData, random1 bool) {
 	if skillItem, ok := g.SkillItems[skillId]; ok && skillItem.NameZh != "普通攻击" && skillItem.NameZh != "扩散攻击" {
-		log.Infof("%s 释放技能 %d %s", g.Role.GetRoleName(), skillId, skillItem.NameZh)
+		g.logger.Infof("%s 释放技能 %d %s", g.Role.GetRoleName(), skillId, skillItem.NameZh)
 	}
 	random := uint32(1)
 	if !random1 {
@@ -166,7 +166,8 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 		delay = 1 / (float64(g.GetAtkSpd()) / 1000 * (1 + float64(g.getAtkSpdPer())/1000))
 		// delay = 1
 	} else {
-		delay, _ = strconv.ParseFloat(skillItem.DelayCd, 64)
+		delay = g.calculateDelayCD(skillItem)
+		g.Role.DelaySkillTime = time.Now().Add(time.Duration(delay) * time.Second)
 	}
 	cd, _ := strconv.ParseFloat(skillItem.CD, 64)
 	if cd > delay {
@@ -596,7 +597,7 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 						cd, _ := strconv.ParseFloat(skillItem.CD, 64)
 						if time.Since(g.Role.GetSkillCd(skill.GetId())) < time.Duration(cd) {
 							if skill.GetId() != 50057001 {
-								g.logger.Infof("技能CD中:%s", skillItem.NameZh)
+								g.logger.Debugf("技能CD中:%s", skillItem.NameZh)
 							}
 							continue skillLoop
 						}
@@ -655,8 +656,13 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 									g.logger.Tracef("备战精英CD中:%s", skillItem.NameZh)
 									continue skillLoop
 								}
+								if time.Since(g.Role.DelaySkillTime) < 0 {
+									g.logger.Debugf("公共延迟中，跳过使用 id:%d %s", skill.GetId(), skillItem.NameZh)
+									continue skillLoop
+								}
 								g.SkillCmd(skill.GetId(), nil, true)
 								g.Role.SetSkillCd(skill.GetId(), time.Now().Add(time.Duration(cd)*time.Second))
+								g.Role.DelaySkillTime = time.Now().Add(time.Duration(g.calculateDelayCD(g.SkillItems[skill.GetId()])) * time.Second)
 							} else {
 								g.logger.Debugf("没有找到技能buff %s", skillItem.NameZh)
 								num := int32(1)
@@ -666,14 +672,12 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 									Pos:    g.Role.Pos,
 									Dir:    &dir,
 								}
-								g.SkillCmd(skill.GetId(), pData, true)
-								var delay float64
-								if skillItem.DelayCd != "" {
-									delay, _ = strconv.ParseFloat(skillItem.DelayCd, 64)
-								} else {
-									delay = 0
+								if time.Since(g.Role.DelaySkillTime) < 0 {
+									g.logger.Debugf("公共延迟中，跳过使用 id:%d %s", skill.GetId(), skillItem.NameZh)
+									continue skillLoop
 								}
-								time.Sleep(time.Duration(math.Max(delay, 0.1)*1000) * time.Millisecond)
+								g.SkillCmd(skill.GetId(), pData, true)
+								g.Role.DelaySkillTime = time.Now().Add(time.Duration(g.calculateDelayCD(g.SkillItems[skill.GetId()])) * time.Second)
 							}
 						}
 						if skillItem.Camps == CampsEnemy {
@@ -681,6 +685,10 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 							if skillItem.NameZh == "普通攻击" {
 								g.AttackClosestByName(g.ChangeAttackID(skill.GetId()), monsterList)
 							} else {
+								if time.Since(g.Role.DelaySkillTime) < 0 {
+									g.logger.Debugf("公共延迟中，跳过使用 id:%d %s", skill.GetId(), skillItem.NameZh)
+									continue skillLoop
+								}
 								g.AttackClosestByName(skill.GetId(), monsterList)
 							}
 						}
@@ -837,4 +845,101 @@ func (g *GameConnection) ChangeAttackID(skillID uint32) uint32 {
 	}
 
 	return skillID
+}
+
+func (g *GameConnection) calculateDelayCD(item utils.SkillItem) float64 {
+	delay, _ := strconv.ParseFloat(item.DelayCd, 64)
+	delayPer := float64(0)
+	delayReduce := float64(0)
+	skillId, _ := item.Id.Int64()
+
+	// 勿忘初心·拌菜 -技能延迟
+	if buff, ok := g.Role.Buffs[30001150]; ok {
+		delayPer += float64(buff.GetLayer()) * 0.025
+	}
+
+	// 手推车攻击-技能延迟
+	if skillId >= 228001 && skillId <= 228020 {
+		if buff, ok := g.Role.Buffs[44200000]; ok {
+			layer := buff.GetLayer()
+			delayReduce += math.Max(1, float64(layer)*0.2)
+		}
+	}
+
+	// 崩裂术-专精
+	if skillId >= 1483001 && skillId <= 1483020 {
+		count := 0
+		for buffId := 42000020; buffId <= 42000023; buffId++ {
+			if buff, ok := g.Role.Buffs[uint32(buffId)]; ok {
+				layer := buff.GetLayer()
+				if layer > 0 {
+					count += int(layer)
+				} else {
+					count += 1
+				}
+			}
+		}
+		if count > 0 {
+			delayPer += float64(count) * 0.05
+		}
+	}
+
+	// 暴风雪-专精
+	if (skillId >= 81001 && skillId <= 81020) || (skillId >= 1482001 && skillId <= 1482020) || (skillId >= 1904001 && skillId <= 1904020) {
+		count := 0
+		for buffId := 42000010; buffId <= 42000012; buffId++ {
+			if buff, ok := g.Role.Buffs[uint32(buffId)]; ok {
+				layer := buff.GetLayer()
+				if layer > 0 {
+					count += int(layer)
+				} else {
+					count += 1
+				}
+			}
+		}
+		if count > 0 {
+			delayPer += float64(count) * 0.04
+		}
+	}
+
+	// 十字驱魔-专精
+	if skillId >= 406001 && skillId <= 406020 {
+		count := 0
+		for buffId := 45000030; buffId <= 45000032; buffId++ {
+			if buff, ok := g.Role.Buffs[uint32(buffId)]; ok {
+				layer := buff.GetLayer()
+				if layer > 0 {
+					count += int(layer)
+				} else {
+					count += 1
+				}
+			}
+		}
+		if count > 0 {
+			delayPer += float64(count) * 0.2
+		}
+	}
+
+	// 黑暗瞬间-专精
+	if skillId >= 197001 && skillId <= 197010 {
+		if buff, ok := g.Role.Buffs[uint32(43000090)]; ok {
+			layer := buff.GetLayer()
+			delayReduce += math.Max(0.25, float64(layer)*0.25)
+		}
+	}
+
+	// 心灵震波-专精
+	if skillId >= 188001 && skillId <= 188020 {
+		if buff, ok := g.Role.Buffs[uint32(43000060)]; ok {
+			layer := buff.GetLayer()
+			delayReduce += math.Max(0.25, float64(layer)*0.25)
+		}
+	}
+
+	delay = delay*(1-delayPer) - delayReduce
+	if delay < 0 {
+		delay = 0
+	}
+	// add a fixed 0.2s delay to avoid too fast skill usage
+	return delay + 0.2
 }

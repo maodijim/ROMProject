@@ -52,6 +52,7 @@ type RoleInfo struct {
 	QuestList        map[Cmd.EQuestList]*Cmd.QuestList
 	UserTowerInfo    *Cmd.UserTowerInfo
 	FollowUserId     uint64
+	DelaySkillTime   time.Time
 	// DailySignIn         *Cmd.SignInNtfUserCmd
 }
 
