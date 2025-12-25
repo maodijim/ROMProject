@@ -14,6 +14,7 @@ const (
 	MapID_UnderseaTemple        MapId = 12
 	MapId_Geffen                MapId = 13
 	MapId_MjolnirMountains      MapId = 14
+	MapId_AntHell               MapId = 15
 	MapId_Morroc                MapId = 16
 	MapId_Pyramid1F             MapId = 17
 	MapId_Payon                 MapId = 18
@@ -93,6 +94,7 @@ var MapNameZh = map[string]MapId{
 	"海底神殿":      MapID_UnderseaTemple,
 	"吉芬":        MapId_Geffen,
 	"妙勒尼山脉":     MapId_MjolnirMountains,
+	"蚂蚁密穴":      MapId_AntHell,
 	"摩洛克":       MapId_Morroc,
 	"金字塔 1F":    MapId_Pyramid1F,
 	"斐扬":        MapId_Payon,
