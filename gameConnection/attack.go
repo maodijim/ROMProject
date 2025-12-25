@@ -677,6 +677,7 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 									continue skillLoop
 								}
 								g.SkillCmd(skill.GetId(), pData, true)
+								g.Role.SetSkillCd(skill.GetId(), time.Now().Add(time.Duration(cd)*time.Second))
 								g.Role.DelaySkillTime = time.Now().Add(time.Duration(g.calculateDelayCD(g.SkillItems[skill.GetId()])) * time.Second)
 							}
 						}
