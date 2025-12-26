@@ -590,6 +590,10 @@ func (g *GameConnection) sendHandler() {
 					log.Debugf("sent %d bytes", writeLen)
 					if err != nil {
 						log.Errorf("%s failed to send command: %v", g.Role.GetRoleName(), err)
+						if !g.shouldQuit {
+							g.Reconnect()
+							time.Sleep(time.Second * 15)
+						}
 					}
 				}
 			}
