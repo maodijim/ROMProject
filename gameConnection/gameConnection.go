@@ -332,9 +332,13 @@ loginLoop:
 	}
 	enterMapTick := time.NewTicker(2 * time.Second)
 	defer enterMapTick.Stop()
+	enterMapTimeout := time.After(60 * time.Second)
 enterMapLoop:
 	for {
 		select {
+		case <-enterMapTimeout:
+			g.logger.Infof("Enter map timeout")
+			break enterMapLoop
 		case <-enterMapTick.C:
 			if g.conn != nil && g.Role.GetMapId() != 0 && g.Role.GetInGame() && !g.enteringMap && g.Role.GetLoginResult() == 0 {
 				g.enterGameMap()
