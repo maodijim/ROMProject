@@ -620,13 +620,10 @@ func (g *GameConnection) sendHandler() {
 						g.logger.Errorf("%s failed to send command: %v", g.Role.GetRoleName(), err)
 						g.cmdQueue = [][]byte{}
 						g.Mutex.Unlock()
-						if errors.Is(err, ErrUseClosedConnection) || errors.Is(err, net.ErrClosed) || errors.Is(err, ErrConnectionClosedByRemote) || errors.Is(err, io.EOF) {
-							time.Sleep(10 * time.Second)
-							g.Reconnect()
-							time.Sleep(time.Second * 15)
-							return
-						}
-						continue
+						time.Sleep(10 * time.Second)
+						g.Reconnect()
+						time.Sleep(time.Second * 15)
+						return
 					}
 				}
 			}
