@@ -384,8 +384,9 @@ func (g *GameConnection) handleConnection() {
 						g.Close()
 						return
 					} else {
-						time.Sleep(8 * time.Second)
+						time.Sleep(5 * time.Second)
 						g.Reconnect()
+						time.Sleep(15 * time.Second)
 						return
 					}
 				}
@@ -591,6 +592,7 @@ func (g *GameConnection) sendHandler() {
 					if err != nil {
 						log.Errorf("%s failed to send command: %v", g.Role.GetRoleName(), err)
 						if !g.shouldQuit {
+							time.Sleep(5 * time.Second)
 							g.Reconnect()
 							time.Sleep(time.Second * 15)
 						}

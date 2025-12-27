@@ -11,10 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var (
-	queryOnce = false
-)
-
 func (g *GameConnection) waitForResponse(notifierType gameTypes.NotifierType) (res interface{}, err error) {
 	for {
 		select {
