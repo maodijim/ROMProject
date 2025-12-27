@@ -570,7 +570,7 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 				g.AtkStat.SetCurrentTargetId(0)
 				ticker.Stop()
 				return
-			case <-g.quit:
+			case <-g.quitContext.Done():
 				g.logger.Infof("stop auto attack")
 				g.AtkStat.SetCurrentTargetId(0)
 				ticker.Stop()
@@ -585,7 +585,7 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 						g.AtkStat.SetCurrentTargetId(0)
 						ticker.Stop()
 						return
-					case <-g.quit:
+					case <-g.quitContext.Done():
 						g.logger.Debugf("stop auto attack skill loop")
 						g.AtkStat.SetCurrentTargetId(0)
 						ticker.Stop()
@@ -624,7 +624,7 @@ func (g *GameConnection) EnableAutoAttack(ctx context.Context, monsterList ...st
 										case <-attackCtx.Done():
 											ticker.Stop()
 											return
-										case <-g.quit:
+										case <-g.quitContext.Done():
 											ticker.Stop()
 											return
 										default:

@@ -98,6 +98,7 @@ func (b *HuntTask) StartHunt() {
 					b.GC.CheckuseFlyWing()
 				} else if b.fightStar && targetId == 0 && time.Since(b.lastPosUpdate) > time.Second*10 {
 					b.logger.Infof("没有目标卡住了")
+					b.fightStar = false
 					b.GC.CheckuseFlyWing()
 					b.lastPosUpdate = time.Now()
 				} else if b.GC.AtkStat.GetCurrentTargetId() != targetId {

@@ -76,7 +76,8 @@ type GameConnection struct {
 	Role               *RoleInfo
 	AvailableRoles     map[uint32]*RoleInfo
 	DebugMsg           bool
-	quit               chan bool
+	quitContext        context.Context
+	quitCancel         context.CancelFunc
 	shouldQuit         bool
 	enteringMap        bool
 	mails              []*Cmd.MailData
@@ -114,6 +115,7 @@ type GameConnection struct {
 	LogNotify          chan string
 	chatHistory        []chatMessage
 	chatMutex          sync.RWMutex
+	reconnecting       bool
 }
 
 func (g *GameConnection) GetItemCat(itemId uint32) uint32 {
@@ -248,17 +250,21 @@ func (g *GameConnection) GameServerLogin() {
 	if g.Configs.AccId == 0 {
 		err := g.getAccId()
 		if err != nil {
-			log.Errorf("get accId failed: %v", err)
+			g.logger.Errorf("get accId failed: %v", err)
 			return
 		}
 	}
-	log.Infof("Account Id: %d", g.Configs.AccId)
+	g.logger.Infof("Account Id: %d", g.Configs.AccId)
+	err := g.connectGameServer()
+	if err != nil {
+		g.logger.Errorf("connect game server failed: %v", err)
+		return
+	}
+	g.quitContext, g.quitCancel = context.WithCancel(context.Background())
+	g.shouldQuit = false
 	go g.sendHandler()
-	g.connectGameServer()
 	g.sendReqUserLoginParamCmd()
 	ticker := time.NewTicker(5 * time.Second)
-	g.quit = make(chan bool)
-
 	go func() {
 		// handle/parse TCP response
 		go g.handleConnection()
@@ -276,8 +282,8 @@ func (g *GameConnection) GameServerLogin() {
 					}
 					g.sendHeartBeat()
 				}
-			case <-g.quit:
-				log.Infof("%s quit", g.Role.GetRoleName())
+			case <-g.quitContext.Done():
+				g.logger.Infof("%s quit", g.Role.GetRoleName())
 				ticker.Stop()
 				return
 			}
@@ -289,7 +295,7 @@ loginLoop:
 	for {
 		select {
 		case <-time.After(15 * time.Second):
-			log.Infof("Login timeout")
+			g.logger.Infof("Login timeout")
 			break loginLoop
 		case <-loginTicker.C:
 			if !g.IsAuthed() {
@@ -315,9 +321,9 @@ loginLoop:
 				1,
 			)
 			if err != nil {
-				log.Error(err)
+				g.logger.Error(err)
 			}
-			log.Infof("Created character %s", g.Configs.CharacterName)
+			g.logger.Infof("Created character %s", g.Configs.CharacterName)
 			time.Sleep(3 * time.Second)
 		}
 	}
@@ -334,7 +340,7 @@ enterMapLoop:
 				g.enterGameMap()
 				break enterMapLoop
 			}
-			log.Infof("Waiting for enter map")
+			g.logger.Infof("Waiting for enter map")
 		}
 	}
 
@@ -370,7 +376,7 @@ func (g *GameConnection) handleConnection() {
 
 	for {
 		select {
-		case <-g.quit:
+		case <-g.quitContext.Done():
 			return
 		default:
 			if g.conn == nil {
@@ -384,7 +390,7 @@ func (g *GameConnection) handleConnection() {
 						g.Close()
 						return
 					} else {
-						time.Sleep(5 * time.Second)
+						time.Sleep(10 * time.Second)
 						g.Reconnect()
 						time.Sleep(15 * time.Second)
 						return
@@ -460,12 +466,28 @@ func (g *GameConnection) parseRawTCP(scanner *bufio.Reader, buf []byte) ([]byte,
 }
 
 func (g *GameConnection) Reconnect() {
-	log.Infof("%s Reconnecting", g.Role.GetRoleName())
+	if g.reconnecting {
+		return
+	}
+	g.reconnecting = true
+	defer func() {
+		g.reconnecting = false
+	}()
+	g.logger.Infof("%s Reconnecting", g.Role.GetRoleName())
 	if g.conn != nil {
+		if g.cancelAtkCtx != nil {
+			g.cancelAtkCtx()
+			g.AtkStat = AttackMonsterStat{}
+		}
 		g.Close()
 		g.enteringMap = false
 		roleOptions := RoleTeamOption(g.Configs.TeamConfig)
 		g.Role = NewRole(roleOptions)
+		if g.Mutex.TryLock() {
+			g.Mutex.Unlock()
+		} else {
+			g.Mutex.Unlock()
+		}
 	}
 	g.GameServerLogin()
 }
@@ -473,19 +495,20 @@ func (g *GameConnection) Reconnect() {
 func (g *GameConnection) Close() {
 	g.shouldQuit = true
 	g.SetAuthed(false)
-	g.quit <- true
+	g.quitCancel()
 	if g.conn != nil {
 		_ = g.conn.Close()
 	}
 }
 
-func (g *GameConnection) connectGameServer() {
+func (g *GameConnection) connectGameServer() error {
 	log.Infof("Trying to connect to game server: %s for token %s", g.Configs.IpPort, g.Configs.AccessToken)
 	conn, err := net.Dial("tcp", g.Configs.IpPort)
 	if err != nil {
-		log.Errorf("Failed to connect to server %s: %s", g.Configs.IpPort, err)
+		return err
 	}
 	g.conn = conn
+	return nil
 }
 
 func (g *GameConnection) httpAuth(authHost string) (*authJson, error) {
@@ -575,7 +598,7 @@ func (g *GameConnection) sendHandler() {
 	defer ticker.Stop()
 	for {
 		select {
-		case <-g.quit:
+		case <-g.quitContext.Done():
 			return
 		case <-ticker.C:
 			g.Mutex.Lock()
@@ -586,16 +609,20 @@ func (g *GameConnection) sendHandler() {
 				}
 				g.currentIndex = 0
 				if g.conn != nil {
-					log.Debugf("sending %v bytes at %v", len(body), time.Now())
+					g.logger.Debugf("sending %v bytes at %v", len(body), time.Now())
 					writeLen, err := g.conn.Write(body)
-					log.Debugf("sent %d bytes", writeLen)
+					g.logger.Debugf("sent %d bytes", writeLen)
 					if err != nil {
-						log.Errorf("%s failed to send command: %v", g.Role.GetRoleName(), err)
-						if !g.shouldQuit {
-							time.Sleep(5 * time.Second)
+						g.logger.Errorf("%s failed to send command: %v", g.Role.GetRoleName(), err)
+						g.cmdQueue = [][]byte{}
+						g.Mutex.Unlock()
+						if errors.Is(err, ErrUseClosedConnection) || errors.Is(err, net.ErrClosed) || errors.Is(err, ErrConnectionClosedByRemote) || errors.Is(err, io.EOF) {
+							time.Sleep(10 * time.Second)
 							g.Reconnect()
 							time.Sleep(time.Second * 15)
+							return
 						}
+						continue
 					}
 				}
 			}
@@ -1131,7 +1158,7 @@ func (g *GameConnection) CheckDraculaBuff() {
 					ticker.Stop()
 					return
 				}
-			case <-g.quit:
+			case <-g.quitContext.Done():
 				g.logger.Info("停止德古拉男爵卡片监控协程")
 				ticker.Stop()
 				return
