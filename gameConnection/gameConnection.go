@@ -247,9 +247,6 @@ var (
 )
 
 func (g *GameConnection) GameServerLogin() {
-	if g.reconnecting {
-		time.Sleep(30 * time.Second)
-	}
 	if g.Configs.AccId == 0 || g.reconnecting {
 		err := g.getAccId()
 		if err != nil {
@@ -265,7 +262,9 @@ func (g *GameConnection) GameServerLogin() {
 	}
 	g.quitContext, g.quitCancel = context.WithCancel(context.Background())
 	g.shouldQuit = false
+	g.reconnecting = false
 	go g.sendHandler()
+	time.Sleep(time.Second)
 	g.sendReqUserLoginParamCmd()
 	ticker := time.NewTicker(5 * time.Second)
 	go func() {
@@ -386,13 +385,15 @@ func (g *GameConnection) handleConnection() {
 	// listen for reply
 	scanner := bufio.NewReader(g.conn)
 	buf := make([]byte, 512000)
-
+	g.logger.Infof("connection handler started")
 	for {
 		select {
 		case <-g.quitContext.Done():
+			g.logger.Infof("connection handler quit")
 			return
 		default:
 			if g.conn == nil {
+				g.logger.Infof("connection handler stopped due to nil connection")
 				return
 			}
 			data, msgFlag, err := g.parseRawTCP(scanner, buf)
@@ -610,9 +611,11 @@ func (g *GameConnection) sendCmd(flag, body []byte, delay time.Duration) {
 func (g *GameConnection) sendHandler() {
 	ticker := time.NewTicker(cmdQueueInterval)
 	defer ticker.Stop()
+	g.logger.Infof("send handler started")
 	for {
 		select {
 		case <-g.quitContext.Done():
+			g.logger.Infof("send handler quit")
 			return
 		case <-ticker.C:
 			g.Mutex.Lock()
