@@ -247,7 +247,10 @@ var (
 )
 
 func (g *GameConnection) GameServerLogin() {
-	if g.Configs.AccId == 0 {
+	if g.reconnecting {
+		time.Sleep(30 * time.Second)
+	}
+	if g.Configs.AccId == 0 || g.reconnecting {
 		err := g.getAccId()
 		if err != nil {
 			g.logger.Errorf("get accId failed: %v", err)
@@ -353,8 +356,14 @@ enterMapLoop:
 
 func (g *GameConnection) WaitForInGame() {
 	ticker := time.NewTicker(2 * time.Second)
+	timeout := time.After(60 * time.Second)
 	for {
 		select {
+		case <-timeout:
+			log.Errorf("Wait for in game timeout")
+			ticker.Stop()
+			go g.Reconnect()
+			return
 		case <-ticker.C:
 			if g.Role.GetInGame() {
 				// If not moved strange things will happen
@@ -503,6 +512,7 @@ func (g *GameConnection) Close() {
 	if g.conn != nil {
 		_ = g.conn.Close()
 	}
+	g.conn = nil
 }
 
 func (g *GameConnection) connectGameServer() error {
@@ -560,7 +570,7 @@ func (g *GameConnection) SendServerTimeUserCmd(par Cmd.LoginCmdParam) {
 	data, _ := proto.Marshal(serverTimeUserCmd)
 	log.Debug(data)
 	out := utils.ConstructBody(1, 11, utils.TcpFlag[1], data, g.getNonce(false), utils.CipherKey)
-	log.Infof("sending %v bytes serverTimeUserCmd", len(out))
+	g.logger.Infof("sending %v bytes serverTimeUserCmd", len(out))
 	g.sendCmd(utils.TcpFlag[1], out, 0)
 }
 
@@ -897,7 +907,7 @@ func (g *GameConnection) SelectRole() {
 		g.Close()
 	}
 	g.Role = role
-	log.Infof("selecting role with id: %d name: %s", g.Role.GetRoleId(), g.Role.GetRoleName())
+	g.logger.Infof("selecting role with id: %d name: %s", g.Role.GetRoleId(), g.Role.GetRoleName())
 	g.doSelectRole()
 }
 

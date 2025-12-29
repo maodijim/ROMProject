@@ -16,7 +16,6 @@ import (
 	"ROMProject/utils"
 
 	"github.com/mohae/deepcopy"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -539,7 +538,7 @@ func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []strin
 			}
 			g.AttackTarget(skillId, target)
 			if g.GetMapNpcs()[closestId].Id == nil {
-				log.Warnf("target %s is killed", target.GetName())
+				g.logger.Warnf("target %s is killed", target.GetName())
 				g.AtkStat.SetCurrentTargetId(0)
 				return
 			}

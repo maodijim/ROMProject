@@ -1,4 +1,3 @@
-// File: `tools/webApp/static/js/components/LogModal.js`
 import {api} from '../api.js';
 
 export default {
@@ -17,26 +16,26 @@ export default {
                                 <div class="chat-header">
                                     <h3>聊天窗口</h3>
                                 </div>
-                                <div class="chat-messages" ref="chatMessages">
+                                <div class="chat-messages" ref="chatMessages" style="flex:1; overflow:auto; padding:8px 4px;">
                                     <div
                                         v-for="(msg, idx) in chatMessages"
                                         :key="idx"
                                         :class="['chat-message', { sent: msg.isSent }]"
+                                        style="margin-bottom:8px;"
                                     >
-                                        <span class="chat-timestamp">
+                                        <span class="chat-timestamp" style="font-size:12px; color:#6b7280;">
                                             {{ msg.timestamp }}
                                             <span v-if="msg.sender"> · {{ msg.sender }}</span>
                                             <span v-if="msg.channel" class="chat-channel">[{{ msg.channel }}]</span>
                                         </span>
-                                        <div class="chat-text">{{ msg.text }}</div>
+                                        <div class="chat-text" style="background:#fff; padding:6px 8px; border-radius:4px; margin-top:4px;">{{ msg.text }}</div>
                                     </div>
                                 </div>
-                                <div class="chat-input-container">
+                                <div class="chat-input-container" style="margin-top:8px; display:flex; align-items:center; gap:8px;">
                                     <select v-model="chatChannel" class="chat-channel-select" style="width:110px; padding:8px; border-radius:6px; border:1px solid #d1d5db; background:#fff;">
                                         <option v-for="ch in chatChannels" :key="ch" :value="ch">{{ ch }}</option>
                                     </select>
 
-                                    <!-- new: recipient dropdown shown when chatChannel is 朋友 -->
                                     <select
                                         v-if="chatChannel === '朋友'"
                                         v-model="selectedRecipient"
@@ -55,22 +54,28 @@ export default {
                                         type="text"
                                         class="chat-input"
                                         placeholder="输入消息..."
+                                        style="flex:1; padding:8px; border-radius:6px; border:1px solid #d1d5db;"
                                     />
-                                    <button @click="sendChatMessage" class="btn btn-primary btn-sm">发送</button>
+                                    <button @click="sendChatMessage" class="btn btn-primary btn-sm" style="padding:6px 10px;">发送</button>
                                 </div>
                             </div>
 
-                            <div class="log-section" style="position: relative;">
-                                <div class="log-header">
-                                    <h3>日志</h3>
-                                    <button @click="clearLogs" class="btn btn-secondary btn-xs">清空</button>
+                            <div class="log-section" style="position: relative; flex:1; display:flex; flex-direction:column; min-width:260px;">
+                                <div class="log-header" style="display:flex; justify-content:space-between; align-items:center; padding-bottom:8px;">
+                                    <h3 style="margin:0; font-size:14px;">日志</h3>
+                                    <button @click="clearLogs" class="btn btn-secondary btn-xs" style="padding:6px 8px;">清空</button>
                                 </div>
-                                <textarea
+
+                                <!-- replaced textarea with styled div that supports per-line coloring -->
+                                <div
                                     ref="logArea"
-                                    v-model="logs"
                                     class="log-textarea"
-                                    readonly
-                                ></textarea>
+                                    style="flex:1; overflow:auto; padding:8px; background:#fff; border:1px solid #d1d5db; border-radius:4px; white-space:pre-wrap; font-family: monospace;"
+                                >
+                                    <div v-for="(line, idx) in logLines" :key="idx" :style="{ color: logColor(line) }">
+                                        {{ line }}
+                                    </div>
+                                </div>
 
                                 <!-- floating bottom-right button -->
                                 <button
@@ -83,7 +88,7 @@ export default {
                         </div>
                     </div>
 
-                    <div class="log-modal-footer">
+                    <div class="log-modal-footer" style="padding:12px 16px; border-top:1px solid #e5e7eb; display:flex; justify-content:flex-end;">
                         <button @click="close" class="btn btn-secondary">关闭</button>
                     </div>
                 </div>
@@ -114,6 +119,14 @@ export default {
             ws: null,
             chatPollInterval: null // interval id for polling chat history
         };
+    },
+    computed: {
+        // split logs into lines for per-line rendering
+        logLines() {
+            if (!this.logs) return [];
+            // keep empty lines (so splitting preserves them)
+            return this.logs.split('\n');
+        }
     },
     watch: {
         show(newVal) {
@@ -177,24 +190,19 @@ export default {
         // helper: map incoming channel id/string to friendly label
         mapChannel(channel) {
             if (channel == null) return '公会';
-            // if numeric
             if (typeof channel === 'number') {
                 return this.channelMap[channel] || String(channel);
             }
-            // numeric-string like "3"
             const asNum = Number(channel);
             if (!isNaN(asNum) && this.channelMap[asNum]) {
                 return this.channelMap[asNum];
             }
-            // direct key in channelMap (object keys are strings)
             if (this.channelMap.hasOwnProperty(channel)) {
                 return this.channelMap[channel];
             }
-            // known human-readable channel already in list
             if (this.chatChannels.includes(channel)) {
                 return channel;
             }
-            // fallback to channel string
             return String(channel);
         },
 
@@ -385,6 +393,21 @@ export default {
                 }
             });
         },
+
+        // determine color based on log line content
+        logColor(line) {
+            if (!line) return 'inherit';
+            const l = String(line).toLowerCase();
+            if (/\berror\b/.test(l)) return 'red';
+            if (/\bwarn(?:ing)?\b/.test(l)) return '#b59f00';
+            if (/\binfo\b/.test(l)) return 'green';
+            // also allow explicit prefixes like "[ERROR]" or "ERROR:"
+            if (/\[?error\]?[:\s]/i.test(line)) return 'red';
+            if (/\[?warn(?:ing)?\]?[:\s]/i.test(line)) return '#b59f00';
+            if (/\[?info\]?[:\s]/i.test(line)) return 'green';
+            return 'inherit';
+        },
+
         handleOverlayClick() {
             this.close();
         },
