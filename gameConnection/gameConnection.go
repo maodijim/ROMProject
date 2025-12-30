@@ -545,15 +545,15 @@ func (g *GameConnection) httpAuth(authHost string) (*authJson, error) {
 		}
 	}
 	req.URL.RawQuery = q.Encode()
-	log.Debugf("Sending request to: %s", req.URL.String())
+	g.logger.Debugf("Sending request to: %s", req.URL.String())
 	res, err := client.Do(req)
 	if err != nil {
-		log.Fatalf("failed to request %s: %s", req.URL.String(), err)
+		g.logger.Errorf("failed to request %s: %s", req.URL.String(), err)
 	}
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		log.Fatalf("%s", err)
+		g.logger.Errorf("%s", err)
 	}
 	result := &authJson{}
 	err = json.Unmarshal(body, result)

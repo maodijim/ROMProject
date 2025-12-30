@@ -136,7 +136,8 @@ func (e *EnchantTask) Start() {
 	e.GC.GameServerLogin()
 
 	if len(AllowRoleIds) > 0 && !utils.Contains(AllowRoleIds, e.GC.Role.GetRoleId()) {
-		e.logger.Fatalf("当前角色不在允许列表中，退出")
+		e.logger.Errorf("当前角色不在允许列表中，退出")
+		return
 	}
 
 	_ = e.GC.GetAllPackItems()

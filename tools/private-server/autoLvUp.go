@@ -471,7 +471,7 @@ func jobScript() {
 
 	if g.Role.GetProfession() == Cmd.EProfession_EPROFESSION_NOVICE {
 		g.ExitMapWait(gameTypes.MapId_ProteraSouth.Uint32())
-		log.Fatalf("還是初心者转职失敗, 返回南門")
+		log.Errorf("還是初心者转职失敗, 返回南門")
 	}
 
 	putOnEquip("百万击破", Cmd.EEquipPos_EEQUIPPOS_HEAD)
