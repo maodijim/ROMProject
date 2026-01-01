@@ -261,8 +261,6 @@ func (g *GameConnection) GameServerLogin() {
 		return
 	}
 	g.quitContext, g.quitCancel = context.WithCancel(context.Background())
-	g.shouldQuit = false
-	g.reconnecting = false
 	go g.sendHandler()
 	time.Sleep(time.Second)
 	g.sendReqUserLoginParamCmd()
@@ -338,6 +336,9 @@ loginLoop:
 enterMapLoop:
 	for {
 		select {
+		case <-g.quitContext.Done():
+			g.logger.Infof("Enter map loop quit")
+			break enterMapLoop
 		case <-enterMapTimeout:
 			g.logger.Infof("Enter map timeout")
 			break enterMapLoop
@@ -358,6 +359,9 @@ func (g *GameConnection) WaitForInGame() {
 	timeout := time.After(60 * time.Second)
 	for {
 		select {
+		case <-g.quitContext.Done():
+			g.logger.Infof("Wait for in game quit")
+			return
 		case <-timeout:
 			log.Errorf("Wait for in game timeout")
 			ticker.Stop()
@@ -486,6 +490,7 @@ func (g *GameConnection) Reconnect() {
 	g.reconnecting = true
 	defer func() {
 		g.reconnecting = false
+		g.shouldQuit = false
 	}()
 	g.logger.Infof("%s Reconnecting", g.Role.GetRoleName())
 	if g.conn != nil {

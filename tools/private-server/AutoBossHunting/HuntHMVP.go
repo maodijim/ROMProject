@@ -45,7 +45,7 @@ func (b *BossHuntTask) huntHMVP() {
 	BossPosList := b.targetHiddenMVP.BossPosList
 
 	for {
-		//b.checkApear(TargetMVP.NameZh) // 确认卡伦是否复活
+		// b.checkApear(TargetMVP.NameZh) // 确认卡伦是否复活
 		switch b.workState {
 		// 初始化
 		case Init:
@@ -122,13 +122,24 @@ func (b *BossHuntTask) huntHMVP() {
 			break
 		// 狩猎卡伦
 		case HUNT_BOSS:
+			MHP := utils.GetNpcAttrValByType(b.GC.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_HP)
+			if MHP == 0 {
+				b.logger.Infof("已死亡，等待复活中...")
+				time.Sleep(time.Second * 5)
+				b.transition(TeleportMap)
+				break
+			}
+			if b.GC.Role.GetMapId() != b.targetHiddenMVP.Map.Uint32() {
+				b.logger.Infof("不在%s地图，传送回去", gameTypes.MapIdToZh[b.targetHiddenMVP.Map])
+				b.transition(TeleportMap)
+				break
+			}
 			if b.GC.IsMonsterInRange(TargetMVP.NameZh) {
 				b.haveBoss = true
 				TargetID := b.GC.AtkStat.GetCurrentTargetId()
 				MapNPC := b.GC.GetMapNpcs()
 				if TargetID != 0 && MapNPC[TargetID].Attrs != nil {
 					MonsterHP := utils.GetNpcAttrValByType(MapNPC[TargetID].Attrs, Cmd.EAttrType_EATTRTYPE_HP)
-					MHP := utils.GetNpcAttrValByType(b.GC.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_HP)
 					if MonsterHP != b.tempMHP || MHP != b.tempUHP {
 						b.tempMHP = MonsterHP
 						b.tempUHP = MHP
