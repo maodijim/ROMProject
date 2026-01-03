@@ -61,6 +61,13 @@ var features = []Feature{
 		FunctionName: "MarketMonitor",
 		execFunc:     backendTasks.NewTradeMonitorTask,
 	},
+	{
+		Name:         "自动抽奖",
+		Desc:         "Description of Feature F",
+		Actions:      []string{"Start", "Stop", "Configure", "Log"},
+		FunctionName: "AutoLottery",
+		execFunc:     backendTasks.NewLotteryTask,
+	},
 }
 
 func handleGetFeatures(w http.ResponseWriter, r *http.Request) {
@@ -370,6 +377,24 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 			existingConfig.HuntBossConfig = nil
 
 			config = existingConfig
+
+		case "AutoLottery":
+			cfg := usersSpace.Configs[username].LotteryConfig.GetDefault()
+			defaultConfig := cfg.(gameConfig.LotteryConfig)
+			var existingConfig gameConfig.LotteryConfig
+			// merge with existing config if any
+			if usersSpace.Configs[username] != nil {
+				existingConfig = usersSpace.Configs[username].LotteryConfig
+				if existingConfig.DrawCount == 0 {
+					existingConfig.DrawCount = defaultConfig.DrawCount
+				}
+				if existingConfig.LotteryType == "" {
+					existingConfig.LotteryType = defaultConfig.LotteryType
+				}
+			} else {
+				existingConfig = defaultConfig
+			}
+			config = existingConfig
 		default:
 			config = map[string]interface{}{}
 		}
@@ -582,6 +607,26 @@ func handleUpdateFeatureConfig(w http.ResponseWriter, r *http.Request) {
 		}
 
 		userConfigs.TradeMonitorConfig = config
+
+	case "AutoLottery":
+		config := userConfigs.LotteryConfig
+
+		cleanConfig := StripLabelRecursive(req.Config)
+
+		// 把 cleanConfig 转成 JSON
+		jsonBytes, _ := json.Marshal(cleanConfig)
+
+		// 塞进你的 config struct
+		if err := json.Unmarshal(jsonBytes, &config); err != nil {
+			json.NewEncoder(w).Encode(Response{
+				Success: false,
+				Message: "Config parse error",
+			})
+			return
+		}
+
+		userConfigs.LotteryConfig = config
+
 	default:
 		json.NewEncoder(w).Encode(Response{
 			Success: false,

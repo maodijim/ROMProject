@@ -7,6 +7,7 @@ import (
 
 	Cmd "ROMProject/Cmds"
 	notifier "ROMProject/gameConnection/types"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -31,7 +32,7 @@ func (g *GameConnection) VisitNpc(npcId uint64) {
 	}
 	_ = g.sendProtoCmd(
 		&cmdMap,
-		sceneUserQuestId,
+		Cmd.Command_value["SCENE_USER_PROTOCMD"],
 		Cmd.CmdParam_value["MAP_OBJECT_DATA"],
 	)
 	time.Sleep(500 * time.Millisecond)
@@ -42,6 +43,38 @@ func (g *GameConnection) VisitNpc(npcId uint64) {
 		&cmd,
 		sceneUserQuestId,
 		Cmd.QuestParam_value["QUESTPARAM_VISIT_NPC"],
+	)
+}
+
+func (g *GameConnection) VisitObjectByName(objectName string) (npc Cmd.MapNpc, err error) {
+	objects := g.GetMapNpcs()
+	for _, object := range objects {
+		if object.GetName() == objectName {
+			g.VisitObject(object.GetId())
+			return object, nil
+		}
+	}
+	return npc, errors.New(fmt.Sprintf("object %s not found", objectName))
+}
+
+func (g *GameConnection) VisitObject(objectId uint64) {
+	cmdMap := Cmd.MapObjectData{
+		Mapobjectid: &objectId,
+	}
+	cmd := Cmd.VisitNpcUserCmd{
+		Npctempid: &objectId,
+	}
+	_ = g.sendProtoCmdIndex(
+		&cmdMap,
+		Cmd.Command_value["SCENE_USER_PROTOCMD"],
+		Cmd.CmdParam_value["MAP_OBJECT_DATA"],
+		1,
+	)
+	_ = g.sendProtoCmdIndex(
+		&cmd,
+		sceneUserQuestId,
+		Cmd.QuestParam_value["QUESTPARAM_VISIT_NPC"],
+		2,
 	)
 }
 

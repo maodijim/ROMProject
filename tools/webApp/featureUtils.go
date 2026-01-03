@@ -1,12 +1,13 @@
 package main
 
 import (
-	gameTypes "ROMProject/gameConnection/types"
-	"ROMProject/tools/private-server/autoEnchant"
-	"ROMProject/utils"
 	"encoding/json"
 	"net/http"
 	"sort"
+
+	gameTypes "ROMProject/gameConnection/types"
+	"ROMProject/tools/private-server/autoEnchant"
+	"ROMProject/utils"
 )
 
 func GetMiniList(w http.ResponseWriter, r *http.Request) {
@@ -214,5 +215,17 @@ func GetTradeZhCategoriesList(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]any{
 		"success": true,
 		"data":    list,
+	})
+}
+
+func GetLotteryTypeList(w http.ResponseWriter, r *http.Request) {
+	l := []string{
+		"幻想创造器·宴",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    l,
 	})
 }

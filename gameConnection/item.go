@@ -112,6 +112,7 @@ func (g *GameConnection) FindPackItemByName(name string, packType Cmd.EPackType)
 	return itemData
 }
 
+// FindPackItemById 根据物品ID查找背包中的物品, 返回第一个找到的物品
 func (g *GameConnection) FindPackItemById(itemId uint32, packType Cmd.EPackType) (itemData *Cmd.ItemData) {
 	g.Mutex.RLock()
 	defer g.Mutex.RUnlock()
@@ -127,6 +128,26 @@ func (g *GameConnection) FindPackItemById(itemId uint32, packType Cmd.EPackType)
 	}
 	g.logger.Warnf("item id %d not found", itemId)
 	return itemData
+}
+
+// FindPackItemByIdAll FindPackItemById 根据物品ID查找背包中的物品, 返回所有找到的物品
+func (g *GameConnection) FindPackItemByIdAll(itemId uint32, packType Cmd.EPackType) (itemDatas []*Cmd.ItemData) {
+	g.Mutex.RLock()
+	defer g.Mutex.RUnlock()
+	packItem := g.Role.GetPackItems()
+	if packItem == nil {
+		return itemDatas
+	}
+	for _, item := range packItem[packType] {
+		if item.GetBase().GetId() == itemId {
+			itemDatas = append(itemDatas, item)
+		}
+	}
+	if len(itemDatas) == 0 {
+		g.logger.Warnf("item id %d not found", itemId)
+		return itemDatas
+	}
+	return itemDatas
 }
 
 func (g *GameConnection) EquipItemByName(name string, pos Cmd.EEquipPos, oper Cmd.EEquipOper) (err error) {

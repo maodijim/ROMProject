@@ -24,4 +24,6 @@ const (
 	NtfType_SysMsg                     NotifierType = "USER2PARAM_SYSMSG"
 	NtfType_EffectUser                 NotifierType = "EFFECT_USER"
 	NtfType_BossListUserCmd            NotifierType = "BOSS_LIST_USER"
+	NtfType_LotteryQueryInfo           NotifierType = "ITEMPARAM_QUERY_LOTTERYINFO"
+	NtfType_LotteryCmd                 NotifierType = "ITEMPARAM_LOTTERY"
 )

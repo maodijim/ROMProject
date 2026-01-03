@@ -202,7 +202,8 @@ const ConfigField = {
                 enchanttype:[],
                 extras:[],
                 tradeaction:[],
-                watchcategories:[]
+                watchcategories:[],
+                lotterytype: [],
             }
         };
     },

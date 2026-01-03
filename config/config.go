@@ -41,6 +41,7 @@ type EnchantCondition struct {
 	Attributes []string `yaml:"attributes" json:"attributes" label:"属性(必须跟游戏里面的属性描述一样要不然可能无法识别 比如 '暴伤% > 80')"`
 	Extras     []string `yaml:"extras" json:"extras" label:"词条(比如 '尖锐4')"`
 }
+
 type HuntBossConfig struct {
 	CarryTeam    bool     `yaml:"CarryTeam" json:"CarryTeam" label:"组队一起飞"`
 	GameDuration int      `yaml:"GameDuration" json:"GameDuration" label:"狩猎时长(小时) 0为无限制"`
@@ -135,6 +136,25 @@ func (c *HuntMonsterConfig) GetDefault() HuntMonsterConfig {
 	}
 }
 
+type LotteryConfig struct {
+	DrawCount   uint32 `yaml:"drawCount" json:"drawCount" label:"抽奖次数"`
+	LotteryType string `yaml:"lotteryType" json:"lotteryType" label:"抽奖类型"`
+	UseTickets  bool   `yaml:"useTickets" json:"useTickets" label:"使用抽奖券"`
+}
+
+func (l *LotteryConfig) ParseFromInterface(config map[string]interface{}) any {
+	utils.ParseConfigFromInterface(config, l)
+	return *l
+}
+
+func (l *LotteryConfig) GetDefault() any {
+	return LotteryConfig{
+		DrawCount:   10,
+		LotteryType: "幻想创造器·宴",
+		UseTickets:  false,
+	}
+}
+
 type ServerConfigs struct {
 	AuthServer     string `yaml:"authServer"`
 	AuthPass       string `yaml:"authPass"`
@@ -178,6 +198,7 @@ type ServerConfigs struct {
 	Loglines           int                `yaml:"-"`
 	ChatMaxSize        int                `yaml:"-"`
 	TradeMonitorConfig TradeMonitorConfig `yaml:"tradeMonitorConfig"`
+	LotteryConfig      LotteryConfig      `yaml:"lotteryConfig"`
 }
 
 func (s *ServerConfigs) GetChatMaxSize() int {

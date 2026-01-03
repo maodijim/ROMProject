@@ -118,6 +118,10 @@ type GameConnection struct {
 	reconnecting       bool
 }
 
+func (g *GameConnection) SetQueryTimeout(timeout time.Duration) {
+	queryTimeout = timeout
+}
+
 func (g *GameConnection) GetItemCat(itemId uint32) uint32 {
 	if g.ExchangeItems != nil {
 		if _, ok := g.ExchangeItems[itemId]; ok {
@@ -294,9 +298,13 @@ func (g *GameConnection) GameServerLogin() {
 loginLoop:
 	for {
 		select {
+		case <-g.quitContext.Done():
+			g.logger.Infof("Login loop quit")
+			return
 		case <-time.After(15 * time.Second):
 			g.logger.Infof("Login timeout")
-			break loginLoop
+			g.Reconnect()
+			return
 		case <-loginTicker.C:
 			if !g.IsAuthed() {
 				continue
@@ -338,16 +346,18 @@ enterMapLoop:
 		select {
 		case <-g.quitContext.Done():
 			g.logger.Infof("Enter map loop quit")
-			break enterMapLoop
+			return
 		case <-enterMapTimeout:
 			g.logger.Infof("Enter map timeout")
-			break enterMapLoop
+			g.Reconnect()
+			return
 		case <-enterMapTick.C:
 			if g.conn != nil && g.Role.GetMapId() != 0 && g.Role.GetInGame() && !g.enteringMap && g.Role.GetLoginResult() == 0 {
 				g.enterGameMap()
 				break enterMapLoop
 			}
 			g.logger.Infof("Waiting for enter map")
+			time.Sleep(time.Second * 2)
 		}
 	}
 
@@ -365,7 +375,7 @@ func (g *GameConnection) WaitForInGame() {
 		case <-timeout:
 			log.Errorf("Wait for in game timeout")
 			ticker.Stop()
-			go g.Reconnect()
+			g.Reconnect()
 			return
 		case <-ticker.C:
 			if g.Role.GetInGame() {
@@ -379,6 +389,7 @@ func (g *GameConnection) WaitForInGame() {
 				return
 			} else {
 				log.Warn("Waiting for in game")
+				time.Sleep(time.Second * 2)
 			}
 		}
 	}
@@ -390,6 +401,7 @@ func (g *GameConnection) handleConnection() {
 	scanner := bufio.NewReader(g.conn)
 	buf := make([]byte, 512000)
 	g.logger.Infof("connection handler started")
+	g.reconnecting = false
 	for {
 		select {
 		case <-g.quitContext.Done():
@@ -500,6 +512,7 @@ func (g *GameConnection) Reconnect() {
 		}
 		g.Close()
 		g.enteringMap = false
+		g.Authed = false
 		roleOptions := RoleTeamOption(g.Configs.TeamConfig)
 		g.Role = NewRole(roleOptions)
 		if g.Mutex.TryLock() {
@@ -514,7 +527,9 @@ func (g *GameConnection) Reconnect() {
 func (g *GameConnection) Close() {
 	g.shouldQuit = true
 	g.SetAuthed(false)
-	g.quitCancel()
+	if g.quitCancel != nil {
+		g.quitCancel()
+	}
 	if g.conn != nil {
 		_ = g.conn.Close()
 	}
@@ -599,6 +614,25 @@ func (g *GameConnection) sendProtoCmd(protoCmd proto.Message, cmdId, cmdParId in
 	return err
 }
 
+func (g *GameConnection) sendProtoCmdIndex(protoCmd proto.Message, cmdId, cmdParId int32, index uint32) (err error) {
+	data, err := proto.Marshal(protoCmd)
+	if err != nil {
+		log.Errorf("failed to marshal sell info query: %s", err)
+	} else {
+
+		body := utils.ConstructBody(
+			cmdId,
+			cmdParId,
+			utils.TcpFlag[1],
+			data,
+			g.getNonceIndex(true, index),
+			utils.CipherKey,
+		)
+		g.sendCmd(utils.TcpFlag[1], body, 0)
+	}
+	return err
+}
+
 func (g *GameConnection) sendCmd(flag, body []byte, delay time.Duration) {
 	var newBody []byte
 	if len(body) > 0 {
@@ -617,6 +651,7 @@ func (g *GameConnection) sendHandler() {
 	ticker := time.NewTicker(cmdQueueInterval)
 	defer ticker.Stop()
 	g.logger.Infof("send handler started")
+	g.reconnecting = false
 	for {
 		select {
 		case <-g.quitContext.Done():
@@ -638,7 +673,7 @@ func (g *GameConnection) sendHandler() {
 						g.logger.Errorf("%s failed to send command: %v", g.Role.GetRoleName(), err)
 						g.cmdQueue = [][]byte{}
 						g.Mutex.Unlock()
-						time.Sleep(10 * time.Second)
+						time.Sleep(15 * time.Second)
 						g.Reconnect()
 						time.Sleep(time.Second * 15)
 						return
@@ -856,6 +891,26 @@ func (g *GameConnection) getNonce(includeTime bool) []byte {
 	signStr := fmt.Sprintf("%x", sha1.Sum([]byte(sign)))
 	nonce := &Cmd.Nonce{
 		Index: &g.currentIndex,
+		Sign:  &signStr,
+	}
+	if includeTime {
+		newT := uint32(currentTime)
+		nonce.Timestamp = &newT
+	}
+	pOut, _ := proto.Marshal(nonce)
+	return pOut
+}
+
+// getNonceIndex generates a nonce with a specific index
+func (g *GameConnection) getNonceIndex(includeTime bool, index uint32) []byte {
+	currentTime := int64(0)
+	if includeTime {
+		currentTime = utils.GetTimeNow(false)
+	}
+	sign := fmt.Sprintf("%d_%d_!^ro&", currentTime, index)
+	signStr := fmt.Sprintf("%x", sha1.Sum([]byte(sign)))
+	nonce := &Cmd.Nonce{
+		Index: &index,
 		Sign:  &signStr,
 	}
 	if includeTime {

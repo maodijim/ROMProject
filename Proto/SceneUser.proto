@@ -147,7 +147,7 @@ message MainUserData
   optional uint32 wing = 9;
 }
 
-message MainUserDataUserCmd 
+message MainUserDataUserCmd
 {
   optional Command cmd = 1 [ default = SCENE_USER_PROTOCMD ];
   optional CmdParam param = 2 [ default = MAIN_USER_DATA_USER_CMD ];
@@ -156,7 +156,7 @@ message MainUserDataUserCmd
 
 //message MapUserData
 //{
-//  optional uint64 id = 1; 
+//  optional uint64 id = 1;
 //  optional string name = 2;
 //  optional ScenePos pos = 3;
 //  optional uint32 moveSpd = 4;
@@ -173,7 +173,7 @@ message MainUserDataUserCmd
 
 //  repeated uint32 statelist = 13;
 //  optional ScenePos dest = 14;
-//} 
+//}
 
 //message AddMapUserUserCmd
 //{
@@ -193,7 +193,7 @@ message MainUserDataUserCmd
 
 //message MapNpcData
 //{
-  //optional uint64 id = 1; 
+  //optional uint64 id = 1;
   //optional string name = 2;
   //optional ScenePos pos = 3;
   //optional uint32 npcID = 4;
@@ -301,7 +301,7 @@ message FunNpcData
   required uint32 npcid = 1;
   required uint64 tempid = 2;
   required ScenePos pos = 3;
-}  
+}
 
 message FuntionNpcListUserCmd
 {
@@ -478,7 +478,8 @@ message MapObjectData
   optional CmdParam param = 2 [ default = MAP_OBJECT_DATA ];
 
   optional uint64 guid = 3 [ default = 0 ];
-  repeated UserAttr attrs = 4;
+  optional uint64 mapobjectid = 4 [ default = 0 ];
+  repeated UserAttr attrs = 5;
 }
 
 message ReliveUserCmd

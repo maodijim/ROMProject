@@ -85,60 +85,7 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 				g.Close()
 			}
 		case Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"]:
-			switch cmdParamId {
-			case Cmd.ItemParam_value["ITEMPARAM_NTF_HIGHTREFINE_DATA"]:
-				param = &Cmd.NtfHighRefineDataCmd{}
-				err = utils.ParseCmd(o, param)
-
-			case Cmd.ItemParam_value["ITEMPARAM_PACKSLOTNTF"]:
-				param = &Cmd.PackSlotNtfItemCmd{}
-				err = utils.ParseCmd(o, param)
-
-			case Cmd.ItemParam_value["ITEMPARAM_ITEMSHOW"]:
-				param = &Cmd.ItemShow{}
-				err = utils.ParseCmd(o, param)
-
-			case Cmd.ItemParam_value["ITEMPARAM_PACKAGEUPDATE"]:
-				param = &Cmd.PackageUpdate{}
-				err = utils.ParseCmd(o, param)
-				packUpdate := param.(*Cmd.PackageUpdate)
-				packType := packUpdate.GetType()
-				g.Role.Mutex.Lock()
-				for _, item := range packUpdate.GetUpdateItems() {
-					guid := item.GetBase().GetGuid()
-					if g.Role.PackItems[packType] == nil {
-						g.Role.PackItems[packType] = map[string]*Cmd.ItemData{}
-					}
-					g.Role.PackItems[packType][guid] = item
-				}
-				for _, item := range packUpdate.GetDelItems() {
-					guid := item.GetBase().GetGuid()
-					delete(g.Role.PackItems[packType], guid)
-				}
-				g.Role.Mutex.Unlock()
-
-			case Cmd.ItemParam_value["ITEMPARAM_BROWSEPACK"]:
-				param = &Cmd.BrowsePackage{}
-				err = utils.ParseCmd(o, param)
-
-			case Cmd.ItemParam_value["ITEMPARAM_PACKAGEITEM"]:
-				param = &Cmd.PackageItem{}
-				err = utils.ParseCmd(o, param)
-				g.Role.Mutex.Lock()
-				items := param.(*Cmd.PackageItem)
-				if len(items.GetData()) == 0 {
-					g.Role.Mutex.Unlock()
-					continue
-				} else {
-					if g.Role.PackItems[items.GetType()] == nil {
-						g.Role.PackItems[items.GetType()] = map[string]*Cmd.ItemData{}
-					}
-					for _, data := range items.GetData() {
-						g.Role.PackItems[items.GetType()][data.GetBase().GetGuid()] = data
-					}
-				}
-				g.Role.Mutex.Unlock()
-			}
+			_ = g.HandleSceneItemProtoCmd(cmdParamId, o)
 
 		case Cmd.Command_value["SCENE_USER_SKILL_PROTOCMD"]:
 			switch cmdParamId {

@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-const _ver = "1.0.18"
+const _ver = "1.1.0"
 
 var configPath = "config.yml"
 
@@ -48,6 +48,7 @@ func main() {
 	http.HandleFunc("/api/options/extras", GetExtrasList)
 	http.HandleFunc("/api/options/tradeaction", GetTradeActionList)
 	http.HandleFunc("/api/options/watchcategories", GetTradeZhCategoriesList)
+	http.HandleFunc("/api/options/lotterytype", GetLotteryTypeList)
 
 	log.Println("Version: ", _ver)
 	log.Println(fmt.Sprintf("Server starting on http://localhost:%s", *port))

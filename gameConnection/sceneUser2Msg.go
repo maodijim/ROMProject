@@ -4,7 +4,7 @@ import (
 	"time"
 
 	Cmd "ROMProject/Cmds"
-	notifier "ROMProject/gameConnection/types"
+	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 
 	"github.com/golang/protobuf/proto"
@@ -15,16 +15,16 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 	case Cmd.User2Param_value["USER2PARAM_SYSMSG"]:
 		param = &Cmd.SysMsg{}
 		err = utils.ParseCmd(rawData, param)
-		if g.Notifier(notifier.NtfType_SysMsg) != nil {
-			g.Notifier(notifier.NtfType_SysMsg) <- param
+		if g.Notifier(gameTypes.NtfType_SysMsg) != nil {
+			g.Notifier(gameTypes.NtfType_SysMsg) <- param
 		}
 
 	case Cmd.User2Param_value["USER2PARAM_QUERY_ZONESTATUS"]:
 		param = &Cmd.QueryZoneStatusUserCmd{}
 		err = utils.ParseCmd(rawData, param)
 
-		if g.Notifier(notifier.NtfType_User2QueryZoneStatus) != nil {
-			g.Notifier(notifier.NtfType_User2QueryZoneStatus) <- param
+		if g.Notifier(gameTypes.NtfType_User2QueryZoneStatus) != nil {
+			g.Notifier(gameTypes.NtfType_User2QueryZoneStatus) <- param
 		}
 
 	case Cmd.User2Param_value["USER2PARAM_ACTION"]:
@@ -33,8 +33,8 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 		if err == nil {
 			userActionNtf := param.(*Cmd.UserActionNtf)
 			if userActionNtf.GetType() == Cmd.EUserActionType_EUSERACTIONTYPE_DIALOG {
-				if g.Notifier(notifier.NtfType_UserActionDialog) != nil {
-					g.Notifier(notifier.NtfType_UserActionDialog) <- userActionNtf
+				if g.Notifier(gameTypes.NtfType_UserActionDialog) != nil {
+					g.Notifier(gameTypes.NtfType_UserActionDialog) <- userActionNtf
 				}
 			}
 		}
@@ -158,8 +158,8 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 	case Cmd.User2Param_value["USER2PARAM_EFFECT"]:
 		param = &Cmd.EffectUserCmd{}
 		err = utils.ParseCmd(rawData, param)
-		if g.Notifier(notifier.NtfType_EffectUser) != nil {
-			g.Notifier(notifier.NtfType_EffectUser) <- param
+		if g.Notifier(gameTypes.NtfType_EffectUser) != nil {
+			g.Notifier(gameTypes.NtfType_EffectUser) <- param
 		}
 	}
 
