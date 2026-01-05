@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-const _ver = "1.1.0"
+const _ver = "1.1.1"
 
 var configPath = "config.yml"
 
@@ -21,38 +21,30 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	mux := http.NewServeMux()
 	// Serve static files
-	http.Handle("/", http.FileServer(http.FS(serverRoot)))
+	mux.Handle("/", http.FileServer(http.FS(serverRoot)))
 
 	// API routes
-	http.HandleFunc("/api/user", handleUserAPI)
-	http.HandleFunc("/api/user/get", handleGetUser)
-	http.HandleFunc("/api/feature", handleGetFeatures)
-	http.HandleFunc("/api/feature/running", handleGetRunningTasks)
-	http.HandleFunc("/api/feature/running/user", handleGetUserRunningTask)
-	http.HandleFunc("/api/feature/start", handleStartFeature)
-	http.HandleFunc("/api/feature/stop", handleStopFeature)
-	http.HandleFunc("/api/feature/config", handleGetFeatureConfig)
-	http.HandleFunc("/api/feature/config/update", handleUpdateFeatureConfig)
-	http.HandleFunc("/api/feature/log", handleGetFeatureTaskLog)
-	http.HandleFunc("/api/feature/chat", handleGetFeatureTaskChatHistory)
-	http.HandleFunc("/api/feature/chat/send", handleSendChatMsg)
-	http.HandleFunc("/ws/logs", webSocketHandler)
-	http.HandleFunc("/api/options/mini", GetMiniList)
-	http.HandleFunc("/api/options/mvp", GetMVPList)
-	http.HandleFunc("/api/options/hmvp", GetHMVPList)
-	http.HandleFunc("/api/options/map", GetMAPList)
-	http.HandleFunc("/api/options/naturetype", GetNatureList)
-	http.HandleFunc("/api/options/enchantequippos", GetEnchantEquipPosList)
-	http.HandleFunc("/api/options/enchanttype", GetEnchantTypeList)
-	http.HandleFunc("/api/options/extras", GetExtrasList)
-	http.HandleFunc("/api/options/tradeaction", GetTradeActionList)
-	http.HandleFunc("/api/options/watchcategories", GetTradeZhCategoriesList)
-	http.HandleFunc("/api/options/lotterytype", GetLotteryTypeList)
+	mux.HandleFunc("/api/user", handleUserAPI)
+	mux.HandleFunc("/api/user/get", handleGetUser)
+	mux.HandleFunc("/api/feature", handleGetFeatures)
+	mux.HandleFunc("/api/feature/running", handleGetRunningTasks)
+	mux.HandleFunc("/api/feature/running/user", handleGetUserRunningTask)
+	mux.HandleFunc("/api/feature/start", handleStartFeature)
+	mux.HandleFunc("/api/feature/stop", handleStopFeature)
+	mux.HandleFunc("/api/feature/config", handleGetFeatureConfig)
+	mux.HandleFunc("/api/feature/config/update", handleUpdateFeatureConfig)
+	mux.HandleFunc("/api/feature/log", handleGetFeatureTaskLog)
+	mux.HandleFunc("/api/feature/chat", handleGetFeatureTaskChatHistory)
+	mux.HandleFunc("/api/feature/chat/send", handleSendChatMsg)
+	mux.HandleFunc("/ws/logs", webSocketHandler)
+	mux.Handle("/api/options/", handleOptions())
 
 	log.Println("Version: ", _ver)
 	log.Println(fmt.Sprintf("Server starting on http://localhost:%s", *port))
-	if err := http.ListenAndServe(fmt.Sprintf(":%s", *port), enableCORS(http.DefaultServeMux)); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%s", *port), enableCORS(mux)); err != nil {
 		log.Fatal(err)
 	}
 }

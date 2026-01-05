@@ -853,3 +853,19 @@ func StripLabelRecursive(v interface{}) interface{} {
 	// 否则是基本类型（string, int, bool...）直接返回
 	return v
 }
+
+func handleOptions() http.Handler {
+	optionMux := http.NewServeMux()
+	optionMux.HandleFunc("/api/options/mini", GetMiniList)
+	optionMux.HandleFunc("/api/options/mvp", GetMVPList)
+	optionMux.HandleFunc("/api/options/hmvp", GetHMVPList)
+	optionMux.HandleFunc("/api/options/map", GetMAPList)
+	optionMux.HandleFunc("/api/options/naturetype", GetNatureList)
+	optionMux.HandleFunc("/api/options/enchantequippos", GetEnchantEquipPosList)
+	optionMux.HandleFunc("/api/options/enchanttype", GetEnchantTypeList)
+	optionMux.HandleFunc("/api/options/extras", GetExtrasList)
+	optionMux.HandleFunc("/api/options/tradeaction", GetTradeActionList)
+	optionMux.HandleFunc("/api/options/watchcategories", GetTradeZhCategoriesList)
+	optionMux.HandleFunc("/api/options/lotterytype", GetLotteryTypeList)
+	return optionMux
+}

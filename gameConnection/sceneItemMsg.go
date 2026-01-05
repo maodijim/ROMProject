@@ -155,3 +155,13 @@ func (g *GameConnection) LotteryDraw(lotteryType Cmd.ELotteryType, count, price,
 	}
 	return nil
 }
+
+// LotteryRecover 抽奖兑换
+func (g *GameConnection) LotteryRecover(npcId uint64, lotteryType Cmd.ELotteryType, recoverItemGuidId []string) {
+	cmd := Cmd.LotteryRecoveryCmd{
+		Npcid: &npcId,
+		Type:  &lotteryType,
+		Guids: recoverItemGuidId,
+	}
+	_ = g.sendProtoCmd(&cmd, Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"], Cmd.ItemParam_value["ITEMPARAM_LOTTERY_RECOVERY"])
+}

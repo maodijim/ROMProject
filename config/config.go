@@ -140,6 +140,7 @@ type LotteryConfig struct {
 	DrawCount   uint32 `yaml:"drawCount" json:"drawCount" label:"抽奖次数"`
 	LotteryType string `yaml:"lotteryType" json:"lotteryType" label:"抽奖类型"`
 	UseTickets  bool   `yaml:"useTickets" json:"useTickets" label:"使用抽奖券"`
+	SellTrash   bool   `yaml:"sellTrash" json:"sellTrash" label:"自动出售垃圾物品"`
 }
 
 func (l *LotteryConfig) ParseFromInterface(config map[string]interface{}) any {
@@ -152,6 +153,7 @@ func (l *LotteryConfig) GetDefault() any {
 		DrawCount:   10,
 		LotteryType: "幻想创造器·宴",
 		UseTickets:  false,
+		SellTrash:   true,
 	}
 }
 

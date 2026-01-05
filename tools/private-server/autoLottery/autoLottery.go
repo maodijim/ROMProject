@@ -78,6 +78,14 @@ func (l *LotteryTask) lotteryTask(npc Cmd.MapNpc) {
 	lotteryPrice := gameTypes.LotteryTypePriceMap[lotteryType]
 	var lotteryInfo *Cmd.QueryLotteryInfo
 
+	lotteryInfo = l.GC.QueryLotteryInfo(lotteryType)
+	dailyCount = lotteryInfo.GetTodayCnt()
+	maxCount = lotteryInfo.GetMaxCnt()
+
+	if l.GC.Configs.LotteryConfig.SellTrash {
+		l.SellTrash(*lotteryInfo, npc.GetId(), lotteryType)
+	}
+
 	for {
 		select {
 		case <-l.ctx.Done():
@@ -102,11 +110,11 @@ func (l *LotteryTask) lotteryTask(npc Cmd.MapNpc) {
 			// 在这里添加具体的抽奖逻辑
 			drawCount := min(l.GC.Configs.LotteryConfig.DrawCount, maxCount-dailyCount)
 			l.logger.Infof("开始抽奖: 抽取 %d 次 %s", drawCount, lotteryName)
-			l.logger.Infof("剩余票券: %d", l.GetTicketCount(lotteryInfo))
+			l.logger.Infof("剩余票券: %d", l.GetTicketCount(*lotteryInfo))
 			ticketId := uint32(0)
 			if l.GC.Configs.LotteryConfig.UseTickets {
 				ticketId = lotteryInfo.GetInfos()[0].GetSubInfo()[0].GetRecoverItemid()
-				drawCount = min(drawCount, l.GetTicketCount(lotteryInfo)/30)
+				drawCount = min(drawCount, l.GetTicketCount(*lotteryInfo)/30)
 				if drawCount == 0 {
 					l.logger.Infof("票券不足，无法继续抽奖。")
 					l.Stop()
@@ -130,7 +138,7 @@ func (l *LotteryTask) lotteryTask(npc Cmd.MapNpc) {
 	}
 }
 
-func (l *LotteryTask) GetTicketCount(lotteryInfo *Cmd.QueryLotteryInfo) (totalCount uint32) {
+func (l *LotteryTask) GetTicketCount(lotteryInfo Cmd.QueryLotteryInfo) (totalCount uint32) {
 	if lotteryInfo.GetInfos() == nil {
 		return 0
 	}
@@ -143,6 +151,46 @@ func (l *LotteryTask) GetTicketCount(lotteryInfo *Cmd.QueryLotteryInfo) (totalCo
 		totalCount += it.GetBase().GetCount()
 	}
 	return totalCount
+}
+
+func (l *LotteryTask) SellTrash(lotteryInfo Cmd.QueryLotteryInfo, npcId uint64, lotteryType Cmd.ELotteryType) {
+	l.logger.Infof("开始出售垃圾物品...")
+	infos := lotteryInfo.GetInfos()
+	if len(infos) == 0 {
+		l.logger.Infof("没有可出售的垃圾物品信息。")
+		return
+	}
+	subInfos := infos[0].GetSubInfo()
+	if len(subInfos) == 0 {
+		l.logger.Infof("没有可出售的垃圾物品子信息。")
+		return
+	}
+	for _, subInfo := range subInfos {
+		recoverId := subInfo.GetRecoverItemid()
+		if recoverId == 0 {
+			continue
+		}
+		trashItemId := subInfo.GetItemid()
+		items := l.GC.FindPackItemByIdAll(trashItemId, Cmd.EPackType_EPACKTYPE_MAIN)
+		var itemGuids []string
+		var totalCount int
+		for _, item := range items {
+			totalCount += int(item.GetBase().GetCount())
+			itemGuids = append(itemGuids, item.GetBase().GetGuid())
+		}
+		itemName, ok := l.GC.Items[trashItemId]
+		var itemNameStr string
+		if !ok {
+			itemNameStr = "未知物品名"
+		} else {
+			itemNameStr = itemName.NameZh
+		}
+		l.logger.Infof("找到 %d 个垃圾物品 (ID: %d, %s)，开始出售...", totalCount, trashItemId, itemNameStr)
+		l.GC.LotteryRecover(npcId, lotteryType, itemGuids)
+		time.Sleep(350 * time.Millisecond)
+		ticketCount := l.GetTicketCount(lotteryInfo)
+		l.logger.Infof("当前票券数量: %d", ticketCount)
+	}
 }
 
 func NewLotteryTask(ctx context.Context, gc *gameConnection.GameConnection) *LotteryTask {

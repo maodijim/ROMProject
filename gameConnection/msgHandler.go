@@ -361,6 +361,9 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 					for _, del := range quests.GetDel() {
 						for i, quest := range g.Role.GetQuestList(quests.GetType()).GetList() {
 							if quest.GetId() == del {
+								if i < 0 || i >= len(tempQuestList) {
+									continue
+								}
 								tempQuestList = append(tempQuestList[:i], tempQuestList[i+1:]...)
 							}
 						}
