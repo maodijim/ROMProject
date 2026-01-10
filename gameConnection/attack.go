@@ -162,7 +162,8 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 	// Calculate Skill Delay & CD
 	var delay float64
 	if skillItem.NameZh == "普通攻击" {
-		delay = 1 / (float64(g.GetAtkSpd()) / 1000 * (1 + float64(g.getAtkSpdPer())/1000))
+		atkSpeed := float64(g.GetAtkSpd())
+		delay = 1 / (atkSpeed * 1000)
 		// delay = 1
 	} else {
 		delay = g.calculateDelayCD(skillItem)
@@ -172,8 +173,9 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 	if cd > delay {
 		g.Role.SetSkillCd(skillId, time.Now().Add(time.Duration(cd)*time.Second))
 	}
-	maxDelay := math.Max(delay, 0.1)
-	if time.Since(g.AtkStat.GetLastAttack()) >= time.Duration(maxDelay*500)*time.Millisecond {
+	maxDelay := math.Max(delay, 0.2)
+	lastCd := g.Role.GetSkillCd(skillId)
+	if time.Since(g.AtkStat.GetLastAttack()) >= time.Duration(maxDelay*float64(time.Second)) || time.Since(lastCd) <= 0 {
 		g.SkillCmd(skillId, pData, false)
 		g.AtkStat.SetLastAttack(time.Now())
 	}

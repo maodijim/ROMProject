@@ -203,6 +203,7 @@ func (g *GameConnection) UseFlyWing() {
 		return
 	}
 	g.UseItem(item.GetBase().GetGuid(), 1)
+	g.Role.DelaySkillTime = time.Now().Add(3 * time.Second)
 }
 
 func (g *GameConnection) UseYggdrasilBerry() {

@@ -100,7 +100,7 @@ func (l *LotteryTask) lotteryTask(npc Cmd.MapNpc) {
 				maxCount = lotteryInfo.GetMaxCnt()
 			}
 
-			if dailyCount >= maxCount {
+			if dailyCount >= maxCount && !l.GC.Configs.LotteryConfig.UseTickets {
 				l.logger.Infof("今日%s抽奖机会%d次已用完", lotteryName, maxCount)
 				l.Stop()
 				continue
@@ -184,6 +184,9 @@ func (l *LotteryTask) SellTrash(lotteryInfo Cmd.QueryLotteryInfo, npcId uint64, 
 			itemNameStr = "未知物品名"
 		} else {
 			itemNameStr = itemName.NameZh
+		}
+		if totalCount == 0 {
+			continue
 		}
 		l.logger.Infof("找到 %d 个垃圾物品 (ID: %d, %s)，开始出售...", totalCount, trashItemId, itemNameStr)
 		l.GC.LotteryRecover(npcId, lotteryType, itemGuids)

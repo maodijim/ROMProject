@@ -570,7 +570,11 @@ func (g *GameConnection) httpAuth(authHost string) (*authJson, error) {
 	if err != nil {
 		g.logger.Errorf("failed to request %s: %s", req.URL.String(), err)
 	}
-	defer res.Body.Close()
+	defer func() {
+		if res != nil && res.Body != nil {
+			res.Body.Close()
+		}
+	}()
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		g.logger.Errorf("%s", err)
