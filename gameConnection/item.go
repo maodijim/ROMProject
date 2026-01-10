@@ -208,12 +208,12 @@ func (g *GameConnection) UseFlyWing() {
 
 func (g *GameConnection) UseYggdrasilBerry() {
 	item := g.FindPackItemByName("天地树果实", Cmd.EPackType_EPACKTYPE_MAIN)
-	if time.Since(time.UnixMilli(int64(item.GetBase().GetCd()))) < 0 {
-		g.logger.Warnf("Yggdrasil Berry is in cooldown")
-		return
-	}
 	if item == nil {
 		g.logger.Warnf("Yggdrasil Berry not found")
+		return
+	}
+	if time.Since(time.UnixMilli(int64(item.GetBase().GetCd()))) < 0 {
+		g.logger.Warnf("Yggdrasil Berry is in cooldown")
 		return
 	}
 	g.UseItem(item.GetBase().GetGuid(), 1)
@@ -222,12 +222,12 @@ func (g *GameConnection) UseYggdrasilBerry() {
 
 func (g *GameConnection) UseHoney() {
 	item := g.FindPackItemById(12117, Cmd.EPackType_EPACKTYPE_MAIN)
-	if time.Since(time.UnixMilli(int64(item.GetBase().GetCd()))) < 0 {
-		g.logger.Warnf("Honey is in cooldown")
-		return
-	}
 	if item == nil {
 		g.logger.Warnf("Honey not found")
+		return
+	}
+	if time.Since(time.UnixMilli(int64(item.GetBase().GetCd()))) < 0 {
+		g.logger.Warnf("Honey is in cooldown")
 		return
 	}
 	g.UseItem(item.GetBase().GetGuid(), 1)
