@@ -15,17 +15,13 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 	case Cmd.User2Param_value["USER2PARAM_SYSMSG"]:
 		param = &Cmd.SysMsg{}
 		err = utils.ParseCmd(rawData, param)
-		if g.Notifier(gameTypes.NtfType_SysMsg) != nil {
-			g.Notifier(gameTypes.NtfType_SysMsg) <- param
-		}
+		g.SendToNotifier(gameTypes.NtfType_SysMsg, param)
 
 	case Cmd.User2Param_value["USER2PARAM_QUERY_ZONESTATUS"]:
 		param = &Cmd.QueryZoneStatusUserCmd{}
 		err = utils.ParseCmd(rawData, param)
 
-		if g.Notifier(gameTypes.NtfType_User2QueryZoneStatus) != nil {
-			g.Notifier(gameTypes.NtfType_User2QueryZoneStatus) <- param
-		}
+		g.SendToNotifier(gameTypes.NtfType_User2QueryZoneStatus, param)
 
 	case Cmd.User2Param_value["USER2PARAM_ACTION"]:
 		param = &Cmd.UserActionNtf{}
@@ -33,9 +29,7 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 		if err == nil {
 			userActionNtf := param.(*Cmd.UserActionNtf)
 			if userActionNtf.GetType() == Cmd.EUserActionType_EUSERACTIONTYPE_DIALOG {
-				if g.Notifier(gameTypes.NtfType_UserActionDialog) != nil {
-					g.Notifier(gameTypes.NtfType_UserActionDialog) <- userActionNtf
-				}
+				g.SendToNotifier(gameTypes.NtfType_UserActionDialog, userActionNtf)
 			}
 		}
 
@@ -43,6 +37,27 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 		// TODO handles items cd time
 		param = &Cmd.CDTimeUserCmd{}
 		err = utils.ParseCmd(rawData, param)
+		cdTime := param.(*Cmd.CDTimeUserCmd)
+		if cdTime.GetList() != nil {
+			for _, cd := range cdTime.GetList() {
+				if cd.GetType() == Cmd.CD_TYPE_CD_TYPE_SKILL {
+					if cd.GetId() == 50057001 {
+						// ignore 备战精英
+						continue
+					}
+					if skillItem, ok := g.SkillItems[cd.GetId()]; ok && skillItem.NameZh == "普通攻击" {
+						// ignore 普通攻击
+						continue
+					}
+					now := time.Now().UnixMilli()
+					calculatedCd := int64(cd.GetTime() - fixedSkillCDSubtract)
+					if calculatedCd < now {
+						continue
+					}
+					g.Role.SetSkillCd(cd.GetId(), time.UnixMilli(calculatedCd))
+				}
+			}
+		}
 
 	// case Cmd.User2Param_value["USER2PARAM_SIGNIN_NTF"]:
 	// 	param = &Cmd.SignInNtfUserCmd{}
@@ -158,9 +173,7 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 	case Cmd.User2Param_value["USER2PARAM_EFFECT"]:
 		param = &Cmd.EffectUserCmd{}
 		err = utils.ParseCmd(rawData, param)
-		if g.Notifier(gameTypes.NtfType_EffectUser) != nil {
-			g.Notifier(gameTypes.NtfType_EffectUser) <- param
-		}
+		g.SendToNotifier(gameTypes.NtfType_EffectUser, param)
 	}
 
 	return param, err

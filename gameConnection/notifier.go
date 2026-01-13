@@ -1,6 +1,8 @@
 package gameConnection
 
 import (
+	"time"
+
 	notifier "ROMProject/gameConnection/types"
 )
 
@@ -20,4 +22,19 @@ func (g *GameConnection) Notifier(notifierType notifier.NotifierType) chan inter
 	g.Mutex.RLock()
 	defer g.Mutex.RUnlock()
 	return g.notifier[notifierType]
+}
+
+func (g *GameConnection) SendToNotifier(notifier notifier.NotifierType, msg interface{}) {
+	g.Mutex.RLock()
+	defer g.Mutex.RUnlock()
+	timeout := time.After(10 * time.Second)
+	if ch := g.notifier[notifier]; ch != nil {
+		go func() {
+			select {
+			case ch <- msg:
+			case <-timeout:
+				g.logger.Warnf("send to notifier %s timeout", notifier)
+			}
+		}()
+	}
 }

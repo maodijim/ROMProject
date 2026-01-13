@@ -67,20 +67,14 @@ func (g *GameConnection) HandleSceneItemProtoCmd(cmdParamId int32, rawData []byt
 		param = &Cmd.QueryLotteryInfo{}
 		err = utils.ParseCmd(rawData, param)
 		lotteryInfo := param.(*Cmd.QueryLotteryInfo)
-		if g.Notifier(gameTypes.NtfType_LotteryQueryInfo) != nil {
-			go func() {
-				g.Notifier(gameTypes.NtfType_LotteryQueryInfo) <- lotteryInfo
-			}()
-		}
+		g.SendToNotifier(gameTypes.NtfType_LotteryQueryInfo, lotteryInfo)
 
 	case Cmd.ItemParam_value["ITEMPARAM_LOTTERY"]:
 		param = &Cmd.LotteryCmd{}
 		err = utils.ParseCmd(rawData, param)
 		lotteryCmd := param.(*Cmd.LotteryCmd)
 		if g.Notifier(gameTypes.NtfType_LotteryCmd) != nil && lotteryCmd.GetCharid() == g.Role.GetRoleId() {
-			go func() {
-				g.Notifier(gameTypes.NtfType_LotteryCmd) <- lotteryCmd
-			}()
+			g.SendToNotifier(gameTypes.NtfType_LotteryCmd, lotteryCmd)
 		}
 	}
 	return err

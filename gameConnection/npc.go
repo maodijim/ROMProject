@@ -84,9 +84,7 @@ func (g *GameConnection) WaitForInterQuestion(interId uint32) (inter *Cmd.NewInt
 		select {
 		case <-time.After(3 * time.Second):
 			if iq != nil {
-				go func() {
-					g.Notifier(notifier.NtfType_InterviewQuestion) <- iq
-				}()
+				g.SendToNotifier(notifier.NtfType_InterviewQuestion, iq)
 			}
 			return nil, errors.New(fmt.Sprintf("wait for inter question %d timeout", interId))
 		case note := <-g.Notifier(notifier.NtfType_InterviewQuestion):

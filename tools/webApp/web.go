@@ -6,15 +6,24 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
 )
 
-const _ver = "1.1.3"
+const _ver = "1.1.4"
 
 var configPath = "config.yml"
 
 func main() {
 	port := flag.String("port", "8081", "Port to run the web server on")
+	enableprofile := flag.Bool("enable-profile", false, "Enable profiling")
 	flag.Parse()
+
+	if *enableprofile {
+		go func() {
+			log.Println("Profiling server starting on http://localhost:6060")
+			_ = http.ListenAndServe("localhost:6060", nil)
+		}()
+	}
 
 	// Load embedded static files
 	serverRoot, err := fs.Sub(staticFiles, "static")

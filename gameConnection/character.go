@@ -196,9 +196,7 @@ func (g *GameConnection) PickupMapItem(mapItem *Cmd.AddMapItem) {
 				sceneUser2CmdId,
 				Cmd.User2Param_value["USER2PARAM_PICKUP_ITEM"],
 			)
-			if g.Notifier(gameTypes.NtfType_UserItemPickup) != nil {
-				g.Notifier(gameTypes.NtfType_UserItemPickup) <- item
-			}
+			g.SendToNotifier(gameTypes.NtfType_UserItemPickup, item)
 		}
 	}
 }

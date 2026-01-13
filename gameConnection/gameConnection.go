@@ -35,9 +35,11 @@ type authJson struct {
 }
 
 var (
-	cmdQueueInterval    = 75 * time.Millisecond
-	TradeProtoCmdId     = Cmd.Command_value["RECORD_USER_TRADE_PROTOCMD"]
-	LogInUserProtoCmdId = Cmd.Command_value["LOGIN_USER_PROTOCMD"]
+	cmdQueueInterval     = 75 * time.Millisecond
+	fixedItemCDSubtract  = uint64(40000) // in milliseconds
+	fixedSkillCDSubtract = uint64(50000) // in milliseconds
+	TradeProtoCmdId      = Cmd.Command_value["RECORD_USER_TRADE_PROTOCMD"]
+	LogInUserProtoCmdId  = Cmd.Command_value["LOGIN_USER_PROTOCMD"]
 )
 
 // logWriter implements io.Writer interface

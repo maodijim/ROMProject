@@ -100,9 +100,7 @@ func (g *GameConnection) HandleSceneUserProtoCmd(cmdParamId int32, rawData []byt
 			g.UpdateUserParams(datas, attrs)
 			g.Mutex.Unlock()
 		}
-		if g.Notifier(notifier.NtfType_AddAttributePoint) != nil {
-			g.Notifier(notifier.NtfType_AddAttributePoint) <- true
-		}
+		g.SendToNotifier(notifier.NtfType_AddAttributePoint, true)
 
 	case Cmd.CmdParam_value["CHANGE_SCENE_USER_CMD"]:
 		param = &Cmd.ChangeSceneUserCmd{}
