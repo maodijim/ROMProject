@@ -1,14 +1,13 @@
 package gameConnection
 
 import (
+	"maps"
 	"sync"
 	"time"
 
 	Cmd "ROMProject/Cmds"
 	"ROMProject/config"
 	"ROMProject/utils"
-
-	"github.com/mohae/deepcopy"
 )
 
 type MatchDetail struct {
@@ -104,12 +103,12 @@ func (r *RoleInfo) GetTotalPoint() int32 {
 func (r *RoleInfo) GetPackItems() map[Cmd.EPackType]map[string]*Cmd.ItemData {
 	r.Mutex.RLock()
 	defer r.Mutex.RUnlock()
-	return deepcopy.Copy(r.PackItems).(map[Cmd.EPackType]map[string]*Cmd.ItemData)
+	return maps.Clone(r.PackItems)
 }
 func (r *RoleInfo) GetPackItemsByType(packType Cmd.EPackType) map[string]*Cmd.ItemData {
 	r.Mutex.RLock()
 	defer r.Mutex.RUnlock()
-	return deepcopy.Copy(r.PackItems[packType]).(map[string]*Cmd.ItemData)
+	return maps.Clone(r.PackItems[packType])
 }
 
 func (r *RoleInfo) GetSilver() uint64 {

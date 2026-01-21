@@ -6,7 +6,6 @@ import (
 
 	Cmd "ROMProject/Cmds"
 	"ROMProject/utils"
-	"github.com/mohae/deepcopy"
 )
 
 func TestGameConnection_EnchantPreviewContains(t *testing.T) {
@@ -28,10 +27,10 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 	buffId := uint32(500043)
 	notBuffId := uint32(500045)
 	items := utils.NewItemsLoader("", "", "")
-	role := utils.NewRole()
+	role := NewRole()
 	role.PackItems = make(map[Cmd.EPackType]map[string]*Cmd.ItemData)
 	role.PackItems[Cmd.EPackType_EPACKTYPE_EQUIP] = map[string]*Cmd.ItemData{
-		"0": &Cmd.ItemData{
+		"0": {
 			Base: &Cmd.ItemInfo{
 				Guid: &guid,
 			},
@@ -43,23 +42,25 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					},
 				},
 			},
-			Previewenchant: &Cmd.EnchantData{
-				Extras: []*Cmd.EnchantExtra{
-					{
-						Buffid: &buffId,
+			Previewenchant: []*Cmd.EnchantData{
+				{
+					Extras: []*Cmd.EnchantExtra{
+						{
+							Buffid: &buffId,
+						},
 					},
-				},
-				Attrs: []*Cmd.EnchantAttr{
-					{
-						Type:  &atkType,
-						Value: &atkVal,
+					Attrs: []*Cmd.EnchantAttr{
+						{
+							Type:  &atkType,
+							Value: &atkVal,
+						},
 					},
 				},
 			},
 		},
 	}
 	atkValHigh := uint32(150)
-	role2 := deepcopy.Copy(role).(*utils.RoleInfo)
+	role2 := *role
 	role2.PackItems[Cmd.EPackType_EPACKTYPE_EQUIP]["0"].Enchant.Attrs[0].Value = &atkValHigh
 	tests := []struct {
 		name   string
@@ -140,7 +141,7 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 			fields: fields{
 				BuffItems:       items.BuffItems,
 				BuffItemsByName: items.BuffItemsByName,
-				Role:            role2,
+				Role:            &role2,
 			},
 			args: args{
 				equipGuid: "0",
@@ -170,7 +171,7 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 				BuffItems:       tt.fields.BuffItems,
 				BuffItemsByName: tt.fields.BuffItemsByName,
 			}
-			if got := g.EnchantPreviewContains(tt.args.equipGuid, tt.args.preview); got != tt.want {
+			if got, _ := g.EnchantPreviewContains(tt.args.equipGuid, tt.args.preview); got != tt.want {
 				t.Errorf("EnchantPreviewContains() = %v, want %v", got, tt.want)
 			}
 		})

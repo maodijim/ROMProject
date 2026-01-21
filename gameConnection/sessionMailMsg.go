@@ -3,8 +3,8 @@ package gameConnection
 import (
 	Cmd "ROMProject/Cmds"
 	"ROMProject/utils"
+
 	"github.com/golang/protobuf/proto"
-	"github.com/mohae/deepcopy"
 )
 
 func (g *GameConnection) HandleSessionMailMsg(cmdParamId int32, rawData []byte) (param proto.Message, err error) {
@@ -24,7 +24,7 @@ func (g *GameConnection) HandleSessionMailMsg(cmdParamId int32, rawData []byte) 
 		err = utils.ParseCmd(rawData, param)
 		g.Mutex.Lock()
 		defer g.Mutex.Unlock()
-		newMails := deepcopy.Copy(g.mails).([]*Cmd.MailData)
+		var newMails []*Cmd.MailData
 		for _, mailId := range param.(*Cmd.MailUpdate).GetDels() {
 			for _, mail := range g.mails {
 				if mail.GetId() != mailId {

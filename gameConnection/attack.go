@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"maps"
 	"math"
 	"sort"
 	"strconv"
@@ -14,8 +15,6 @@ import (
 	Cmd "ROMProject/Cmds"
 	notifier "ROMProject/gameConnection/types"
 	"ROMProject/utils"
-
-	"github.com/mohae/deepcopy"
 )
 
 var (
@@ -186,7 +185,7 @@ func (g *GameConnection) AttackTarget(skillId uint32, target Cmd.MapNpc) {
 func (g *GameConnection) GetTargetByRange(monsterList []string, srcPos Cmd.ScenePos, targetRange float64) (distDict map[float64]uint64, distanceList []float64) {
 	distDict = map[float64]uint64{}
 	g.Mutex.RLock()
-	mapNpcs := deepcopy.Copy(g.MapNpcs).(map[uint64]*Cmd.MapNpc)
+	mapNpcs := maps.Clone(g.MapNpcs)
 	g.Mutex.RUnlock()
 	for _, npc := range mapNpcs {
 		if npc.GetOwner() != 0 {
@@ -345,7 +344,7 @@ func (g *GameConnection) GetTargetByDensitySameReturn(
 
 func (g *GameConnection) IsMonsterInRange(monsterList ...string) bool {
 	g.Mutex.RLock()
-	mapNpcs := deepcopy.Copy(g.MapNpcs).(map[uint64]*Cmd.MapNpc)
+	mapNpcs := maps.Clone(g.MapNpcs)
 	g.Mutex.RUnlock()
 	for _, npc := range mapNpcs {
 		if npc.GetOwner() != 0 {
@@ -365,7 +364,7 @@ func (g *GameConnection) IsMonsterInRange(monsterList ...string) bool {
 
 func (g *GameConnection) IsMonsterInDistance(distance int, monsterList ...string) bool {
 	g.Mutex.RLock()
-	mapNpcs := deepcopy.Copy(g.MapNpcs).(map[uint64]*Cmd.MapNpc)
+	mapNpcs := maps.Clone(g.MapNpcs)
 	g.Mutex.RUnlock()
 	for _, npc := range mapNpcs {
 		if npc.GetOwner() != 0 {
@@ -386,13 +385,6 @@ func (g *GameConnection) IsMonsterInDistance(distance int, monsterList ...string
 		}
 	}
 	return false
-}
-
-func (g *GameConnection) copyTarget(org *Cmd.MapNpc) *Cmd.MapNpc {
-	g.Mutex.RLock()
-	target := deepcopy.Copy(org).(*Cmd.MapNpc)
-	g.Mutex.RUnlock()
-	return target
 }
 
 func (g *GameConnection) AttackClosestByName(skillId uint32, monsterName []string) {
