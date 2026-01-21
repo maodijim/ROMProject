@@ -139,7 +139,9 @@ func handleUserAPI(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		usersSpace.Configs[userReq.Username].Password = userReq.Password
+		if userReq.Password != "" {
+			usersSpace.Configs[userReq.Username].Password = userReq.Password
+		}
 		usersSpace.Configs[userReq.Username].Char = uint(userReq.RoleNum)
 	} else if r.Method == http.MethodDelete {
 		if _, exists := usersSpace.Configs[userReq.Username]; !exists {

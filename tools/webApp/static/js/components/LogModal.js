@@ -147,6 +147,8 @@ export default {
                     clearInterval(this.chatPollInterval);
                     this.chatPollInterval = null;
                 }
+                this.log = '';
+                this.chatMessages = [];
                 this.disconnectWebSocket();
             }
         }

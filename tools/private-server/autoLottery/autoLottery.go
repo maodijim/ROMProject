@@ -33,9 +33,10 @@ func (l *LotteryTask) Start() {
 	if l.GC.Role.GetMapId() != gameTypes.MapId_Protera.Uint32() {
 		l.logger.Warnf("当前地图不是普隆德拉，飞去普隆德拉中...")
 		time.Sleep(time.Second * 5)
-		_ = l.GC.GoToGear(gameTypes.MapId_Protera.Uint32())
-		l.GC.ChangeMap(gameTypes.MapId_Protera.Uint32())
+		l.GC.GoToMap(gameTypes.MapId_Protera.Uint32())
 	}
+
+	time.Sleep(time.Second * 5)
 
 	// 移动到抽奖NPC位置
 	l.logger.Infof("移动到抽奖NPC位置...")

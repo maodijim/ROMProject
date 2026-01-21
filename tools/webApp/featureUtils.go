@@ -229,3 +229,15 @@ func GetLotteryTypeList(w http.ResponseWriter, r *http.Request) {
 		"data":    l,
 	})
 }
+
+func GetDailyTaskLieFengTypeList(w http.ResponseWriter, r *http.Request) {
+	l := []string{
+		"裂缝",
+		"朱诺",
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]any{
+		"success": true,
+		"data":    l,
+	})
+}

@@ -157,6 +157,28 @@ func (l *LotteryConfig) GetDefault() any {
 	}
 }
 
+type DailyTaskConfig struct {
+	EnableKanBan        bool   `yaml:"enableKanBan" json:"enableKanBan" label:"完成看板任务"`
+	EnableWasteLandWeed bool   `yaml:"enableWasteLandWeed" json:"enableWasteLandWeed" label:"完成清理荒地杂草"`
+	EnableCrack         bool   `yaml:"enableCrack" json:"enableCrack" label:"完成裂缝/朱诺任务"`
+	CrackOrYuno         string `yaml:"crackOrYuno" json:"crackOrYuno" label:"裂缝或朱诺任务选择(默认裂缝)"`
+	YunoTeamLeader      string `yaml:"YunoTeamLeader" json:"YunoTeamLeader" label:"朱诺任务队长名称(自动组队使用)"`
+}
+
+func (d *DailyTaskConfig) ParseFromInterface(config map[string]interface{}) any {
+	utils.ParseConfigFromInterface(config, d)
+	return *d
+}
+
+func (d *DailyTaskConfig) GetDefault() any {
+	return DailyTaskConfig{
+		EnableKanBan:        true,
+		EnableWasteLandWeed: true,
+		EnableCrack:         true,
+		CrackOrYuno:         "裂缝",
+	}
+}
+
 type ServerConfigs struct {
 	AuthServer     string `yaml:"authServer"`
 	AuthPass       string `yaml:"authPass"`
@@ -201,6 +223,7 @@ type ServerConfigs struct {
 	ChatMaxSize        int                `yaml:"-"`
 	TradeMonitorConfig TradeMonitorConfig `yaml:"tradeMonitorConfig"`
 	LotteryConfig      LotteryConfig      `yaml:"lotteryConfig"`
+	DailyTaskConfig    DailyTaskConfig    `yaml:"dailyTaskConfig"`
 }
 
 func (s *ServerConfigs) GetChatMaxSize() int {

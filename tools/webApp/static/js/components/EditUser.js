@@ -30,9 +30,8 @@ export default {
                         type="password"
                         id="edit-password"
                         v-model="form.password"
-                        required
                         :disabled="submitting"
-                        placeholder="Enter new password"
+                        placeholder="Enter new password leave blank to keep current"
                     >
                 </div>
                 <div class="form-group">

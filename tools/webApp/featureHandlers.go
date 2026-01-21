@@ -68,6 +68,13 @@ var features = []Feature{
 		FunctionName: "AutoLottery",
 		execFunc:     backendTasks.NewLotteryTask,
 	},
+	{
+		Name:         "每日日常任务",
+		Desc:         "Description of Feature G",
+		Actions:      []string{"Start", "Stop", "Configure", "Log"},
+		FunctionName: "DailyTask",
+		execFunc:     backendTasks.NewDailyTask,
+	},
 }
 
 func handleGetFeatures(w http.ResponseWriter, r *http.Request) {
@@ -395,6 +402,17 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 				existingConfig = defaultConfig
 			}
 			config = existingConfig
+		case "DailyTask":
+			cfg := usersSpace.Configs[username].DailyTaskConfig.GetDefault()
+			defaultConfig := cfg.(gameConfig.DailyTaskConfig)
+			var existingConfig gameConfig.DailyTaskConfig
+			// merge with existing config if any
+			if usersSpace.Configs[username] != nil {
+				existingConfig = usersSpace.Configs[username].DailyTaskConfig
+			} else {
+				existingConfig = defaultConfig
+			}
+			config = existingConfig
 		default:
 			config = map[string]interface{}{}
 		}
@@ -626,6 +644,25 @@ func handleUpdateFeatureConfig(w http.ResponseWriter, r *http.Request) {
 		}
 
 		userConfigs.LotteryConfig = config
+
+	case "DailyTask":
+		config := userConfigs.DailyTaskConfig
+
+		cleanConfig := StripLabelRecursive(req.Config)
+
+		// 把 cleanConfig 转成 JSON
+		jsonBytes, _ := json.Marshal(cleanConfig)
+
+		// 塞进你的 config struct
+		if err := json.Unmarshal(jsonBytes, &config); err != nil {
+			json.NewEncoder(w).Encode(Response{
+				Success: false,
+				Message: "Config parse error",
+			})
+			return
+		}
+
+		userConfigs.DailyTaskConfig = config
 
 	default:
 		json.NewEncoder(w).Encode(Response{
@@ -867,5 +904,6 @@ func handleOptions() http.Handler {
 	optionMux.HandleFunc("/api/options/tradeaction", GetTradeActionList)
 	optionMux.HandleFunc("/api/options/watchcategories", GetTradeZhCategoriesList)
 	optionMux.HandleFunc("/api/options/lotterytype", GetLotteryTypeList)
+	optionMux.HandleFunc("/api/options/dailytaskliefengtype", GetDailyTaskLieFengTypeList)
 	return optionMux
 }
