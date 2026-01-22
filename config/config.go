@@ -158,6 +158,7 @@ func (l *LotteryConfig) GetDefault() any {
 }
 
 type DailyTaskConfig struct {
+	EnableItemCombine   bool   `yaml:"enableItemCombine" json:"enableItemCombine" label:"自动物品合成(精装卡册的残页, 卡册残页)"`
 	EnableKanBan        bool   `yaml:"enableKanBan" json:"enableKanBan" label:"完成看板任务"`
 	EnableWasteLandWeed bool   `yaml:"enableWasteLandWeed" json:"enableWasteLandWeed" label:"完成清理荒地杂草"`
 	EnableCrack         bool   `yaml:"enableCrack" json:"enableCrack" label:"完成裂缝/朱诺任务"`
@@ -172,6 +173,7 @@ func (d *DailyTaskConfig) ParseFromInterface(config map[string]interface{}) any 
 
 func (d *DailyTaskConfig) GetDefault() any {
 	return DailyTaskConfig{
+		EnableItemCombine:   true,
 		EnableKanBan:        true,
 		EnableWasteLandWeed: true,
 		EnableCrack:         true,

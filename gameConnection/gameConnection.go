@@ -192,13 +192,14 @@ func (g *GameConnection) LogWriter() io.Writer {
 }
 
 func (g *GameConnection) AddLog(message string) {
-	g.logMutex.Lock()
-	defer g.logMutex.Unlock()
-
 	timestamp := time.Now().Format("2006-01-02 15:04:05")
 
 	// Split message by newlines and add each line separately
 	lines := strings.Split(strings.TrimRight(message, "\n"), "\n")
+
+	g.logMutex.Lock()
+	defer g.logMutex.Unlock()
+
 	for _, line := range lines {
 		if line == "" {
 			continue

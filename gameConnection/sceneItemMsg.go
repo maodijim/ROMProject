@@ -76,6 +76,11 @@ func (g *GameConnection) HandleSceneItemProtoCmd(cmdParamId int32, rawData []byt
 		if g.Notifier(gameTypes.NtfType_LotteryCmd) != nil && lotteryCmd.GetCharid() == g.Role.GetRoleId() {
 			g.SendToNotifier(gameTypes.NtfType_LotteryCmd, lotteryCmd)
 		}
+	case Cmd.ItemParam_value["ITEMPARAM_GETCOUNT"]: // 获取物品数量返回
+		param = &Cmd.GetCountItemCmd{}
+		err = utils.ParseCmd(rawData, param)
+		getItemCountCmd := param.(*Cmd.GetCountItemCmd)
+		g.SendToNotifier("ITEMPARAM_GETCOUNT", getItemCountCmd)
 	}
 	return err
 }

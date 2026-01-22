@@ -22,12 +22,19 @@ func (g *GameConnection) UseItem(itemGuid string, count uint32) {
 	_ = g.sendProtoCmd(cmd, SceneUserItemCmdId, Cmd.ItemParam_value["ITEMPARAM_ITEMUSE"])
 }
 
-func (g *GameConnection) GetItemCount(itemId uint32, source Cmd.ESource) {
+func (g *GameConnection) GetItemCount(itemId uint32, source Cmd.ESource) (item *Cmd.GetCountItemCmd, err error) {
 	cmd := Cmd.GetCountItemCmd{
 		Itemid: &itemId,
 		Source: &source,
 	}
+	g.AddNotifier("ITEMPARAM_GETCOUNT")
 	_ = g.sendProtoCmd(&cmd, SceneUserItemCmdId, Cmd.ItemParam_value["ITEMPARAM_GETCOUNT"])
+	res, err := g.waitForResponse("ITEMPARAM_GETCOUNT")
+	if err != nil {
+		return item, err
+	}
+	item = res.(*Cmd.GetCountItemCmd)
+	return item, nil
 }
 
 func (g *GameConnection) IsQuickSellItem(itemId uint32) bool {
@@ -234,4 +241,13 @@ func (g *GameConnection) UseHoney() {
 	}
 	g.UseItem(item.GetBase().GetGuid(), 1)
 	g.logger.Debugf("Used Honey")
+}
+
+func (g *GameConnection) ProduceItem(composeId uint32) {
+	cmd := &Cmd.Produce{
+		Composeid: &composeId,
+	}
+	_ = g.sendProtoCmd(cmd,
+		Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"],
+		Cmd.ItemParam_value["ITEMPARAM_PRODUCE"])
 }

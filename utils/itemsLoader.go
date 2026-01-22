@@ -56,6 +56,7 @@ type Items struct {
 	AuctionPrice   json.Number `json:"AuctionPrice"`
 	AdventureValue string      `json:"AdventureValue"`
 	Condition      string      `json:"Condition"`
+	ComposeId      json.Number `json:"ComposeID"`
 	Feature        string      `json:"Feature"`
 	Desc           string      `json:"Desc"`
 	Icon           string      `json:"Icon"`

@@ -300,6 +300,9 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.ItemParam_value["ITEMPARAM_PRODUCE"]:
+				param = &Cmd.Produce{}
+
 			case Cmd.ItemParam_value["ITEMPARAM_LOTTERY_RECOVERY"]:
 				param = &Cmd.LotteryRecoveryCmd{}
 
