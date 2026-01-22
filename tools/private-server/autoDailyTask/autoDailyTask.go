@@ -209,6 +209,10 @@ func (d *DailyTask) PerformItemCombineTask() {
 				d.logger.Infof("背包中没有找到物品 %s，合成完成。", itemName)
 				break
 			}
+			if i.GetBase().GetCount() < 15 {
+				d.logger.Infof("背包中物品 %s 数量不足15个，合成完成。", itemName)
+				break
+			}
 			d.logger.Infof("背包中还有物品 %s %d个，继续合成...", itemName, i.GetBase().GetCount())
 			time.Sleep(time.Millisecond * 500)
 		}
