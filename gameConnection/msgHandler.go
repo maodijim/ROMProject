@@ -7,8 +7,8 @@ import (
 	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 
-	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
 )
 
 func (g *GameConnection) waitForResponse(notifierType gameTypes.NotifierType) (res interface{}, err error) {
@@ -38,6 +38,9 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 		var param proto.Message
 		var err error
 		switch cmdId {
+		case Cmd.Command_value["SCENE_USER_SEAL_PROTOCMD"]:
+			_, _ = g.HandleSceneSealProtoMsg(cmdParamId, o)
+
 		case Cmd.Command_value["SESSION_USER_MAIL_PROTOCMD"]:
 			_, _ = g.HandleSessionMailMsg(cmdParamId, o)
 

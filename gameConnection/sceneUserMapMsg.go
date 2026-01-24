@@ -4,7 +4,7 @@ import (
 	Cmd "ROMProject/Cmds"
 	"ROMProject/utils"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func (g *GameConnection) HandleSceneUserMapProtoCmd(cmdParamId int32, rawData []byte) (err error) {

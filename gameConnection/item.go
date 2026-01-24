@@ -5,6 +5,7 @@ import (
 	"time"
 
 	Cmd "ROMProject/Cmds"
+	gameTypes "ROMProject/gameConnection/types"
 )
 
 var (
@@ -27,9 +28,9 @@ func (g *GameConnection) GetItemCount(itemId uint32, source Cmd.ESource) (item *
 		Itemid: &itemId,
 		Source: &source,
 	}
-	g.AddNotifier("ITEMPARAM_GETCOUNT")
+	g.AddNotifier(gameTypes.NtfType_GetCountItemCmd)
 	_ = g.sendProtoCmd(&cmd, SceneUserItemCmdId, Cmd.ItemParam_value["ITEMPARAM_GETCOUNT"])
-	res, err := g.waitForResponse("ITEMPARAM_GETCOUNT")
+	res, err := g.waitForResponse(gameTypes.NtfType_GetCountItemCmd)
 	if err != nil {
 		return item, err
 	}
@@ -108,8 +109,9 @@ func (g *GameConnection) FindPackItemByName(name string, packType Cmd.EPackType)
 		g.logger.Warnf("item name for id %s not found", name)
 	}
 	items := g.Role.GetPackItems()
+	im := items[packType]
 	g.Mutex.RLock()
-	for _, item := range items[packType] {
+	for _, item := range im {
 		if item.GetBase().GetId() == itemId {
 			itemData = item
 			break
@@ -121,9 +123,9 @@ func (g *GameConnection) FindPackItemByName(name string, packType Cmd.EPackType)
 
 // FindPackItemById 根据物品ID查找背包中的物品, 返回第一个找到的物品
 func (g *GameConnection) FindPackItemById(itemId uint32, packType Cmd.EPackType) (itemData *Cmd.ItemData) {
+	packItem := g.Role.GetPackItems()
 	g.Mutex.RLock()
 	defer g.Mutex.RUnlock()
-	packItem := g.Role.GetPackItems()
 	if packItem == nil {
 		return itemData
 	}

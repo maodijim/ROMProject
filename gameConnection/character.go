@@ -100,7 +100,7 @@ func (g *GameConnection) GoToMap(mapId uint32) {
 				sceneUser2CmdId,
 				Cmd.User2Param_value["USER2PARAM_GOTO_GEAR"],
 			)
-			time.Sleep(time.Millisecond * 500)
+			time.Sleep(time.Millisecond * 600)
 			g.ChangeMap(mapId)
 			return
 		}

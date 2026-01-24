@@ -23,7 +23,7 @@ import (
 	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 
 	log "github.com/sirupsen/logrus"
 )

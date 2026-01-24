@@ -19,8 +19,8 @@ import (
 
 	Cmd "ROMProject/Cmds"
 
-	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
 )
 
 func Decompress(data []byte) ([]byte, error) {

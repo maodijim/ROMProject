@@ -5,7 +5,7 @@ import (
 	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func (g *GameConnection) HandleSceneItemProtoCmd(cmdParamId int32, rawData []byte) (err error) {
@@ -60,8 +60,8 @@ func (g *GameConnection) HandleSceneItemProtoCmd(cmdParamId int32, rawData []byt
 			for _, data := range items.GetData() {
 				g.Role.PackItems[items.GetType()][data.GetBase().GetGuid()] = data
 			}
+			g.Role.Mutex.Unlock()
 		}
-		g.Role.Mutex.Unlock()
 
 	case Cmd.ItemParam_value["ITEMPARAM_QUERY_LOTTERYINFO"]:
 		param = &Cmd.QueryLotteryInfo{}
@@ -80,7 +80,7 @@ func (g *GameConnection) HandleSceneItemProtoCmd(cmdParamId int32, rawData []byt
 		param = &Cmd.GetCountItemCmd{}
 		err = utils.ParseCmd(rawData, param)
 		getItemCountCmd := param.(*Cmd.GetCountItemCmd)
-		g.SendToNotifier("ITEMPARAM_GETCOUNT", getItemCountCmd)
+		g.SendToNotifier(gameTypes.NtfType_GetCountItemCmd, getItemCountCmd)
 	}
 	return err
 }

@@ -7,11 +7,22 @@ import (
 	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []byte) (param proto.Message, err error) {
 	switch cmdParamId {
+	case Cmd.User2Param_value["USER2PARAM_GAMETIME"]:
+		param = &Cmd.GameTimeCmd{}
+		err = utils.ParseCmd(rawData, param)
+		g.Role.GameTime = param.(*Cmd.GameTimeCmd)
+		g.SendToNotifier(gameTypes.NtfType_GameTime, param)
+
+	case Cmd.User2Param_value["USER2PARAM_TALKINFO"]:
+		param = &Cmd.TalkInfo{}
+		err = utils.ParseCmd(rawData, param)
+		g.SendToNotifier(gameTypes.NtfType_TalkInfo, param)
+
 	case Cmd.User2Param_value["USER2PARAM_SYSMSG"]:
 		param = &Cmd.SysMsg{}
 		err = utils.ParseCmd(rawData, param)

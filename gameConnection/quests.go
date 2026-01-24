@@ -4,6 +4,8 @@ import (
 	"time"
 
 	Cmd "ROMProject/Cmds"
+	gameConnection "ROMProject/gameConnection/types"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -12,6 +14,7 @@ var (
 	WantedQuestMaxCount = uint32(3)
 	WantedQuestType     = "wanted"
 	sceneUserQuestId    = Cmd.Command_value["SCENE_USER_QUEST_PROTOCMD"]
+	sceneSealQuestId    = Cmd.Command_value["SCENE_USER_SEAL_PROTOCMD"]
 )
 
 func (g *GameConnection) GetWantedQuestCompleteCount() (count uint32) {
@@ -130,4 +133,65 @@ func (g *GameConnection) QuestRaidCmd(questId uint32) {
 		sceneUserQuestId,
 		Cmd.QuestParam_value["QUESTPARAM_QUESTRAIDCMD"],
 	)
+}
+
+func (g *GameConnection) QuerySealQuest() (resCmd *Cmd.SealQueryList, err error) {
+	g.AddNotifier(gameConnection.NtfType_SealParamQueryList)
+	cmd := Cmd.SealQueryList{}
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneSealQuestId,
+		Cmd.SealParam_value["SEALPARAM_QUERYLIST"],
+	)
+	res, err := g.waitForResponse(gameConnection.NtfType_SealParamQueryList)
+	if err != nil {
+		return resCmd, err
+	}
+	return res.(*Cmd.SealQueryList), nil
+}
+
+func (g *GameConnection) AcceptSealQuest(questType gameConnection.SealQuestType) (resCmd *Cmd.SealAcceptCmd, err error) {
+	questId := uint32(questType)
+	cmd := Cmd.SealAcceptCmd{
+		Seal: &questId,
+	}
+	g.AddNotifier(gameConnection.NtfType_SealParamAcceptSeal)
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneSealQuestId,
+		Cmd.SealParam_value["SEALPARAM_ACCEPTSEAL"],
+	)
+	res, err := g.waitForResponse(gameConnection.NtfType_SealParamAcceptSeal)
+	if err != nil {
+		return resCmd, err
+	}
+	return res.(*Cmd.SealAcceptCmd), nil
+}
+
+func (g *GameConnection) DropSealQuest(questType gameConnection.SealQuestType) {
+	questId := uint32(questType)
+	a := true
+	cmd := Cmd.SealAcceptCmd{
+		Seal:    &questId,
+		Abandon: &a,
+	}
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneSealQuestId,
+		Cmd.SealParam_value["SEALPARAM_ACCEPTSEAL"],
+	)
+}
+
+func (g *GameConnection) BeginSealQuest(sealNpcId uint64) {
+	t := Cmd.EFinishType_EFINISHTYPE_QUICK
+	cmd := Cmd.BeginSeal{
+		Sealid: &sealNpcId,
+		Etype:  &t,
+	}
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneSealQuestId,
+		Cmd.SealParam_value["SEALPARAM_BEGINSEAL"],
+	)
+
 }

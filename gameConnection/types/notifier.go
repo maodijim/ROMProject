@@ -26,4 +26,9 @@ const (
 	NtfType_BossListUserCmd            NotifierType = "BOSS_LIST_USER"
 	NtfType_LotteryQueryInfo           NotifierType = "ITEMPARAM_QUERY_LOTTERYINFO"
 	NtfType_LotteryCmd                 NotifierType = "ITEMPARAM_LOTTERY"
+	NtfType_GetCountItemCmd            NotifierType = "ITEMPARAM_GETCOUNT"
+	NtfType_TalkInfo                   NotifierType = "USER2PARAM_TALKINFO"
+	NtfType_SealParamAcceptSeal        NotifierType = "SEALPARAM_ACCEPTSEAL"
+	NtfType_SealParamQueryList         NotifierType = "SEALPARAM_QUERYLIST"
+	NtfType_GameTime                   NotifierType = "USER2PARAM_GAMETIME"
 )

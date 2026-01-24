@@ -3,7 +3,7 @@ package gameConnection
 import (
 	Cmd "ROMProject/Cmds"
 	"ROMProject/utils"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func (g *GameConnection) HandleRecordUserTradeProtoCmd(cmdParamId int32, rawData []byte) (err error) {

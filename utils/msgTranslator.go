@@ -5,8 +5,8 @@ import (
 
 	Cmd "ROMProject/Cmds"
 
-	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
 )
 
 func TranslateMsg(output [][]byte) {
@@ -989,6 +989,28 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.GuildMemberDataUpdate{}
 			case Cmd.GuildParam_value["GUILDPARAM_ENTERGUILD"]:
 				param = &Cmd.EnterGuildGuildCmd{}
+
+			default:
+				log.Infof("没有parsing")
+				continue
+			}
+			err = ParseCmd(o, param)
+			PrintTranslateMsgResult(cmdParamName, err, param)
+		} else if cmdId == Cmd.Command_value["SCENE_USER_SEAL_PROTOCMD"] {
+			switch cmdParamId {
+			case Cmd.SealParam_value["SEALPARAM_SEALTIMER"]:
+				param = &Cmd.SealTimer{}
+
+			case Cmd.SealParam_value["SEALPARAM_BEGINSEAL"]:
+				param = &Cmd.BeginSeal{}
+
+			case Cmd.SealParam_value["SEALPARAM_UPDATESEAL"]:
+				param = &Cmd.UpdateSeal{}
+
+			case Cmd.SealParam_value["SEALPARAM_QUERYLIST"]:
+				param = &Cmd.SealQueryList{}
+			case Cmd.SealParam_value["SEALPARAM_ACCEPTSEAL"]:
+				param = &Cmd.SealAcceptCmd{}
 
 			default:
 				log.Infof("没有parsing")

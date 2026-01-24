@@ -5,7 +5,7 @@ import (
 	notifier "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 func (g *GameConnection) HandleSceneBossMsg(cmdParamId int32, rawData []byte) (param proto.Message, err error) {

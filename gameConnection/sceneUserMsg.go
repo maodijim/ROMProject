@@ -7,8 +7,8 @@ import (
 	notifier "ROMProject/gameConnection/types"
 	"ROMProject/utils"
 
-	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
 )
 
 var (

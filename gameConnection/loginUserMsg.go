@@ -4,8 +4,8 @@ import (
 	Cmd "ROMProject/Cmds"
 	"ROMProject/utils"
 
-	"github.com/golang/protobuf/proto"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
 )
 
 func (g *GameConnection) HandleLoginUserCmd(cmdParamId int32, rawData []byte) (param proto.Message, err error) {

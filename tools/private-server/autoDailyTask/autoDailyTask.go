@@ -3,9 +3,11 @@ package autoDailyTask
 import (
 	"context"
 	"io"
+	"os"
 	"time"
 
 	Cmd "ROMProject/Cmds"
+	"ROMProject/config"
 	"ROMProject/gameConnection"
 	gameTypes "ROMProject/gameConnection/types"
 	"ROMProject/utils"
@@ -46,7 +48,7 @@ func (d *DailyTask) startDailyTasks() {
 	d.logger.Infof("开始执行每日日常任务...")
 	if d.GC.Configs.DailyTaskConfig.EnableItemCombine {
 		d.logger.Infof("开始执行物品合成任务...")
-		d.PerformItemCombineTask()
+		d.performItemCombineTask()
 	}
 	if d.GC.Configs.DailyTaskConfig.EnableKanBan {
 		d.logger.Infof("开始执行看板任务...")
@@ -55,6 +57,10 @@ func (d *DailyTask) startDailyTasks() {
 	if d.GC.Configs.DailyTaskConfig.EnableWasteLandWeed {
 		d.logger.Infof("开始执行荒地除草任务...")
 		d.performWasteLandWeedTask()
+	}
+	if d.GC.Configs.DailyTaskConfig.EnableCrack {
+		d.logger.Infof("开始执行裂隙/朱诺任务...")
+		d.performCrackTask()
 	}
 }
 
@@ -115,7 +121,7 @@ func (d *DailyTask) performKanBanTask() {
 				for _, q := range quest.GetList() {
 					d.logger.Infof("完成看板任务: %s", q.GetSteps()[0].GetConfig().GetName())
 					d.GC.QuickSubmitWantedQuest(q.GetId())
-					time.Sleep(time.Second * 2)
+					time.Sleep(time.Millisecond * 2500)
 				}
 				kanbanState = kanbanStateCompleted
 			case kanbanStateCompleted:
@@ -141,6 +147,7 @@ func (d *DailyTask) performWasteLandWeedTask() {
 		d.logger.Infof("当前地图不是荒境，飞去荒境中...")
 		d.GC.GoToMap(gameTypes.MapId_Wasteland.Uint32())
 		time.Sleep(time.Second * 5)
+		d.GC.MoveChartWait(d.GC.ParsePos(129957, -21393, -177177))
 	}
 	// 开始除草任务
 	d.logger.Infof("开始自动除草任务...")
@@ -181,13 +188,13 @@ func (d *DailyTask) checkRewardCount() uint32 {
 	return i.GetCount()
 }
 
-func (d *DailyTask) PerformItemCombineTask() {
+func (d *DailyTask) performItemCombineTask() {
 	d.logger.Infof("执行物品合成任务中...")
-	items := []string{
-		"精装卡册的残页",
-		"卡册残页",
+	items := map[string]uint32{
+		"精装卡册的残页": 15,
+		"卡册残页":    15,
 	}
-	for _, itemName := range items {
+	for itemName, reqCount := range items {
 		d.logger.Infof("开始合成物品: %s", itemName)
 		i := d.GC.FindPackItemByName(itemName, Cmd.EPackType_EPACKTYPE_MAIN)
 		if i == nil {
@@ -209,8 +216,8 @@ func (d *DailyTask) PerformItemCombineTask() {
 				d.logger.Infof("背包中没有找到物品 %s，合成完成。", itemName)
 				break
 			}
-			if i.GetBase().GetCount() < 15 {
-				d.logger.Infof("背包中物品 %s 数量不足15个，合成完成。", itemName)
+			if i.GetBase().GetCount() < reqCount {
+				d.logger.Infof("背包中物品 %s 数量不足%d个，合成完成。", itemName, reqCount)
 				break
 			}
 			d.logger.Infof("背包中还有物品 %s %d个，继续合成...", itemName, i.GetBase().GetCount())
@@ -220,10 +227,134 @@ func (d *DailyTask) PerformItemCombineTask() {
 	}
 }
 
+func (d *DailyTask) performCrackTask() {
+	// 裂隙任务
+	teamCfg := config.TeamConfig{
+		LeaderName: d.GC.Role.GetRoleName(),
+	}
+	stage := 0
+
+	for {
+		select {
+		case <-d.ctx.Done():
+			d.logger.Infof("裂隙任务已停止。")
+			return
+		default:
+			switch stage {
+			case 0:
+				// 0. 检查是否完成任务
+				sealQuest, _ := d.GC.QuerySealQuest()
+				if sealQuest.GetDonetimes() >= sealQuest.GetMaxtimes() {
+					d.logger.Infof("今日裂隙任务已完成，任务结束。")
+					return
+				}
+				d.logger.Infof("今日剩余裂隙任务次数: %d/%d", sealQuest.GetMaxtimes()-sealQuest.GetDonetimes(), sealQuest.GetMaxtimes())
+				stage = 1
+			case 1:
+				// 1. 检查是否组队
+				if d.GC.GetCurrentTeamName() == "" {
+					d.logger.Infof("当前没有队伍，开始组队...")
+					d.GC.AutoCreateJoinTeam(teamCfg)
+					time.Sleep(time.Second * 5)
+				} else {
+					stage = 2
+				}
+			case 2:
+				// 2. 检查是否队长
+				if d.GC.Role.AcceptSeal.GetSeal() == uint32(gameTypes.SealQuestType_WestGate) {
+					d.logger.Infof("当前已经接受西门裂隙任务，前往裂隙位置...")
+					stage = 5
+					continue
+				}
+				// 如果不是队长，退队重新组队
+				if d.GC.GetTeamLeaderName(true) != d.GC.Role.GetRoleName() {
+					d.logger.Infof("当前不是队长，退队重新组队...")
+					d.GC.ExitTeam()
+					time.Sleep(time.Second * 3)
+					d.GC.AutoCreateJoinTeam(teamCfg)
+					time.Sleep(time.Second * 5)
+				} else {
+					stage = 3
+				}
+			case 3:
+				// 3. 去普隆德拉接取西门裂隙任务
+				if d.GC.Role.GetMapId() != gameTypes.MapId_Protera.Uint32() {
+					d.logger.Infof("当前地图不是普隆德拉，飞去普隆德拉中...")
+					d.GC.GoToMap(gameTypes.MapId_Protera.Uint32())
+					time.Sleep(time.Second * 5)
+				} else {
+					stage = 4
+				}
+			case 4:
+				// 4. 接受裂隙任务
+				d.logger.Infof("完成西门裂隙任务...")
+				d.GC.MoveChart(d.GC.ParsePos(-23437, 16, 500))
+				time.Sleep(time.Millisecond * 1500)
+				_ = d.GC.MoveToNpcWait("裂隙监视者")
+				time.Sleep(time.Second)
+				_, err := d.GC.VisitNpcByName("裂隙监视者")
+				if err != nil {
+					d.logger.Errorf("访问裂隙监视者失败: %v", err)
+					continue
+				}
+				sealQuest, _ := d.GC.QuerySealQuest()
+				hasWestGateQuest := false
+				for _, q := range sealQuest.GetConfigid() {
+					if q == uint32(gameTypes.SealQuestType_WestGate) {
+						hasWestGateQuest = true
+						break
+					}
+				}
+				if !hasWestGateQuest {
+					d.logger.Infof("当前没有西门裂隙任务，取消任务...")
+					return
+				}
+
+				quest, _ := d.GC.AcceptSealQuest(gameTypes.SealQuestType_WestGate)
+				d.logger.Infof("已接受%s任务: %s", gameTypes.SealQuestType_WestGate.String(), quest.GetPos())
+				stage = 5
+			case 5:
+				sealQuest, _ := d.GC.QuerySealQuest()
+				if sealQuest.GetMaxtimes() != 0 && sealQuest.GetDonetimes() >= sealQuest.GetMaxtimes() {
+					d.logger.Infof("今日裂隙任务已完成%d次，任务结束。", sealQuest.GetDonetimes())
+					return
+				}
+				// 5. 前往裂隙位置
+				if d.GC.Role.GetMapId() != gameTypes.MapId_ProteraWest.Uint32() {
+					d.logger.Infof("当前地图不是普隆德拉西门，飞去普隆德拉西门中...")
+					d.GC.GoToMap(gameTypes.MapId_ProteraWest.Uint32())
+					time.Sleep(time.Second * 5)
+				}
+				curSealPos := d.GC.Role.AcceptSeal.GetPos()
+				d.logger.Infof("前往西门裂隙位置... 坐标: X=%d, Y=%d, Z=%d", curSealPos.X, curSealPos.Y, curSealPos.Z)
+				d.GC.MoveChartWait(*curSealPos)
+				time.Sleep(time.Second * 2)
+				d.logger.Infof("到达西门裂隙位置，开始完成任务...")
+				time.Sleep(time.Second * 5)
+				npc, _ := d.GC.VisitNpcByName("时空裂隙")
+				time.Sleep(time.Second * 2)
+				d.GC.BeginSealQuest(npc.GetId())
+				d.logger.Infof("等待裂隙任务完成")
+				time.Sleep(time.Second * 10)
+				for {
+					if _, ok := gameTypes.MapNameZh[d.GC.Role.GetMapName()]; !ok {
+						d.logger.Infof("等待裂隙消失...")
+						time.Sleep(time.Second * 5)
+					} else {
+						d.logger.Infof("西门裂隙任务已完成，继续下一次...")
+						break
+					}
+				}
+				time.Sleep(time.Second * 5)
+			}
+		}
+	}
+}
+
 func NewDailyTask(ctx context.Context, gc *gameConnection.GameConnection) *DailyTask {
 	taskCtx, cancel := context.WithCancel(ctx)
 	logger := log.New()
-	mw := io.MultiWriter(gc.LogWriter())
+	mw := io.MultiWriter(gc.LogWriter(), os.Stdout)
 	logger.SetOutput(mw)
 	logger.SetFormatter(&log.TextFormatter{
 		FullTimestamp: true,

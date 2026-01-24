@@ -53,6 +53,9 @@ type RoleInfo struct {
 	FollowUserId     uint64
 	DelaySkillTime   time.Time
 	// DailySignIn         *Cmd.SignInNtfUserCmd
+	SealData   []*Cmd.SealData
+	AcceptSeal *Cmd.SealAcceptCmd
+	GameTime   *Cmd.GameTimeCmd
 }
 
 func (r *RoleInfo) SetSkillCd(skillId uint32, cd time.Time) {
@@ -101,8 +104,8 @@ func (r *RoleInfo) GetTotalPoint() int32 {
 }
 
 func (r *RoleInfo) GetPackItems() map[Cmd.EPackType]map[string]*Cmd.ItemData {
-	r.Mutex.RLock()
-	defer r.Mutex.RUnlock()
+	r.Mutex.Lock()
+	defer r.Mutex.Unlock()
 	return maps.Clone(r.PackItems)
 }
 func (r *RoleInfo) GetPackItemsByType(packType Cmd.EPackType) map[string]*Cmd.ItemData {
