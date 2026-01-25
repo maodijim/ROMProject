@@ -2,6 +2,7 @@ package gameConnection
 
 import (
 	"maps"
+	"slices"
 	"sync"
 	"time"
 
@@ -53,9 +54,48 @@ type RoleInfo struct {
 	FollowUserId     uint64
 	DelaySkillTime   time.Time
 	// DailySignIn         *Cmd.SignInNtfUserCmd
-	SealData   []*Cmd.SealData
-	AcceptSeal *Cmd.SealAcceptCmd
-	GameTime   *Cmd.GameTimeCmd
+	SealData       []*Cmd.SealData
+	AcceptSeal     *Cmd.SealAcceptCmd
+	GameTime       *Cmd.GameTimeCmd
+	TrackFubenUser []*Cmd.TrackFuBenUserCmd
+}
+
+func (r *RoleInfo) GetTrackFubenUserAll() []*Cmd.TrackFuBenUserCmd {
+	r.Mutex.RLock()
+	defer r.Mutex.RUnlock()
+	return slices.Clone(r.TrackFubenUser)
+}
+
+func (r *RoleInfo) GetTrackFubenUser(id uint32) *Cmd.TrackFuBenUserCmd {
+	r.Mutex.RLock()
+	defer r.Mutex.RUnlock()
+	for _, v := range r.TrackFubenUser {
+		for _, v2 := range v.GetData() {
+			if v2.GetId() == id {
+				return v
+			}
+		}
+	}
+	return nil
+}
+
+func (r *RoleInfo) DelTrackFubenUser(id uint32) {
+	r.Mutex.Lock()
+	defer r.Mutex.Unlock()
+	for i, v := range r.TrackFubenUser {
+		for _, v2 := range v.GetData() {
+			if v2.GetId() == id {
+				r.TrackFubenUser = append(r.TrackFubenUser[:i], r.TrackFubenUser[i+1:]...)
+				return
+			}
+		}
+	}
+}
+
+func (r *RoleInfo) AddTrackFubenUser(new *Cmd.TrackFuBenUserCmd) {
+	r.Mutex.Lock()
+	defer r.Mutex.Unlock()
+	r.TrackFubenUser = append(r.TrackFubenUser, new)
 }
 
 func (r *RoleInfo) SetSkillCd(skillId uint32, cd time.Time) {

@@ -25,6 +25,14 @@ func (g *GameConnection) waitForResponse(notifierType gameTypes.NotifierType) (r
 	}
 }
 
+func (g *GameConnection) WaitForResponse(notifierType gameTypes.NotifierType) (res interface{}, err error) {
+	return g.waitForResponse(notifierType)
+}
+
+func (g *GameConnection) UpdateQueryTimeout(newTimeout time.Duration) {
+	queryTimeout = newTimeout
+}
+
 func (g *GameConnection) HandleMsg(output [][]byte) {
 	for _, o := range output {
 		if len(o) < 2 {
@@ -129,34 +137,51 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 		default:
 			continue
 
-		// case Cmd.Command_value["FUBEN_PROTOCMD"]:
-		// 	switch cmdParamId {
-		// 	case Cmd.FuBenParam_value["TEAMEXP_RAID_REPORT"]:
-		// 		param = &Cmd.TeamExpReportFubenCmd{}
-		// 		err = utils.ParseCmd(o, param)
-		// 		// report := param.(*Cmd.TeamExpReportFubenCmd)
-		// 		go func() {
-		// 			time.Sleep(10 * time.Second)
-		// 			g.ExitTeamExpFuben()
-		// 			time.Sleep(30 * time.Second)
-		// 			g.InviteTeamExpFuben()
-		// 		}()
-		//
-		// 	case Cmd.FuBenParam_value["TEAMEXP_QUERY_INFO"]:
-		// 		param = &Cmd.TeamExpQueryInfoFubenCmd{}
-		// 		err = utils.ParseCmd(o, param)
-		// 		queryInfo := param.(*Cmd.TeamExpQueryInfoFubenCmd)
-		// 		if g.Notifier(gameTypes.NtfType_TeamExpQueryInfo) != nil {
-		// 			g.Notifier(gameTypes.NtfType_TeamExpQueryInfo) <- queryInfo
-		// 		} else {
-		// 			g.Role.Mutex.Lock()
-		// 			g.Role.TeamExpFubenInfo = queryInfo
-		// 			g.Role.Mutex.Unlock()
-		// 		}
-		//
-		// 	default:
-		// 		continue
-		// 	}
+		case Cmd.Command_value["FUBEN_PROTOCMD"]:
+			switch cmdParamId {
+			case Cmd.FuBenParam_value["TRACK_FUBEN_USER_CMD"]:
+				param = &Cmd.TrackFuBenUserCmd{}
+				err = utils.ParseCmd(o, param)
+				trackFuben := param.(*Cmd.TrackFuBenUserCmd)
+				g.Role.AddTrackFubenUser(trackFuben)
+
+			case Cmd.FuBenParam_value["FUBEN_STEP_SYNC"]:
+				param = &Cmd.FubenStepSyncCmd{}
+				err = utils.ParseCmd(o, param)
+				stepSync := param.(*Cmd.FubenStepSyncCmd)
+				if stepSync.GetDel() {
+					g.logger.Debugf("received fuben step sync delete cmd id: %d", stepSync.GetId())
+					g.Role.DelTrackFubenUser(stepSync.GetId())
+					continue
+				}
+				g.SendToNotifier(gameTypes.NtfType_FubenStepSync, stepSync)
+
+			case Cmd.FuBenParam_value["TEAMEXP_RAID_REPORT"]:
+				// param = &Cmd.TeamExpReportFubenCmd{}
+				// err = utils.ParseCmd(o, param)
+				// // report := param.(*Cmd.TeamExpReportFubenCmd)
+				// go func() {
+				// 	time.Sleep(10 * time.Second)
+				// 	g.ExitTeamExpFuben()
+				// 	time.Sleep(30 * time.Second)
+				// 	g.InviteTeamExpFuben()
+				// }()
+
+			case Cmd.FuBenParam_value["TEAMEXP_QUERY_INFO"]:
+				// param = &Cmd.TeamExpQueryInfoFubenCmd{}
+				// err = utils.ParseCmd(o, param)
+				// queryInfo := param.(*Cmd.TeamExpQueryInfoFubenCmd)
+				// if g.Notifier(gameTypes.NtfType_TeamExpQueryInfo) != nil {
+				// 	g.Notifier(gameTypes.NtfType_TeamExpQueryInfo) <- queryInfo
+				// } else {
+				// 	g.Role.Mutex.Lock()
+				// 	g.Role.TeamExpFubenInfo = queryInfo
+				// 	g.Role.Mutex.Unlock()
+				// }
+
+			default:
+				continue
+			}
 
 		case Cmd.Command_value["MATCHC_PROTOCMD"]:
 			switch cmdParamId {

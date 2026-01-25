@@ -56,11 +56,11 @@ loop:
 			curPos := g.Role.GetPos()
 			distanceXY := utils.GetDistanceXY(curPos, pos)
 			distanceXZ := utils.GetDistanceXZ(curPos, pos)
-			if math.Max(distanceXY, distanceXZ) < 200 {
+			if math.Max(distanceXY, distanceXZ) <= 400 {
 				arrived = true
-				time.Sleep(2 * time.Second)
+				time.Sleep(time.Second)
 				break loop
-			} else if count > 200 {
+			} else if count > 150 {
 				break loop
 			} else {
 				count += 1
@@ -158,6 +158,17 @@ func (g *GameConnection) MoveToNpcWait(npcName string) error {
 		}
 	}
 	return fmt.Errorf("npc %s not found", npcName)
+}
+
+func (g *GameConnection) MoveToNpcIdWait(npcId uint32) error {
+	npcs := g.GetMapNpcs()
+	for _, npc := range npcs {
+		if npc.GetNpcID() == npcId {
+			g.MoveChartWait(*npc.GetPos())
+			return nil
+		}
+	}
+	return fmt.Errorf("npc %d not found", npcId)
 }
 
 func (g *GameConnection) GoToGear(mapId uint32) error {

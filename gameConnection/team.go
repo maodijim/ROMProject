@@ -324,7 +324,7 @@ func (g *GameConnection) TeamMemberApply(guid uint64) {
 }
 
 func (g *GameConnection) AutoCreateJoinTeam(teamConfig config.TeamConfig) {
-	if g.Role.TeamData != nil || (teamConfig.GetLeaderName() == "" && *teamConfig.GetLeaderId() == 0) {
+	if teamConfig.GetLeaderName() == "" && *teamConfig.GetLeaderId() == 0 {
 		return
 	}
 	var userSocData *Cmd.SocialData

@@ -161,9 +161,10 @@ type DailyTaskConfig struct {
 	EnableItemCombine   bool   `yaml:"enableItemCombine" json:"enableItemCombine" label:"自动物品合成(精装卡册的残页, 卡册残页)"`
 	EnableKanBan        bool   `yaml:"enableKanBan" json:"enableKanBan" label:"完成看板任务"`
 	EnableWasteLandWeed bool   `yaml:"enableWasteLandWeed" json:"enableWasteLandWeed" label:"完成清理荒地杂草"`
-	EnableCrack         bool   `yaml:"enableCrack" json:"enableCrack" label:"完成裂缝/朱诺任务"`
-	CrackOrYuno         string `yaml:"crackOrYuno" json:"crackOrYuno" label:"裂缝或朱诺任务选择(默认裂缝)"`
+	EnableCrack         bool   `yaml:"enableCrack" json:"enableCrack" label:"完成裂缝任务"`
+	EnableYuno          bool   `yaml:"enableZhuno" json:"enableZhuno" label:"完成朱诺任务"`
 	YunoTeamLeader      string `yaml:"YunoTeamLeader" json:"YunoTeamLeader" label:"朱诺任务队长名称(自动组队使用)"`
+	YunForceContinue    bool   `yaml:"YunForceContinue" json:"YunForceContinue" label:"朱诺任务强制继续(即使已经完成了每日次数)"`
 }
 
 func (d *DailyTaskConfig) ParseFromInterface(config map[string]interface{}) any {
@@ -177,7 +178,8 @@ func (d *DailyTaskConfig) GetDefault() any {
 		EnableKanBan:        true,
 		EnableWasteLandWeed: true,
 		EnableCrack:         true,
-		CrackOrYuno:         "裂缝",
+		EnableYuno:          true,
+		YunForceContinue:    false,
 	}
 }
 

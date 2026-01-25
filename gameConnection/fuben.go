@@ -1,6 +1,8 @@
 package gameConnection
 
 import (
+	"strconv"
+
 	Cmd "ROMProject/Cmds"
 )
 
@@ -228,3 +230,55 @@ func (g *GameConnection) AcceptFubenTeamInvite(eType Cmd.EPvpType) {
 // 		FubenProtoCmdId,
 // 		Cmd.FuBenParam_value["EXIT_RAID_CMD"])
 // }
+
+func (g *GameConnection) FubenStepSync(stepId uint32) {
+	cmd := &Cmd.FubenStepSyncCmd{
+		Id: &stepId,
+	}
+	_ = g.sendProtoCmd(cmd,
+		FubenProtoCmdId,
+		Cmd.FuBenParam_value["FUBEN_STEP_SYNC"])
+}
+
+func (g *GameConnection) ExtractFubenStepSyncPos(stepSync *Cmd.FubenStepSyncCmd) Cmd.ScenePos {
+	var nextPos Cmd.ScenePos
+	para := g.GetFubenStepSyncParam(stepSync, "pos")
+	if para == nil {
+		return nextPos
+	}
+	for _, posItem := range para.GetItems()[0].GetItems() {
+		if posItem.GetKey() == "1" {
+			x, err := strconv.ParseFloat(posItem.GetValue(), 32)
+			if err != nil {
+				continue
+			}
+			newX := int32(x * 1000)
+			nextPos.X = &newX
+		} else if posItem.GetKey() == "2" {
+			y, err := strconv.ParseFloat(posItem.GetValue(), 32)
+			if err != nil {
+				continue
+			}
+			newY := int32(y * 1000)
+			nextPos.Y = &newY
+		} else if posItem.GetKey() == "3" {
+			z, err := strconv.ParseFloat(posItem.GetValue(), 32)
+			if err != nil {
+				continue
+			}
+			newZ := int32(z * 1000)
+			nextPos.Z = &newZ
+		}
+	}
+	return nextPos
+}
+
+func (g *GameConnection) GetFubenStepSyncParam(stepSync *Cmd.FubenStepSyncCmd, key string) *Cmd.Param {
+	paras := stepSync.GetConfig().GetParams().GetParams()
+	for _, p := range paras {
+		if p.GetKey() == key {
+			return p
+		}
+	}
+	return nil
+}

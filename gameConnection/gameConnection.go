@@ -549,6 +549,52 @@ func (g *GameConnection) connectGameServer() error {
 	return nil
 }
 
+func (g *GameConnection) getResourceVersion() string {
+	host := g.Configs.IpPort
+	// remove port from host if exists
+	if strings.Contains(host, ":") {
+		host = strings.Split(host, ":")[0]
+	}
+	req, err := http.Get(fmt.Sprintf("http://%s/update/Android/version.php", host))
+	if err != nil {
+		g.logger.Errorf("failed to get resource version: %s", err)
+		return "0"
+	}
+	defer req.Body.Close()
+	body, err := io.ReadAll(req.Body)
+	if err != nil {
+		g.logger.Errorf("failed to read resource version response body: %s", err)
+		return "0"
+	}
+	var result any
+	err = json.Unmarshal(body, &result)
+	if err != nil {
+		g.logger.Errorf("failed to unmarshal resource version response body: %s", err)
+		return "0"
+	}
+	versionMap, ok := result.(map[string]interface{})
+	if !ok {
+		g.logger.Errorf("failed to parse resource version response body: %s", string(body))
+		return "0"
+	}
+	okMsg, ok := versionMap["message"].(string)
+	if !ok {
+		g.logger.Errorf("failed to parse resource version message: %s", string(body))
+		return "0"
+	}
+	if okMsg != "ok" {
+		g.logger.Errorf("resource version response not ok: %s", string(body))
+		return "0"
+	}
+	dataMap, ok := versionMap["data"].(map[string]interface{})
+	if !ok {
+		g.logger.Errorf("failed to parse resource version data: %s", string(body))
+		return "0"
+	}
+	clientVer, ok := dataMap["client"].(string)
+	return clientVer
+}
+
 func (g *GameConnection) httpAuth(authHost string) (*authJson, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodPost, authHost, nil)
@@ -567,6 +613,9 @@ func (g *GameConnection) httpAuth(authHost string) (*authJson, error) {
 			q.Add(k, val.(string))
 		}
 	}
+	resVer := g.getResourceVersion()
+	g.logger.Infof("Resource version: %s", resVer)
+	q.Add("res", resVer)
 	req.URL.RawQuery = q.Encode()
 	g.logger.Debugf("Sending request to: %s", req.URL.String())
 	res, err := client.Do(req)

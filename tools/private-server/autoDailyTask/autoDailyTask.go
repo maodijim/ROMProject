@@ -2,8 +2,10 @@ package autoDailyTask
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"time"
 
 	Cmd "ROMProject/Cmds"
@@ -58,10 +60,17 @@ func (d *DailyTask) startDailyTasks() {
 		d.logger.Infof("开始执行荒地除草任务...")
 		d.performWasteLandWeedTask()
 	}
-	if d.GC.Configs.DailyTaskConfig.EnableCrack {
+	if d.GC.Configs.DailyTaskConfig.EnableYuno && d.GC.Role.GetRoleLevel() >= 100 {
+		d.logger.Infof("开始执行朱诺任务...")
+		d.performYunoTask()
+	} else if d.GC.Configs.DailyTaskConfig.EnableCrack {
 		d.logger.Infof("开始执行裂隙/朱诺任务...")
+		if d.GC.Role.GetRoleLevel() >= 100 {
+			d.logger.Warnf("当前角色等级已达100级及以上，推荐执行朱诺任务...")
+		}
 		d.performCrackTask()
 	}
+	d.logger.Infof("每日日常任务执行完毕。")
 }
 
 func (d *DailyTask) performKanBanTask() {
@@ -104,7 +113,9 @@ func (d *DailyTask) performKanBanTask() {
 				_, err := d.GC.VisitNpcByName("委托看板")
 				if err != nil {
 					d.logger.Errorf("访问委托看板失败: %v", err)
-					return
+					d.GC.ChangeMap(gameTypes.MapId_Protera.Uint32())
+					time.Sleep(time.Second * 2)
+					continue
 				}
 
 				// 开始看板任务
@@ -346,6 +357,293 @@ func (d *DailyTask) performCrackTask() {
 					}
 				}
 				time.Sleep(time.Second * 5)
+			}
+		}
+	}
+}
+
+func (d *DailyTask) performYunoTask() {
+	// 朱诺任务
+	lName := d.GC.Configs.DailyTaskConfig.YunoTeamLeader
+	if lName == "" {
+		lName = d.GC.Role.GetRoleName()
+	}
+	teamCfg := config.TeamConfig{
+		LeaderName: lName,
+	}
+	stage := 0
+
+	for {
+		select {
+		case <-d.ctx.Done():
+			d.logger.Infof("朱诺任务已停止。")
+			return
+		default:
+			switch stage {
+			case 0:
+				// 0. 检查是否完成任务
+				sealQuest, _ := d.GC.QuerySealQuest()
+				if !d.GC.Configs.DailyTaskConfig.YunForceContinue && sealQuest.GetDonetimes() >= sealQuest.GetMaxtimes() {
+					d.logger.Infof("今日朱诺任务已完成，任务结束。")
+					return
+				}
+				d.logger.Infof("今日剩余朱诺任务次数: %d/%d", sealQuest.GetMaxtimes()-sealQuest.GetDonetimes(), sealQuest.GetMaxtimes())
+				stage = 1
+			case 1:
+				// 1. 检查是否队长
+				// 如果不是队长，退队重新组队
+				if d.GC.GetTeamLeaderName(true) != lName {
+					d.logger.Infof("当前队长是%s, 不是%s，退队重新组队...", d.GC.GetTeamLeaderName(true), d.GC.Configs.DailyTaskConfig.YunoTeamLeader)
+					d.GC.ExitTeam()
+					time.Sleep(time.Second * 3)
+					d.GC.AutoCreateJoinTeam(teamCfg)
+					time.Sleep(time.Second * 5)
+				} else {
+					stage = 2
+				}
+			case 2:
+				// 3. 如果是队长去朱诺接取朱诺任务
+				// 如果不是队长跟随队长等待
+				if d.GC.IsTeamLeader(d.GC.Role.GetRoleId(), true) && d.GC.Role.GetMapId() != gameTypes.MapId_Yuno.Uint32() {
+					d.logger.Infof("当前地图不是朱诺，飞去朱诺中...")
+					d.GC.GoToMap(gameTypes.MapId_Yuno.Uint32())
+					time.Sleep(time.Second * 5)
+				} else if d.GC.IsTeamLeader(d.GC.Role.GetRoleId(), true) && d.GC.Role.GetMapId() == gameTypes.MapId_Yuno.Uint32() {
+					stage = 3
+				} else {
+					d.logger.Infof("跟随队长 %s 中...", d.GC.GetTeamLeaderName(true))
+					d.GC.FollowUser(d.GC.GetTeamLeader(true))
+					stage = 4
+				}
+			case 3:
+				// 3. 接受朱诺任务
+				d.logger.Infof("开始朱诺任务...")
+				time.Sleep(time.Millisecond * 1500)
+				_ = d.GC.MoveToNpcWait("卡莱克·乌迪")
+				time.Sleep(time.Second)
+				_, err := d.GC.VisitNpcByName("卡莱克·乌迪")
+				if err != nil {
+					d.logger.Errorf("访问卡莱克·乌迪失败: %v", err)
+					continue
+				}
+				d.GC.RunQuestStep(390990001, 0, 0, 0)
+
+				time.Sleep(time.Second * 2)
+				if d.GC.Role.GetMapId() == 60123 {
+					stage = 5
+				} else {
+					d.logger.Infof("等待传送到火焰之地地图...")
+					time.Sleep(time.Second * 3)
+				}
+			case 5:
+				sealQuest, _ := d.GC.QuerySealQuest()
+				if !d.GC.Configs.DailyTaskConfig.YunForceContinue && sealQuest.GetMaxtimes() != 0 && sealQuest.GetDonetimes() >= sealQuest.GetMaxtimes() {
+					d.logger.Infof("今日朱诺任务已完成%d次，任务结束。", sealQuest.GetDonetimes())
+					return
+				}
+
+				d.logger.Infof("今日朱诺任务完成次数: %d/%d", sealQuest.GetDonetimes(), sealQuest.GetMaxtimes())
+
+				if d.GC.Role.GetMapId() != 60123 {
+					d.logger.Infof("当前地图不是火焰之地, 等待传送中...")
+					time.Sleep(time.Second * 5)
+					continue
+				}
+				if d.GC.Role.GetRoleName() != d.GC.GetTeamLeaderName(true) {
+					d.logger.Infof("等待队长完全任务完成中...")
+					time.Sleep(time.Second * 10)
+					continue
+				}
+				// 5. 完成朱诺副本
+				// 5.1 对话NPC开始任务
+				d.logger.Infof("执行朱诺副本...")
+				d.GC.UpdateQueryTimeout(time.Second * 5)
+				d.GC.UseElementArrow(gameTypes.SliverArrow)
+				_ = d.GC.MoveToNpcWait("卡莱克·乌迪")
+				time.Sleep(time.Second)
+				_, err := d.GC.VisitNpcByName("卡莱克·乌迪")
+				if err != nil {
+					d.logger.Errorf("访问卡莱克·乌迪失败: %v", err)
+					continue
+				}
+
+				lastStepId := uint32(20839)
+				stepSync := &Cmd.FubenStepSyncCmd{
+					Id: &lastStepId,
+				}
+
+				stepCtx, stepCancel := context.WithCancel(d.ctx)
+				defer stepCancel()
+
+				go func() {
+					// 接收副本步骤通知
+					for {
+						select {
+						case <-stepCtx.Done():
+							d.logger.Infof("朱诺副本步骤同步监听已停止。")
+							return
+						case <-stepCtx.Done():
+							d.logger.Infof("朱诺副本步骤同步监听已停止。")
+							return
+						default:
+							d.GC.AddNotifier(gameTypes.NtfType_FubenStepSync)
+							res, err := d.GC.WaitForResponse(gameTypes.NtfType_FubenStepSync)
+							if err != nil {
+								continue
+							}
+							if res != nil {
+								stepSync = res.(*Cmd.FubenStepSyncCmd)
+								lastStepId = stepSync.GetId()
+							}
+						}
+					}
+				}()
+
+				// 20839 朱诺的危机
+				d.yunoStep(stepSync)
+
+			mainLoop:
+				for {
+					select {
+					case <-d.ctx.Done():
+						d.logger.Infof("朱诺副本步骤同步任务已停止。")
+						return
+					default:
+						if d.GC.Role.GetMapId() == gameTypes.MapId_Yuno.Uint32() {
+							d.logger.Infof("朱诺副本未完成，在朱诺城...")
+							stepCancel()
+							stage = 3
+							curHpPer := d.GC.GetHpPer()
+							for curHpPer < 0.95 {
+								d.logger.Infof("当前血量低于95%%，等待恢复血量...")
+								d.logger.Infof("当前血量%d, %f%%", d.GC.GetCurrentHp(), d.GC.GetHpPer()*100)
+								time.Sleep(time.Second * 5)
+								curHpPer = d.GC.GetHpPer()
+							}
+							break mainLoop
+						}
+						if lastStepId == 21076 {
+							d.yunoStep(stepSync)
+							stepCancel()
+							d.logger.Infof("朱诺副本已完成，返回朱诺城...")
+							d.GC.GoToMap(gameTypes.MapId_Yuno.Uint32())
+							return
+						} else if stepSync.GetId() == lastStepId {
+							d.yunoStep(stepSync)
+						}
+						time.Sleep(time.Second)
+					}
+				}
+
+				// 5.2 第一关
+				// 20844
+				// 20860
+				// 20862
+				// 20882
+				// 20883
+				// 20893
+				// 20894
+				// 20899
+
+				// 5.3 第二关
+				// 20903
+				// 20911
+				// 20913
+				// 20922
+				// 20941
+				// 20943 挑战火焰教主教
+				// 20958
+				// 20963
+				// 20967
+				// 20975
+
+				// 5.4 第三关
+				// 20976 追寻左右护法的踪迹
+				// 20977
+				// 20978 追寻左右护法的踪迹
+				// 20979
+				// 20980 继续前进追寻左右护法
+				// 20981
+				// 20983
+				// 21001
+
+				// 5.5 第四关
+				// 21005 前往阻止仪式
+				// 21013
+				// 21017
+				// 21022
+				// 21031 击败火焰教左右护法
+				// 21038
+				// 21042
+				// 21046
+				// 21054
+				// 21060
+
+				// 5.6 第五关
+				// 21066 击败火焰领主-莫特奈尔
+				// 21071
+				// 21076
+			}
+		}
+	}
+}
+
+func (d *DailyTask) yunoStep(stepSync *Cmd.FubenStepSyncCmd) {
+	d.GC.FubenStepSync(stepSync.GetId())
+	msg := fmt.Sprintf("%s - %s",
+		stepSync.GetConfig().GetDescInfo(),
+		stepSync.GetConfig().GetTraceInfo())
+	d.logger.Infof("下个朱诺副本步骤: %d, %s", stepSync.GetId(), msg)
+	if stepSync.GetConfig().GetDescInfo() == "走" {
+		nextPos := d.GC.ExtractFubenStepSyncPos(stepSync)
+		d.logger.Infof("走到指定位置... %s", nextPos.String())
+		d.GC.MoveChartWait(nextPos)
+	}
+	if stepSync.GetConfig().GetDescInfo() == "说" && stepSync.GetConfig().GetContent() == "visit" {
+		npcPar := d.GC.GetFubenStepSyncParam(stepSync, "npc")
+		npcId, _ := strconv.ParseUint(npcPar.GetValue(), 10, 32)
+		pos := d.GC.ExtractFubenStepSyncPos(stepSync)
+		d.logger.Infof("走到NPC位置... %s", pos.String())
+		d.GC.MoveChartWait(pos)
+		time.Sleep(time.Second * 2)
+		d.logger.Infof("访问NPC... %d", npcId)
+		_ = d.GC.MoveToNpcIdWait(uint32(npcId))
+	}
+	if stepSync.GetConfig().GetDescInfo() == "说" && stepSync.GetConfig().GetContent() == "use" {
+		pos := d.GC.ExtractFubenStepSyncPos(stepSync)
+		d.logger.Infof("走到物品位置... %s", pos.String())
+		d.GC.MoveChartWait(pos)
+	}
+	if stepSync.GetConfig().GetDescInfo() == "等击杀" {
+		time.Sleep(time.Second * 3)
+		d.logger.Infof("开始击杀怪物")
+		if stepSync.GetId() == 20894 {
+			d.killYunoTarget("火焰教大祭祀")
+		} else if stepSync.GetId() == 20958 {
+			d.killYunoTarget("火焰教主教")
+		} else {
+			d.killYunoTarget("火焰教左护法", "火焰教右护法", "火焰教信徒", "狂暴火精灵", "火焰领主莫特奈尔")
+		}
+	}
+}
+
+func (d *DailyTask) killYunoTarget(monsterNames ...string) {
+	atkCtx, atkCancel := context.WithCancel(context.Background())
+	d.GC.EnableAutoAttack(atkCtx, monsterNames...)
+	time.Sleep(time.Second * 5)
+	for {
+		select {
+		case <-d.ctx.Done():
+			atkCancel()
+			d.logger.Infof("朱诺副本击杀%s任务已停止。", monsterNames)
+			return
+		default:
+			if d.GC.IsMonsterInRange(monsterNames...) {
+				time.Sleep(time.Second * 5)
+			} else {
+				d.logger.Infof("%s已击杀完成。", monsterNames)
+				atkCancel()
+				return
 			}
 		}
 	}

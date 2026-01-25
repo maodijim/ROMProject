@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"math"
 	"math/rand"
 	"os"
@@ -282,7 +283,8 @@ func (t *Task) autoTrade(purchaseConfig []config.PurchaseItem) {
 func (t *Task) findPackItemCountById(itemId uint32) (itemCount uint32, itemData []*Cmd.ItemData) {
 	packItems := t.GC.Role.GetPackItems()
 	for _, packItem := range packItems {
-		for _, item := range packItem {
+		pi := maps.Clone(packItem)
+		for _, item := range pi {
 			if itemId == item.GetBase().GetId() {
 				itemCount += item.GetBase().GetCount()
 				itemData = append(itemData, item)

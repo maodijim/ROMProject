@@ -2,6 +2,7 @@ package gameConnection
 
 import (
 	"errors"
+	"maps"
 	"time"
 
 	Cmd "ROMProject/Cmds"
@@ -104,13 +105,13 @@ func (g *GameConnection) FindPackItemByName(name string, packType Cmd.EPackType)
 			break
 		}
 	}
-	g.Mutex.RUnlock()
 	if itemId == 0 {
 		g.logger.Warnf("item name for id %s not found", name)
 	}
+	g.Mutex.RUnlock()
 	items := g.Role.GetPackItems()
-	im := items[packType]
 	g.Mutex.RLock()
+	im := maps.Clone(items[packType])
 	for _, item := range im {
 		if item.GetBase().GetId() == itemId {
 			itemData = item
@@ -129,7 +130,8 @@ func (g *GameConnection) FindPackItemById(itemId uint32, packType Cmd.EPackType)
 	if packItem == nil {
 		return itemData
 	}
-	for _, item := range packItem[packType] {
+	pItem := maps.Clone(packItem[packType])
+	for _, item := range pItem {
 		if item.GetBase().GetId() == itemId {
 			itemData = item
 			return itemData
@@ -147,7 +149,8 @@ func (g *GameConnection) FindPackItemByIdAll(itemId uint32, packType Cmd.EPackTy
 	if packItem == nil {
 		return itemDatas
 	}
-	for _, item := range packItem[packType] {
+	pItem := maps.Clone(packItem[packType])
+	for _, item := range pItem {
 		if item.GetBase().GetId() == itemId {
 			itemDatas = append(itemDatas, item)
 		}

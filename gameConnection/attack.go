@@ -351,7 +351,7 @@ func (g *GameConnection) IsMonsterInRange(monsterList ...string) bool {
 			continue
 		}
 		// This is not a monster
-		if npc.GetId() < 10000 {
+		if npc.GetId() < 10000 || npc.GetNpcID() < 10000 {
 			continue
 		}
 
