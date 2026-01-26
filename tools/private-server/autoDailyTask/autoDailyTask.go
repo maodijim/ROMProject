@@ -501,13 +501,25 @@ func (d *DailyTask) performYunoTask() {
 
 				// 20839 朱诺的危机
 				d.yunoStep(stepSync)
-
+				ticker := time.NewTicker(time.Second * 10)
 			mainLoop:
 				for {
 					select {
 					case <-d.ctx.Done():
 						d.logger.Infof("朱诺副本步骤同步任务已停止。")
 						return
+					case <-ticker.C:
+						if d.GC.Configs.DailyTaskConfig.YunForceContinue {
+							d.logger.Infof("强制继续模式开启，忽略任务完成检查，继续执行朱诺任务...")
+							ticker.Stop()
+							break
+						}
+						sealQuest, _ = d.GC.QuerySealQuest()
+						if sealQuest.GetMaxtimes() != 0 && sealQuest.GetDonetimes() >= sealQuest.GetMaxtimes() {
+							d.logger.Infof("今日朱诺任务已完成%d次，任务结束。", sealQuest.GetDonetimes())
+							ticker.Stop()
+							return
+						}
 					default:
 						if d.GC.Role.GetMapId() == gameTypes.MapId_Yuno.Uint32() {
 							d.logger.Infof("朱诺副本未完成，在朱诺城...")
