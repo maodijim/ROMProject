@@ -11,6 +11,12 @@ import (
 func (g *GameConnection) HandleSceneItemProtoCmd(cmdParamId int32, rawData []byte) (err error) {
 	var param proto.Message
 	switch cmdParamId {
+	case Cmd.ItemParam_value["ITEMPARAM_EXCHANGECARD"]:
+		param = &Cmd.ExchangeCardItemCmd{}
+		err = utils.ParseCmd(rawData, param)
+		exchangeCard := param.(*Cmd.ExchangeCardItemCmd)
+		g.SendToNotifier(gameTypes.NtfType_ExchangeCard, exchangeCard)
+
 	case Cmd.ItemParam_value["ITEMPARAM_NTF_HIGHTREFINE_DATA"]:
 		param = &Cmd.NtfHighRefineDataCmd{}
 		err = utils.ParseCmd(rawData, param)

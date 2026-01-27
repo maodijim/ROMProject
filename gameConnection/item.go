@@ -256,3 +256,29 @@ func (g *GameConnection) ProduceItem(composeId uint32) {
 		Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"],
 		Cmd.ItemParam_value["ITEMPARAM_PRODUCE"])
 }
+
+func (g *GameConnection) ExchangeCardDecompose(npcId uint64, materials ...string) (cmd *Cmd.ExchangeCardItemCmd, err error) {
+	cType := Cmd.EExchangeCardType_EEXCHANGECARDTYPE_DECOMPOSE
+	if len(materials) == 0 {
+		g.logger.Warnf("no materials provided for card decompose")
+		return nil, errors.New("no materials provided for card decompose")
+	} else if len(materials) > 50 {
+		g.logger.Warnf("too many materials provided for card decompose, max is 50")
+		return nil, errors.New("too many materials provided for card decompose, max is 50")
+	}
+	cmd = &Cmd.ExchangeCardItemCmd{
+		Type:     &cType,
+		Npcid:    &npcId,
+		Material: materials,
+	}
+	g.AddNotifier(gameTypes.NtfType_ExchangeCard)
+	_ = g.sendProtoCmd(cmd,
+		Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"],
+		Cmd.ItemParam_value["ITEMPARAM_EXCHANGECARD"])
+	res, err := g.waitForResponse(gameTypes.NtfType_ExchangeCard)
+	if err != nil {
+		return cmd, err
+	}
+	cmd = res.(*Cmd.ExchangeCardItemCmd)
+	return cmd, nil
+}

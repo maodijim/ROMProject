@@ -55,6 +55,11 @@ func (l *LotteryTask) Start() {
 
 	// 开始抽奖任务
 	l.lotteryTask(npc)
+
+	if l.GC.Configs.LotteryConfig.SellPoringKingCard {
+		l.logger.Infof("开始分解波利国王卡片...")
+		l.DecomposePoringKingCard()
+	}
 }
 
 func (l *LotteryTask) Stop() {
@@ -194,6 +199,51 @@ func (l *LotteryTask) SellTrash(lotteryInfo Cmd.QueryLotteryInfo, npcId uint64, 
 		time.Sleep(350 * time.Millisecond)
 		ticketCount := l.GetTicketCount(lotteryInfo)
 		l.logger.Infof("当前票券数量: %d", ticketCount)
+	}
+}
+
+func (l *LotteryTask) DecomposePoringKingCard() {
+	cardItem := l.GC.FindPackItemByName("国王波利的恩惠", Cmd.EPackType_EPACKTYPE_MAIN)
+	cardCount := cardItem.GetBase().GetCount()
+	if cardCount == 0 {
+		l.logger.Infof("背包中没有国王波利的恩惠卡片，跳过分解。")
+		return
+	}
+	l.logger.Infof("移动到波利国王...")
+	// 移动到抽奖NPC位置
+	l.GC.MoveToNpcWait("国王波利")
+	time.Sleep(time.Second)
+	npc, err := l.GC.VisitObjectByName("国王波利")
+	if err != nil {
+		l.logger.Errorf("访问NPC失败: %v", err)
+		return
+	}
+	time.Sleep(time.Second * 2)
+
+	l.logger.Infof("开始分解国王波利的恩惠卡片...")
+	for cardCount > 0 {
+		cardGuid := cardItem.GetBase().GetGuid()
+		cardCount = cardItem.GetBase().GetCount()
+		if l.GC.Role.GetSilver() < uint64(cardCount*10000) {
+			l.logger.Infof("银币不足，无法继续分解国王波利的恩惠卡片。")
+			return
+		}
+		cardList := make([]string, 0)
+		for i := uint32(0); i < min(cardCount, 50); i++ {
+			cardList = append(cardList, cardGuid)
+		}
+		res, err := l.GC.ExchangeCardDecompose(npc.GetId(), cardList...)
+		if err != nil {
+			l.logger.Errorf("分解国王波利的恩惠卡片失败: %v", err)
+			return
+		}
+		items := res.GetItems()
+		for _, item := range items {
+			itemName := l.GC.FindItemNameById(item.GetId())
+			l.logger.Infof("分解国王波利的恩惠成功，获得以下物品: %s %d个", itemName, item.GetCount())
+		}
+		time.Sleep(time.Second)
+		cardItem = l.GC.FindPackItemByName("国王波利的恩惠", Cmd.EPackType_EPACKTYPE_MAIN)
 	}
 }
 

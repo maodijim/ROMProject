@@ -175,6 +175,11 @@ func (d *DailyTask) performWasteLandWeedTask() {
 		case <-d.ctx.Done():
 			atkCancel()
 			d.logger.Infof("荒地除草任务已停止。")
+			i = d.GC.FindPackItemByName("荒境除草卡片礼包", Cmd.EPackType_EPACKTYPE_MAIN)
+			if i != nil {
+				startItemCount = i.GetBase().GetCount()
+			}
+			d.logger.Infof("当前拥有荒境除草卡片礼包数量: %d", startItemCount)
 			return
 		default:
 			reward = d.checkRewardCount()

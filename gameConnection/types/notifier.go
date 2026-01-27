@@ -32,4 +32,5 @@ const (
 	NtfType_SealParamQueryList         NotifierType = "SEALPARAM_QUERYLIST"
 	NtfType_GameTime                   NotifierType = "USER2PARAM_GAMETIME"
 	NtfType_FubenStepSync              NotifierType = "FUBEN_STEP_SYNC"
+	NtfType_ExchangeCard               NotifierType = "ITEMPARAM_EXCHANGECARD"
 )
