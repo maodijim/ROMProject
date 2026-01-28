@@ -142,6 +142,8 @@ type LotteryConfig struct {
 	UseTickets         bool   `yaml:"useTickets" json:"useTickets" label:"使用抽奖券"`
 	SellTrash          bool   `yaml:"sellTrash" json:"sellTrash" label:"自动出售垃圾物品"`
 	SellPoringKingCard bool   `yaml:"sellPoriKingCard" json:"sellPoriKingCard" label:"自动分解国王波利卡片"`
+	UseStones          bool   `yaml:"useStones" json:"useStones" label:"使用抽奖金币石"`
+	MinStoneToKeep     uint32 `yaml:"minStoneToKeep" json:"minStoneToKeep" label:"保留最少抽奖金币石数量"`
 }
 
 func (l *LotteryConfig) ParseFromInterface(config map[string]interface{}) any {
@@ -156,6 +158,8 @@ func (l *LotteryConfig) GetDefault() any {
 		UseTickets:         false,
 		SellTrash:          true,
 		SellPoringKingCard: false,
+		UseStones:          false,
+		MinStoneToKeep:     0,
 	}
 }
 

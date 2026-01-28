@@ -14,11 +14,12 @@ import (
 )
 
 type LotteryTask struct {
-	GC        *gameConnection.GameConnection
-	ctx       context.Context
-	cancel    context.CancelFunc
-	logWriter io.Writer
-	logger    *log.Logger
+	GC             *gameConnection.GameConnection
+	ctx            context.Context
+	cancel         context.CancelFunc
+	logWriter      io.Writer
+	logger         *log.Logger
+	completeStatus map[string]bool
 }
 
 func (l *LotteryTask) SetLogger(writer io.Writer) {
@@ -92,6 +93,7 @@ func (l *LotteryTask) lotteryTask(npc Cmd.MapNpc) {
 		l.SellTrash(*lotteryInfo, npc.GetId(), lotteryType)
 	}
 
+lotteryLoop:
 	for {
 		select {
 		case <-l.ctx.Done():
@@ -108,8 +110,7 @@ func (l *LotteryTask) lotteryTask(npc Cmd.MapNpc) {
 
 			if dailyCount >= maxCount && !l.GC.Configs.LotteryConfig.UseTickets {
 				l.logger.Infof("今日%s抽奖机会%d次已用完", lotteryName, maxCount)
-				l.Stop()
-				continue
+				break lotteryLoop
 			} else {
 				l.logger.Infof("今日%s抽奖机会剩余: %d次", lotteryName, maxCount-dailyCount)
 			}
@@ -124,14 +125,13 @@ func (l *LotteryTask) lotteryTask(npc Cmd.MapNpc) {
 				if drawCount == 0 {
 					l.logger.Infof("票券不足，无法继续抽奖。")
 					l.Stop()
-					continue
+					break lotteryLoop
 				}
 			} else {
 				drawCount = min(drawCount, uint32(l.GC.Role.GetLottery()/lotteryPrice))
 				if drawCount == 0 {
 					l.logger.Infof("猫币不足，无法继续抽奖。")
-					l.Stop()
-					continue
+					break lotteryLoop
 				}
 			}
 
@@ -140,6 +140,28 @@ func (l *LotteryTask) lotteryTask(npc Cmd.MapNpc) {
 			if lotteryCmd != nil && lotteryCmd.GetTodayCnt() > 0 {
 				dailyCount = lotteryCmd.GetTodayCnt()
 			}
+		}
+	}
+
+	// 使用银币宝石
+	l.logger.Infof("开始使用银币宝石...")
+	l.completeStatus = map[string]bool{
+		"红色玛瑙": false,
+		"黑珍珠":  false,
+		"金之星":  false,
+	}
+
+	for {
+		select {
+		case <-l.ctx.Done():
+			l.logger.Infof("使用银币宝石已停止.")
+			return
+		default:
+			if l.completeStatus["红色玛瑙"] && l.completeStatus["黑珍珠"] && l.completeStatus["金之星"] {
+				l.logger.Infof("所有银币宝石使用完成。")
+				return
+			}
+			l.UseSilverGem()
 		}
 	}
 }
@@ -221,29 +243,66 @@ func (l *LotteryTask) DecomposePoringKingCard() {
 	time.Sleep(time.Second * 2)
 
 	l.logger.Infof("开始分解国王波利的恩惠卡片...")
-	for cardCount > 0 {
-		cardGuid := cardItem.GetBase().GetGuid()
-		cardCount = cardItem.GetBase().GetCount()
-		if l.GC.Role.GetSilver() < uint64(cardCount*10000) {
-			l.logger.Infof("银币不足，无法继续分解国王波利的恩惠卡片。")
+	for {
+		select {
+		case <-l.ctx.Done():
+			l.logger.Infof("分解国王波利的恩惠卡片任务已停止.")
+			return
+		default:
+			if cardCount == 0 {
+				l.logger.Infof("背包中没有国王波利的恩惠卡片，分解任务完成。")
+				return
+			}
+			cardGuid := cardItem.GetBase().GetGuid()
+			cardCount = cardItem.GetBase().GetCount()
+			if l.GC.Role.GetSilver() < uint64(cardCount*10000) {
+				l.logger.Infof("银币不足，无法继续分解国王波利的恩惠卡片。")
+				return
+			}
+			cardList := make([]string, 0)
+			for i := uint32(0); i < min(cardCount, 50); i++ {
+				cardList = append(cardList, cardGuid)
+			}
+			res, err := l.GC.ExchangeCardDecompose(npc.GetId(), cardList...)
+			if err != nil {
+				l.logger.Errorf("分解国王波利的恩惠卡片失败: %v", err)
+				return
+			}
+			items := res.GetItems()
+			for _, item := range items {
+				itemName := l.GC.FindItemNameById(item.GetId())
+				l.logger.Infof("分解国王波利的恩惠成功，获得以下物品: %s %d个", itemName, item.GetCount())
+			}
+			time.Sleep(time.Second)
+			cardItem = l.GC.FindPackItemByName("国王波利的恩惠", Cmd.EPackType_EPACKTYPE_MAIN)
+		}
+	}
+}
+
+func (l *LotteryTask) UseSilverGem() {
+	gem1 := l.GC.FindPackItemByName("红色玛瑙", Cmd.EPackType_EPACKTYPE_MAIN)
+	gem2 := l.GC.FindPackItemByName("黑珍珠", Cmd.EPackType_EPACKTYPE_MAIN)
+	gem3 := l.GC.FindPackItemByName("金之星", Cmd.EPackType_EPACKTYPE_MAIN)
+
+	l.useGem(gem1, "红色玛瑙")
+	l.useGem(gem2, "黑珍珠")
+	l.useGem(gem3, "金之星")
+}
+
+func (l *LotteryTask) useGem(item *Cmd.ItemData, gemName string) {
+	if item.GetBase().GetCount() > 1 {
+		useCount := min(99, item.GetBase().GetCount()-l.GC.Configs.LotteryConfig.MinStoneToKeep)
+		if useCount <= 0 {
+			l.logger.Infof("%s保留数量足够，跳过使用。", gemName)
+			l.completeStatus[gemName] = true
 			return
 		}
-		cardList := make([]string, 0)
-		for i := uint32(0); i < min(cardCount, 50); i++ {
-			cardList = append(cardList, cardGuid)
-		}
-		res, err := l.GC.ExchangeCardDecompose(npc.GetId(), cardList...)
-		if err != nil {
-			l.logger.Errorf("分解国王波利的恩惠卡片失败: %v", err)
-			return
-		}
-		items := res.GetItems()
-		for _, item := range items {
-			itemName := l.GC.FindItemNameById(item.GetId())
-			l.logger.Infof("分解国王波利的恩惠成功，获得以下物品: %s %d个", itemName, item.GetCount())
-		}
-		time.Sleep(time.Second)
-		cardItem = l.GC.FindPackItemByName("国王波利的恩惠", Cmd.EPackType_EPACKTYPE_MAIN)
+		l.logger.Infof("%s剩下%d个使用%d个...", gemName, item.GetBase().GetCount(), useCount)
+		l.GC.UseItem(item.GetBase().GetGuid(), useCount)
+		time.Sleep(time.Millisecond * 1500)
+	} else {
+		l.logger.Infof("%s数量不足，跳过使用。", gemName)
+		l.completeStatus[gemName] = true
 	}
 }
 

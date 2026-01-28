@@ -147,6 +147,12 @@ func (d *DailyTask) performWasteLandWeedTask() {
 	reward := d.checkRewardCount()
 	if reward >= 20 {
 		d.logger.Infof("当前荒境除草卡片礼包数量已达20个及以上，无需继续完成除草任务。")
+		i := d.GC.FindPackItemByName("荒境除草卡片礼包", Cmd.EPackType_EPACKTYPE_MAIN)
+		var startItemCount uint32 = 0
+		if i != nil {
+			startItemCount = i.GetBase().GetCount()
+		}
+		d.logger.Infof("当前拥有荒境除草卡片礼包数量: %d", startItemCount)
 		return
 	}
 	// 飞去荒境地图
@@ -175,11 +181,6 @@ func (d *DailyTask) performWasteLandWeedTask() {
 		case <-d.ctx.Done():
 			atkCancel()
 			d.logger.Infof("荒地除草任务已停止。")
-			i = d.GC.FindPackItemByName("荒境除草卡片礼包", Cmd.EPackType_EPACKTYPE_MAIN)
-			if i != nil {
-				startItemCount = i.GetBase().GetCount()
-			}
-			d.logger.Infof("当前拥有荒境除草卡片礼包数量: %d", startItemCount)
 			return
 		default:
 			reward = d.checkRewardCount()
@@ -548,7 +549,7 @@ func (d *DailyTask) performYunoTask() {
 						} else if stepSync.GetId() == lastStepId {
 							d.yunoStep(stepSync)
 						}
-						time.Sleep(time.Second)
+						time.Sleep(time.Millisecond * 1500)
 					}
 				}
 
