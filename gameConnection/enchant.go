@@ -174,7 +174,8 @@ func (g *GameConnection) EnchantPreviewContains(equipGuid string, preview *Encha
 			}
 		} else if extraMatch || attrMatch {
 			if allAttrMatch && attrMatch {
-				if attrMatchCount%len(preview.GetAttrs()) == 0 && attrMatchCount > len(attrsNow) {
+				wantedAtts := len(preview.GetAttrs())
+				if attrMatchCount/wantedAtts == wantedAtts {
 					return true, targetNum
 				}
 			} else {

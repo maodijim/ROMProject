@@ -25,7 +25,7 @@ type EnchantConfig struct {
 	AutoBuyCoin     AutoBuyCoinConfig `yaml:"autoBuyCoin" json:"autoBuyCoin" label:"自动购买附魔材料"`
 	EnchantCount    uint32            `yaml:"enchantCount" json:"enchantCount" label:"单次附魔次数"`
 	BothCondition   bool              `yaml:"bothCondition" json:"bothCondition" label:"属性和词条同时满足才停止附魔"`
-	AllAttrMatch    bool              `yaml:"allAttrMatch" json:"allAttrMatch" label:"属性条件全部满足才停止附魔，否则满足一个属性就停止附魔"`
+	AllAttrMatch    bool              `yaml:"allAttrMatch" json:"allAttrMatch" label:"所有属性条件全部满足才停止附魔，否则满足一个属性就停止附魔"`
 }
 
 func (c *EnchantConfig) ParseFromInterface(config map[string]any) EnchantConfig {
