@@ -643,7 +643,8 @@ func (g *GameConnection) httpAuth(authHost string) (*authJson, error) {
 }
 
 func (g *GameConnection) SendServerTimeUserCmd(par Cmd.LoginCmdParam) {
-	serverTimeUserCmd := g.getServerTimeUserCmd(0, 0, par)
+	curTime := uint64(time.Now().UnixMilli())
+	serverTimeUserCmd := g.getServerTimeUserCmd(curTime, 0, par)
 	data, _ := proto.Marshal(serverTimeUserCmd)
 	log.Debug(data)
 	out := utils.ConstructBody(1, 11, utils.TcpFlag[1], data, g.getNonce(false), utils.CipherKey)

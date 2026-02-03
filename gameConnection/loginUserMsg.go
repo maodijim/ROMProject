@@ -1,6 +1,8 @@
 package gameConnection
 
 import (
+	"time"
+
 	Cmd "ROMProject/Cmds"
 	"ROMProject/utils"
 
@@ -51,6 +53,9 @@ func (g *GameConnection) HandleLoginUserCmd(cmdParamId int32, rawData []byte) (p
 		if g.IsTCPConnected() {
 			g.SendServerTimeUserCmd(0)
 		}
+		newSkillCdSub := param.(*Cmd.ServerTimeUserCmd).GetTime() - uint64(time.Now().UnixMilli())
+		fixedSkillCDSubtract = newSkillCdSub
+		fixedItemCDSubtract = newSkillCdSub
 
 	case Cmd.LoginCmdParam_value["CONFIRM_AUTHORIZE_USER_CMD"]:
 		param = &Cmd.ConfirmAuthorizeUserCmd{}

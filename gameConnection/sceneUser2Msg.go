@@ -12,6 +12,10 @@ import (
 
 func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []byte) (param proto.Message, err error) {
 	switch cmdParamId {
+	case Cmd.User2Param_value["USER2PARAM_SERVERTIME"]:
+		param = &Cmd.ServerTime{}
+		err = utils.ParseCmd(rawData, param)
+		fixedSkillCDSubtract = param.(*Cmd.ServerTime).GetTime() - uint64(time.Now().UnixMilli())
 	case Cmd.User2Param_value["USER2PARAM_GAMETIME"]:
 		param = &Cmd.GameTimeCmd{}
 		err = utils.ParseCmd(rawData, param)
@@ -65,6 +69,17 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 					if calculatedCd < now {
 						continue
 					}
+					nowFormatted := time.UnixMilli(now).Format(time.RFC3339)
+					calculatedCdFormatted := time.UnixMilli(calculatedCd).Format(time.RFC3339)
+					cdTimeFormatted := time.UnixMilli(int64(cd.GetTime())).Format(time.RFC3339)
+					g.logger.Infof(
+						"Skill CD received: SkillID=%d, CDTime=%d (%s), Now=%s, CalculatedCD=%d (%s)",
+						cd.GetId(),
+						cd.GetTime(),
+						cdTimeFormatted,
+						nowFormatted,
+						calculatedCd,
+						calculatedCdFormatted)
 					g.Role.SetSkillCd(cd.GetId(), time.UnixMilli(calculatedCd))
 				}
 			}
