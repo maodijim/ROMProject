@@ -83,7 +83,7 @@ func (g *GameConnection) EnchantGetPreviewByItemGuid(itemGuid string, packType C
 	return item.GetPreviewenchant()
 }
 
-func (g *GameConnection) EnchantPreviewContains(equipGuid string, preview *EnchantCompare) (success bool, targetNum uint32) {
+func (g *GameConnection) EnchantPreviewContains(equipGuid string, preview *EnchantCompare, bothCondition bool, allAttrMatch bool) (success bool, targetNum uint32) {
 	enchantPreview := g.EnchantGetPreviewByItemGuid(equipGuid, Cmd.EPackType_EPACKTYPE_EQUIP)
 	enchantNow := g.EnchantGetByItemGuid(equipGuid, Cmd.EPackType_EPACKTYPE_EQUIP)
 	if enchantPreview == nil {
@@ -94,10 +94,13 @@ func (g *GameConnection) EnchantPreviewContains(equipGuid string, preview *Encha
 		extrasPreview := newPreview.GetExtras()
 		attrsPreview := newPreview.GetAttrs()
 		attrsNow := enchantNow.GetAttrs()
+		extraMatch := false
+		attrMatch := false
+		attrMatchCount := 0
 		for _, extra := range extrasPreview {
 			for _, targetExtra := range preview.GetExtras() {
 				if extra.GetBuffid() == targetExtra.GetBuffid() {
-					return true, targetNum
+					extraMatch = true
 				}
 			}
 		}
@@ -110,67 +113,92 @@ func (g *GameConnection) EnchantPreviewContains(equipGuid string, preview *Encha
 							for _, attrNow := range attrsNow {
 								if attrNow.GetType() == targetAttr.GetType() {
 									if attrNow.GetValue() < targetAttr.GetValue() {
-										return true, targetNum
+										attrMatch = true
+										attrMatchCount++
 									} else if attr.GetValue() > attrNow.GetValue() {
-										return true, targetNum
-									} else {
-										return false, 0
+										attrMatch = true
+										attrMatchCount++
 									}
 								}
-								return true, targetNum
+								attrMatch = true
+								attrMatchCount++
 							}
 						}
 					case "<":
 						if attr.GetValue() < targetAttr.GetValue() {
-							return true, targetNum
+							attrMatch = true
+							attrMatchCount++
 						}
 					case "=":
 						if attr.GetValue() == targetAttr.GetValue() {
-							return true, targetNum
+							attrMatch = true
+							attrMatchCount++
 						}
 					case ">=":
 						if attr.GetValue() >= targetAttr.GetValue() {
 							for _, attrNow := range attrsNow {
 								if attrNow.GetType() == targetAttr.GetType() {
-									if attrNow.GetValue() < targetAttr.GetValue() {
-										return true, targetNum
-									} else if attr.GetValue() > attrNow.GetValue() {
-										return true, targetNum
-									} else {
-										return false, 0
+									if attrNow.GetValue() <= targetAttr.GetValue() {
+										attrMatch = true
+										attrMatchCount++
 									}
 								} else {
-									return true, targetNum
+									attrMatch = true
+									attrMatchCount++
 								}
 							}
 						}
 					case "<=":
 						if attr.GetValue() <= targetAttr.GetValue() {
-							return true, targetNum
+							attrMatch = true
+							attrMatchCount++
 						}
 					case "!=":
 						if attr.GetValue() != targetAttr.GetValue() {
-							return true, targetNum
+							attrMatch = true
+							attrMatchCount++
 						}
 					}
 				}
+			}
+		}
+		if bothCondition {
+			if extraMatch && attrMatch {
+				if allAttrMatch {
+					if attrMatchCount%len(preview.GetAttrs()) == 0 && attrMatchCount > len(attrsNow) {
+						return true, targetNum
+					}
+				} else {
+					return true, targetNum
+				}
+			}
+		} else if extraMatch || attrMatch {
+			if allAttrMatch && attrMatch {
+				if attrMatchCount%len(preview.GetAttrs()) == 0 && attrMatchCount > len(attrsNow) {
+					return true, targetNum
+				}
+			} else {
+				return true, targetNum
 			}
 		}
 	}
 	return false, 0
 }
 
-func (g *GameConnection) EnchantContains(equipGuid string, preview *EnchantCompare) bool {
+func (g *GameConnection) EnchantContains(equipGuid string, preview *EnchantCompare, bothCondition bool, allAttrMatch bool) bool {
 	enchant := g.EnchantGetByItemGuid(equipGuid, Cmd.EPackType_EPACKTYPE_EQUIP)
 	if enchant == nil {
 		return false
 	}
 	extras := enchant.GetExtras()
 	attrs := enchant.GetAttrs()
+	extraMatch := false
+	attrMatch := false
+	attrMatchCount := 0
 	for _, extra := range extras {
 		for _, targetExtra := range preview.GetExtras() {
 			if extra.GetBuffid() == targetExtra.GetBuffid() {
-				return true
+				extraMatch = true
 			}
 		}
 	}
@@ -180,30 +208,55 @@ func (g *GameConnection) EnchantContains(equipGuid string, preview *EnchantCompa
 				switch targetAttr.Condition {
 				case ">":
 					if attr.GetValue() > targetAttr.GetValue() {
-						return true
+						attrMatch = true
+						attrMatchCount++
 					}
 				case "<":
 					if attr.GetValue() < targetAttr.GetValue() {
-						return true
+						attrMatch = true
+						attrMatchCount++
 					}
 				case "=":
 					if attr.GetValue() == targetAttr.GetValue() {
-						return true
+						attrMatch = true
+						attrMatchCount++
 					}
 				case ">=":
 					if attr.GetValue() >= targetAttr.GetValue() {
-						return true
+						attrMatch = true
+						attrMatchCount++
 					}
 				case "<=":
 					if attr.GetValue() <= targetAttr.GetValue() {
-						return true
+						attrMatch = true
+						attrMatchCount++
 					}
 				case "!=":
 					if attr.GetValue() != targetAttr.GetValue() {
-						return true
+						attrMatch = true
+						attrMatchCount++
 					}
 				}
 			}
+		}
+	}
+	if bothCondition {
+		if extraMatch && attrMatch {
+			if allAttrMatch {
+				if attrMatchCount == len(preview.GetAttrs()) {
+					return true
+				}
+			} else {
+				return true
+			}
+		}
+	} else if extraMatch || attrMatch {
+		if allAttrMatch && attrMatch {
+			if attrMatchCount == len(preview.GetAttrs()) {
+				return true
+			}
+		} else {
+			return true
 		}
 	}
 	return false

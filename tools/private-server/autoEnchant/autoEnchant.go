@@ -22,12 +22,12 @@ import (
 var (
 	AttrZhMap = map[Cmd.EAttrType]string{
 		// 属性
-		Cmd.EAttrType_EATTRTYPE_STR: "力量Str",
-		Cmd.EAttrType_EATTRTYPE_AGI: "敏捷Agi",
-		Cmd.EAttrType_EATTRTYPE_INT: "智力Int",
-		Cmd.EAttrType_EATTRTYPE_VIT: "体质Vit",
-		Cmd.EAttrType_EATTRTYPE_DEX: "灵巧Dex",
-		Cmd.EAttrType_EATTRTYPE_LUK: "幸运Luk",
+		Cmd.EAttrType_EATTRTYPE_STR: "力量",
+		Cmd.EAttrType_EATTRTYPE_AGI: "敏捷",
+		Cmd.EAttrType_EATTRTYPE_INT: "智力",
+		Cmd.EAttrType_EATTRTYPE_VIT: "体质",
+		Cmd.EAttrType_EATTRTYPE_DEX: "灵巧",
+		Cmd.EAttrType_EATTRTYPE_LUK: "幸运",
 
 		// 基础属性
 		Cmd.EAttrType_EATTRTYPE_MAXHP:        "MaxHp",
@@ -207,7 +207,12 @@ func (e *EnchantTask) Stop() {
 }
 
 func (e *EnchantTask) fumoTask(targetEquip *Cmd.ItemData, targetEnchant *gameConnection.EnchantCompare, enchantCount uint) {
-	if e.GC.EnchantContains(targetEquip.GetBase().GetGuid(), targetEnchant) && e.GC.Configs.EnchantConfig.AutoSave {
+	if e.GC.EnchantContains(
+		targetEquip.GetBase().GetGuid(),
+		targetEnchant,
+		e.GC.Configs.EnchantConfig.BothCondition,
+		e.GC.Configs.EnchantConfig.AllAttrMatch) &&
+		e.GC.Configs.EnchantConfig.AutoSave {
 		enchantMap := e.EnchantToZh(targetEquip.GetEnchant())
 		e.logger.Infof("已经有附魔要求的属性 %s", FumoStr(enchantMap))
 		e.cancel()
@@ -259,6 +264,8 @@ func (e *EnchantTask) fumoTask(targetEquip *Cmd.ItemData, targetEnchant *gameCon
 	shouldSave, targetNum := e.GC.EnchantPreviewContains(
 		targetEquip.GetBase().GetGuid(),
 		targetEnchant,
+		e.GC.Configs.EnchantConfig.BothCondition,
+		e.GC.Configs.EnchantConfig.AllAttrMatch,
 	)
 	if shouldSave && e.GC.Configs.EnchantConfig.AutoSave {
 		e.logger.Infof("自動保存附魔属性")

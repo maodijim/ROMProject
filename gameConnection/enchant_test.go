@@ -16,13 +16,23 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 		BuffItemsByName map[string]utils.BuffItemByName
 	}
 	type args struct {
-		equipGuid string
-		preview   *EnchantCompare
+		equipGuid     string
+		preview       *EnchantCompare
+		bothCondition bool
+		allAttrMatch  bool
 	}
+	testType := Cmd.EAttrType_EATTRTYPE_HP
 	atkType := Cmd.EAttrType_EATTRTYPE_ATK
 	atkVal := uint32(100)
 	atkValLow := uint32(1)
-	guid := "0"
+	atkValHigh := uint32(150)
+	mAtkType := Cmd.EAttrType_EATTRTYPE_MATK
+	matkVal := uint32(50)
+	matkValLow := uint32(1)
+	matkValHigh := uint32(200)
+	guid0 := "0"
+	guid1 := "1"
+	guid2 := "2"
 	// 尖锐3
 	buffId := uint32(500043)
 	notBuffId := uint32(500045)
@@ -32,7 +42,7 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 	role.PackItems[Cmd.EPackType_EPACKTYPE_EQUIP] = map[string]*Cmd.ItemData{
 		"0": {
 			Base: &Cmd.ItemInfo{
-				Guid: &guid,
+				Guid: &guid0,
 			},
 			Enchant: &Cmd.EnchantData{
 				Attrs: []*Cmd.EnchantAttr{
@@ -59,9 +69,95 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 			},
 		},
 	}
-	atkValHigh := uint32(150)
-	role2 := *role
-	role2.PackItems[Cmd.EPackType_EPACKTYPE_EQUIP]["0"].Enchant.Attrs[0].Value = &atkValHigh
+	role2 := NewRole()
+	role2.PackItems = make(map[Cmd.EPackType]map[string]*Cmd.ItemData)
+	role2.PackItems[Cmd.EPackType_EPACKTYPE_EQUIP] = map[string]*Cmd.ItemData{
+		"0": {
+			Base: &Cmd.ItemInfo{
+				Guid: &guid0,
+			},
+			Enchant: &Cmd.EnchantData{
+				Attrs: []*Cmd.EnchantAttr{
+					{
+						Type:  &atkType,
+						Value: &atkValHigh,
+					},
+				},
+			},
+		},
+		"1": {
+			Base: &Cmd.ItemInfo{
+				Guid: &guid1,
+			},
+			Enchant: &Cmd.EnchantData{
+				Attrs: []*Cmd.EnchantAttr{
+					{
+						Type:  &mAtkType,
+						Value: &matkValLow,
+					},
+					{
+						Type:  &atkType,
+						Value: &atkValLow,
+					},
+				},
+			},
+			Previewenchant: []*Cmd.EnchantData{
+				{
+					Extras: []*Cmd.EnchantExtra{
+						{
+							Buffid: &buffId,
+						},
+					},
+					Attrs: []*Cmd.EnchantAttr{
+						{
+							Type:  &mAtkType,
+							Value: &matkVal,
+						},
+						{
+							Type:  &atkType,
+							Value: &atkVal,
+						},
+					},
+				},
+			},
+		},
+		"2": {
+			Base: &Cmd.ItemInfo{
+				Guid: &guid2,
+			},
+			Enchant: &Cmd.EnchantData{
+				Attrs: []*Cmd.EnchantAttr{
+					{
+						Type:  &testType,
+						Value: &atkValLow,
+					},
+					{
+						Type:  &atkType,
+						Value: &atkValLow,
+					},
+				},
+			},
+			Previewenchant: []*Cmd.EnchantData{
+				{
+					Extras: []*Cmd.EnchantExtra{
+						{
+							Buffid: &buffId,
+						},
+					},
+					Attrs: []*Cmd.EnchantAttr{
+						{
+							Type:  &mAtkType,
+							Value: &matkValHigh,
+						},
+						{
+							Type:  &atkType,
+							Value: &atkVal,
+						},
+					},
+				},
+			},
+		},
+	}
 	tests := []struct {
 		name   string
 		fields fields
@@ -111,7 +207,7 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 			want: false,
 		},
 		{
-			name: "TestGameConnection_EnchantPreviewContains",
+			name: "TestGameConnection_EnchantPreviewContainsHigherAttr",
 			fields: fields{
 				BuffItems:       items.BuffItems,
 				BuffItemsByName: items.BuffItemsByName,
@@ -141,7 +237,7 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 			fields: fields{
 				BuffItems:       items.BuffItems,
 				BuffItemsByName: items.BuffItemsByName,
-				Role:            &role2,
+				Role:            role2,
 			},
 			args: args{
 				equipGuid: "0",
@@ -162,6 +258,154 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 			},
 			want: false,
 		},
+		{
+			name: "TestGameConnection_EnchantPreviewContains_AllAttrMatch_True",
+			fields: fields{
+				BuffItems:       items.BuffItems,
+				BuffItemsByName: items.BuffItemsByName,
+				Role:            role2,
+			},
+			args: args{
+				equipGuid:     "1",
+				bothCondition: false,
+				allAttrMatch:  true,
+				preview: &EnchantCompare{
+					EnchantData: Cmd.EnchantData{
+						Extras: []*Cmd.EnchantExtra{},
+					},
+					Attrs: []*EnchantAttrCompare{
+						{
+							EnchantAttr: Cmd.EnchantAttr{
+								Type:  &mAtkType,
+								Value: &matkVal,
+							},
+							Condition: ">=",
+						},
+						{
+							EnchantAttr: Cmd.EnchantAttr{
+								Type:  &atkType,
+								Value: &atkVal,
+							},
+							Condition: ">=",
+						},
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "TestGameConnection_EnchantPreviewContains_AllAttrMatch_False",
+			fields: fields{
+				BuffItems:       items.BuffItems,
+				BuffItemsByName: items.BuffItemsByName,
+				Role:            role2,
+			},
+			args: args{
+				equipGuid:     "1",
+				bothCondition: false,
+				allAttrMatch:  true,
+				preview: &EnchantCompare{
+					EnchantData: Cmd.EnchantData{
+						Extras: []*Cmd.EnchantExtra{},
+					},
+					Attrs: []*EnchantAttrCompare{
+						{
+							EnchantAttr: Cmd.EnchantAttr{
+								Type:  &mAtkType,
+								Value: &matkValLow,
+							},
+							Condition: ">=",
+						},
+						{
+							EnchantAttr: Cmd.EnchantAttr{
+								Type:  &atkType,
+								Value: &atkValHigh,
+							},
+							Condition: ">",
+						},
+					},
+				},
+			},
+			want: false,
+		},
+		{
+			name: "TestGameConnection_EnchantPreviewContains_BothCondition",
+			fields: fields{
+				BuffItems:       items.BuffItems,
+				BuffItemsByName: items.BuffItemsByName,
+				Role:            role2,
+			},
+			args: args{
+				equipGuid:     "2",
+				bothCondition: true,
+				allAttrMatch:  false,
+				preview: &EnchantCompare{
+					EnchantData: Cmd.EnchantData{
+						Extras: []*Cmd.EnchantExtra{
+							{
+								Buffid: &buffId,
+							},
+						},
+					},
+					Attrs: []*EnchantAttrCompare{
+						{
+							EnchantAttr: Cmd.EnchantAttr{
+								Type:  &mAtkType,
+								Value: &matkValLow,
+							},
+							Condition: ">=",
+						},
+						{
+							EnchantAttr: Cmd.EnchantAttr{
+								Type:  &atkType,
+								Value: &atkValLow,
+							},
+							Condition: ">=",
+						},
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "TestGameConnection_EnchantPreviewContains_BothCondition_AllAttrNotMatch",
+			fields: fields{
+				BuffItems:       items.BuffItems,
+				BuffItemsByName: items.BuffItemsByName,
+				Role:            role2,
+			},
+			args: args{
+				equipGuid:     "2",
+				bothCondition: true,
+				allAttrMatch:  true,
+				preview: &EnchantCompare{
+					EnchantData: Cmd.EnchantData{
+						Extras: []*Cmd.EnchantExtra{
+							{
+								Buffid: &buffId,
+							},
+						},
+					},
+					Attrs: []*EnchantAttrCompare{
+						{
+							EnchantAttr: Cmd.EnchantAttr{
+								Type:  &mAtkType,
+								Value: &matkValLow,
+							},
+							Condition: ">=",
+						},
+						{
+							EnchantAttr: Cmd.EnchantAttr{
+								Type:  &atkType,
+								Value: &atkValHigh,
+							},
+							Condition: ">=",
+						},
+					},
+				},
+			},
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -171,7 +415,7 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 				BuffItems:       tt.fields.BuffItems,
 				BuffItemsByName: tt.fields.BuffItemsByName,
 			}
-			if got, _ := g.EnchantPreviewContains(tt.args.equipGuid, tt.args.preview); got != tt.want {
+			if got, _ := g.EnchantPreviewContains(tt.args.equipGuid, tt.args.preview, tt.args.bothCondition, tt.args.allAttrMatch); got != tt.want {
 				t.Errorf("EnchantPreviewContains() = %v, want %v", got, tt.want)
 			}
 		})
