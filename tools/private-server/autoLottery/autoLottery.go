@@ -291,9 +291,9 @@ func (l *LotteryTask) UseSilverGem() {
 
 func (l *LotteryTask) useGem(item *Cmd.ItemData, gemName string) {
 	if item.GetBase().GetCount() > 1 {
-		useCount := min(99, item.GetBase().GetCount()-l.GC.Configs.LotteryConfig.MinStoneToKeep)
-		if useCount <= 0 {
-			l.logger.Infof("%s保留数量足够，跳过使用。", gemName)
+		useCount := min(99, item.GetBase().GetCount())
+		if item.GetBase().GetCount() < l.GC.Configs.LotteryConfig.MinStoneToKeep {
+			l.logger.Infof("%s保留数量不足，跳过使用。", gemName)
 			l.completeStatus[gemName] = true
 			return
 		}
