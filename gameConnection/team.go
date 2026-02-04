@@ -2,6 +2,7 @@ package gameConnection
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -138,6 +139,18 @@ func (*GameConnection) IsMemberOnline(member *Cmd.TeamMember) bool {
 		}
 	}
 	return false
+}
+
+func (g *GameConnection) AllMemberOffline() bool {
+	for _, member := range g.Role.TeamData.GetMembers() {
+		if member.GetGuid() == g.Role.GetRoleId() || strings.HasPrefix(strconv.FormatUint(member.GetGuid(), 10), strconv.FormatUint(g.Role.GetRoleId(), 10)) {
+			continue
+		}
+		if g.IsMemberOnline(member) {
+			return false
+		}
+	}
+	return true
 }
 
 func (g *GameConnection) AcceptTeamInvite(userGuid *uint64) {

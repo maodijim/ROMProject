@@ -1385,6 +1385,11 @@ func (g *GameConnection) InMap(MapID uint32, CarryTeam bool) {
 			g.ExitMapPos(gameTypes.MapId_LhzDun02.Uint32(), 2, g.Role.GetPos())
 		} else {
 			if CarryTeam {
+				if g.GetCurrentTeamName() == "" || g.AllMemberOffline() {
+					g.logger.Warn("没有队伍/没有队员在线，无法传送队伍, 仅自己传送")
+					g.GoToMap(MapID)
+					return
+				}
 				g.TeamGoToMap(MapID)
 			} else {
 				g.GoToMap(MapID)
