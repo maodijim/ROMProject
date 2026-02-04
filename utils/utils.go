@@ -658,3 +658,12 @@ func ParseSliceConfigFromInterface(config []any, target []any) {
 		ParseConfigFromInterface(config[i].(map[string]any), target[i])
 	}
 }
+
+func AllValuesTrue(m map[any]bool) bool {
+	for _, v := range m {
+		if !v {
+			return false
+		}
+	}
+	return true
+}

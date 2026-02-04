@@ -186,6 +186,8 @@ func (e *EnchantTask) Start() {
 	e.logger.Infof("附魔装备位置: %s", e.GC.Configs.EnchantConfig.EnchantEquipPos)
 	e.logger.Infof("目标装备: %s", e.GC.Items[targetEquip.GetBase().GetId()].NameZh)
 	e.logger.Infof("附魔停止条件: %v", e.GC.Configs.EnchantConfig.Condition)
+	e.logger.Infof("属性对比方式: 双重条件=%v, 全属性匹配=%v", e.GC.Configs.EnchantConfig.BothCondition, e.GC.Configs.EnchantConfig.AllAttrMatch)
+	e.logger.Infof("自动保存附魔: %v", e.GC.Configs.EnchantConfig.AutoSave)
 	e.logger.Infof("坐稳了要开始附魔了!")
 	time.Sleep(5 * time.Second)
 
@@ -269,13 +271,13 @@ func (e *EnchantTask) fumoTask(targetEquip *Cmd.ItemData, targetEnchant *gameCon
 		e.GC.Configs.EnchantConfig.AllAttrMatch,
 	)
 	if shouldSave && e.GC.Configs.EnchantConfig.AutoSave {
-		e.logger.Infof("自動保存附魔属性")
+		e.logger.Infof("自動保存附魔属性 %v", e.EnchantToZh(previewEnchants[targetNum]))
 		e.GC.EnchantSave(targetEquip.GetBase().GetGuid(), targetNum)
 		time.Sleep(time.Second * 2)
 		e.cancel()
 		return // 保存后退出
 	} else if shouldSave {
-		e.logger.Infof("附魔属性已达到要求，但未保存")
+		e.logger.Infof("附魔属性已达到要求，但未保存 ，请手动保存 %v", e.EnchantToZh(previewEnchants[targetNum]))
 		time.Sleep(time.Second * 2)
 		e.cancel()
 		return
@@ -431,12 +433,12 @@ func FumoStr(input map[string][]string) string {
 	for k, v := range input {
 		switch k {
 		case "属性":
-			result += "\n属性: "
+			result += " 属性: "
 			for _, attr := range v {
 				result += attr + ", "
 			}
 		case "词条":
-			result += "\n词条: "
+			result += " 词条: "
 			for _, extra := range v {
 				result += extra + ", "
 			}

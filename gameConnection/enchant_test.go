@@ -194,6 +194,27 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					Attrs: []*Cmd.EnchantAttr{
 						{
 							Type:  &hpType,
+							Value: &hpValLow,
+						},
+						{
+							Type:  &mAtkType,
+							Value: &matkValLow,
+						},
+						{
+							Type:  &atkType,
+							Value: &atkValLow,
+						},
+					},
+				},
+				{
+					Extras: []*Cmd.EnchantExtra{
+						{
+							Buffid: &buffId,
+						},
+					},
+					Attrs: []*Cmd.EnchantAttr{
+						{
+							Type:  &hpType,
 							Value: &hpValHigh,
 						},
 						{
@@ -210,10 +231,11 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 		},
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   bool
+		name          string
+		fields        fields
+		args          args
+		want          bool
+		wantTargetNum int
 	}{
 		{
 			name: "TestGameConnection_EnchantPreviewContains_hasExtras",
@@ -234,7 +256,8 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					},
 				},
 			},
-			want: true,
+			want:          true,
+			wantTargetNum: 0,
 		},
 		{
 			name: "TestGameConnection_EnchantPreviewContains_NoMatchExtras",
@@ -255,7 +278,8 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					},
 				},
 			},
-			want: false,
+			want:          false,
+			wantTargetNum: 0,
 		},
 		{
 			name: "TestGameConnection_EnchantPreviewContainsHigherAttr",
@@ -281,7 +305,8 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					},
 				},
 			},
-			want: true,
+			want:          true,
+			wantTargetNum: 0,
 		},
 		{
 			name: "TestGameConnection_EnchantPreviewContains_HasHighterAttr_Now",
@@ -307,7 +332,8 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					},
 				},
 			},
-			want: false,
+			want:          false,
+			wantTargetNum: 0,
 		},
 		{
 			name: "TestGameConnection_EnchantPreviewContains_AllAttrMatch_True",
@@ -342,7 +368,8 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					},
 				},
 			},
-			want: true,
+			want:          true,
+			wantTargetNum: 0,
 		},
 		{
 			name: "TestGameConnection_EnchantPreviewContains_AllAttrMatch_False",
@@ -377,7 +404,8 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					},
 				},
 			},
-			want: false,
+			want:          false,
+			wantTargetNum: 0,
 		},
 		{
 			name: "TestGameConnection_EnchantPreviewContains_BothCondition",
@@ -416,7 +444,8 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					},
 				},
 			},
-			want: true,
+			want:          true,
+			wantTargetNum: 0,
 		},
 		{
 			name: "TestGameConnection_EnchantPreviewContains_BothCondition_AllAttrNotMatch",
@@ -455,7 +484,8 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					},
 				},
 			},
-			want: false,
+			want:          false,
+			wantTargetNum: 0,
 		},
 		{
 			name: "TestGameConnection_EnchantPreviewContains_ThreeAttrs_AllMatch",
@@ -497,7 +527,8 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					},
 				},
 			},
-			want: true,
+			want:          true,
+			wantTargetNum: 1,
 		},
 		// test item 3 not all attrs match
 		{
@@ -540,7 +571,8 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					},
 				},
 			},
-			want: false,
+			want:          false,
+			wantTargetNum: 0,
 		},
 	}
 	for _, tt := range tests {
@@ -551,8 +583,12 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 				BuffItems:       tt.fields.BuffItems,
 				BuffItemsByName: tt.fields.BuffItemsByName,
 			}
-			if got, _ := g.EnchantPreviewContains(tt.args.equipGuid, tt.args.preview, tt.args.bothCondition, tt.args.allAttrMatch); got != tt.want {
+			got, targetNum := g.EnchantPreviewContains(tt.args.equipGuid, tt.args.preview, tt.args.bothCondition, tt.args.allAttrMatch)
+			if got != tt.want {
 				t.Errorf("EnchantPreviewContains() = %v, want %v", got, tt.want)
+			}
+			if int(targetNum) != tt.wantTargetNum {
+				t.Errorf("EnchantPreviewContains() targetNum = %v, want %v", targetNum, tt.wantTargetNum)
 			}
 		})
 	}
