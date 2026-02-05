@@ -132,7 +132,7 @@ export default {
         show(newVal) {
             this.applyBodyScrollLock(newVal);
             if (newVal) {
-                this.fetchLogs();
+                // this.fetchLogs();
                 this.fetchChatHistory();
                 // start polling every 10 seconds
                 if (!this.chatPollInterval) {

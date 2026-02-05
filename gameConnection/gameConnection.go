@@ -195,18 +195,13 @@ func (g *GameConnection) AddLog(message string) {
 	timestamp := time.Now().Format("2006-01-02 15:04:05")
 
 	// Split message by newlines and add each line separately
-	lines := strings.Split(strings.TrimRight(message, "\n"), "\n")
+	// lines := strings.Split(strings.TrimRight(message, "\n"), "\n")
 
 	g.logMutex.Lock()
 	defer g.logMutex.Unlock()
 
-	for _, line := range lines {
-		if line == "" {
-			continue
-		}
-		logLine := fmt.Sprintf("[%s] %s", timestamp, line)
-		g.logBuffer = append(g.logBuffer, logLine)
-	}
+	logLine := fmt.Sprintf("[%s] %s", timestamp, message)
+	g.logBuffer = append(g.logBuffer, logLine)
 
 	if len(g.logBuffer) > 1000 {
 		g.logBuffer = g.logBuffer[len(g.logBuffer)-1000:]
@@ -1170,7 +1165,7 @@ func NewConnection(Config *config.ServerConfigs, skillItems map[uint32]utils.Ski
 		MonsterItemsByName: map[string]utils.MonsterInfo{},
 		notifier:           map[gameTypes.NotifierType]chan interface{}{},
 		logMutex:           sync.RWMutex{},
-		LogNotify:          make(chan string, 1),
+		LogNotify:          make(chan string, 100),
 		chatHistory:        []chatMessage{},
 		logger:             log.New(),
 	}

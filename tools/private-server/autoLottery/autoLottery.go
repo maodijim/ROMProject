@@ -144,6 +144,11 @@ lotteryLoop:
 	}
 
 	// 使用银币宝石
+	if !l.GC.Configs.LotteryConfig.UseStones {
+		l.logger.Infof("跳过使用银币宝石。")
+		return
+	}
+
 	l.logger.Infof("开始使用银币宝石...")
 	l.completeStatus = map[string]bool{
 		"红色玛瑙": false,
