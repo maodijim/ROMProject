@@ -45,7 +45,7 @@ func (c *EnchantConfig) UnmarshalYAML(value *yaml.Node) error {
 	if err := value.Decode(&alias); err != nil {
 		return err
 	}
-	*c = EnchantConfig(alias.NewC)
+	*c = EnchantConfig(newStruct.NewC)
 	c.Condition = []EnchantCondition{alias.Condition}
 	return nil
 }
