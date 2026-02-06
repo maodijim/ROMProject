@@ -395,35 +395,39 @@ func (e *EnchantTask) EnchantToZh(data *Cmd.EnchantData) map[string][]string {
 
 func (e *EnchantTask) ConditionToEnchantCompare() gameConnection.EnchantCompare {
 	data := gameConnection.EnchantCompare{}
-	for _, attr := range e.GC.Configs.EnchantConfig.Condition.Attributes {
-		attrType, value, condition := StringToAttr(attr)
-		data.Attrs = append(data.Attrs, &gameConnection.EnchantAttrCompare{
-			EnchantAttr: Cmd.EnchantAttr{
-				Type:  &attrType,
-				Value: &value,
+	for _, newCondition := range e.GC.Configs.EnchantConfig.Condition {
+		var attrList []*gameConnection.EnchantAttrCompare
+		for _, attr := range newCondition.Attributes {
+			attrType, value, condition := StringToAttr(attr)
+			attrList = append(attrList, &gameConnection.EnchantAttrCompare{
+				EnchantAttr: Cmd.EnchantAttr{
+					Type:  &attrType,
+					Value: &value,
+				},
+				Condition: condition,
 			},
-			Condition: condition,
-		},
-		)
-	}
-	for _, extra := range e.GC.Configs.EnchantConfig.Condition.Extras {
-		ids, ok := e.GC.BuffItemsByName[extra]
-		if !ok {
-			e.logger.Errorf("没有找到词条: %s", extra)
-			continue
+			)
 		}
-		var buffId uint32
-		for _, id := range ids.Items {
-			if id.BuffName == extra {
-				i, _ := id.Id.Int64()
-				buffId = uint32(i)
-				break
+		data.Attrs = append(data.Attrs, attrList)
+		for _, extra := range newCondition.Extras {
+			ids, ok := e.GC.BuffItemsByName[extra]
+			if !ok {
+				e.logger.Errorf("没有找到词条: %s", extra)
+				continue
 			}
-		}
+			var buffId uint32
+			for _, id := range ids.Items {
+				if id.BuffName == extra {
+					i, _ := id.Id.Int64()
+					buffId = uint32(i)
+					break
+				}
+			}
 
-		data.Extras = append(data.Extras, &Cmd.EnchantExtra{
-			Buffid: &buffId,
-		})
+			data.Extras = append(data.Extras, &Cmd.EnchantExtra{
+				Buffid: &buffId,
+			})
+		}
 	}
 	return data
 }

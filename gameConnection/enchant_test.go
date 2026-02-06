@@ -294,13 +294,15 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					EnchantData: Cmd.EnchantData{
 						Extras: []*Cmd.EnchantExtra{},
 					},
-					Attrs: []*EnchantAttrCompare{
+					Attrs: [][]*EnchantAttrCompare{
 						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &atkType,
-								Value: &atkVal,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &atkType,
+									Value: &atkVal,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
 						},
 					},
 				},
@@ -321,13 +323,15 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					EnchantData: Cmd.EnchantData{
 						Extras: []*Cmd.EnchantExtra{},
 					},
-					Attrs: []*EnchantAttrCompare{
+					Attrs: [][]*EnchantAttrCompare{
 						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &atkType,
-								Value: &atkVal,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &atkType,
+									Value: &atkVal,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
 						},
 					},
 				},
@@ -350,20 +354,22 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					EnchantData: Cmd.EnchantData{
 						Extras: []*Cmd.EnchantExtra{},
 					},
-					Attrs: []*EnchantAttrCompare{
+					Attrs: [][]*EnchantAttrCompare{
 						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &mAtkType,
-								Value: &matkVal,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &mAtkType,
+									Value: &matkVal,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
-						},
-						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &atkType,
-								Value: &atkVal,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &atkType,
+									Value: &atkVal,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
 						},
 					},
 				},
@@ -386,20 +392,22 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					EnchantData: Cmd.EnchantData{
 						Extras: []*Cmd.EnchantExtra{},
 					},
-					Attrs: []*EnchantAttrCompare{
+					Attrs: [][]*EnchantAttrCompare{
 						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &mAtkType,
-								Value: &matkValLow,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &mAtkType,
+									Value: &matkValLow,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
-						},
-						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &atkType,
-								Value: &atkValHigh,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &atkType,
+									Value: &atkValHigh,
+								},
+								Condition: ">",
 							},
-							Condition: ">",
 						},
 					},
 				},
@@ -426,20 +434,22 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 							},
 						},
 					},
-					Attrs: []*EnchantAttrCompare{
+					Attrs: [][]*EnchantAttrCompare{
 						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &mAtkType,
-								Value: &matkValLow,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &mAtkType,
+									Value: &matkValLow,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
-						},
-						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &atkType,
-								Value: &atkValLow,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &atkType,
+									Value: &atkValLow,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
 						},
 					},
 				},
@@ -466,20 +476,22 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 							},
 						},
 					},
-					Attrs: []*EnchantAttrCompare{
+					Attrs: [][]*EnchantAttrCompare{
 						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &mAtkType,
-								Value: &matkValLow,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &mAtkType,
+									Value: &matkValLow,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
-						},
-						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &atkType,
-								Value: &atkValHigh,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &atkType,
+									Value: &atkValHigh,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
 						},
 					},
 				},
@@ -502,27 +514,29 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					EnchantData: Cmd.EnchantData{
 						Extras: []*Cmd.EnchantExtra{},
 					},
-					Attrs: []*EnchantAttrCompare{
+					Attrs: [][]*EnchantAttrCompare{
 						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &hpType,
-								Value: &hpVal,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &hpType,
+									Value: &hpVal,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
-						},
-						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &mAtkType,
-								Value: &matkVal,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &mAtkType,
+									Value: &matkVal,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
-						},
-						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &atkType,
-								Value: &atkVal,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &atkType,
+									Value: &atkVal,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
 						},
 					},
 				},
@@ -546,27 +560,29 @@ func TestGameConnection_EnchantPreviewContains(t *testing.T) {
 					EnchantData: Cmd.EnchantData{
 						Extras: []*Cmd.EnchantExtra{},
 					},
-					Attrs: []*EnchantAttrCompare{
+					Attrs: [][]*EnchantAttrCompare{
 						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &hpType,
-								Value: &hpVal,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &hpType,
+									Value: &hpVal,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
-						},
-						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &mAtkType,
-								Value: &matkValHigh,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &mAtkType,
+									Value: &matkValHigh,
+								},
+								Condition: ">",
 							},
-							Condition: ">",
-						},
-						{
-							EnchantAttr: Cmd.EnchantAttr{
-								Type:  &atkType,
-								Value: &atkVal,
+							{
+								EnchantAttr: Cmd.EnchantAttr{
+									Type:  &atkType,
+									Value: &atkVal,
+								},
+								Condition: ">=",
 							},
-							Condition: ">=",
 						},
 					},
 				},

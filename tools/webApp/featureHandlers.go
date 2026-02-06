@@ -331,7 +331,16 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 		// Return default config based on feature type
 		switch functionName {
 		case "AutoEnchant":
-			config = usersSpace.Configs[username].EnchantConfig
+			defaultConfig := usersSpace.Configs[username].EnchantConfig.GetDefault()
+			var existingConfig gameConfig.EnchantConfig
+			// merge with existing config if any
+			if usersSpace.Configs[username] != nil {
+				existingConfig = usersSpace.Configs[username].EnchantConfig
+				if existingConfig.Condition == nil || len(existingConfig.Condition) == 0 {
+					existingConfig.Condition = defaultConfig.Condition
+				}
+			}
+			config = existingConfig
 		case "AutoMVP":
 			defaultConfig := usersSpace.Configs[username].HuntConfig.HuntBossConfig.GetDefault()
 			var existingConfig gameConfig.HuntConfig

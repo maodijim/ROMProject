@@ -10,7 +10,7 @@ import (
 	"ROMProject/utils"
 
 	log "github.com/sirupsen/logrus"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 )
 
 type EsConfig struct {
@@ -18,19 +18,55 @@ type EsConfig struct {
 }
 
 type EnchantConfig struct {
-	AutoSave        bool              `yaml:"autoSave" json:"autoSave" label:"自动保存"`
-	EnchantType     string            `yaml:"enchantType" json:"enchantType" label:"附魔类型(高级/中级/低级)"`
-	EnchantEquipPos string            `yaml:"enchantEquipPos" json:"enchantEquipPos" label:"附魔部位(武器/副手/盔甲/鞋子/披风/头饰/饰品1/饰品2/背部/尾部/脸部/嘴部)"`
-	Condition       EnchantCondition  `yaml:"condition" json:"condition" label:"附魔目标条件"`
-	AutoBuyCoin     AutoBuyCoinConfig `yaml:"autoBuyCoin" json:"autoBuyCoin" label:"自动购买附魔材料"`
-	EnchantCount    uint32            `yaml:"enchantCount" json:"enchantCount" label:"单次附魔次数"`
-	BothCondition   bool              `yaml:"bothCondition" json:"bothCondition" label:"属性和词条同时满足才停止附魔"`
-	AllAttrMatch    bool              `yaml:"allAttrMatch" json:"allAttrMatch" label:"所有属性条件全部满足才停止附魔，否则满足一个属性就停止附魔"`
+	AutoSave        bool               `yaml:"autoSave" json:"autoSave" label:"自动保存"`
+	EnchantType     string             `yaml:"enchantType" json:"enchantType" label:"附魔类型(高级/中级/低级)"`
+	EnchantEquipPos string             `yaml:"enchantEquipPos" json:"enchantEquipPos" label:"附魔部位(武器/副手/盔甲/鞋子/披风/头饰/饰品1/饰品2/背部/尾部/脸部/嘴部)"`
+	Condition       []EnchantCondition `yaml:"condition" json:"condition" label:"附魔目标条件"`
+	AutoBuyCoin     AutoBuyCoinConfig  `yaml:"autoBuyCoin" json:"autoBuyCoin" label:"自动购买附魔材料"`
+	EnchantCount    uint32             `yaml:"enchantCount" json:"enchantCount" label:"单次附魔次数"`
+	BothCondition   bool               `yaml:"bothCondition" json:"bothCondition" label:"属性和词条同时满足才停止附魔"`
+	AllAttrMatch    bool               `yaml:"allAttrMatch" json:"allAttrMatch" label:"所有属性条件全部满足才停止附魔，否则满足一个属性就停止附魔"`
+}
+
+func (c *EnchantConfig) UnmarshalYAML(value *yaml.Node) error {
+	type NewC EnchantConfig
+	var newStruct struct {
+		NewC `yaml:",inline"`
+	}
+	if err := value.Decode(&newStruct); err == nil {
+		*c = EnchantConfig(newStruct.NewC)
+		return nil
+	}
+	*c = EnchantConfig(newStruct.NewC)
+	var alias struct {
+		NewC
+		Condition EnchantCondition `yaml:"condition" json:"condition" label:"附魔目标条件"`
+	}
+	if err := value.Decode(&alias); err != nil {
+		return err
+	}
+	*c = EnchantConfig(alias.NewC)
+	c.Condition = []EnchantCondition{alias.Condition}
+	return nil
 }
 
 func (c *EnchantConfig) ParseFromInterface(config map[string]any) EnchantConfig {
 	utils.ParseConfigFromInterface(config, c)
 	return *c
+}
+
+func (c *EnchantConfig) GetDefault() EnchantConfig {
+	return EnchantConfig{
+		AutoSave:        true,
+		EnchantType:     "高级",
+		EnchantEquipPos: "",
+		Condition: []EnchantCondition{
+			{
+				Attributes: []string{"暴伤% > 80"},
+				Extras:     []string{"尖锐4"},
+			},
+		},
+	}
 }
 
 type AutoBuyCoinConfig struct {

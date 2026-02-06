@@ -7,14 +7,14 @@ import (
 
 type EnchantCompare struct {
 	Cmd.EnchantData
-	Attrs []*EnchantAttrCompare
+	Attrs [][]*EnchantAttrCompare
 }
 
 func (e *EnchantCompare) GetExtras() []*Cmd.EnchantExtra {
 	return e.Extras
 }
 
-func (e *EnchantCompare) GetAttrs() []*EnchantAttrCompare {
+func (e *EnchantCompare) GetAttrs() [][]*EnchantAttrCompare {
 	return e.Attrs
 }
 
@@ -97,7 +97,7 @@ func (g *GameConnection) EnchantPreviewContains(equipGuid string, preview *Encha
 		attrsNow := enchantNow.GetAttrs()
 		extraMatch := false
 		attrMatch := false
-		attrMatchCount := map[any]bool{}
+		attrMatchCount := []map[any]bool{}
 		for _, extra := range extrasPreview {
 			for _, targetExtra := range preview.GetExtras() {
 				if extra.GetBuffid() == targetExtra.GetBuffid() {
@@ -106,62 +106,68 @@ func (g *GameConnection) EnchantPreviewContains(equipGuid string, preview *Encha
 			}
 		}
 		// preset the target attr match count
-		for _, targetAttr := range preview.GetAttrs() {
-			attrMatchCount[targetAttr.GetType()] = false
+
+		for attrIndex, targetAttrs := range preview.GetAttrs() {
+			attrMatchCount = append(attrMatchCount, make(map[any]bool))
+			for _, targetAttr := range targetAttrs {
+				attrMatchCount[attrIndex][targetAttr.GetType()] = false
+			}
 		}
 		for _, attr := range attrsPreview {
-			for _, targetAttr := range preview.GetAttrs() {
-				if attr.GetType() == targetAttr.GetType() {
-					switch targetAttr.Condition {
-					case ">":
-						if attr.GetValue() > targetAttr.GetValue() {
-							for _, attrNow := range attrsNow {
-								if attrNow.GetType() == targetAttr.GetType() {
-									if attrNow.GetValue() < targetAttr.GetValue() {
-										attrMatch = true
-										attrMatchCount[targetAttr.GetType()] = true
-									} else if attr.GetValue() > attrNow.GetValue() {
-										attrMatch = true
-										attrMatchCount[targetAttr.GetType()] = true
+			for attrIndex, targetAttrs := range preview.GetAttrs() {
+				for _, targetAttr := range targetAttrs {
+					if attr.GetType() == targetAttr.GetType() {
+						switch targetAttr.Condition {
+						case ">":
+							if attr.GetValue() > targetAttr.GetValue() {
+								for _, attrNow := range attrsNow {
+									if attrNow.GetType() == targetAttr.GetType() {
+										if attrNow.GetValue() < targetAttr.GetValue() {
+											attrMatch = true
+											attrMatchCount[attrIndex][targetAttr.GetType()] = true
+										} else if attr.GetValue() > attrNow.GetValue() {
+											attrMatch = true
+											attrMatchCount[attrIndex][targetAttr.GetType()] = true
+										}
 									}
-								}
-								attrMatch = true
-								attrMatchCount[targetAttr.GetType()] = true
-							}
-						}
-					case "<":
-						if attr.GetValue() < targetAttr.GetValue() {
-							attrMatch = true
-							attrMatchCount[targetAttr.GetType()] = true
-						}
-					case "=":
-						if attr.GetValue() == targetAttr.GetValue() {
-							attrMatch = true
-							attrMatchCount[targetAttr.GetType()] = true
-						}
-					case ">=":
-						if attr.GetValue() >= targetAttr.GetValue() {
-							for _, attrNow := range attrsNow {
-								if attrNow.GetType() == targetAttr.GetType() {
-									if attrNow.GetValue() <= targetAttr.GetValue() {
-										attrMatch = true
-										attrMatchCount[targetAttr.GetType()] = true
-									}
-								} else {
 									attrMatch = true
-									attrMatchCount[targetAttr.GetType()] = true
+									attrMatchCount[attrIndex][targetAttr.GetType()] = true
 								}
 							}
-						}
-					case "<=":
-						if attr.GetValue() <= targetAttr.GetValue() {
-							attrMatch = true
-							attrMatchCount[targetAttr.GetType()] = true
-						}
-					case "!=":
-						if attr.GetValue() != targetAttr.GetValue() {
-							attrMatch = true
-							attrMatchCount[targetAttr.GetType()] = true
+						case "<":
+							if attr.GetValue() < targetAttr.GetValue() {
+								attrMatch = true
+								attrMatchCount[attrIndex][targetAttr.GetType()] = true
+							}
+						case "=":
+							if attr.GetValue() == targetAttr.GetValue() {
+								attrMatch = true
+								attrMatchCount[attrIndex][targetAttr.GetType()] = true
+							}
+						case ">=":
+							if attr.GetValue() >= targetAttr.GetValue() {
+								for _, attrNow := range attrsNow {
+									if attrNow.GetType() == targetAttr.GetType() {
+										if attrNow.GetValue() <= targetAttr.GetValue() {
+											attrMatch = true
+											attrMatchCount[attrIndex][targetAttr.GetType()] = true
+										}
+									} else {
+										attrMatch = true
+										attrMatchCount[attrIndex][targetAttr.GetType()] = true
+									}
+								}
+							}
+						case "<=":
+							if attr.GetValue() <= targetAttr.GetValue() {
+								attrMatch = true
+								attrMatchCount[attrIndex][targetAttr.GetType()] = true
+							}
+						case "!=":
+							if attr.GetValue() != targetAttr.GetValue() {
+								attrMatch = true
+								attrMatchCount[attrIndex][targetAttr.GetType()] = true
+							}
 						}
 					}
 				}
@@ -170,8 +176,10 @@ func (g *GameConnection) EnchantPreviewContains(equipGuid string, preview *Encha
 		if bothCondition {
 			if extraMatch && attrMatch {
 				if allAttrMustMatch {
-					if utils.AllValuesTrue(attrMatchCount) {
-						return true, targetNum
+					for _, countMap := range attrMatchCount {
+						if utils.AllValuesTrue(countMap) {
+							return true, targetNum
+						}
 					}
 				} else {
 					return true, targetNum
@@ -179,8 +187,10 @@ func (g *GameConnection) EnchantPreviewContains(equipGuid string, preview *Encha
 			}
 		} else if extraMatch || attrMatch {
 			if allAttrMustMatch && attrMatch {
-				if utils.AllValuesTrue(attrMatchCount) {
-					return true, targetNum
+				for _, countMap := range attrMatchCount {
+					if utils.AllValuesTrue(countMap) {
+						return true, targetNum
+					}
 				}
 			} else {
 				return true, targetNum
@@ -199,7 +209,7 @@ func (g *GameConnection) EnchantContains(equipGuid string, preview *EnchantCompa
 	attrs := enchant.GetAttrs()
 	extraMatch := false
 	attrMatch := false
-	attrMatchCount := map[any]bool{}
+	attrMatchCount := []map[any]bool{}
 	for _, extra := range extras {
 		for _, targetExtra := range preview.GetExtras() {
 			if extra.GetBuffid() == targetExtra.GetBuffid() {
@@ -208,42 +218,47 @@ func (g *GameConnection) EnchantContains(equipGuid string, preview *EnchantCompa
 		}
 	}
 	// preset the target attr match count
-	for _, targetAttr := range preview.GetAttrs() {
-		attrMatchCount[targetAttr.GetType()] = false
+	for attrIndex, targetAttrs := range preview.GetAttrs() {
+		attrMatchCount = append(attrMatchCount, make(map[any]bool))
+		for _, targetAttr := range targetAttrs {
+			attrMatchCount[attrIndex][targetAttr.GetType()] = false
+		}
 	}
 	for _, attr := range attrs {
-		for _, targetAttr := range preview.GetAttrs() {
-			if attr.GetType() == targetAttr.GetType() {
-				switch targetAttr.Condition {
-				case ">":
-					if attr.GetValue() > targetAttr.GetValue() {
-						attrMatch = true
-						attrMatchCount[targetAttr.GetType()] = true
-					}
-				case "<":
-					if attr.GetValue() < targetAttr.GetValue() {
-						attrMatch = true
-						attrMatchCount[targetAttr.GetType()] = true
-					}
-				case "=":
-					if attr.GetValue() == targetAttr.GetValue() {
-						attrMatch = true
-						attrMatchCount[targetAttr.GetType()] = true
-					}
-				case ">=":
-					if attr.GetValue() >= targetAttr.GetValue() {
-						attrMatch = true
-						attrMatchCount[targetAttr.GetType()] = true
-					}
-				case "<=":
-					if attr.GetValue() <= targetAttr.GetValue() {
-						attrMatch = true
-						attrMatchCount[targetAttr.GetType()] = true
-					}
-				case "!=":
-					if attr.GetValue() != targetAttr.GetValue() {
-						attrMatch = true
-						attrMatchCount[targetAttr.GetType()] = true
+		for attrIndex, targetAttrs := range preview.GetAttrs() {
+			for _, targetAttr := range targetAttrs {
+				if attr.GetType() == targetAttr.GetType() {
+					switch targetAttr.Condition {
+					case ">":
+						if attr.GetValue() > targetAttr.GetValue() {
+							attrMatch = true
+							attrMatchCount[attrIndex][targetAttr.GetType()] = true
+						}
+					case "<":
+						if attr.GetValue() < targetAttr.GetValue() {
+							attrMatch = true
+							attrMatchCount[attrIndex][targetAttr.GetType()] = true
+						}
+					case "=":
+						if attr.GetValue() == targetAttr.GetValue() {
+							attrMatch = true
+							attrMatchCount[attrIndex][targetAttr.GetType()] = true
+						}
+					case ">=":
+						if attr.GetValue() >= targetAttr.GetValue() {
+							attrMatch = true
+							attrMatchCount[attrIndex][targetAttr.GetType()] = true
+						}
+					case "<=":
+						if attr.GetValue() <= targetAttr.GetValue() {
+							attrMatch = true
+							attrMatchCount[attrIndex][targetAttr.GetType()] = true
+						}
+					case "!=":
+						if attr.GetValue() != targetAttr.GetValue() {
+							attrMatch = true
+							attrMatchCount[attrIndex][targetAttr.GetType()] = true
+						}
 					}
 				}
 			}
@@ -252,8 +267,10 @@ func (g *GameConnection) EnchantContains(equipGuid string, preview *EnchantCompa
 	if bothCondition {
 		if extraMatch && attrMatch {
 			if allAttrMustMatch {
-				if utils.AllValuesTrue(attrMatchCount) {
-					return true
+				for _, countMap := range attrMatchCount {
+					if utils.AllValuesTrue(countMap) {
+						return true
+					}
 				}
 			} else {
 				return true
@@ -261,8 +278,10 @@ func (g *GameConnection) EnchantContains(equipGuid string, preview *EnchantCompa
 		}
 	} else if extraMatch || attrMatch {
 		if allAttrMustMatch && attrMatch {
-			if utils.AllValuesTrue(attrMatchCount) {
-				return true
+			for _, countMap := range attrMatchCount {
+				if utils.AllValuesTrue(countMap) {
+					return true
+				}
 			}
 		} else {
 			return true
