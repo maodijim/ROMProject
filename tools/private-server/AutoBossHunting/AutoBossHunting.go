@@ -117,13 +117,13 @@ func (b *BossHuntTask) SelectHuntBoss() bool {
 	// 查找隐藏BOSS
 	for _, v := range b.GC.Configs.HuntConfig.HuntBossConfig.HMVP {
 		if _, ok := b.hiddenMVPList[v]; ok {
-			if time.Since(b.hiddenMVPList[v].RespawnTime) > 0 {
+			if time.Since(b.hiddenMVPList[v].RespawnTime.Add(-time.Duration(b.GC.GetServerTimeDelaySec())*time.Second)) > 0 {
 				b.huntHidMVP = true
 				b.targetHiddenMVP = b.hiddenMVPList[v]
 				b.logger.Infof("%s已复活，进行狩猎", v)
 				return true
 			} else {
-				remaining := time.Until(b.hiddenMVPList[v].RespawnTime)
+				remaining := time.Until(b.hiddenMVPList[v].RespawnTime.Add(-time.Duration(b.GC.GetServerTimeDelaySec()) * time.Second))
 				minutes := int(remaining.Minutes())
 				b.logger.Infof("%s 目標時間尚未到，還有約 %d 分鐘\n", v, minutes)
 			}
@@ -353,7 +353,7 @@ func (b *BossHuntTask) CheckBossLive(name string) bool {
 			b.mitionCompelete = false
 			return true
 		} else {
-			past, diffMin := IsPastTime(BossInfo.GetRefreshTime() - uint32(b.GC.GetServerTimeDelay()))
+			past, diffMin := IsPastTime(BossInfo.GetRefreshTime() - b.GC.GetServerTimeDelaySec())
 			if past {
 				b.logger.Infof("%s 已复活，进行狩猎", name)
 				b.targetMonster = BossInfo
@@ -425,7 +425,7 @@ func (b *BossHuntTask) checkTargetBossLive() bool {
 				return true
 			} else {
 				// 对齐服务器时间，避免误判
-				past, _ := IsPastTime(v.GetRefreshTime() - uint32(b.GC.GetServerTimeDelay()))
+				past, _ := IsPastTime(v.GetRefreshTime() - b.GC.GetServerTimeDelaySec())
 				if past {
 					return true
 				} else {
