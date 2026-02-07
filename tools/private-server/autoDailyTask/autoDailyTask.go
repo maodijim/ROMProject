@@ -176,6 +176,7 @@ func (d *DailyTask) performWasteLandWeedTask() {
 	d.logger.Infof("当前拥有荒境除草卡片礼包数量: %d", startItemCount)
 	atkCtx, atkCancel := context.WithCancel(context.Background())
 	d.GC.EnableAutoAttack(atkCtx, "洛阳荒草")
+	successRewardCount := 0
 	for {
 		select {
 		case <-d.ctx.Done():
@@ -190,10 +191,15 @@ func (d *DailyTask) performWasteLandWeedTask() {
 			return
 		default:
 			reward = d.checkRewardCount()
-			if reward >= 20 {
+			// 有时候会出现奖励数量已经达标但是任务没有完成的情况，继续检查2次任务确保奖励发放
+			if reward >= 20 && successRewardCount >= 2 {
 				d.logger.Infof("当前荒境除草卡片礼包数量已达%d个及以上，无需继续完成除草任务。", reward)
 				atkCancel()
 				return
+			} else if reward >= 20 {
+				successRewardCount++
+			} else {
+				successRewardCount = 0
 			}
 			d.logger.Infof("当前荒境除草卡片礼包数量: %d，继续完成除草任务...", reward)
 			time.Sleep(time.Second * 5)
