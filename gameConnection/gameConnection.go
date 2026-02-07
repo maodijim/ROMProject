@@ -120,6 +120,9 @@ type GameConnection struct {
 	reconnecting       bool
 }
 
+func (g *GameConnection) GetServerTimeDelay() uint64 {
+	return fixedSkillCDSubtract
+}
 func (g *GameConnection) SetQueryTimeout(timeout time.Duration) {
 	queryTimeout = timeout
 }

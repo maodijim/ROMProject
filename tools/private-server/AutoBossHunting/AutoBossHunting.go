@@ -353,7 +353,7 @@ func (b *BossHuntTask) CheckBossLive(name string) bool {
 			b.mitionCompelete = false
 			return true
 		} else {
-			past, diffMin := IsPastTime(BossInfo.GetRefreshTime())
+			past, diffMin := IsPastTime(BossInfo.GetRefreshTime() - uint32(b.GC.GetServerTimeDelay()))
 			if past {
 				b.logger.Infof("%s 已复活，进行狩猎", name)
 				b.targetMonster = BossInfo
@@ -424,7 +424,8 @@ func (b *BossHuntTask) checkTargetBossLive() bool {
 			if v.RefreshTime == nil {
 				return true
 			} else {
-				past, _ := IsPastTime(v.GetRefreshTime())
+				// 对齐服务器时间，避免误判
+				past, _ := IsPastTime(v.GetRefreshTime() - uint32(b.GC.GetServerTimeDelay()))
 				if past {
 					return true
 				} else {

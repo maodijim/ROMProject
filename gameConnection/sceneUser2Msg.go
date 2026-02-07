@@ -16,6 +16,7 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 		param = &Cmd.ServerTime{}
 		err = utils.ParseCmd(rawData, param)
 		fixedSkillCDSubtract = param.(*Cmd.ServerTime).GetTime() - uint64(time.Now().UnixMilli())
+
 	case Cmd.User2Param_value["USER2PARAM_GAMETIME"]:
 		param = &Cmd.GameTimeCmd{}
 		err = utils.ParseCmd(rawData, param)
