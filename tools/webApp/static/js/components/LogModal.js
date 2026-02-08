@@ -72,7 +72,7 @@ export default {
                                     class="log-textarea"
                                     style="flex:1; overflow:auto; padding:8px; background:#fff; border:1px solid #d1d5db; border-radius:4px; white-space:pre-wrap; font-family: monospace;"
                                 >
-                                    <div v-for="(line, idx) in logLines" :key="idx" :style="{ color: logColor(line) }">
+                                    <div v-for="(line, idx) in logs" :key="idx" :style="{ color: logColor(line) }">
                                         {{ line }}
                                     </div>
                                 </div>
@@ -102,7 +102,7 @@ export default {
     },
     data() {
         return {
-            logs: '',
+            logs: [],
             chatMessages: [],
             chatInput: '',
             selectedRecipient: null,
@@ -120,14 +120,7 @@ export default {
             chatPollInterval: null // interval id for polling chat history
         };
     },
-    computed: {
-        // split logs into lines for per-line rendering
-        logLines() {
-            if (!this.logs) return [];
-            // keep empty lines (so splitting preserves them)
-            return this.logs.split('\n');
-        }
-    },
+    computed: {},
     watch: {
         show(newVal) {
             this.applyBodyScrollLock(newVal);
@@ -147,7 +140,7 @@ export default {
                     clearInterval(this.chatPollInterval);
                     this.chatPollInterval = null;
                 }
-                this.log = '';
+                this.clearLogs();
                 this.chatMessages = [];
                 this.disconnectWebSocket();
             }
@@ -206,24 +199,6 @@ export default {
                 return channel;
             }
             return String(channel);
-        },
-
-
-        async fetchLogs() {
-            if (!this.username || !this.featureName) return;
-            try {
-                const data = await api.fetchLogs(this.username, this.featureName);
-                if (data.success && data.data && Array.isArray(data.data.logs)) {
-                    this.logs = data.data.logs.join('\n');
-                    if (data.data.logs.length) {
-                        this.logs += '\n';
-                    }
-                } else {
-                    this.logs = '';
-                }
-            } catch (error) {
-                this.logs = 'Failed to fetch logs: ' + error.message;
-            }
         },
 
         // load chat history and normalize entries to { timestamp, text, channel }
@@ -326,8 +301,7 @@ export default {
             }
 
             const timestamp = new Date().toLocaleTimeString();
-            this.logs += `[${timestamp}] ${message}\n`;
-
+            this.logs.push(`[${timestamp}] ${message}`);
             this.$nextTick(() => {
                 if (!logArea) return;
                 if (wasAtBottom) {
@@ -388,7 +362,7 @@ export default {
             }
         },
         clearLogs() {
-            this.logs = '';
+            this.logs = [];
             this.$nextTick(() => {
                 if (this.$refs.logArea) {
                     this.$refs.logArea.scrollTop = 0;
