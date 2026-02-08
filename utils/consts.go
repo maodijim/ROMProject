@@ -38,7 +38,10 @@ const (
 )
 
 var (
-	CipherKey = []byte{95, 27, 5, 20, 131, 4, 8, 88}
+	// 5F 1B 05 14 83 04 08 58
+	// CipherKey = []byte{95, 27, 5, 20, 131, 4, 8, 88}
+	// 42 1b c3 97 d1 f3 31 2e
+	CipherKey = []byte{66, 27, 195, 151, 209, 243, 49, 46}
 	TcpFlag   = map[uint][]byte{
 		0: []byte{0},
 		1: []byte{1},

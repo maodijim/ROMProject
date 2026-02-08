@@ -13,6 +13,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+const (
+	clientVersion = "1.3.0"
+)
+
 type EsConfig struct {
 	Urls []string `yaml:"urls"`
 }
@@ -272,6 +276,24 @@ type ServerConfigs struct {
 	TradeMonitorConfig TradeMonitorConfig `yaml:"tradeMonitorConfig"`
 	LotteryConfig      LotteryConfig      `yaml:"lotteryConfig"`
 	DailyTaskConfig    DailyTaskConfig    `yaml:"dailyTaskConfig"`
+}
+
+func (s *ServerConfigs) UnmarshalYAML(value *yaml.Node) error {
+	type NewS ServerConfigs
+	var newStruct struct {
+		NewS `yaml:",inline"`
+	}
+	if err := value.Decode(&newStruct); err != nil {
+		return err
+	}
+	*s = ServerConfigs(newStruct.NewS)
+	if s.Version == "" {
+		s.Version = clientVersion
+	} else if s.Version < clientVersion {
+		log.Warnf("Client version in config (%s) is older than the default client version (%s). Consider updating it to avoid potential issues.", s.Version, clientVersion)
+		s.Version = clientVersion
+	}
+	return nil
 }
 
 func (s *ServerConfigs) GetChatMaxSize() int {
