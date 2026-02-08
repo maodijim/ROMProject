@@ -351,6 +351,26 @@ func parseConfigYaml(r []byte, sc *ServerConfigs) error {
 			}
 			oldField.Set(newField)
 
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+			if newField.Int() == 0 {
+				continue
+			}
+			oldField.Set(newField)
+
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			if newField.Uint() == 0 {
+				continue
+			}
+			oldField.Set(newField)
+
+		case reflect.Float32, reflect.Float64:
+			if newField.Float() == 0 {
+				continue
+			}
+			oldField.Set(newField)
+			// ⭐ 新值是0 → 跳过（不覆盖）
+			continue
+
 		// --- 其他类型（int/string/bool）直接覆盖 ---
 		default:
 			oldField.Set(newField)
