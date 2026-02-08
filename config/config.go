@@ -1,7 +1,6 @@
 package config
 
 import (
-	"bytes"
 	"io"
 	"os"
 	"reflect"
@@ -311,11 +310,51 @@ func (s *ServerConfigs) SetFollowTeamLeader(yes bool) {
 	s.TeamConfig.FollowTeamLeader = yes
 }
 
-func parseConfigYaml(r io.Reader, sc *ServerConfigs) error {
-	decoder := yaml.NewDecoder(r)
-	err := decoder.Decode(sc)
-	if err != nil {
+func parseConfigYaml(r []byte, sc *ServerConfigs) error {
+	var newSc ServerConfigs
+	if err := yaml.Unmarshal(r, &newSc); err != nil {
 		return err
+	}
+	// merge newSc into sc but keeping the original value if the new value is zero value (like 0 for int, "" for string, false for bool, nil for pointer/slice/map)
+	scValue := reflect.ValueOf(sc).Elem()
+	newScValue := reflect.ValueOf(&newSc).Elem()
+	for i := 0; i < scValue.NumField(); i++ {
+		oldField := scValue.Field(i)
+		newField := newScValue.Field(i)
+
+		switch newField.Kind() {
+
+		// --- Pointer / Slice / Map 需要处理 nil ---
+		case reflect.Ptr, reflect.Slice, reflect.Map:
+			if newField.IsNil() {
+				// ⭐ 新值是 nil → 跳过（不覆盖）
+				continue
+			}
+			oldField.Set(newField)
+
+		// --- Struct → 递归深入 Merge ---
+		case reflect.Struct:
+			// 若旧值也是 struct，则递归
+			mergeMethod := oldField.Addr().MethodByName("Merge")
+			if mergeMethod.IsValid() {
+				// ⭐ 调用子 struct 的 Merge
+				mergeMethod.Call([]reflect.Value{newField})
+			} else {
+				// 没有 Merge 方法就直接覆盖
+				oldField.Set(newField)
+			}
+
+		case reflect.String:
+			if newField.String() == "" {
+				// ⭐ 新值是空字符串 → 跳过（不覆盖）
+				continue
+			}
+			oldField.Set(newField)
+
+		// --- 其他类型（int/string/bool）直接覆盖 ---
+		default:
+			oldField.Set(newField)
+		}
 	}
 
 	if sc.Region < 1 {
@@ -339,7 +378,7 @@ func parseConfigYaml(r io.Reader, sc *ServerConfigs) error {
 func NewServerConfigs(configYaml string) *ServerConfigs {
 	configPath := configYaml
 	configs := &ServerConfigs{}
-	err := parseConfigYaml(bytes.NewReader(data.ConfigYml), configs)
+	err := parseConfigYaml(data.ConfigYml, configs)
 	if err != nil {
 		log.Fatalf("failed to parse default config yaml: %v", err)
 	}
@@ -352,7 +391,12 @@ func NewServerConfigs(configYaml string) *ServerConfigs {
 		return configs
 	}
 	defer f.Close()
-	err = parseConfigYaml(f, configs)
+	content, err := io.ReadAll(f)
+	if err != nil {
+		log.Errorf("failed to read %s: %s", configPath, err)
+		return configs
+	}
+	err = parseConfigYaml(content, configs)
 	if err != nil {
 		log.Errorf("parse config yaml failed: %s", err)
 		return configs
