@@ -355,7 +355,7 @@ func (d *DailyTask) performCrackTask() {
 					time.Sleep(time.Second * 5)
 				}
 				curSealPos := d.GC.Role.AcceptSeal.GetPos()
-				d.logger.Infof("前往西门裂隙位置... 坐标: X=%d, Y=%d, Z=%d", curSealPos.X, curSealPos.Y, curSealPos.Z)
+				d.logger.Infof("前往西门裂隙位置... 坐标: X=%d, Y=%d, Z=%d", curSealPos.GetX(), curSealPos.GetY(), curSealPos.GetZ())
 				d.GC.MoveChartWait(*curSealPos)
 				time.Sleep(time.Second * 2)
 				d.logger.Infof("到达西门裂隙位置，开始完成任务...")

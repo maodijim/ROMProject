@@ -238,9 +238,9 @@ func (l *LotteryTask) DecomposePoringKingCard() {
 	}
 	l.logger.Infof("移动到波利国王...")
 	// 移动到抽奖NPC位置
-	l.GC.MoveToNpcWait("国王波利")
+	l.GC.MoveToNpcWait("恶魔波利")
 	time.Sleep(time.Second)
-	npc, err := l.GC.VisitObjectByName("国王波利")
+	npc, err := l.GC.VisitObjectByName("恶魔波利")
 	if err != nil {
 		l.logger.Errorf("访问NPC失败: %v", err)
 		return
