@@ -58,6 +58,33 @@ func (l *LotteryTask) Start() {
 		l.lotteryTask(npc, lotteryName)
 	}
 
+	// 使用银币宝石
+	if !l.GC.Configs.LotteryConfig.UseStones {
+		l.logger.Infof("跳过使用银币宝石。")
+		return
+	}
+
+	l.logger.Infof("开始使用银币宝石...")
+	l.completeStatus = map[string]bool{
+		"红色玛瑙": false,
+		"黑珍珠":  false,
+		"金之星":  false,
+	}
+
+	for {
+		select {
+		case <-l.ctx.Done():
+			l.logger.Infof("使用银币宝石已停止.")
+			return
+		default:
+			if l.completeStatus["红色玛瑙"] && l.completeStatus["黑珍珠"] && l.completeStatus["金之星"] {
+				l.logger.Infof("所有银币宝石使用完成。")
+				return
+			}
+			l.UseSilverGem()
+		}
+	}
+
 	if l.GC.Configs.LotteryConfig.SellPoringKingCard {
 		l.logger.Infof("开始分解波利国王卡片...")
 		l.DecomposePoringKingCard()
@@ -140,33 +167,6 @@ lotteryLoop:
 			if lotteryCmd != nil && lotteryCmd.GetTodayCnt() > 0 {
 				dailyCount = lotteryCmd.GetTodayCnt()
 			}
-		}
-	}
-
-	// 使用银币宝石
-	if !l.GC.Configs.LotteryConfig.UseStones {
-		l.logger.Infof("跳过使用银币宝石。")
-		return
-	}
-
-	l.logger.Infof("开始使用银币宝石...")
-	l.completeStatus = map[string]bool{
-		"红色玛瑙": false,
-		"黑珍珠":  false,
-		"金之星":  false,
-	}
-
-	for {
-		select {
-		case <-l.ctx.Done():
-			l.logger.Infof("使用银币宝石已停止.")
-			return
-		default:
-			if l.completeStatus["红色玛瑙"] && l.completeStatus["黑珍珠"] && l.completeStatus["金之星"] {
-				l.logger.Infof("所有银币宝石使用完成。")
-				return
-			}
-			l.UseSilverGem()
 		}
 	}
 }
