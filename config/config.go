@@ -178,13 +178,35 @@ func (c *HuntMonsterConfig) GetDefault() HuntMonsterConfig {
 }
 
 type LotteryConfig struct {
-	DrawCount          uint32 `yaml:"drawCount" json:"drawCount" label:"抽奖次数"`
-	LotteryType        string `yaml:"lotteryType" json:"lotteryType" label:"抽奖类型"`
-	UseTickets         bool   `yaml:"useTickets" json:"useTickets" label:"使用抽奖券"`
-	SellTrash          bool   `yaml:"sellTrash" json:"sellTrash" label:"自动出售垃圾物品"`
-	SellPoringKingCard bool   `yaml:"sellPoriKingCard" json:"sellPoriKingCard" label:"自动分解国王波利卡片"`
-	UseStones          bool   `yaml:"useStones" json:"useStones" label:"使用抽奖金币石"`
-	MinStoneToKeep     uint32 `yaml:"minStoneToKeep" json:"minStoneToKeep" label:"保留最少抽奖金币石数量"`
+	DrawCount          uint32   `yaml:"drawCount" json:"drawCount" label:"抽奖次数"`
+	LotteryType        []string `yaml:"lotteryType" json:"lotteryType" label:"抽奖类型"`
+	UseTickets         bool     `yaml:"useTickets" json:"useTickets" label:"使用抽奖券"`
+	SellTrash          bool     `yaml:"sellTrash" json:"sellTrash" label:"自动出售垃圾物品(只对宴机抽奖)"`
+	SellPoringKingCard bool     `yaml:"sellPoriKingCard" json:"sellPoriKingCard" label:"自动分解国王波利卡片"`
+	UseStones          bool     `yaml:"useStones" json:"useStones" label:"使用抽奖金币石"`
+	MinStoneToKeep     uint32   `yaml:"minStoneToKeep" json:"minStoneToKeep" label:"保留最少抽奖金币石数量"`
+}
+
+func (l *LotteryConfig) UnmarshalYAML(value *yaml.Node) error {
+	type NewL LotteryConfig
+	var newStruct struct {
+		NewL `yaml:",inline"`
+	}
+	if err := value.Decode(&newStruct); err == nil {
+		*l = LotteryConfig(newStruct.NewL)
+		return nil
+	}
+	*l = LotteryConfig(newStruct.NewL)
+	var alias struct {
+		NewL
+		LotteryType string `yaml:"lotteryType" json:"lotteryType" label:"抽奖类型"`
+	}
+	if err := value.Decode(&alias); err != nil {
+		return err
+	}
+	*l = LotteryConfig(newStruct.NewL)
+	l.LotteryType = []string{alias.LotteryType}
+	return nil
 }
 
 func (l *LotteryConfig) ParseFromInterface(config map[string]interface{}) any {
@@ -195,7 +217,7 @@ func (l *LotteryConfig) ParseFromInterface(config map[string]interface{}) any {
 func (l *LotteryConfig) GetDefault() any {
 	return LotteryConfig{
 		DrawCount:          10,
-		LotteryType:        "幻想创造器·宴",
+		LotteryType:        []string{"幻想创造器·宴"},
 		UseTickets:         false,
 		SellTrash:          true,
 		SellPoringKingCard: false,
@@ -205,13 +227,14 @@ func (l *LotteryConfig) GetDefault() any {
 }
 
 type DailyTaskConfig struct {
-	EnableItemCombine   bool   `yaml:"enableItemCombine" json:"enableItemCombine" label:"自动物品合成(精装卡册的残页, 卡册残页)"`
-	EnableKanBan        bool   `yaml:"enableKanBan" json:"enableKanBan" label:"完成看板任务"`
-	EnableWasteLandWeed bool   `yaml:"enableWasteLandWeed" json:"enableWasteLandWeed" label:"完成清理荒地杂草"`
-	EnableCrack         bool   `yaml:"enableCrack" json:"enableCrack" label:"完成裂缝任务"`
-	EnableYuno          bool   `yaml:"enableZhuno" json:"enableZhuno" label:"完成朱诺任务"`
-	YunoTeamLeader      string `yaml:"YunoTeamLeader" json:"YunoTeamLeader" label:"朱诺任务队长名称(自动组队使用)"`
-	YunForceContinue    bool   `yaml:"YunForceContinue" json:"YunForceContinue" label:"朱诺任务强制继续(即使已经完成了每日次数)"`
+	EnableItemCombine         bool   `yaml:"enableItemCombine" json:"enableItemCombine" label:"自动物品合成(精装卡册的残页, 卡册残页)"`
+	EnableKanBan              bool   `yaml:"enableKanBan" json:"enableKanBan" label:"完成看板任务"`
+	EnableWasteLandWeed       bool   `yaml:"enableWasteLandWeed" json:"enableWasteLandWeed" label:"完成清理荒地杂草"`
+	EnableCrack               bool   `yaml:"enableCrack" json:"enableCrack" label:"完成裂缝任务"`
+	EnableYuno                bool   `yaml:"enableZhuno" json:"enableZhuno" label:"完成朱诺任务"`
+	EnableGuildEmperiumDonate bool   `yaml:"enableGuildEmperiumDonate" json:"enableGuildEmperiumDonate" label:"完成公会华丽金属捐献任务"`
+	YunoTeamLeader            string `yaml:"YunoTeamLeader" json:"YunoTeamLeader" label:"朱诺任务队长名称(自动组队使用)"`
+	YunForceContinue          bool   `yaml:"YunForceContinue" json:"YunForceContinue" label:"朱诺任务强制继续(即使已经完成了每日次数)"`
 }
 
 func (d *DailyTaskConfig) ParseFromInterface(config map[string]interface{}) any {
@@ -221,12 +244,13 @@ func (d *DailyTaskConfig) ParseFromInterface(config map[string]interface{}) any 
 
 func (d *DailyTaskConfig) GetDefault() any {
 	return DailyTaskConfig{
-		EnableItemCombine:   true,
-		EnableKanBan:        true,
-		EnableWasteLandWeed: true,
-		EnableCrack:         true,
-		EnableYuno:          true,
-		YunForceContinue:    false,
+		EnableItemCombine:         true,
+		EnableKanBan:              true,
+		EnableWasteLandWeed:       true,
+		EnableCrack:               true,
+		EnableYuno:                true,
+		EnableGuildEmperiumDonate: true,
+		YunForceContinue:          false,
 	}
 }
 

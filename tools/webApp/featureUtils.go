@@ -221,6 +221,7 @@ func GetTradeZhCategoriesList(w http.ResponseWriter, r *http.Request) {
 func GetLotteryTypeList(w http.ResponseWriter, r *http.Request) {
 	l := []string{
 		"幻想创造器·宴",
+		"幻想创造器Ⅲ号",
 	}
 
 	w.Header().Set("Content-Type", "application/json")

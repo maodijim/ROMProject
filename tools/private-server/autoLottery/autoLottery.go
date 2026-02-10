@@ -44,18 +44,19 @@ func (l *LotteryTask) Start() {
 	time.Sleep(time.Second * 2)
 	_ = l.GC.MoveChartWait(l.GC.ParsePos(-25099, -513, -46410))
 	time.Sleep(time.Second * 2)
-	lotteryName := l.GC.Configs.LotteryConfig.LotteryType
-	l.GC.MoveToNpcWait(lotteryName)
-	time.Sleep(time.Second)
-	npc, err := l.GC.VisitObjectByName(lotteryName)
-	if err != nil {
-		l.logger.Errorf("访问NPC失败: %v", err)
-		return
-	}
-	time.Sleep(time.Second * 2)
+	for _, lotteryName := range l.GC.Configs.LotteryConfig.LotteryType {
+		l.GC.MoveToNpcWait(lotteryName)
+		time.Sleep(time.Second)
+		npc, err := l.GC.VisitObjectByName(lotteryName)
+		if err != nil {
+			l.logger.Errorf("访问NPC失败: %v", err)
+			return
+		}
+		time.Sleep(time.Second * 2)
 
-	// 开始抽奖任务
-	l.lotteryTask(npc)
+		// 开始抽奖任务
+		l.lotteryTask(npc, lotteryName)
+	}
 
 	if l.GC.Configs.LotteryConfig.SellPoringKingCard {
 		l.logger.Infof("开始分解波利国王卡片...")
@@ -71,13 +72,12 @@ func (l *LotteryTask) GetContext() context.Context {
 	return l.ctx
 }
 
-func (l *LotteryTask) lotteryTask(npc Cmd.MapNpc) {
-	l.logger.Infof("开始自动抽奖任务...")
+func (l *LotteryTask) lotteryTask(npc Cmd.MapNpc, lotteryName string) {
+	l.logger.Infof("开始自动抽奖任务...%s", lotteryName)
 	l.GC.SetQueryTimeout(time.Millisecond * 1000)
-	lotteryName := l.GC.Configs.LotteryConfig.LotteryType
-	lotteryType, ok := gameTypes.LotteryNameZh[l.GC.Configs.LotteryConfig.LotteryType]
+	lotteryType, ok := gameTypes.LotteryNameZh[lotteryName]
 	if !ok {
-		l.logger.Errorf("未知的抽奖类型: %s", l.GC.Configs.LotteryConfig.LotteryType)
+		l.logger.Errorf("未知的抽奖类型: %s", lotteryName)
 		return
 	}
 	maxCount := uint32(0)
@@ -89,7 +89,7 @@ func (l *LotteryTask) lotteryTask(npc Cmd.MapNpc) {
 	dailyCount = lotteryInfo.GetTodayCnt()
 	maxCount = lotteryInfo.GetMaxCnt()
 
-	if l.GC.Configs.LotteryConfig.SellTrash {
+	if l.GC.Configs.LotteryConfig.SellTrash && lotteryType == Cmd.ELotteryType_ELotteryType_Magic {
 		l.SellTrash(*lotteryInfo, npc.GetId(), lotteryType)
 	}
 

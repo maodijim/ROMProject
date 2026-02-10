@@ -53,3 +53,20 @@ func (g *GameConnection) BuyShopItem(shopItem *Cmd.ShopItem, count uint32) {
 func (g *GameConnection) QueryPringleShopConfig() (*Cmd.QueryShopConfigCmd, error) {
 	return g.QueryShopConfig(gameTypes.ShopType_Pringle, 1)
 }
+
+func (g *GameConnection) QueryQuickBuyShopConfig(itemId uint32, itemid ...uint32) (res *Cmd.QueryQuickBuyConfigCmd, err error) {
+	cmd := Cmd.QueryQuickBuyConfigCmd{
+		Itemids: append([]uint32{itemId}, itemid...),
+	}
+	g.AddNotifier(gameTypes.NtfType_ShopQueryQuickBuyConfig)
+	_ = g.sendProtoCmd(
+		&cmd,
+		sessionUserShopCmdId,
+		Cmd.ShopParam_value["SHOPPARAM_QUICKBUY_SHOP_CONFIG]"],
+	)
+	r, err := g.waitForResponse(gameTypes.NtfType_ShopQueryQuickBuyConfig)
+	if err != nil {
+		return nil, err
+	}
+	return r.(*Cmd.QueryQuickBuyConfigCmd), nil
+}

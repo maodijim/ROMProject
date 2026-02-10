@@ -58,6 +58,7 @@ type RoleInfo struct {
 	AcceptSeal     *Cmd.SealAcceptCmd
 	GameTime       *Cmd.GameTimeCmd
 	TrackFubenUser []*Cmd.TrackFuBenUserCmd
+	GuildData      *Cmd.GuildData
 }
 
 func (r *RoleInfo) GetTrackFubenUserAll() []*Cmd.TrackFuBenUserCmd {
@@ -398,6 +399,7 @@ func NewRole(options ...RoleOption) *RoleInfo {
 		UserVars:      map[Cmd.EVarType]*Cmd.Var{},
 		AccVars:       map[Cmd.EAccVarType]*Cmd.AccVar{},
 		QuestList:     map[Cmd.EQuestList]*Cmd.QuestList{},
+		GuildData:     &Cmd.GuildData{},
 	}
 	for _, o := range options {
 		o(role)

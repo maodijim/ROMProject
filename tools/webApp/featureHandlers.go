@@ -404,7 +404,7 @@ func handleGetFeatureConfig(w http.ResponseWriter, r *http.Request) {
 				if existingConfig.DrawCount == 0 {
 					existingConfig.DrawCount = defaultConfig.DrawCount
 				}
-				if existingConfig.LotteryType == "" {
+				if len(existingConfig.LotteryType) == 0 {
 					existingConfig.LotteryType = defaultConfig.LotteryType
 				}
 			} else {

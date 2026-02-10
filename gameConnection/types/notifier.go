@@ -33,4 +33,7 @@ const (
 	NtfType_GameTime                   NotifierType = "USER2PARAM_GAMETIME"
 	NtfType_FubenStepSync              NotifierType = "FUBEN_STEP_SYNC"
 	NtfType_ExchangeCard               NotifierType = "ITEMPARAM_EXCHANGECARD"
+	NtfType_GuildParamQueryPack        NotifierType = "GUILDPARAM_QUERYPACK"
+	NtfType_GuildParamDonateList       NotifierType = "GUILDPARAM_DONATELIST"
+	NtfType_ShopQueryQuickBuyConfig    NotifierType = "SHOPPARAM_QUERY_QUICKBUY_CONFIG"
 )

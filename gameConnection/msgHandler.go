@@ -46,6 +46,9 @@ func (g *GameConnection) HandleMsg(output [][]byte) {
 		var param proto.Message
 		var err error
 		switch cmdId {
+		case Cmd.Command_value["SESSION_USER_GUILD_PROTOCMD"]:
+			_, _ = g.HandleGuildMsg(cmdParamId, o)
+
 		case Cmd.Command_value["SCENE_USER_SEAL_PROTOCMD"]:
 			_, _ = g.HandleSceneSealProtoMsg(cmdParamId, o)
 

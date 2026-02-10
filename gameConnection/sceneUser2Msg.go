@@ -136,7 +136,7 @@ func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []by
 		for _, uv := range userVar.GetVars() {
 			g.Role.UserVars[uv.GetType()] = uv
 		}
-		// for _, av := range userVar.GetAccvars() {
+		// for _, av := range userVar.get() {
 		// 	g.Role.AccVars[av.GetType()] = av
 		// }
 		g.Role.Mutex.Unlock()

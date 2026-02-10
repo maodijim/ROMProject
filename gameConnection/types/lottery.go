@@ -7,6 +7,7 @@ import (
 var LotteryNameZh = map[string]Cmd.ELotteryType{
 	"幻想创造器·宴": Cmd.ELotteryType_ELotteryType_Magic,
 	"卡片扭蛋":    Cmd.ELotteryType_ELotteryType_Card,
+	"幻想创造器Ⅲ号": Cmd.ELotteryType_ELotteryType_Card,
 	"装备扭蛋":    Cmd.ELotteryType_ELotteryType_Equip,
 	"头饰扭蛋":    Cmd.ELotteryType_ELotteryType_Head,
 	"坐骑扭蛋":    Cmd.ELotteryType_ELotteryType_Max,
@@ -28,4 +29,5 @@ var LotteryTypeToVarCountMap = map[Cmd.ELotteryType]Cmd.EVarType{
 
 var LotteryTypePriceMap = map[Cmd.ELotteryType]uint64{
 	Cmd.ELotteryType_ELotteryType_Magic: 500,
+	Cmd.ELotteryType_ELotteryType_Card:  500,
 }

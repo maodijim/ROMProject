@@ -81,6 +81,8 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["RECORD_USER_TRADE_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.RecordUserTradeParam_value["QUERY_ITEM_COUNT_TRADE_PARAM"]:
+				param = &Cmd.QueryItemCountTradeCmd{}
 
 			case Cmd.RecordUserTradeParam_value["TAKE_LOG_TRADE_PARAM"]:
 				param = &Cmd.TakeLogCmd{}
@@ -589,6 +591,9 @@ func TranslateMsg(output [][]byte) {
 				log.Infof("没有parsing")
 				continue
 
+			case Cmd.ShopParam_value["SHOPPARAM_QUICKBUY_SHOP_CONFIG"]:
+				param = &Cmd.QueryQuickBuyConfigCmd{}
+
 			case Cmd.ShopParam_value["SHOPPARAM_BUYITEM"]:
 				param = &Cmd.BuyShopItem{}
 
@@ -968,6 +973,12 @@ func TranslateMsg(output [][]byte) {
 			PrintTranslateMsgResult(cmdParamName, err, param)
 		} else if cmdId == Cmd.Command_value["SESSION_USER_GUILD_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.GuildParam_value["GUILDPARAM_DONATE"]:
+				param = &Cmd.DonateGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_APPLYCONFIG"]:
+				param = &Cmd.ApplyGuildGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_DONATEFRAMESTATUS"]:
+				param = &Cmd.FrameStatusGuildCmd{}
 			case Cmd.GuildParam_value["GUILDPARAM_UPDATEDONATEITEM"]:
 				param = &Cmd.UpdateDonateItemGuildCmd{}
 			case Cmd.GuildParam_value["GUILDPARAM_UPDATEDONATEITEM"]:

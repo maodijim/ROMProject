@@ -52,6 +52,12 @@ func (d *DailyTask) startDailyTasks() {
 		d.logger.Infof("开始执行物品合成任务...")
 		d.performItemCombineTask()
 	}
+
+	if d.GC.Configs.DailyTaskConfig.EnableGuildEmperiumDonate {
+		d.logger.Infof("开始执行公会华丽金属捐献任务...")
+		d.performEmperiumDonation()
+	}
+
 	if d.GC.Configs.DailyTaskConfig.EnableKanBan {
 		d.logger.Infof("开始执行看板任务...")
 		d.performKanBanTask()
@@ -533,7 +539,9 @@ func (d *DailyTask) performYunoTask() {
 							break
 						}
 						sealQuest, _ = d.GC.QuerySealQuest()
-						if sealQuest.GetMaxtimes() != 0 && sealQuest.GetDonetimes() >= sealQuest.GetMaxtimes() {
+						// for unknown reason sometime the donetimes can be higher than actual value, so we cap it at 50 to avoid end task too early
+						doneTime := min(sealQuest.GetDonetimes(), 50)
+						if sealQuest.GetMaxtimes() != 0 && doneTime != 50 && doneTime >= sealQuest.GetMaxtimes() {
 							d.logger.Infof("今日朱诺任务已完成%d次，任务结束。", sealQuest.GetDonetimes())
 							ticker.Stop()
 							return
@@ -676,6 +684,51 @@ func (d *DailyTask) killYunoTarget(monsterNames ...string) {
 				return
 			}
 		}
+	}
+}
+
+func (d *DailyTask) performEmperiumDonation() {
+	if d.GC.GetGuildName() == "" {
+		d.logger.Warnf("当前角色没有加入公会，无法执行公会华丽金属捐献任务。")
+		return
+	}
+	d.logger.Infof("执行公会华丽金属捐献任务中...")
+	donateList, err := d.GC.GuildDonateList()
+	if err != nil {
+		d.logger.Errorf("获取公会捐献列表失败: %v", err)
+		return
+	}
+	hasEmperium := false
+	for _, donate := range donateList.GetItems() {
+		if donate.GetItemid() == 5500 {
+			canDonateCount := donate.GetItemcount() - donate.GetCount()
+			hasEmperium = true
+			if canDonateCount <= 0 {
+				d.logger.Infof("当前华丽金属可捐献次数: %d, 无需捐献。", canDonateCount)
+				continue
+			}
+			d.logger.Infof("当前华丽金属可捐献次数: %d, 开始捐献...", canDonateCount)
+			emperiumItem := d.GC.FindPackItemById(5500, Cmd.EPackType_EPACKTYPE_MAIN)
+			if emperiumItem == nil || emperiumItem.GetBase().GetCount() < canDonateCount {
+				d.logger.Warnf("背包中没有华丽金属，购买%d个华丽金属...", canDonateCount)
+				priceList := d.GC.QueryItemPrice(5500, 0)
+				for _, item := range priceList {
+					_, err = d.GC.BuyItem(
+						donate.GetItemcount()-(emperiumItem.GetBase().GetCount()),
+						item)
+					if err != nil {
+						d.logger.Errorf("购买华丽金属失败: %v", err)
+						return
+					}
+					break
+				}
+				d.logger.Infof("购买完成，开始捐献华丽金属...")
+			}
+			d.GC.GuildDonate(donate)
+		}
+	}
+	if !hasEmperium {
+		d.logger.Infof("当前没有华丽金属可捐献，任务完成。")
 	}
 }
 
