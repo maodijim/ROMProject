@@ -4,6 +4,7 @@ import (
 	"time"
 
 	Cmd "ROMProject/Cmds"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -158,6 +159,30 @@ func (g *GameConnection) takeFailedMoney(tradeLog *Cmd.LogItemInfo) {
 		g.Role.Silver = &newSilver
 		time.Sleep(500 * time.Millisecond)
 	}
+}
+
+// FindTakeTradeLog searches through the trade history logs for a specific item name or item id and takes it if found.
+// It returns an error if the log is not found or if there is an issue with the query.
+func (g *GameConnection) FindTakeTradeLog(itemName string, itemId uint32) (sucess bool, err error) {
+	logHistory, err := g.QueryTradeHistoryLog(0)
+	if err != nil {
+		log.Errorf("查询交易记录失败: %s", err)
+		return false, err
+	}
+
+	for _, tradeLog := range logHistory.GetLogList() {
+		if tradeLog.GetItemid() == itemId || g.Items[tradeLog.GetItemid()].NameZh == itemName {
+			if tradeLog.GetStatus() != Cmd.ETakeStatus_ETakeStatus_CanTakeGive {
+				log.Warnf("找到交易记录但无法领取: %s (ID: %d)", itemName, itemId)
+				return false, nil
+			}
+			log.Infof("找到交易记录: %d个%s", tradeLog.GetCount(), g.Items[tradeLog.GetItemid()].NameZh)
+			g.takeTradeLog(tradeLog)
+			return true, nil
+		}
+	}
+	log.Warnf("未找到交易记录: %s (ID: %d)", itemName, itemId)
+	return false, nil
 }
 
 func (g *GameConnection) HandleTradeHistory(tradeHistory *Cmd.MyTradeLogRecordTradeCmd) {

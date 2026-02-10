@@ -273,7 +273,7 @@ func (l *LotteryTask) useGem(item *Cmd.ItemData, gemName string) {
 	if item.GetBase().GetCount() > 1 {
 		useCount := min(99, item.GetBase().GetCount())
 		if item.GetBase().GetCount() < l.GC.Configs.LotteryConfig.MinStoneToKeep {
-			l.logger.Infof("%s保留数量不足，跳过使用。", gemName)
+			l.logger.Infof("%s保留数量%d不足%d，跳过使用。", gemName, item.GetBase().GetCount(), l.GC.Configs.LotteryConfig.MinStoneToKeep)
 			l.completeStatus[gemName] = true
 			return
 		}

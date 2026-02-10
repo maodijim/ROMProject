@@ -709,18 +709,28 @@ func (d *DailyTask) performEmperiumDonation() {
 			}
 			d.logger.Infof("当前华丽金属可捐献次数: %d, 开始捐献...", canDonateCount)
 			emperiumItem := d.GC.FindPackItemById(5500, Cmd.EPackType_EPACKTYPE_MAIN)
-			if emperiumItem == nil || emperiumItem.GetBase().GetCount() < canDonateCount {
+			emperiumCount := uint32(0)
+			if emperiumItem != nil {
+				emperiumCount = emperiumItem.GetBase().GetCount()
+			}
+			if emperiumItem == nil || emperiumCount < canDonateCount {
 				d.logger.Warnf("背包中没有华丽金属，购买%d个华丽金属...", canDonateCount)
 				priceList := d.GC.QueryItemPrice(5500, 0)
+				time.Sleep(time.Second * 2)
 				for _, item := range priceList {
 					_, err = d.GC.BuyItem(
-						canDonateCount-(emperiumItem.GetBase().GetCount()),
+						canDonateCount-emperiumCount,
 						item)
 					if err != nil {
 						d.logger.Errorf("购买华丽金属失败: %v", err)
 						return
 					}
 					break
+				}
+				success, err := d.GC.FindTakeTradeLog("华丽金属", 5500)
+				if err != nil || !success {
+					d.logger.Errorf("未找到购买华丽金属的交易记录，购买失败: %v", err)
+					return
 				}
 				d.logger.Infof("购买完成，开始捐献华丽金属...")
 			}
