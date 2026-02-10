@@ -714,7 +714,7 @@ func (d *DailyTask) performEmperiumDonation() {
 				priceList := d.GC.QueryItemPrice(5500, 0)
 				for _, item := range priceList {
 					_, err = d.GC.BuyItem(
-						donate.GetItemcount()-(emperiumItem.GetBase().GetCount()),
+						canDonateCount-(emperiumItem.GetBase().GetCount()),
 						item)
 					if err != nil {
 						d.logger.Errorf("购买华丽金属失败: %v", err)
