@@ -829,6 +829,95 @@ func (d *DailyTask) performPurchaseDaily() {
 	} else {
 		d.logger.Infof("购买每日zeny任务未启用，跳过。")
 	}
+
+	// ===========================
+	// Diamond Shop (Diamonds Shop)
+	// Includes: Diamond -> Zeny, Diamond -> Siegfried's Token (Resurrection)
+	// ===========================
+	if d.GC.Configs.DailyTaskConfig.PurchaseDiamondZeny || d.GC.Configs.DailyTaskConfig.PurchaseResurrection {
+		d.logger.Infof("执行初心币(Diamond)商店购买任务...")
+		shopConfig, err := d.GC.QueryDiamondShopConfig()
+		if err != nil {
+			d.logger.Errorf("查询Diamond商店配置失败: %v", err)
+		} else {
+			shopGo, _ := d.GC.QueryShopGoItem()
+			if shopGo == nil {
+				d.logger.Errorf("查询商店go物品失败，无法执行Diamond商店购买。")
+			} else {
+				for _, good := range shopConfig.GetGoods() {
+					// 1. Purchase Zeny (Item ID: 100)
+					if good.GetItemid() == 100 && d.GC.Configs.DailyTaskConfig.PurchaseDiamondZeny {
+						alreadyBuyCount := uint32(0)
+						for _, i := range shopGo.GetItems() {
+							if i.GetId() == good.GetId() {
+								alreadyBuyCount = i.GetCount()
+								break
+							}
+						}
+						if alreadyBuyCount >= good.GetMaxcount() {
+							d.logger.Infof("今日已买初心币Zeny，数量%d/%d，跳过购买。", alreadyBuyCount, good.GetMaxcount())
+						} else {
+							maxBuy := good.GetMaxcount() - alreadyBuyCount
+							cost := good.GetMoneycount()
+							maxCost := maxBuy * cost
+							curDiamond := d.GC.Role.GetDiamond()
+							buyCount := maxBuy
+							if curDiamond < uint64(maxCost) {
+								buyCount = uint32(curDiamond / uint64(cost))
+								d.logger.Warnf("当前初心币数量不足以购买全部Zeny，最多只能购买%d次，继续购买...", buyCount)
+							}
+							if buyCount > 0 {
+								d.logger.Infof("购买初心币Zeny，数量%d...", buyCount)
+								d.GC.BuyShopItem(good, buyCount)
+							} else {
+								d.logger.Warnf("当前初心币数量不足以购买Zeny，跳过购买。")
+							}
+						}
+					}
+
+					// 2. Purchase Resurrection / Siegfried's Token (Item ID: 80005028)
+					if good.GetItemid() == 80005028 && d.GC.Configs.DailyTaskConfig.PurchaseResurrection {
+						alreadyBuyCount := uint32(0)
+						for _, i := range shopGo.GetItems() {
+							if i.GetId() == good.GetId() {
+								alreadyBuyCount = i.GetCount()
+								break
+							}
+						}
+						// MaxCount logic might be different or 0 for unlimited, assume weekly/daily limit logic applies
+						if alreadyBuyCount >= good.GetMaxcount() && good.GetMaxcount() > 0 {
+							d.logger.Infof("今日已买不死之证，数量%d/%d，跳过购买。", alreadyBuyCount, good.GetMaxcount())
+						} else {
+							maxBuy := uint32(1) // Usually buy 1 or max out allowed
+							if good.GetMaxcount() > 0 {
+								maxBuy = good.GetMaxcount() - alreadyBuyCount
+							}
+
+							cost := good.GetMoneycount()
+							maxCost := maxBuy * cost
+							curDiamond := d.GC.Role.GetDiamond()
+							buyCount := maxBuy
+
+							if curDiamond < uint64(maxCost) {
+								buyCount = uint32(curDiamond / uint64(cost))
+								d.logger.Warnf("当前初心币数量不足以购买全部不死之证，最多只能购买%d次...", buyCount)
+							}
+
+							if buyCount > 0 {
+								d.logger.Infof("购买不死之证，数量%d...", buyCount)
+								d.GC.BuyShopItem(good, buyCount)
+							} else {
+								d.logger.Warnf("当前初心币数量不足以购买不死之证，跳过购买。")
+							}
+						}
+					}
+				}
+			}
+		}
+	} else {
+		d.logger.Infof("初心币(Diamond)商店购买任务未启用，跳过。")
+	}
+
 }
 
 func NewDailyTask(ctx context.Context, gc *gameConnection.GameConnection) *DailyTask {

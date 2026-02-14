@@ -79,6 +79,10 @@ func (g *GameConnection) QueryLotteryShopConfig() (*Cmd.QueryShopConfigCmd, erro
 	return g.QueryShopConfig(gameTypes.ShopType_Lottery, 1)
 }
 
+func (g *GameConnection) QueryDiamondShopConfig() (*Cmd.QueryShopConfigCmd, error) {
+	return g.QueryShopConfig(gameTypes.ShopType_Diamond, 1)
+}
+
 func (g *GameConnection) QueryShopGoItem() (*Cmd.QueryShopGotItem, error) {
 	g.AddNotifier(gameTypes.NtfType_QueryShopGotItem)
 	_ = g.sendProtoCmd(

@@ -33,6 +33,7 @@ type RoleInfo struct {
 	InGame              *bool
 	Silver              *uint64
 	Lottery             *uint64
+	Diamond             *uint64
 	PackItems           map[Cmd.EPackType]map[string]*Cmd.ItemData
 	SkillItems          map[uint32]*Cmd.SkillItem
 	Sequence            *uint32
@@ -372,6 +373,10 @@ func (r *RoleInfo) IsEqualPos(pos Cmd.ScenePos) bool {
 		}
 	}
 	return false
+}
+
+func (r *RoleInfo) GetDiamond() uint64 {
+	return *r.Diamond
 }
 
 type RoleOption func(*RoleInfo)

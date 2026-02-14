@@ -237,6 +237,8 @@ type DailyTaskConfig struct {
 	YunForceContinue          bool   `yaml:"YunForceContinue" json:"YunForceContinue" label:"朱诺任务强制继续(即使已经完成了每日次数)"`
 	PurchaseDailyBag          bool   `yaml:"purchaseDailyBag" json:"purchaseDailyBag" label:"自动购买每日福袋"`
 	PurchaseDailyZeny         bool   `yaml:"purchaseDailyZeny" json:"purchaseDailyZeny" label:"自动购买每日Zeny"`
+	PurchaseResurrection      bool   `yaml:"purchaseResurrection" json:"purchaseResurrection" label:"购买不死之证"`
+	PurchaseDiamondZeny       bool   `yaml:"purchaseDiamondZeny" json:"purchaseDiamondZeny" label:"购买初心币Zeny"`
 }
 
 func (d *DailyTaskConfig) ParseFromInterface(config map[string]interface{}) any {

@@ -521,6 +521,10 @@ func (g *GameConnection) UpdateUserParams(datas []*Cmd.UserData, attrs []*Cmd.Us
 			lottery := data.GetValue()
 			g.Role.Lottery = &lottery
 			g.logger.Infof("%s has %d lottery", g.Role.GetRoleName(), lottery)
+		} else if data.GetType() == Cmd.EUserDataType_EUSERDATATYPE_DIAMOND {
+			diamond := data.GetValue()
+			g.Role.Diamond = &diamond
+			g.logger.Infof("%s has %d diamond", g.Role.GetRoleName(), diamond)
 		}
 		for _, d := range g.Role.UserDatas {
 			if d.GetType() == data.GetType() {
