@@ -58,6 +58,8 @@ func (d *DailyTask) startDailyTasks() {
 		d.performEmperiumDonation()
 	}
 
+	d.performPurchaseDaily()
+
 	if d.GC.Configs.DailyTaskConfig.EnableKanBan {
 		d.logger.Infof("开始执行看板任务...")
 		d.performKanBanTask()
@@ -739,6 +741,93 @@ func (d *DailyTask) performEmperiumDonation() {
 	}
 	if !hasEmperium {
 		d.logger.Infof("当前没有华丽金属可捐献，任务完成。")
+	}
+}
+
+func (d *DailyTask) performPurchaseDaily() {
+	// 每日福袋
+	if d.GC.Configs.DailyTaskConfig.PurchaseDailyBag {
+		d.logger.Infof("购买每日福袋中...")
+		shopConfig, err := d.GC.QueryZenyShopConfig()
+		if err != nil {
+			d.logger.Errorf("查询zeny商店配置失败: %v", err)
+			return
+		}
+	outer:
+		for _, good := range shopConfig.GetGoods() {
+			if good.GetItemid() == 3006828 {
+				shopGo, _ := d.GC.QueryShopGoItem()
+				if shopGo == nil {
+					d.logger.Errorf("查询商店go物品失败，无法购买每日福袋。")
+					break
+				}
+				alreadyBuyCount := uint32(0)
+				for _, i := range shopGo.GetItems() {
+					if i.GetId() == good.GetId() {
+						if i.GetCount() >= good.GetMaxcount() {
+							d.logger.Infof("今日已买每日福袋，数量%d/%d，跳过购买。", i.GetCount(), good.GetMaxcount())
+							break outer
+						}
+						alreadyBuyCount = i.GetCount()
+					}
+				}
+				maxBuy := good.GetMaxcount() - alreadyBuyCount
+				d.logger.Infof("购买每日福袋，数量%d...", maxBuy)
+				d.GC.BuyShopItem(good, maxBuy)
+				break
+			}
+		}
+	} else {
+		d.logger.Infof("购买每日福袋任务未启用，跳过。")
+	}
+
+	// 每日zeny
+	if d.GC.Configs.DailyTaskConfig.PurchaseDailyZeny {
+		d.logger.Infof("购买每日zeny中...")
+		shopConfig, err := d.GC.QueryLotteryShopConfig()
+		if err != nil {
+			d.logger.Errorf("查询zeny商店配置失败: %v", err)
+			return
+		}
+	outer2:
+		for _, good := range shopConfig.GetGoods() {
+			if good.GetItemid() != 100 {
+				continue
+			}
+			shopGo, _ := d.GC.QueryShopGoItem()
+			if shopGo == nil {
+				d.logger.Errorf("查询商店go物品失败，无法购买每日zeny。")
+				break
+			}
+			alreadyBuyCount := uint32(0)
+			for _, i := range shopGo.GetItems() {
+				if i.GetId() == good.GetId() {
+					if i.GetCount() >= good.GetMaxcount() {
+						d.logger.Infof("今日已买每日zeny，数量%d/%d，跳过购买。", i.GetCount(), good.GetMaxcount())
+						break outer2
+					}
+					alreadyBuyCount = i.GetCount()
+				}
+			}
+			maxBuy := good.GetMaxcount() - alreadyBuyCount
+			cost := good.GetMoneycount()
+			maxCost := maxBuy * cost
+			curLottery := d.GC.Role.GetLottery()
+			buyCount := maxBuy
+			if curLottery < uint64(maxCost) {
+				buyCount = uint32(curLottery / uint64(cost))
+				d.logger.Warnf("当前猫币数量不足以购买全部每日zeny，最多只能购买%d次，继续购买...", buyCount)
+				if buyCount <= 0 {
+					d.logger.Warnf("当前猫币数量不足以购买每日zeny，跳过购买。")
+					return
+				}
+			}
+			d.logger.Infof("购买每日zeny，数量%d...", buyCount)
+			d.GC.BuyShopItem(good, buyCount)
+			break
+		}
+	} else {
+		d.logger.Infof("购买每日zeny任务未启用，跳过。")
 	}
 }
 

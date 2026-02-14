@@ -235,6 +235,8 @@ type DailyTaskConfig struct {
 	EnableGuildEmperiumDonate bool   `yaml:"enableGuildEmperiumDonate" json:"enableGuildEmperiumDonate" label:"完成公会华丽金属捐献任务"`
 	YunoTeamLeader            string `yaml:"YunoTeamLeader" json:"YunoTeamLeader" label:"朱诺任务队长名称(自动组队使用)"`
 	YunForceContinue          bool   `yaml:"YunForceContinue" json:"YunForceContinue" label:"朱诺任务强制继续(即使已经完成了每日次数)"`
+	PurchaseDailyBag          bool   `yaml:"purchaseDailyBag" json:"purchaseDailyBag" label:"自动购买每日福袋"`
+	PurchaseDailyZeny         bool   `yaml:"purchaseDailyZeny" json:"purchaseDailyZeny" label:"自动购买每日Zeny"`
 }
 
 func (d *DailyTaskConfig) ParseFromInterface(config map[string]interface{}) any {

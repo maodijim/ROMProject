@@ -36,4 +36,6 @@ const (
 	NtfType_GuildParamQueryPack        NotifierType = "GUILDPARAM_QUERYPACK"
 	NtfType_GuildParamDonateList       NotifierType = "GUILDPARAM_DONATELIST"
 	NtfType_ShopQueryQuickBuyConfig    NotifierType = "SHOPPARAM_QUERY_QUICKBUY_CONFIG"
+	NtfType_QueryShopGotItem           NotifierType = "USER2PARAM_QUERYSHOPGOTITEM"
+	NtfType_UpdateShopGotItem          NotifierType = "USER2PARAM_UPDATESHOPGOTITEM"
 )

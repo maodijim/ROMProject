@@ -9,7 +9,7 @@ import (
 	_ "net/http/pprof"
 )
 
-const _ver = "1.3.5"
+const _ver = "1.3.6"
 
 var configPath = "config.yml"
 

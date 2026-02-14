@@ -130,6 +130,12 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER2_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.User2Param_value["USER2PARAM_QUERYSHOPGOTITEM"]:
+				param = &Cmd.QueryShopGotItem{}
+
+			case Cmd.User2Param_value["USER2PARAM_UPDATESHOPGOTITEM"]:
+				param = &Cmd.UpdateShopGotItem{}
+
 			case Cmd.User2Param_value["USER2PARAM_RELIVE"]:
 				param = &Cmd.ReliveUserCmd{}
 

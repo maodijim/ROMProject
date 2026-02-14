@@ -70,3 +70,25 @@ func (g *GameConnection) QueryQuickBuyShopConfig(itemId uint32, itemid ...uint32
 	}
 	return r.(*Cmd.QueryQuickBuyConfigCmd), nil
 }
+
+func (g *GameConnection) QueryZenyShopConfig() (*Cmd.QueryShopConfigCmd, error) {
+	return g.QueryShopConfig(gameTypes.ShopType_Zeny, 1)
+}
+
+func (g *GameConnection) QueryLotteryShopConfig() (*Cmd.QueryShopConfigCmd, error) {
+	return g.QueryShopConfig(gameTypes.ShopType_Lottery, 1)
+}
+
+func (g *GameConnection) QueryShopGoItem() (*Cmd.QueryShopGotItem, error) {
+	g.AddNotifier(gameTypes.NtfType_QueryShopGotItem)
+	_ = g.sendProtoCmd(
+		&Cmd.QueryShopGotItem{},
+		sceneUser2CmdId,
+		Cmd.User2Param_value["USER2PARAM_QUERYSHOPGOTITEM"],
+	)
+	res, err := g.waitForResponse(gameTypes.NtfType_QueryShopGotItem)
+	if err != nil {
+		return nil, err
+	}
+	return res.(*Cmd.QueryShopGotItem), nil
+}

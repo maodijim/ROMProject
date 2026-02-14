@@ -12,6 +12,16 @@ import (
 
 func (g *GameConnection) HandleSceneUser2ProtoCmd(cmdParamId int32, rawData []byte) (param proto.Message, err error) {
 	switch cmdParamId {
+	case Cmd.User2Param_value["USER2PARAM_QUERYSHOPGOTITEM"]:
+		param = &Cmd.QueryShopGotItem{}
+		err = utils.ParseCmd(rawData, param)
+		g.SendToNotifier(gameTypes.NtfType_QueryShopGotItem, param)
+
+	case Cmd.User2Param_value["USER2PARAM_UPDATESHOPGOTITEM"]:
+		param = &Cmd.UpdateShopGotItem{}
+		err = utils.ParseCmd(rawData, param)
+		g.SendToNotifier(gameTypes.NtfType_UpdateShopGotItem, param)
+
 	case Cmd.User2Param_value["USER2PARAM_SERVERTIME"]:
 		param = &Cmd.ServerTime{}
 		err = utils.ParseCmd(rawData, param)
