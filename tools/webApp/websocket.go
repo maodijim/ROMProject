@@ -101,6 +101,10 @@ func webSocketHandler(w http.ResponseWriter, r *http.Request) {
 
 	// If stream is available, read from it; otherwise poll GetLogs()
 	if stream != nil {
+		// clean up all existing buffered logs in the stream channel before start reading
+		for len(stream) > 0 {
+			<-stream
+		}
 		for {
 			select {
 			case <-quit:
@@ -111,28 +115,6 @@ func webSocketHandler(w http.ResponseWriter, r *http.Request) {
 				}
 				if err := send(map[string]string{"type": "log", "message": line}); err != nil {
 					return
-				}
-			}
-		}
-	} else {
-		// Fallback polling
-		lastLen := len(initialLogs)
-		ticker := time.NewTicker(1 * time.Second)
-		defer ticker.Stop()
-
-		for {
-			select {
-			case <-quit:
-				return
-			case <-ticker.C:
-				logs := task.GetLogs()
-				if len(logs) > lastLen {
-					for _, line := range logs[lastLen:] {
-						if err := send(map[string]string{"type": "log", "message": line}); err != nil {
-							return
-						}
-					}
-					lastLen = len(logs)
 				}
 			}
 		}
