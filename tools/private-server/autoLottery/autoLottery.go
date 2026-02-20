@@ -123,6 +123,7 @@ lotteryLoop:
 			ticketId := uint32(0)
 			if l.GC.Configs.LotteryConfig.UseTickets {
 				ticketId = lotteryInfo.GetInfos()[0].GetSubInfo()[0].GetRecoverItemid()
+				drawCount = 10
 				drawCount = min(drawCount, l.GetTicketCount(*lotteryInfo)/30)
 				if drawCount == 0 {
 					l.logger.Infof("票券不足，无法继续抽奖。")
