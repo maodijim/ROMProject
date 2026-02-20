@@ -126,7 +126,7 @@ lotteryLoop:
 				drawCount = 10
 				drawCount = min(drawCount, l.GetTicketCount(*lotteryInfo)/30)
 				if drawCount == 0 {
-					l.logger.Infof("票券不足，无法继续抽奖。")
+					l.logger.Infof("票券不足/抽奖机不支持用券，无法继续抽奖。")
 					l.Stop()
 					break lotteryLoop
 				}
