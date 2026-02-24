@@ -64,10 +64,12 @@ func (d *DailyTask) startDailyTasks() {
 		d.logger.Infof("开始执行看板任务...")
 		d.performKanBanTask()
 	}
-	if d.GC.Configs.DailyTaskConfig.EnableWasteLandWeed {
-		d.logger.Infof("开始执行荒地除草任务...")
-		d.performWasteLandWeedTask()
-	}
+
+	// if d.GC.Configs.DailyTaskConfig.EnableWasteLandWeed {
+	// 	d.logger.Infof("开始执行荒地除草任务...")
+	// 	d.performWasteLandWeedTask()
+	// }
+
 	if d.GC.Configs.DailyTaskConfig.EnableYuno && d.GC.Role.GetRoleLevel() >= 100 {
 		d.logger.Infof("开始执行朱诺任务...")
 		d.performYunoTask()
@@ -746,16 +748,15 @@ func (d *DailyTask) performEmperiumDonation() {
 
 func (d *DailyTask) performPurchaseDaily() {
 	// 每日福袋
-	if d.GC.Configs.DailyTaskConfig.PurchaseDailyBag {
-		d.logger.Infof("购买每日福袋中...")
+	if d.GC.Configs.DailyTaskConfig.PurchaseDailyBag || d.GC.Configs.DailyTaskConfig.PurchaseWeedPackage {
+		d.logger.Infof("购买每日福袋/卡片礼包中...")
 		shopConfig, err := d.GC.QueryZenyShopConfig()
 		if err != nil {
 			d.logger.Errorf("查询zeny商店配置失败: %v", err)
 			return
 		}
-	outer:
 		for _, good := range shopConfig.GetGoods() {
-			if good.GetItemid() == 3006828 {
+			if good.GetItemid() == 3006828 && d.GC.Configs.DailyTaskConfig.PurchaseDailyBag {
 				shopGo, _ := d.GC.QueryShopGoItem()
 				if shopGo == nil {
 					d.logger.Errorf("查询商店go物品失败，无法购买每日福袋。")
@@ -766,7 +767,7 @@ func (d *DailyTask) performPurchaseDaily() {
 					if i.GetId() == good.GetId() {
 						if i.GetCount() >= good.GetMaxcount() {
 							d.logger.Infof("今日已买每日福袋，数量%d/%d，跳过购买。", i.GetCount(), good.GetMaxcount())
-							break outer
+							break
 						}
 						alreadyBuyCount = i.GetCount()
 					}
@@ -774,11 +775,32 @@ func (d *DailyTask) performPurchaseDaily() {
 				maxBuy := good.GetMaxcount() - alreadyBuyCount
 				d.logger.Infof("购买每日福袋，数量%d...", maxBuy)
 				d.GC.BuyShopItem(good, maxBuy)
-				break
+				continue
+			}
+			if good.GetItemid() == 80030004 && d.GC.Configs.DailyTaskConfig.PurchaseWeedPackage {
+				shopGo, _ := d.GC.QueryShopGoItem()
+				if shopGo == nil {
+					d.logger.Errorf("查询商店go物品失败，无法购买每日除草卡片礼包。")
+					continue
+				}
+				alreadyBuyCount := uint32(0)
+				for _, i := range shopGo.GetItems() {
+					if i.GetId() == good.GetId() {
+						if i.GetCount() >= good.GetMaxcount() {
+							d.logger.Infof("今日已买每日除草卡片礼包，数量%d/%d，跳过购买。", i.GetCount(), good.GetMaxcount())
+							break
+						}
+						alreadyBuyCount = i.GetCount()
+					}
+				}
+				maxBuy := good.GetMaxcount() - alreadyBuyCount
+				d.logger.Infof("购买每日除草卡片礼包，数量%d...", maxBuy)
+				d.GC.BuyShopItem(good, maxBuy)
+				continue
 			}
 		}
 	} else {
-		d.logger.Infof("购买每日福袋任务未启用，跳过。")
+		d.logger.Infof("购买每日福袋/除草卡片礼包任务未启用，跳过。")
 	}
 
 	// 每日zeny

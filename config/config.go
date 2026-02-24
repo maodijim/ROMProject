@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	clientVersion = "1.3.0"
+	clientVersion = "1.3.1"
 )
 
 type EsConfig struct {
@@ -227,9 +227,9 @@ func (l *LotteryConfig) GetDefault() any {
 }
 
 type DailyTaskConfig struct {
-	EnableItemCombine         bool   `yaml:"enableItemCombine" json:"enableItemCombine" label:"自动物品合成(精装卡册的残页, 卡册残页)"`
-	EnableKanBan              bool   `yaml:"enableKanBan" json:"enableKanBan" label:"完成看板任务"`
-	EnableWasteLandWeed       bool   `yaml:"enableWasteLandWeed" json:"enableWasteLandWeed" label:"完成清理荒地杂草"`
+	EnableItemCombine bool `yaml:"enableItemCombine" json:"enableItemCombine" label:"自动物品合成(精装卡册的残页, 卡册残页)"`
+	EnableKanBan      bool `yaml:"enableKanBan" json:"enableKanBan" label:"完成看板任务"`
+	// EnableWasteLandWeed       bool   `yaml:"enableWasteLandWeed" json:"enableWasteLandWeed" label:"完成清理荒地杂草"`
 	EnableCrack               bool   `yaml:"enableCrack" json:"enableCrack" label:"完成裂缝任务"`
 	EnableYuno                bool   `yaml:"enableZhuno" json:"enableZhuno" label:"完成朱诺任务"`
 	EnableGuildEmperiumDonate bool   `yaml:"enableGuildEmperiumDonate" json:"enableGuildEmperiumDonate" label:"完成公会华丽金属捐献任务"`
@@ -239,6 +239,7 @@ type DailyTaskConfig struct {
 	PurchaseDailyZeny         bool   `yaml:"purchaseDailyZeny" json:"purchaseDailyZeny" label:"自动购买每日Zeny"`
 	PurchaseResurrection      bool   `yaml:"purchaseResurrection" json:"purchaseResurrection" label:"购买不死之证"`
 	PurchaseDiamondZeny       bool   `yaml:"purchaseDiamondZeny" json:"purchaseDiamondZeny" label:"购买初心币Zeny"`
+	PurchaseWeedPackage       bool   `yaml:"purchaseWeedPackage" json:"purchaseWeedPackage" label:"购买荒境除草卡片礼包"`
 }
 
 func (d *DailyTaskConfig) ParseFromInterface(config map[string]interface{}) any {
@@ -248,9 +249,9 @@ func (d *DailyTaskConfig) ParseFromInterface(config map[string]interface{}) any 
 
 func (d *DailyTaskConfig) GetDefault() any {
 	return DailyTaskConfig{
-		EnableItemCombine:         true,
-		EnableKanBan:              true,
-		EnableWasteLandWeed:       true,
+		EnableItemCombine: true,
+		EnableKanBan:      true,
+		// EnableWasteLandWeed:       true,
 		EnableCrack:               true,
 		EnableYuno:                true,
 		EnableGuildEmperiumDonate: true,
