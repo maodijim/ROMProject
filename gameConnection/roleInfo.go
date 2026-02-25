@@ -379,6 +379,12 @@ func (r *RoleInfo) GetDiamond() uint64 {
 	return *r.Diamond
 }
 
+func (r *RoleInfo) SetBuff(buff *Cmd.BufferData) {
+	r.Mutex.Lock()
+	defer r.Mutex.Unlock()
+	r.Buffs[buff.GetId()] = buff
+}
+
 type RoleOption func(*RoleInfo)
 
 func RoleTeamOption(teamConfig config.TeamConfig) RoleOption {

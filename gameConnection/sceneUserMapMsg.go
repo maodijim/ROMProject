@@ -15,18 +15,16 @@ func (g *GameConnection) HandleSceneUserMapProtoCmd(cmdParamId int32, rawData []
 		err = utils.ParseCmd(rawData, param)
 		addUsers := param.(*Cmd.AddMapUser)
 		g.Mutex.Lock()
-		g.Role.Mutex.Lock()
 		for _, user := range addUsers.GetUsers() {
 			g.MapUsers[user.GetGuid()] = user
 			if user.GetGuid() == g.Role.GetRoleId() {
 				for _, buff := range user.GetBuffs() {
-					g.Role.Buffs[buff.GetId()] = buff
+					g.Role.SetBuff(buff)
 				}
 				g.UpdateUserParams(user.GetDatas(), user.GetAttrs())
 			}
 		}
 		g.Mutex.Unlock()
-		g.Role.Mutex.Unlock()
 
 	case Cmd.MapParam_value["MAPPARAM_ADDMAPNPC"]:
 		param = &Cmd.AddMapNpc{}
