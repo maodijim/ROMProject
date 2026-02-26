@@ -1356,19 +1356,7 @@ func (g *GameConnection) buyFlyWing() {
 
 func (g *GameConnection) InMap(MapID uint32, CarryTeam bool) {
 	if g.Role.GetMapId() != MapID {
-		if MapID == gameTypes.MapId_LhzDun03.Uint32() {
-			g.GoToMap(gameTypes.MapId_LhzDun01.Uint32())
-			time.Sleep(time.Millisecond * 500)
-			g.MoveChartWait(g.ParsePos(21948, -583, 43399))
-			time.Sleep(time.Millisecond * 500)
-			g.ExitMapPos(gameTypes.MapId_LhzDun01.Uint32(), 2, g.Role.GetPos())
-			time.Sleep(time.Millisecond * 500)
-			// g.EnableGodMode()
-			g.MoveChartWait(g.ParsePos(-14088, 357, -56505))
-			time.Sleep(time.Millisecond * 500)
-			g.ExitMapPos(gameTypes.MapId_LhzDun02.Uint32(), 3, g.Role.GetPos())
-			time.Sleep(time.Millisecond * 500)
-		} else if MapID == gameTypes.MapId_LhzDun02.Uint32() {
+		if MapID == gameTypes.MapId_LhzDun02.Uint32() {
 			g.GoToMap(gameTypes.MapId_LhzDun01.Uint32())
 			time.Sleep(time.Millisecond * 500)
 			g.MoveChartWait(g.ParsePos(21948, -583, 43399))

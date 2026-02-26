@@ -554,6 +554,8 @@ func (g *GameConnection) UpdateUserParams(datas []*Cmd.UserData, attrs []*Cmd.Us
 			time.Sleep(time.Millisecond * 2500)
 			g.logger.Warnf("%s has 0 HP, character dead, reliving", g.Role.GetRoleName())
 			g.Relive()
+			// manually remove DraculaBuff
+			g.Role.DeleteBuffById(51551)
 		}
 	}
 }

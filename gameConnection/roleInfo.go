@@ -293,6 +293,12 @@ func (r *RoleInfo) GetBuffById(buffId uint32) *Cmd.BufferData {
 	return nil
 }
 
+func (r *RoleInfo) DeleteBuffById(buffId uint32) {
+	r.Mutex.Lock()
+	defer r.Mutex.Unlock()
+	delete(r.Buffs, buffId)
+}
+
 func (r *RoleInfo) GetAuthConfirm() bool {
 	if r.AuthConfirm != nil {
 		return *r.AuthConfirm

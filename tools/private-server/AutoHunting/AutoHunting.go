@@ -89,6 +89,8 @@ func (b *HuntTask) StartHunt() {
 			select {
 			case <-ctx.Done():
 				b.logger.Info("停止自动狩猎任务监控协程1")
+				ticker.Stop()
+				ticker2.Stop()
 				return
 			case <-ticker.C:
 				if targetId != 0 && b.GC.AtkStat.GetCurrentTargetId() == targetId && time.Since(b.lastPosUpdate) > time.Second*10 {
@@ -124,6 +126,8 @@ func (b *HuntTask) StartHunt() {
 			select {
 			case <-ctx.Done():
 				b.logger.Info("停止自动狩猎任务恢复协程")
+				ticker3.Stop()
+				ticker4.Stop()
 				return
 			case <-ticker4.C:
 				if b.GC.Configs.HuntConfig.HuntMonsterConfig.CheckDraculaBuff {
