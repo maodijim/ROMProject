@@ -59,9 +59,13 @@ const (
 	MapId_Lasagna               MapId = 91
 	MapId_DoradoIsland          MapId = 92
 	MapId_RavioliForest         MapId = 93
+	MapId_WhitebaitLake         MapId = 98
 	MapId_Luoyang               MapId = 99
 	MapId_SunsetBeach           MapId = 101
 	MapId_Wasteland             MapId = 102
+	MapId_MoonlitCave           MapId = 103
+	MapId_FrostDomain           MapId = 104
+	MapId_MapleLeafFaramita     MapId = 105
 	MapId_MoonLake              MapId = 106
 	MapId_Eclage                MapId = 109
 	MapId_TimeGarden            MapId = 110
@@ -141,9 +145,11 @@ var MapNameZh = map[string]MapId{
 	"拉維奧利森林":    MapId_RavioliForest,
 	"洛阳":        MapId_Luoyang,
 	"夕阳海岸":      MapId_SunsetBeach,
+	"落日浅滩":      MapId_SunsetBeach,
 	"荒境":        MapId_Wasteland,
 	"月之湖":       MapId_MoonLake,
 	"伊克莱基":      MapId_Eclage,
+	"艾卡拉奇":      MapId_Eclage,
 	"时间花园":      MapId_TimeGarden,
 	"克雷普特学院":    MapId_CrypturaAcademy,
 	"星泪森林":      MapId_StarTearsForest,
@@ -157,6 +163,10 @@ var MapNameZh = map[string]MapId{
 	"古城之泪":      MapId_TearsoftheAncientCity,
 	"副本·极限挑战":   MapId_ScJfzc001,
 	"深渊之湖":      MapId_AbyssalLake,
+	"银鱼湖底":      MapId_WhitebaitLake,
+	"月光岩洞":      MapId_MoonlitCave,
+	"冰霜领域":      MapId_FrostDomain,
+	"枫叶彼岸":      MapId_MapleLeafFaramita,
 
 	// 特殊地图
 	"高级房间":  MapId_RoomAdvanced,

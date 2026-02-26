@@ -91,12 +91,13 @@ type HuntBossConfig struct {
 	HMVP         []string `yaml:"HMVP" json:"HMVP" label:"HMVP狩猎清单"`
 }
 type HuntMonsterConfig struct {
-	UseDoubleEXP   bool     `yaml:"UseDoubleEXP" json:"UseDoubleEXP" label:"使用洋洋"`
-	TimerFly       int      `yaml:"TimerFly" json:"TimerFly" label:"固定时间使用翅膀(0为不使用)"`
-	TargetMonsters []string `yaml:"TargetMonsters" json:"TargetMonsters" label:"狩猎魔物清单，设置all自动全部狩猎"`
-	TargetItems    []string `yaml:"TargetItems" json:"TargetItems" label:"狩猎物品清单"`
-	Map            string   `yaml:"Map" json:"Map" label:"狩猎地图"`
-	NatureType     string   `yaml:"NatureType" json:"NatureType" label:"使用属性类型"`
+	UseDoubleEXP     bool     `yaml:"UseDoubleEXP" json:"UseDoubleEXP" label:"使用洋洋"`
+	CheckDraculaBuff bool     `yaml:"UseDraculaBuff" json:"UseDraculaBuff" label:"自动换德古拉卡片"`
+	TimerFly         int      `yaml:"TimerFly" json:"TimerFly" label:"固定时间使用翅膀(0为不使用)"`
+	TargetMonsters   []string `yaml:"TargetMonsters" json:"TargetMonsters" label:"狩猎魔物清单，设置all自动全部狩猎"`
+	TargetItems      []string `yaml:"TargetItems" json:"TargetItems" label:"狩猎物品清单"`
+	Map              string   `yaml:"Map" json:"Map" label:"狩猎地图"`
+	NatureType       string   `yaml:"NatureType" json:"NatureType" label:"使用属性类型"`
 }
 type HuntConfig struct {
 	PrepEliteCD       int                `yaml:"PrepEliteCD" json:"PrepEliteCD" label:"备战精英技能冷却时间(秒)"`

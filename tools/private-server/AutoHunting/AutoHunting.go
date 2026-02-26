@@ -116,15 +116,19 @@ func (b *HuntTask) StartHunt() {
 	}()
 
 	b.GC.InMap(gameTypes.MapNameZh[b.GC.Configs.HuntConfig.HuntMonsterConfig.Map].Uint32(), false)
-	b.GC.CheckDraculaBuff()
 
 	ticker3 := time.NewTicker(time.Second * 2)
+	ticker4 := time.NewTicker(time.Second * 5)
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
 				b.logger.Info("停止自动狩猎任务恢复协程")
 				return
+			case <-ticker4.C:
+				if b.GC.Configs.HuntConfig.HuntMonsterConfig.CheckDraculaBuff {
+					b.GC.CheckDraculaBuff()
+				}
 			case <-ticker3.C:
 				hpPer := b.GC.GetHpPer()
 				if hpPer < 0.3 {
