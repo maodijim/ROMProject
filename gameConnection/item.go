@@ -224,7 +224,7 @@ func (g *GameConnection) UseYggdrasilBerry() {
 		g.logger.Warnf("Yggdrasil Berry not found")
 		return
 	}
-	cdTime := time.UnixMilli(int64(item.GetBase().GetCd() - fixedItemCDSubtract))
+	cdTime := time.UnixMilli(int64(item.GetBase().GetCd()) - fixedItemCDSubtract)
 	if time.Since(cdTime) < 0 {
 		g.logger.Warnf("Yggdrasil Berry is in cooldown next use time: %v", cdTime)
 		return
@@ -239,7 +239,7 @@ func (g *GameConnection) UseHoney() {
 		g.logger.Warnf("Honey not found")
 		return
 	}
-	cdTime := time.UnixMilli(int64(item.GetBase().GetCd() - fixedItemCDSubtract))
+	cdTime := time.UnixMilli(int64(item.GetBase().GetCd()) - fixedItemCDSubtract)
 	if time.Since(cdTime) < 0 {
 		g.logger.Warnf("Honey is in cooldown next use time: %v", cdTime)
 		return

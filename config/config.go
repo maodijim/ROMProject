@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	clientVersion = "1.3.1"
+	clientVersion = "1.3.2"
 )
 
 type EsConfig struct {

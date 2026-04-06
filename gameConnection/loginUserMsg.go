@@ -53,9 +53,18 @@ func (g *GameConnection) HandleLoginUserCmd(cmdParamId int32, rawData []byte) (p
 		if g.IsTCPConnected() {
 			g.SendServerTimeUserCmd(0)
 		}
-		newSkillCdSub := param.(*Cmd.ServerTimeUserCmd).GetTime() - uint64(time.Now().UnixMilli())
-		fixedSkillCDSubtract = newSkillCdSub
-		fixedItemCDSubtract = newSkillCdSub
+		timeNowMilli := time.Now().UnixMilli()
+		newSkillCdSub := uint64(0)
+		if timeNowMilli > int64(param.(*Cmd.ServerTimeUserCmd).GetTime()) {
+			log.Warnf("local time is ahead of server time by %d seconds, please check your system clock", (timeNowMilli-int64(param.(*Cmd.ServerTimeUserCmd).GetTime()))/1000)
+			newSkillCdSub = uint64(timeNowMilli) - param.(*Cmd.ServerTimeUserCmd).GetTime()
+			fixedSkillCDSubtract = int64(newSkillCdSub) * -1
+			fixedItemCDSubtract = int64(param.(*Cmd.ServerTimeUserCmd).GetTime()) * -1
+		} else {
+			newSkillCdSub = param.(*Cmd.ServerTimeUserCmd).GetTime() - uint64(timeNowMilli)
+			fixedSkillCDSubtract = int64(newSkillCdSub)
+			fixedItemCDSubtract = int64(newSkillCdSub)
+		}
 
 	case Cmd.LoginCmdParam_value["CONFIRM_AUTHORIZE_USER_CMD"]:
 		param = &Cmd.ConfirmAuthorizeUserCmd{}

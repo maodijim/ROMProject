@@ -36,8 +36,8 @@ type authJson struct {
 
 var (
 	cmdQueueInterval     = 75 * time.Millisecond
-	fixedItemCDSubtract  = uint64(40000) // in milliseconds
-	fixedSkillCDSubtract = uint64(50000) // in milliseconds
+	fixedItemCDSubtract  = int64(40000) // in milliseconds
+	fixedSkillCDSubtract = int64(50000) // in milliseconds
 	TradeProtoCmdId      = Cmd.Command_value["RECORD_USER_TRADE_PROTOCMD"]
 	LogInUserProtoCmdId  = Cmd.Command_value["LOGIN_USER_PROTOCMD"]
 )
@@ -120,7 +120,7 @@ type GameConnection struct {
 	reconnecting       bool
 }
 
-func (g *GameConnection) GetServerTimeDelayMilli() uint64 {
+func (g *GameConnection) GetServerTimeDelayMilli() int64 {
 	return fixedSkillCDSubtract
 }
 
