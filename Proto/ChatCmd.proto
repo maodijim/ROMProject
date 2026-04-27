@@ -1,0 +1,344 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+import "SceneItem.proto";
+import "SceneUser.proto";
+import "SceneUser2.proto";
+import "Tutor.proto";
+import "WeddingCCmd.proto";
+
+enum ChatParam
+{
+  CHATPARAM_QUERYITEMDATA = 1;
+  CHATPARAM_PLAYEXPRESSION = 2;
+  CHATPARAM_QUERYUSERINFO = 3;
+  CHATPARAM_BARRAGE = 4;
+  CHATPARAM_BARRAGEMSG = 5;
+  CHATPARAM_CHAT = 6;
+  CHATPARAM_CHAT_RET = 7;
+  CHATPARAM_QUERY_VOICE = 8;
+  CHATPARAM_GET_VOICEID = 10;
+  CHATPARAM_LOVE_LETTER = 11;
+  CHATPARAM_CHAT_SELF = 12;
+  CHATPARAM_NPC_CHAT_NTF = 13;
+  CHATPARAM_QUERY_REALTIME_VOICE_ID = 14;
+}
+
+// offline msg
+enum EOfflineMsg
+{
+  EOFFLINEMSG_MIN = 0;
+  EOFFLINEMSG_USER = 1;
+  EOFFLINEMSG_TRADE = 2;
+  EOFFLINEMSG_GM = 3;     //离线GM命令
+  EOFFLINEMSG_SYS = 4;
+  EOFFLINEMSG_SYS2 = 5;
+  EOFFLINEMSG_ADD_RELATION = 6;
+  EOFFLINEMSG_REMOVE_RELATION = 7;
+  EOFFLINEMSG_ADD_ITEM = 8;
+  //EOFFLINEMSG_REMOVE_FOCUS = 8;
+  EOFFLINEMSG_TUTOR_REWARD = 9;
+  EOFFLINEMSG_USER_ADD_ITEM = 10;
+  EOFFLINEMSG_WEDDING = 11;         //婚礼相关的离线
+  EOFFLINEMSG_USER_QUOTA = 12;           //额度相关的离线
+  EOFFLINEMSG_MAX = 13;
+}
+
+message OfflineMsg
+{
+  optional uint64 targetid = 1 [ default = 0 ];
+  optional uint64 senderid = 2 [ default = 0 ];
+
+  optional uint32 time = 3 [ default = 0 ];
+
+  optional EOfflineMsg type = 4 [ default = EOFFLINEMSG_MIN ];
+  optional string sendername = 5;
+
+  // user
+  optional ChatRetCmd chat = 19;
+
+  // trade
+  optional uint32 itemid = 11 [ default = 0 ];
+  optional uint32 price = 12 [ default = 0 ];
+  optional uint32 count = 13 [ default = 0 ];
+  optional uint32 givemoney = 14 [ default = 0 ];
+  optional EMoneyType moneytype = 15 [ default = EMONEYTYPE_MIN ];
+
+  // sys
+  optional string sysstr = 20;
+
+  //gm
+  optional string gmcmd = 16;
+  optional uint64 id = 17 [default = 0];
+  optional string msg = 18;
+
+  // additem
+  optional ItemData itemdata = 22;
+
+  // sys msg
+  optional SysMsg syscmd = 21;
+
+  // tutor reward
+  optional TutorReward tutorreward = 23;
+
+  // user add item
+  optional OffMsgUserAddItem useradditem = 24;
+  optional WeddingEventMsgCCmd weddingmsg = 25;
+  optional OffMsgUserQuotaData quotadata= 26;
+}
+
+enum EUserAddItemType
+{
+  EUSERADDITEMTYPE_MIN = 0;
+  EUSERADDITEMTYPE_GUILD_DONATE = 1;
+}
+
+message OffMsgUserAddItem
+{
+  optional EUserAddItemType type = 1 [ default = EUSERADDITEMTYPE_MIN ];
+  repeated ItemInfo items = 2;
+}
+
+enum EUserQuotaOper
+{
+  EUSERQUOTAOPER_MIN = 0;
+  EUSERQUOTAOPER_UNLOCK = 1;
+  EUSERQUOTAOPER_UNLOCK_SUB = 2;
+  EUSERQUOTAOPER_MAX = 3;
+}
+
+message OffMsgUserQuotaData
+{
+  optional uint64 quota = 1 [ default = 0 ];
+  optional EUserQuotaOper oper = 2 [ default = EUSERQUOTAOPER_MIN ];
+  optional EQuotaType type = 3 [ default = EQuotaType_U_Give_Trade ];
+}
+
+// client -> session : query item data
+message QueryItemData
+{
+  optional Command cmd = 1 [ default = CHAT_PROTOCMD ];
+  optional ChatParam param = 2 [ default = CHATPARAM_QUERYITEMDATA ];
+
+  optional string guid = 3;
+
+  // ret
+  optional ItemData data = 4;
+}
+
+// session -> client : play expression
+message PlayExpressionChatCmd
+{
+  optional Command cmd = 1 [ default = CHAT_PROTOCMD ];
+  optional ChatParam param = 2 [ default = CHATPARAM_PLAYEXPRESSION ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 expressionid = 4 [ default = 0 ];
+}
+
+// session <-> client : query user info
+message QueryUserInfo
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint64 guildid = 2 [ default = 0 ];
+
+  optional string name = 3;
+  optional string guildname = 4;
+  optional string guildportrait = 5;
+  optional string guildjob = 6;
+
+  repeated UserData datas = 7;
+  repeated UserAttr attrs = 8;
+  repeated ItemData equip = 9;
+  repeated ItemData fashion = 12;
+  repeated HighRefineData highrefine = 10;
+  optional string partner = 11;
+}
+enum EUserInfoType
+{
+  EUSERINFOTYPE_CHAT = 0;
+  EUSERINFOTYPE_WEDDING = 1;
+}
+message QueryUserInfoChatCmd
+{
+  optional Command cmd = 1 [ default = CHAT_PROTOCMD ];
+  optional ChatParam param = 2 [ default = CHATPARAM_QUERYUSERINFO ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 msgid = 4 [ default = 0 ];
+  optional EUserInfoType type = 6 [ default = EUSERINFOTYPE_CHAT ];
+  // ret
+  optional QueryUserInfo info = 5;
+}
+
+// client -> scene : barrage
+enum EBarrageOpt
+{
+  EBARRAGE_OPEN = 1;
+  EBARRAGE_CLOSE = 2;
+}
+message BarrageChatCmd
+{
+  optional Command cmd = 1 [ default = CHAT_PROTOCMD ];
+  optional ChatParam param = 2 [ default = CHATPARAM_BARRAGE ];
+
+  optional EBarrageOpt opt = 3 [ default = EBARRAGE_CLOSE ];
+}
+
+// client <-> scene : barrage msg
+message ColorInfo
+{
+  optional uint32 r = 1 [ default = 255 ];
+  optional uint32 g = 2 [ default = 255 ];
+  optional uint32 b = 3 [ default = 255 ];
+}
+message BarrageMsgChatCmd
+{
+  optional Command cmd = 1 [ default = CHAT_PROTOCMD ];
+  optional ChatParam param = 2 [ default = CHATPARAM_BARRAGEMSG ];
+
+  optional string str = 3;
+  optional ScenePos msgpos = 4;
+  optional ColorInfo clr = 5;
+  optional uint32 speed = 6 [ default = 0 ];
+}
+
+// chat message
+enum EGameChatChannel
+{
+  ECHAT_CHANNEL_MIN = 0;
+  ECHAT_CHANNEL_ROUND = 1;
+  ECHAT_CHANNEL_TEAM = 2;
+  ECHAT_CHANNEL_GUILD = 3;
+  ECHAT_CHANNEL_FRIEND = 4;
+  ECHAT_CHANNEL_WORLD = 5;
+  ECHAT_CHANNEL_MAP = 6;
+  ECHAT_CHANNEL_SYS = 7;
+  ECHAT_CHANNEL_ROOM = 8;
+  ECHAT_CHANNEL_BARRAGE = 9;
+  ECHAT_CHANNEL_CHAT = 10;
+  ECHAT_CHANNEL_MAX = 11;
+}
+// client -> server : chat message
+message ChatCmd
+{
+  optional Command cmd = 1 [ default = CHAT_PROTOCMD ];
+  optional ChatParam param = 2 [ default = CHATPARAM_CHAT ];
+
+  optional EGameChatChannel channel = 3 [ default = ECHAT_CHANNEL_ROUND ];
+  required string str = 4;
+  optional uint64 desID = 5;
+  optional bytes voice = 6;
+  optional uint32 voicetime = 7 [ default = 0 ];
+  optional uint32 msgid = 8 [ default = 0 ];
+  optional bool msgover = 9 [ default = false ];
+}
+
+// server -> client : chat message
+message ChatRetCmd
+{
+  optional Command cmd = 1 [ default = CHAT_PROTOCMD ];
+  optional ChatParam param = 2 [ default = CHATPARAM_CHAT_RET ];
+
+  required uint64 id = 6;
+  optional uint64 targetid = 13 [ default = 0 ];
+
+  required uint32 portrait = 7;
+  required uint32 frame = 8;
+  optional uint32 baselevel = 10 [ default = 0 ];
+  optional uint32 voiceid = 11 [ default = 0 ];
+  optional uint32 voicetime = 12 [ default = 0 ];
+  optional uint32 hair = 14 [ default = 0 ];
+  optional uint32 haircolor = 15 [ default = 0 ];
+  optional uint32 body = 16 [ default = 0 ];
+  optional uint32 appellation = 19 [ default = 0 ];
+  optional uint32 msgid = 21 [ default = 0 ];
+  optional uint32 head = 22 [ default = 0 ];
+  optional uint32 face = 23 [ default = 0 ];
+  optional uint32 mouth = 24 [ default = 0 ];
+  optional uint32 eye = 25 [ default = 0 ];
+
+  optional EGameChatChannel channel = 3 [ default = ECHAT_CHANNEL_ROUND ];
+  optional EProfession rolejob = 9 [ default = EPROFESSION_MIN ];
+  optional EGender gender = 17 [ default = EGENDER_MIN ];
+
+  optional bool blink = 20 [ default = false ];
+
+  required string str = 4;
+  required string name = 5;
+  optional string guildname = 18;
+
+  // 释放技能时候发的msgid
+  optional uint32 sysmsgid = 26 [ default = 0 ];
+}
+
+// client -> scene : query voice
+message QueryVoiceUserCmd
+{
+  optional Command cmd = 1 [ default = CHAT_PROTOCMD ];
+  optional ChatParam param = 2 [ default = CHATPARAM_QUERY_VOICE ];
+
+  optional uint32 voiceid = 3 [ default = 0 ];
+  optional bytes voice = 4;
+
+  optional uint32 msgid = 8 [ default = 0 ];
+  optional bool msgover = 9 [ default = false ];
+}
+
+// client <-> scene : get voice id
+message GetVoiceIDChatCmd
+{
+  optional Command cmd = 1 [ default = CHAT_PROTOCMD ];
+  optional ChatParam param = 2 [ default = CHATPARAM_GET_VOICEID ];
+
+  optional uint32 id = 3 [ default = 0 ];
+}
+
+// scene -> client : love letter ntf
+message LoveLetterNtf
+{
+  optional Command cmd = 1 [ default = CHAT_PROTOCMD ];
+  optional ChatParam param = 2 [ default = CHATPARAM_LOVE_LETTER ];
+
+  optional string name = 3;
+  optional string content = 4;
+  optional uint32 type = 5;
+  optional string bg = 6;
+  optional uint32 letterID = 7 [ default = 0 ];  //信封唯一ID
+  optional uint32 configID = 8 [ default = 0 ]; //配置ID
+  optional string content2 = 9;
+}
+
+// gate -> scene
+message ChatSelfNtf
+{
+  optional Command cmd = 1 [ default = CHAT_PROTOCMD ];
+  optional ChatParam param = 2 [ default = CHATPARAM_CHAT_SELF ];
+
+  optional ChatCmd chat = 3;
+}
+
+// server -> client : npc发聊天消息 (npcid 必须设置, npcguid可以设置)
+message NpcChatNtf
+{
+  optional Command cmd = 1 [ default = CHAT_PROTOCMD ];
+  optional ChatParam param = 2 [ default = CHATPARAM_NPC_CHAT_NTF ];
+
+  optional EGameChatChannel channel = 3 [ default = ECHAT_CHANNEL_MIN ];
+  optional uint32 npcid = 4 [ default = 0 ];
+  optional uint32 msgid = 5 [ default = 0 ];
+  repeated MsgParam params = 6;
+  optional string msg = 7;
+  optional uint64 npcguid = 8 [ default = 0 ];
+}
+
+message QueryRealtimeVoiceIDCmd
+{
+  optional Command cmd = 1 [ default = CHAT_PROTOCMD ];
+  optional ChatParam param = 2 [ default = CHATPARAM_QUERY_REALTIME_VOICE_ID ];
+
+  optional EGameChatChannel channel = 3 [ default = ECHAT_CHANNEL_MIN ];
+  optional string id = 4; // 实时聊天房间id
+}
+

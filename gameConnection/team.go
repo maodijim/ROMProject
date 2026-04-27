@@ -1,11 +1,16 @@
 package gameConnection
 
 import (
-	Cmd "ROMProject/Cmds"
 	"fmt"
-	log "github.com/sirupsen/logrus"
+	"strconv"
 	"strings"
 	"time"
+
+	Cmd "ROMProject/Cmds"
+	"ROMProject/config"
+	gameTypes "ROMProject/gameConnection/types"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -62,6 +67,7 @@ func (g *GameConnection) GetCurrentTeamName() (teamName string) {
 func (g *GameConnection) removeTeamMember(userId uint64) {
 	deleteIndex := -1
 	if g.Role.TeamData != nil {
+		g.Role.Mutex.Lock()
 		for i, member := range g.Role.TeamData.GetMembers() {
 			if member.GetGuid() == userId {
 				deleteIndex = i
@@ -70,6 +76,7 @@ func (g *GameConnection) removeTeamMember(userId uint64) {
 		if deleteIndex > -1 {
 			g.Role.TeamData.Members = append(g.Role.TeamData.Members[:deleteIndex], g.Role.TeamData.Members[deleteIndex+1:]...)
 		}
+		g.Role.Mutex.Unlock()
 	}
 }
 
@@ -85,6 +92,7 @@ func (g *GameConnection) updateTeamMember(member *Cmd.TeamMember) {
 
 func (g *GameConnection) updateTeamMemberDatas(newDatas *Cmd.MemberDataUpdate) {
 	if g.Role.TeamData != nil {
+		g.Role.Mutex.Lock()
 		for _, m := range g.Role.TeamData.GetMembers() {
 			if m.GetGuid() == newDatas.GetId() {
 				for _, dNew := range newDatas.GetMembers() {
@@ -102,6 +110,7 @@ func (g *GameConnection) updateTeamMemberDatas(newDatas *Cmd.MemberDataUpdate) {
 				}
 			}
 		}
+		g.Role.Mutex.Unlock()
 	} else {
 		g.Role.TeamData = &Cmd.TeamData{}
 		g.updateTeamMemberDatas(newDatas)
@@ -110,7 +119,9 @@ func (g *GameConnection) updateTeamMemberDatas(newDatas *Cmd.MemberDataUpdate) {
 
 func (g *GameConnection) addTeamMember(member *Cmd.TeamMember) {
 	if g.Role.TeamData != nil {
+		g.Role.Mutex.Lock()
 		g.Role.TeamData.Members = append(g.Role.TeamData.Members, member)
+		g.Role.Mutex.Unlock()
 	}
 }
 
@@ -128,6 +139,18 @@ func (*GameConnection) IsMemberOnline(member *Cmd.TeamMember) bool {
 		}
 	}
 	return false
+}
+
+func (g *GameConnection) AllMemberOffline() bool {
+	for _, member := range g.Role.TeamData.GetMembers() {
+		if member.GetGuid() == g.Role.GetRoleId() || strings.HasPrefix(strconv.FormatUint(member.GetGuid(), 10), strconv.FormatUint(g.Role.GetRoleId(), 10)) {
+			continue
+		}
+		if g.IsMemberOnline(member) {
+			return false
+		}
+	}
+	return true
 }
 
 func (g *GameConnection) AcceptTeamInvite(userGuid *uint64) {
@@ -266,7 +289,7 @@ func (g *GameConnection) CreateTeam(teamType uint32) {
 		if teamType == 0 {
 			teamType = DefaultTeamType
 		}
-		desc := "自由队伍"
+		// desc := "自由队伍"
 		teamName := fmt.Sprintf("%s_的队伍", g.Role.GetRoleName())
 		accept := Cmd.EAutoType_EAUTOTYPE_GUILDFRIEND
 		cmd := &Cmd.CreateTeam{
@@ -275,7 +298,7 @@ func (g *GameConnection) CreateTeam(teamType uint32) {
 			Type:       &teamType,
 			Autoaccept: &accept,
 			Name:       &teamName,
-			Desc:       &desc,
+			// Desc:       &desc,
 		}
 		g.sendProtoCmd(cmd,
 			TeamProtoCmdId,
@@ -288,12 +311,12 @@ func (g *GameConnection) QueryTeamInfo(charId uint64) (teamInfo *Cmd.QueryUserTe
 	cmd := &Cmd.QueryUserTeamInfoTeamCmd{
 		Charid: &charId,
 	}
-	g.addNotifier("TEAMPARAM_QUERYUSERTEAMINFO")
-	g.sendProtoCmd(cmd,
+	g.AddNotifier(gameTypes.NtfType_TeamParamQueryUserTeamInfo)
+	_ = g.sendProtoCmd(cmd,
 		TeamProtoCmdId,
 		Cmd.TeamParam_value["TEAMPARAM_QUERYUSERTEAMINFO"],
 	)
-	res, err := g.waitForResponse("TEAMPARAM_QUERYUSERTEAMINFO")
+	res, err := g.waitForResponse(gameTypes.NtfType_TeamParamQueryUserTeamInfo)
 	if err != nil {
 		log.Errorf("failed to query team info: %s", err)
 	}
@@ -313,24 +336,44 @@ func (g *GameConnection) TeamMemberApply(guid uint64) {
 	)
 }
 
-func (g *GameConnection) AutoCreateJoinTeam(leaderName string) {
-	if g.Role.TeamData != nil || leaderName == "" {
+func (g *GameConnection) AutoCreateJoinTeam(teamConfig config.TeamConfig) {
+	if teamConfig.GetLeaderName() == "" && *teamConfig.GetLeaderId() == 0 {
 		return
 	}
-	if strings.Contains(g.Role.GetRoleName(), leaderName) {
+	var userSocData *Cmd.SocialData
+	if teamConfig.GetLeaderName() != "" && strings.Contains(g.Role.GetRoleName(), teamConfig.GetLeaderName()) {
 		log.Infof("创建新队伍")
 		g.CreateTeam(DefaultTeamType)
 	} else {
 		time.Sleep(3 * time.Second)
-		log.Infof("尝试加入%s队伍", leaderName)
-		res, _ := g.FindUser(leaderName)
-		if len(res.GetDatas()) > 0 {
-			d := res.GetDatas()[0]
-			teamInfo := g.QueryTeamInfo(d.GetGuid())
-			time.Sleep(time.Second)
-			g.TeamMemberApply(teamInfo.GetTeamid())
+		if teamConfig.GetLeaderName() != "" {
+			res, _ := g.FindUser(teamConfig.GetLeaderName())
+			if len(res.GetDatas()) > 0 {
+				userSocData = res.GetDatas()[0]
+				log.Infof("尝试加入%s队伍", teamConfig.GetLeaderName())
+			} else {
+				log.Warnf("user %s not found", teamConfig.GetLeaderName())
+				if *teamConfig.GetLeaderId() != 0 {
+					log.Infof("尝试加入用户ID %d队伍", *teamConfig.GetLeaderId())
+					userSocData = &Cmd.SocialData{
+						Guid: teamConfig.GetLeaderId(),
+					}
+				}
+			}
 		} else {
-			log.Warnf("user %s not found", leaderName)
+			if *teamConfig.GetLeaderId() != 0 {
+				log.Infof("尝试加入用户ID %d队伍", *teamConfig.GetLeaderId())
+				userSocData = &Cmd.SocialData{
+					Guid: teamConfig.GetLeaderId(),
+				}
+			} else {
+				log.Warnf("no leader name or id")
+				return
+			}
 		}
+		teamInfo := g.QueryTeamInfo(userSocData.GetGuid())
+		time.Sleep(2 * time.Second)
+		g.TeamMemberApply(teamInfo.GetTeamid())
+
 	}
 }

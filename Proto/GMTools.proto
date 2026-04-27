@@ -1,0 +1,71 @@
+package Cmd;
+
+import "xCmd.proto";
+
+enum GMToolsParam
+{
+  EXEC_GM_CMD = 1;
+  RET_EXEC_GM_CMD = 2;
+  SESSION_GM_CMD = 3;
+}
+
+enum GMToolsAct
+{
+  null = 0;
+//  get_player_info = 1;
+  gag_player = 2;
+  lock_player = 3;
+  lock_account = 4;
+  send_props = 5;
+  send_compensation = 6;
+  send_message = 7;
+  send_notice = 8;
+  set_welfare_player = 9;
+  exec_gm_cmd_player = 10;
+  send_mail = 11;
+  charge = 12;
+  load_config = 13;
+  check_charge = 14;
+  move_guild = 15;
+  use_code = 16;
+  trade_security_cmd = 17;
+  modify_auction_time = 18;
+  stop_auction = 19;  
+  verify_guildicon = 20;
+  clear_mail_template = 21;
+}
+
+// tools => gate
+message ExecGMCmd
+{
+  optional Command cmd = 1 [ default = GMTOOLS_PROTOCMD ];
+  optional GMToolsParam param = 2 [ default = EXEC_GM_CMD ];
+
+  optional GMToolsAct act = 3 [ default = null ];
+  optional string data = 4;
+  optional string sign = 5;
+  optional uint32 time = 6 [ default = 0 ];
+  optional uint32 serverid = 7 [ default = 0 ];
+  optional uint64 conid = 8;
+}
+
+// tools <= gate
+message RetExecGMCmd
+{
+  optional Command cmd = 1 [ default = GMTOOLS_PROTOCMD ];
+  optional GMToolsParam param = 2 [ default = RET_EXEC_GM_CMD ];
+
+  optional string ret = 3;
+  optional string data = 4;
+  optional uint64 conid = 5;
+}
+
+message SessionGMCmd
+{
+  optional Command cmd = 1 [ default = GMTOOLS_PROTOCMD ];
+  optional GMToolsParam param = 2 [ default = SESSION_GM_CMD ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 mapid = 4 [ default = 0 ];
+  optional string data = 5;
+}

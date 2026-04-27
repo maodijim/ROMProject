@@ -1,0 +1,582 @@
+package Cmd;
+
+import "xCmd.proto";
+import "SceneItem.proto";
+import "ProtoCommon.proto";
+
+enum QuestParam
+{
+  QUESTPARAM_QUESTLIST = 1;
+  QUESTPARAM_QUESTUPDATE = 2;
+  QUESTPARAM_QUESTACTION = 3;
+  QUESTPARAM_RUNQUESTSTEP = 4;
+  QUESTPARAM_QUESTSTEPUPDATE = 5;
+  QUESTPARAM_QUESTTRACE = 6;
+  QUESTPARAM_QUESTDETAILLIST = 7;
+  QUESTPARAM_QUESTDETAILUPDATE = 8;
+  QUESTPARAM_QUESTRAIDCMD = 9;
+  QUESTPARAM_CANACCEPTLISTCHANGED = 10;
+  QUESTPARAM_VISIT_NPC = 11;
+  QUESTPARAM_QUERYOTHERDATA = 12;
+  QUESTPARAM_QUERYWANTEDINFO = 13;
+  QUESTPARAM_HELP_ACCEPT_INVITE = 14;
+  QUESTPARAM_HELP_ACCEPT_AGREE = 15;
+  QUESTPARAM_INVITE_ACCEPT_QUEST = 16;
+  QUESTPARAM_QUERY_WORLD_QUEST = 17;
+  QUESTPARAM_QUESTGROUP_TRACE = 18;
+  QUESTPARAM_HELP_QUICK_FINISH_BOARD = 19;
+  QUESTPARAM_QUERY_MANUAL = 21;
+  QUESTPARAM_OPEN_PUZZLE = 22;
+}
+
+// quest data
+enum EWantedType
+{
+  EWANTEDTYPE_TOTAL = 0;
+  EWANTEDTYPE_ACTIVE = 1;
+  EWANTEDTYPE_MAX = 2;
+}
+enum EQuestType
+{
+  EQUESTTYPE_MIN = 0;
+  EQUESTTYPE_MAIN = 1;
+  EQUESTTYPE_BRANCH = 2;
+  EQUESTTYPE_TALK = 3;
+  EQUESTTYPE_TRIGGER = 4;
+  EQUESTTYPE_WANTED = 5;
+  EQUESTTYPE_DAILY = 6;
+  EQUESTTYPE_DAILY_1 = 7;
+  EQUESTTYPE_DAILY_3 = 8;
+  EQUESTTYPE_DAILY_7 = 9;
+  EQUESTTYPE_STORY = 10;
+  EQUESTTYPE_DAILY_MAP = 11;
+  EQUESTTYPE_SCENE = 12;
+  EQUESTTYPE_HEAD = 13;
+  EQUESTTYPE_RAIDTALK = 14;
+  EQUESTTYPE_SATISFACTION = 15;
+  EQUESTTYPE_ELITE = 16;
+  EQUESTTYPE_CCRASTEHAM = 17;
+  EQUESTTYPE_STORY_CCRASTEHAM = 18;
+  EQUESTTYPE_GUILD = 19;
+  EQUESTTYPE_CHILD = 20;
+  EQUESTTYPE_DAILY_RESET = 21;
+  EQUESTTYPE_ACC = 22;
+  EQUESTTYPE_ACC_NORMAL = 23;
+  EQUESTTYPE_ACC_DAILY = 24;
+  EQUESTTYPE_ACC_CHOICE = 25;
+  EQUESTTYPE_DAILY_MAPRAND = 26;
+  EQUESTTYPE_ACC_MAIN = 27;
+  EQUESTTYPE_ACC_BRANCH = 28;
+  EQUESTTYPE_ACC_SATISFACTION = 29;
+  EQUESTTYPE_ACC_DAILY_1 = 30;
+  EQUESTTYPE_ACC_DAILY_3 = 31;
+  EQUESTTYPE_ACC_DAILY_7 = 32;
+  EQUESTTYPE_ACC_DAILY_RESET = 33;
+  EQUESTTYPE_DAILY_BOX = 34;
+  EQUESTTYPE_SIGN = 35;
+  EQUESTTYPE_DAY = 36;
+  EQUESTTYPE_NIGHT = 37;
+  EQUESTTYPE_ARTIFACT = 38;
+  EQUESTTYPE_WEDDING = 39;
+  EQUESTTYPE_WEDDING_DAILY = 40;
+  EQUESTTYPE_CAPRA = 41;
+  EQUESTTYPE_DEAD = 42;
+  EQUESTTYPE_MAX = 43;
+}
+enum EQuestStep
+{
+  EQUESTSTEP_MIN = 0;
+  EQUESTSTEP_VISIT = 1;
+  EQUESTSTEP_KILL = 2;
+  EQUESTSTEP_REWARD = 3;
+  EQUESTSTEP_COLLECT = 4;
+  EQUESTSTEP_SUMMON = 5;
+  EQUESTSTEP_GUARD = 6;
+  EQUESTSTEP_GMCMD = 7;
+  EQUESTSTEP_TESTFAIL = 8;
+  EQUESTSTEP_USE = 9;
+  EQUESTSTEP_GATHER = 10;
+  EQUESTSTEP_DELETE = 11;
+  EQUESTSTEP_RAID = 12;
+  EQUESTSTEP_CAMERA = 13;
+  EQUESTSTEP_LEVEL = 14;
+  EQUESTSTEP_WAIT = 15;
+  EQUESTSTEP_MOVE = 16;
+  EQUESTSTEP_DIALOG = 17;
+  EQUESTSTEP_PREQUEST = 18;
+  EQUESTSTEP_CLEARNPC = 19;
+  EQUESTSTEP_MOUNTRIDE = 20;
+  EQUESTSTEP_SELFIE = 21;
+  EQUESTSTEP_CHECKTEAM = 22;
+  EQUESTSTEP_REMOVEMONEY = 23;
+  EQUESTSTEP_CLASS = 24;
+  EQUESTSTEP_ORGCLASS = 25;
+  EQUESTSTEP_EVO = 26;
+  EQUESTSTEP_CHECKQUEST = 27;
+  EQUESTSTEP_CHECKITEM = 28;
+  EQUESTSTEP_REMOVEITEM = 29;
+  EQUESTSTEP_RANDOMJUMP = 30;
+  EQUESTSTEP_CHECKLEVEL = 31;
+  EQUESTSTEP_CHECKGEAR = 32;
+  EQUESTSTEP_PURIFY = 33;
+  EQUESTSTEP_ACTION = 34;
+  EQUESTSTEP_SKILL = 35;
+  EQUESTSTEP_INTERLOCUTION = 36;
+  EQUESTSTEP_EMPTY = 37;
+  EQUESTSTEP_CHECKEQUIPLV = 38;
+  EQUESTSTEP_CHECKMONEY = 39;
+  EQUESTSTEP_GUIDE = 40;
+  EQUESTSTEP_GUIDE_CHECK = 41;
+  EQUESTSTEP_GUIDE_HIGHLIGHT = 42;
+  EQUESTSTEP_CHECKOPTION = 43;
+  EQUESTSTEP_HINT = 44;
+  EQUESTSTEP_CHECKGROUP = 45;
+  EQUESTSTEP_SEAL = 46;
+  EQUESTSTEP_EQUIPLV = 47;
+  EQUESTSTEP_VIDEO = 48;
+  EQUESTSTEP_ILLUSTRATION = 49;
+  EQUESTSTEP_NPCPLAY = 50;
+  EQUESTSTEP_ITEM = 51;
+  EQUESTSTEP_DAILY = 52;
+  EQUESTSTEP_CHECK_MANUAL = 53;
+  EQUESTSTEP_MANUAL = 54;
+  EQUESTSTEP_PLAY_MUSIC = 55;
+  EQUESTSTEP_REWRADHELP = 56;
+  EQUESTSTEP_GUIDELOCKMONSTER = 57;
+  EQUESTSTEP_MONEY = 58;
+  EQUESTSTEP_ACTIVITY = 59;
+  EQUESTSTEP_OPTION = 60;
+  EQUESTSTEP_PHOTO = 61;
+  EQUESTSTEP_ITEMUSE = 62;
+  EQUESTSTEP_HAND = 63;
+  EQUESTSTEP_MUSIC = 64;
+  EQUESTSTEP_RANDITEM = 65;
+  EQUESTSTEP_CARRIER = 66;
+  EQUESTSTEP_BATTLE = 67;
+  EQUESTSTEP_COOKFOOD = 68;
+  EQUESTSTEP_PET = 69;
+  EQUESTSTEP_SCENE = 70;
+  EQUESTSTEP_COOK = 71;
+  EQUESTSTEP_BUFF = 72;
+  EQUESTSTEP_TUTOR = 73;
+  EQUESTSTEP_CHRISTMAS = 74;
+  EQUESTSTEP_CHRISTMAS_RUN = 75;
+  EQUESTSTEP_BEING= 76;
+  EQUESTSTEP_CHECK_JOY = 77;
+  EQUESTSTEP_ADD_JOY = 78;
+  EQUESTSTEP_RAND_DIALOG = 79;
+  EQUESTSTEP_CG = 80;
+  EQUESTSTEP_CHECKSERVANT= 81;
+  EQUESTSTEP_CLIENTPLOT = 84;
+  EQUESTSTEP_CHAT = 85;
+  EQUESTSTEP_TRANSFER = 86;
+  EQUESTSTEP_REDIALOG = 87;
+  EQUESTSTEP_CHAT_SYSTEM = 88;
+  EQUESTSTEP_MAX = 89;
+}
+
+message QuestPConfig
+{
+  optional uint32 RewardGroup = 1 [ default = 0 ];
+  optional uint32 SubGroup = 2 [ default = 0 ];
+  optional uint32 FinishJump = 3 [ default = 0 ];
+  optional uint32 FailJump = 4 [ default = 0 ];
+  optional uint32 Map = 5 [ default = 0 ];
+  optional uint32 WhetherTrace = 6 [ default = 0 ];
+  optional uint32 Auto = 7 [ default = 0 ];
+  optional uint32 FirstClass = 8 [ default = 0 ];
+  optional uint32 Class = 9 [ default = 0 ];
+  optional uint32 Level = 10 [ default = 0 ];
+
+  optional string QuestName = 11;
+  optional string Name = 12;
+  optional string Type = 13;
+  optional string Content = 14;
+  optional string TraceInfo = 15;
+  optional string Prefixion = 20;
+
+  optional ConfigParam params = 16;
+  repeated uint32 allrewardid = 17;
+  repeated uint32 PreQuest = 18;
+  repeated uint32 MustPreQuest = 19;
+}
+
+message QuestStep
+{
+  optional uint32 process = 1 [ default = 0 ];
+  repeated uint64 params = 2;
+  repeated string names = 3;
+
+  optional QuestPConfig config = 4;
+}
+
+message QuestData
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 step = 2 [ default = 0 ];
+  optional uint32 time = 3 [ default = 0 ];
+
+  optional bool complete = 4 [ default = false ];
+  optional bool trace = 12 [ default = true ];
+
+  repeated QuestStep steps = 5;
+  repeated ItemInfo rewards = 6;
+
+  optional uint32 version = 7 [ default = 0 ];
+  optional uint32 acceptlv = 8 [ default = 0 ];
+  optional uint32 finishcount = 9 [ default = 0 ];
+
+  repeated uint64 params = 10;
+  repeated string names = 11;
+}
+
+message QuestManualItem
+{
+  optional EQuestList type = 1 [ default = EQUESTLIST_ACCEPT ];
+  optional QuestData data = 2;
+  repeated QuestManualItem subs = 3;
+}
+
+message QuestShop
+{
+  optional uint32 itemid = 1 [ default = 0 ];
+  repeated QuestManualItem quests = 2;
+}
+
+message QuestName
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional string name = 2;
+}
+
+message QuestPuzzle
+{
+  optional string version = 1;
+  repeated uint32 open_puzzles = 2;
+  repeated uint32 unlock_puzzles = 3;
+}
+message QuestPreview
+{
+  optional uint32 questid = 1 [ default = 0 ];
+  optional string name = 2;
+  optional bool complete = 3 [ default = false ];
+  optional uint32 RewardGroup = 4 [ default = 0 ];
+  repeated uint32 allrewardid = 5;
+}
+message QuestManualMain
+{
+  repeated QuestManualItem items = 1;
+  optional QuestPuzzle puzzle = 2;
+  optional uint32 mainstoryid = 3 [ default = 0 ];
+  repeated QuestPreview previews = 4;
+}
+message QuestManualBranch
+{
+  repeated QuestShop shops = 1;
+}
+message QuestManualStory
+{
+  repeated QuestPreview previews = 1;
+}
+
+message QuestManual
+{
+  optional string version = 1;
+
+  optional QuestManualMain main = 2;
+  optional QuestManualBranch branch = 3;
+  optional QuestManualStory story = 4;
+  repeated QuestName prequest = 5;
+}
+
+// scene -> client : accept quest list
+enum EQuestList
+{
+  EQUESTLIST_ACCEPT = 1;
+  EQUESTLIST_SUBMIT = 2;
+  EQUESTLIST_COMPLETE = 3;
+  EQUESTLIST_CANACCEPT = 4;
+}
+message QuestList
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_QUESTLIST ];
+
+  optional EQuestList type = 3 [ default = EQUESTLIST_ACCEPT ];
+  optional uint32 id = 4 [ default = 0 ];
+
+  repeated QuestData list = 5;
+  optional bool clear = 6 [ default = false ]; // 是否需要清空当前缓存任务
+}
+
+// scene -> client : quest update
+message QuestUpdateItem
+{
+  repeated QuestData update = 1;
+  repeated uint32 del = 2;
+
+  optional EQuestList type = 3 [ default = EQUESTLIST_ACCEPT ];
+}
+message QuestUpdate
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_QUESTUPDATE ];
+
+  repeated QuestUpdateItem items = 3;
+}
+
+// scene -> client : quest step update
+message QuestStepUpdate
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_QUESTSTEPUPDATE ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  optional uint32 step = 4 [ default = 0 ];
+  optional QuestStep data = 5;
+}
+
+// client -> scene : quest action
+enum EQuestAction
+{
+  EQUESTACTION_MIN = 0;
+  EQUESTACTION_ACCEPT = 1;
+  EQUESTACTION_SUBMIT = 2;
+  EQUESTACTION_ABANDON_GROUP = 3;
+  EQUESTACTION_ABANDON_QUEST = 4;
+  EQUESTACTION_QUICK_SUBMIT_BOARD = 5;
+  EQUESTACTION_QUICK_SUBMIT_BOARD_TEAM = 6;
+  EQUESTACTION_MAX = 7;
+}
+message QuestAction
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_QUESTACTION ];
+
+  optional EQuestAction action = 3 [ default = EQUESTACTION_MIN ];
+  optional uint32 questid = 4 [ default = 0 ];
+}
+
+// client -> scene : run step
+message RunQuestStep
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_RUNQUESTSTEP ];
+
+  optional uint32 questid = 3 [ default = 0 ];
+  optional uint32 starid = 4 [ default = 0 ];
+  optional uint32 subgroup = 5 [ default = 0 ];
+  optional uint32 step = 6 [ default = 0 ];
+}
+
+// client -> scene : trace
+message QuestTrace
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_QUESTTRACE ];
+
+  optional uint32 questid = 3 [ default = 0 ];
+  optional bool trace = 4 [ default = false ];
+}
+
+// scene -> client : detail list
+message QuestDetail
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 time = 2 [ default = 0 ];
+  optional uint32 map = 3 [ default = 0 ];
+
+  optional bool complete = 4 [ default = false ];
+  optional bool trace = 5 [ default = true ];
+
+  repeated uint32 details = 6;
+}
+message QuestDetailList
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_QUESTDETAILLIST ];
+
+  repeated QuestDetail details = 3;
+}
+
+// scene -> client : detail update
+message QuestDetailUpdate
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_QUESTDETAILUPDATE ];
+
+  repeated QuestDetail detail = 3;
+  repeated QuestDetail del = 4;
+}
+
+// scene <- client : go raid
+message QuestRaidCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_QUESTRAIDCMD ];
+
+  optional uint32 questid = 3;
+}
+
+// scene -> client : can accept list changed
+message QuestCanAcceptListChange
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_CANACCEPTLISTCHANGED ];
+}
+
+// scene <- client : visit npc
+message VisitNpcUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_VISIT_NPC ];
+
+  optional uint64 npctempid = 3 [ default = 0 ];
+}
+
+// client <-> scene : query daily data
+enum EOtherData
+{
+  EOTHERDATA_MIN = 0;
+  EOTHERDATA_DAILY = 1;
+  EOTHERDATA_CAT = 2;
+  EOTHERDATA_MAX = 3;
+}
+message OtherData
+{
+  optional EOtherData data = 1 [ default = EOTHERDATA_MIN ];
+
+  optional uint32 param1 = 2 [ default = 0 ];
+  optional uint32 param2 = 3 [ default = 0 ];
+  optional uint32 param3 = 4 [ default = 0 ];
+  optional uint32 param4 = 5 [ default = 0 ];
+}
+message QueryOtherData
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_QUERYOTHERDATA ];
+
+  optional EOtherData type = 3 [ default = EOTHERDATA_MIN ];
+  optional OtherData data = 4;
+}
+
+// sesssion -> client : query wanted info
+message QueryWantedInfoQuestCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_QUERYWANTEDINFO ];
+
+  optional uint32 maxcount = 3 [ default = 0 ];
+}
+
+// client -> scene -> client
+message InviteHelpAcceptQuestCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_HELP_ACCEPT_INVITE ];
+
+  optional uint64 leaderid = 3 [ default = 0 ];
+  optional uint32 questid = 4 [ default = 0 ];
+  optional uint32 time = 5 [ default = 0 ];
+  optional bytes sign = 6;
+  optional string leadername = 7;
+  optional bool issubmit = 8 [ default = false ];
+}
+
+// scene -> session -> scene
+message InviteAcceptQuestCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_INVITE_ACCEPT_QUEST ];
+
+  optional uint64 leaderid = 3[ default = 0 ];
+  optional uint32 questid = 4 [ default = 0 ];
+  optional uint32 time = 5 [ default = 0 ];
+  optional bytes sign = 6;
+  optional string leadername = 7;
+  optional bool issubmit = 8 [ default = false ];
+  optional bool isquickfinish = 9 [ default = false ];
+}
+
+// client -> scene
+message ReplyHelpAccelpQuestCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_HELP_ACCEPT_AGREE ];
+
+  optional uint64 leaderid = 3 [ default = 0 ];
+  optional uint32 questid = 4 [ default = 0 ];
+  optional uint32 time = 5 [ default = 0 ];
+  optional bytes sign = 6;
+  optional bool agree = 7 [ default = false ];
+  optional bool issubmit = 8 [ default = false ];
+}
+
+// client <-> scene
+message WorldQuest
+{
+  optional uint32 mapid = 1 [ default = 0 ];
+  optional bool type_main = 2 [ default = false ];
+  optional bool type_branch = 3 [ default = false ];
+  optional bool type_daily = 4 [ default = false ];
+}
+message QueryWorldQuestCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_QUERY_WORLD_QUEST ];
+
+  repeated WorldQuest quests = 3;
+}
+
+// client -> scene : quest group trace
+message QuestGroupTraceQuestCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_QUESTGROUP_TRACE ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  optional bool trace = 4 [ default = false ];
+}
+
+enum EJoyActivityType
+{
+  JOY_ACTIVITY_MIN = 0;
+  JOY_ACTIVITY_GUESS = 1;   //猜拳
+  JOY_ACTIVITY_MISCHIEF = 2;  //恶作剧
+  JOY_ACTIVITY_QUESTION = 3;  //题目
+  JOY_ACTIVITY_FOOD = 4;  //料理
+  JOY_ACTIVITY_YOYO = 5;  //摇摇乐
+  JOY_ACTIVITY_ATF = 6;   //ATF
+  JOY_ACTIVITY_AUGURY = 7;  //占卜
+  JOY_ACTIVITY_MAX = 8;
+}
+
+message HelpQuickFinishBoardQuestCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_HELP_QUICK_FINISH_BOARD ];
+
+  optional uint32 questid = 3 [ default = 0 ];
+  optional string leadername = 4;
+}
+
+// client <-> scene : query manual data
+message QueryManualQuestCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_QUERY_MANUAL ];
+
+  optional string version = 3;
+  optional QuestManual manual = 4;
+}
+
+// client <-> scene : open puzzle
+message OpenPuzzleQuestCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_QUEST_PROTOCMD ];
+  optional QuestParam param = 2 [ default = QUESTPARAM_OPEN_PUZZLE ];
+
+  optional string version = 3;
+  optional uint32 id = 4 [ default = 0 ];
+}
+

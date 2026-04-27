@@ -1,0 +1,192 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+
+enum CarrierParam
+{
+  MAPPARAM_CARRIER_INFO = 1;
+  MAPPARAM_JOIN_CARRIER = 2;
+  MAPPARAM_RET_JOIN_CARRIER = 3;
+  MAPPARAM_LEAVE_CARRIER = 4;
+  MAPPARAM_CARRIER_MOVE = 5;
+  MAPPARAM_CREATE_CARRIER = 6;
+  MAPPARAM_CARRIER_START = 7;
+  MAPPARAM_CARRIER_WAIT_LIST = 8;
+  MAPPARAM_REACH_CARRIER = 9;
+  MAPPARAM_INVITE_CARRIER = 10;
+  MAPPARAM_CHANGE_CARRIER = 11;
+  MAPPARAM_FERRISWHEEL_INVITE = 12;
+  MAPPARAM_FERRISWHEEL_PROCESSINVITE = 13;
+  MAPPARAM_START_FERRISWHEEL = 14;
+  MAPPARAM_CATCH_USER_JOIN_CARRIER = 15;
+}
+
+
+message CarrierMember
+{
+  optional uint64 id = 1;
+  optional uint32 index = 2;
+  optional string name = 3;
+}
+
+message CarrierInfoUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_CARRIER_INFO ];
+
+  optional uint32 carrierid = 3;
+  optional uint64 masterid = 4;
+  repeated CarrierMember members = 5;
+  optional uint32 needanimation = 6 [ default = 1 ];
+}
+
+message CreateCarrierUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_CREATE_CARRIER ];
+
+  optional uint32 carrierid = 3;
+  optional uint32 line = 4;
+}
+
+message InviteCarrierUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_INVITE_CARRIER ];
+
+  optional uint64 masterid = 3;
+  optional string mastername = 4;
+  optional uint32 carrierid = 5;
+}
+
+message JoinCarrierUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_JOIN_CARRIER ];
+
+  optional uint64 masterid = 3;
+  optional string mastername = 4;
+  optional uint32 carrierid = 5;
+  optional bool agree = 6;
+}
+
+message RetJoinCarrierUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_RET_JOIN_CARRIER ];
+
+  optional string membername = 3;
+  optional bool agree = 4;
+  optional uint64 memberid = 5;
+  optional uint64 masterid = 6;
+}
+
+message LeaveCarrierUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_LEAVE_CARRIER ];
+
+  optional uint64 charid = 3;
+  optional ScenePos pos = 4;
+  optional uint64 masterid = 5;
+  optional uint64 newmasterid = 6;
+  optional bool all = 7 [ default = false ];
+}
+
+message ReachCarrierUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_REACH_CARRIER ];
+
+  optional ScenePos pos = 3;
+  optional uint64 masterid = 4;
+}
+
+message CarrierMoveUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_CARRIER_MOVE ];
+
+  optional ScenePos pos = 3;
+  optional uint32 progress = 4;
+  optional uint64 masterid = 5;
+}
+
+message CarrierStartUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_CARRIER_START ];
+
+  optional uint32 line = 3;
+  optional uint64 masterid = 4;
+}
+
+message CarrierWaitListUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_CARRIER_WAIT_LIST ];
+
+  repeated CarrierMember members = 3;
+  optional uint64 masterid = 4;
+}
+
+message ChangeCarrierUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_CHANGE_CARRIER ];
+
+  optional uint32 carrierid = 3[ default = 0 ];
+  optional uint64 masterid = 4 [ default = 0 ];
+}
+
+// client -> session : FerrisWheel invite
+message FerrisWheelInviteCarrierCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_FERRISWHEEL_INVITE ];
+
+  optional uint64 targetid = 3 [ default = 0 ];
+
+  // ret
+  optional string targetname = 4;
+  optional uint32 id = 5 [ default = 1 ];
+}
+
+// client -> session : FerrisWheel process invite
+enum EFerrisAction
+{
+  EFERRISACTION_MIN = 0;
+  EFERRISACTION_AGREE = 1;
+  EFERRISACTION_DISAGREE = 2;
+  EFERRISACTION_MAX = 3;
+}
+message FerrisWheelProcessInviteCarrierCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_FERRISWHEEL_PROCESSINVITE ];
+
+  optional uint64 targetid = 3 [ default = 0 ];
+  optional EFerrisAction action = 4 [ default = EFERRISACTION_MIN ];
+  optional uint32 id = 5 [ default = 1 ];
+}
+
+// scene <-> scene : Start FerrisWheel
+message StartFerrisWheelUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_START_FERRISWHEEL ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 masterid = 4 [ default = 0 ];
+}
+
+message CatchUserJoinCarrierUserCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_CARRIER_PROTOCMD ];
+  optional CarrierParam param = 2 [ default = MAPPARAM_CATCH_USER_JOIN_CARRIER ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 masterid = 4 [ default = 0 ];
+  optional uint32 mapid = 5 [ default = 0 ];
+}

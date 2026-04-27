@@ -1,9 +1,10 @@
 package gameConnection
 
 import (
+	"time"
+
 	Cmd "ROMProject/Cmds"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 const (
@@ -125,11 +126,12 @@ func (g *GameConnection) SellItem(sellCount uint32, price *Cmd.ReqServerPriceRec
 	itemId := itemData.GetBase().GetId()
 	empty := uint32(0)
 	source := Cmd.ESource_ESOURCE_NORMAL
+	sellPrice := uint32(price.GetPrice())
 	cmd := &Cmd.SellItemRecordTradeCmd{
 		Charid: g.Role.RoleId,
 		ItemInfo: &Cmd.TradeItemBaseInfo{
 			Itemid:      &itemId,
-			Price:       price.Price,
+			Price:       &sellPrice,
 			Count:       &sellCount,
 			Guid:        itemData.GetBase().Guid,
 			PublicityId: &empty,
@@ -143,10 +145,12 @@ func (g *GameConnection) SellItem(sellCount uint32, price *Cmd.ReqServerPriceRec
 				Refine:  &Cmd.RefineData{},
 				Enchant: &Cmd.EnchantData{},
 				Egg:     &Cmd.EggData{},
-				Attr:    &Cmd.GemAttrData{},
+				// Not available in EP 5.0
+				// Attr:    &Cmd.GemAttrData{},
 				Wedding: &Cmd.WeddingData{},
 				Sender:  &Cmd.SenderData{},
-				Skill:   &Cmd.GemSkillData{},
+				// Not available in EP 5.0
+				// Skill:   &Cmd.GemSkillData{},
 			},
 		},
 	}

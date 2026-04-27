@@ -1,0 +1,208 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+import "SessionTeam.proto";
+
+enum ServerTeamParam
+{
+  SERVERTEAMPARAM_FORWARD_ALL_CMD = 1;
+  SERVERTEAMPARAM_UPDATE_GUILD = 2;
+  SERVERTEAMPARAM_SOCIAL_ADDRELATION = 4;
+  SERVERTEAMPARAM_LOADLUA = 5;
+  SERVERTEAMPARAM_TEAMDATA_SYNC = 8;
+  SERVERTEAMPARAM_TEAMDATA_UPDATE = 9;
+  SERVERTEAMPARAM_TEAMMEMBER_UPDATE = 10;
+  SERVERTEAMPARAM_MEMBERDATA_UPDATE = 11;
+  SERVERTEAMPARAM_BROADCAST_CMD = 12;
+  SERVERTEAMPARAM_CAT_ENTERTEAM = 13;
+  SERVERTEAMPARAM_CAT_EXITTEAM = 14;
+  SERVERTEAMPARAM_CAT_FIRE = 15;
+  SERVERTEAMPARAM_CAT_CALL = 16;
+  SERVERTEAMPARAM_BE_LEADER = 17;
+  SERVERTEAMPARAM_CAT_ENTEROWNTEAM = 18;
+}
+
+message ForwardAllServerTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_FORWARD_ALL_CMD ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+
+  optional bytes data = 5;
+  optional uint32 len = 6 [ default = 0 ];
+}
+
+message UpdateGuildServerTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_UPDATE_GUILD ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+
+  optional uint64 guildid = 4 [ default = 0 ];
+  optional string guildname = 5;
+}
+
+// team -> social : add relation
+message AddRelationTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_SOCIAL_ADDRELATION ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 targetid = 4 [ default = 0 ];
+}
+
+// session -> team : load lua
+message LoadLuaTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_LOADLUA ];
+
+  optional string table = 3;
+  optional string lua = 4;
+  optional string log = 5;
+}
+
+// team -> session : sync teamdata
+message TeamMemberInfo
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 mapid = 2 [ default = 0 ];
+  optional uint32 raidid = 3 [ default = 0 ];
+  optional uint32 zoneid = 4 [ default = 0 ];
+
+  optional EGender gender = 5 [ default = EGENDER_MIN ];
+
+  optional string name = 6;
+  optional uint32 catid = 7 [ default = 0 ];
+  optional uint32 guildraidindex = 8 [ default = 0 ];
+  optional bool online = 9 [ default = false ];
+  optional uint32 level = 10 [ default = 0 ];
+}
+message TeamInfo
+{
+  optional uint64 teamid = 1 [ default = 0 ];
+  optional uint64 leaderid = 2 [ default = 0 ];
+  optional uint32 pickupmode = 3  [ default = 0 ];
+  repeated TeamMemberInfo member = 4;
+  optional string name = 5;
+
+}
+message TeamDataSyncTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_TEAMDATA_SYNC ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional TeamInfo info = 4;
+  optional bool online = 5 [ default = false ];
+}
+
+// team -> session : teamdata update
+message TeamDataUpdateTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_TEAMDATA_UPDATE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  repeated TeamSummaryItem datas = 4;
+}
+
+// team -> session : member update
+message TeamMemberUpdateTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_TEAMMEMBER_UPDATE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  repeated TeamMemberInfo updates = 4;
+  repeated uint64 dels = 5;
+}
+
+// team -> session : member data update
+message MemberDataUpdateTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_MEMBERDATA_UPDATE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 updatecharid = 4 [ default = 0 ];
+  repeated MemberData updates = 5;
+}
+
+// team -> session : broadcast cmd
+message BroadcastCmdTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_BROADCAST_CMD ];
+
+  optional uint32 type = 3 [ default = 0 ];
+  optional uint64 id = 4 [ default = 0 ];
+  optional bytes data = 5;
+  optional uint32 len = 6;
+}
+
+// scene -> session -> team : cat enter team
+message CatEnterTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_CAT_ENTERTEAM ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  repeated MemberCat cats = 4;
+}
+
+// team -> session -> scene : cat exit team
+message CatExitTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_CAT_EXITTEAM ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 catid = 4 [ default = 0 ];
+  optional bool enterfail = 5 [ default = false ];
+}
+
+// scene -> session -> team : cat fire
+message CatFireTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_CAT_FIRE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 npcid = 4 [ default = 0 ];
+  optional uint64 catid = 5 [ default = 0 ];
+}
+
+// team -> session -> scene : call cat
+message CatCallTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_CAT_CALL ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+}
+
+// team -> session -> scene : be leader
+message BeLeaderTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_BE_LEADER ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 teamjob = 4 [ default = 0 ];
+}
+
+// scene -> session -> team : cat enter own team confirm
+message CatEnterOwnTeamCmd
+{
+  optional Command cmd = 1 [ default = TEAM_PROTOCMD ];
+  optional ServerTeamParam param = 2 [ default = SERVERTEAMPARAM_CAT_ENTEROWNTEAM ];
+
+  required uint64 charid = 3;
+  optional TeamData data = 4;
+}
+

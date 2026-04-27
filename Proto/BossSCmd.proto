@@ -1,0 +1,83 @@
+package Cmd;
+
+import "xCmd.proto";
+import "BossCmd.proto";
+
+enum BossSParam
+{
+  BOSSSPARAM_DEADBOSS_OPEN = 1;
+  BOSSSPARAM_DEADBOSS_SYNC = 2;
+  BOSSSPARAM_BOSS_SUMMON = 3;
+  BOSSSPARAM_BOSS_DIE = 4;
+  BOSSSPARAM_WORLD_NTF = 5;
+  BOSSSPARAM_BOSS_SET = 6;
+}
+
+message DeadBossInfo
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 zoneid = 2 [ default = 0 ];
+  optional uint32 time = 3 [ default = 0 ];
+
+  optional string name = 4;
+}
+
+// scene -> session -> guild : 亡者boss功能开启
+message DeadBossOpenBossSCmd
+{
+  optional Command cmd = 1 [ default = BOSSS_PROTOCMD ];
+  optional BossSParam param = 2 [ default = BOSSSPARAM_DEADBOSS_OPEN ];
+
+  optional DeadBossInfo info = 3;
+}
+
+// guild -> session -> scene : 亡者boss功能同步
+message DeadBossOpenSyncBossSCmd
+{
+  optional Command cmd = 1 [ default = BOSSS_PROTOCMD ];
+  optional BossSParam param = 2 [ default = BOSSSPARAM_DEADBOSS_SYNC ];
+
+  optional DeadBossInfo info = 3;
+}
+
+// session => scene
+message SummonBossBossSCmd
+{
+  optional Command cmd = 1 [ default = BOSSS_PROTOCMD ];
+  optional BossSParam param = 2 [ default = BOSSSPARAM_BOSS_SUMMON ];
+
+  optional uint32 mapid = 3;
+  optional uint32 npcid = 4;
+  optional uint32 bosstype = 5 [ default = 1 ];
+  optional uint32 lv = 6 [ default = 1 ];
+}
+
+// scene => session
+message BossDieBossSCmd
+{
+  optional Command cmd = 1 [ default = BOSSS_PROTOCMD ];
+  optional BossSParam param = 2 [ default = BOSSSPARAM_BOSS_DIE ];
+
+  optional uint32 npcid = 3;
+  optional string killer = 4;
+  optional uint64 killid = 5;
+  optional uint32 mapid = 6;
+  optional bool reset = 7 [ default = false ];
+}
+
+// scene -> session
+message WorldBossNtfBossSCmd
+{
+  optional Command cmd = 1 [ default = BOSSS_PROTOCMD ];
+  optional BossSParam param = 2 [ default = BOSSSPARAM_WORLD_NTF ];
+
+  optional WorldBossNtf ntf = 3;
+}
+
+// scene -> session
+message BossSetBossSCmd
+{
+  optional Command cmd = 1 [ default = BOSSS_PROTOCMD ];
+  optional BossSParam param = 2 [ default = BOSSSPARAM_BOSS_SET ];
+}
+

@@ -15,3 +15,9 @@ var ItemsJson []byte
 
 //go:embed skills.json
 var SkillsJson []byte
+
+//go:embed monsters.json
+var MonstersJson []byte
+
+//go:embed config.yml.template
+var ConfigYml []byte

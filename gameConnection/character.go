@@ -1,10 +1,16 @@
 package gameConnection
 
 import (
-	Cmd "ROMProject/Cmds"
-	"ROMProject/utils"
-	log "github.com/sirupsen/logrus"
+	"fmt"
 	"regexp"
+	"time"
+	"unicode/utf8"
+
+	Cmd "ROMProject/Cmds"
+	gameTypes "ROMProject/gameConnection/types"
+	"ROMProject/utils"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -31,12 +37,12 @@ func (g *GameConnection) updateAutoSkill(skill *Cmd.SkillItem) {
 
 func (g *GameConnection) GetAtkRange(skillId uint32) uint32 {
 
-	//g.SkillItems[]
+	// g.SkillItems[]
 	return 0
 }
 
 func (g *GameConnection) GetBuffNameByRegex(searchRegex string) (buffName string) {
-	g.Mutex.RLock()
+	g.Role.Mutex.RLock()
 	for _, curBuff := range g.Role.Buffs {
 		re := regexp.MustCompile(searchRegex)
 		search := re.Find([]byte(g.BuffItems[curBuff.GetId()].BuffName))
@@ -44,11 +50,19 @@ func (g *GameConnection) GetBuffNameByRegex(searchRegex string) (buffName string
 			buffName = string(search)
 		}
 	}
-	g.Mutex.RUnlock()
+	g.Role.Mutex.RUnlock()
 	return buffName
 }
 
+func (g *GameConnection) GetAtk() int32 {
+	return utils.GetNpcAttrValByType(g.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_ATK)
+}
+
 func (g *GameConnection) GetAtkSpd() int32 {
+	return utils.GetNpcAttrValByType(g.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_ATKSPD)
+}
+
+func (g *GameConnection) getAtkSpdPer() int32 {
 	return utils.GetNpcAttrValByType(g.Role.UserAttrs, Cmd.EAttrType_EATTRTYPE_ATKSPD)
 }
 
@@ -86,19 +100,168 @@ func (g *GameConnection) GoToMap(mapId uint32) {
 				sceneUser2CmdId,
 				Cmd.User2Param_value["USER2PARAM_GOTO_GEAR"],
 			)
+			time.Sleep(time.Millisecond * 600)
+			g.ChangeMap(mapId)
 			return
 		}
 	}
 	log.Warnf("mapId: %d is not in map goto list %v", mapId, g.GotoList)
 }
 
-// 领取执事奖励
-func (g *GameConnection) takeServantReward(wid uint32) {
+func (g *GameConnection) TeamGoToMap(mapId uint32) {
+	teamMembers := g.Role.TeamData.GetMembers()
+	var MembersID []uint64
+	for _, m := range teamMembers {
+		if *g.Role.RoleId != *m.Guid {
+			MembersID = append(MembersID, *m.Guid)
+		}
+
+	}
+
+	for _, goToMapId := range g.GotoList.GetMapid() {
+		Type := Cmd.EGoToGearType_EGoToGearType_Team
+		if goToMapId == mapId {
+			cmd := &Cmd.GoToGearUserCmd{
+				Mapid:    &mapId,
+				Type:     &Type,
+				Otherids: MembersID,
+			}
+			g.sendProtoCmd(cmd,
+				sceneUser2CmdId,
+				Cmd.User2Param_value["USER2PARAM_GOTO_GEAR"],
+			)
+			return
+		}
+	}
+	log.Warnf("mapId: %d is not in map goto list %v", mapId, g.GotoList)
+}
+
+// TakeServantReward 领取执事奖励
+func (g *GameConnection) TakeServantReward(wid uint32) {
 	cmd := &Cmd.ReceiveServantUserCmd{
 		Dwid: &wid,
 	}
 	g.sendProtoCmd(cmd,
 		sceneUser2CmdId,
 		Cmd.User2Param_value["USER2PARAM_SERVANT_RECEIVE"],
+	)
+}
+
+// CreateCharacter
+// "unmarshal: name:\"ddftt\"  role_sex:2  profession:42  hair:12  haircolor:2  clothcolor:0  sequence:1"
+func (g *GameConnection) CreateCharacter(roleName string, roleSex, profession, hair, hairColor, clothColor, sequence uint32) (err error) {
+	if sequence == 0 {
+		sequence = 1
+	}
+	if roleSex == 0 {
+		roleSex = 1
+	}
+	nameLength := utf8.RuneCountInString(roleName)
+	if nameLength < 2 || nameLength > 8 {
+		return fmt.Errorf("角色名长度不符合要求 2-8个字符")
+	}
+	cmd := &Cmd.CreateCharUserCmd{
+		Name:       &roleName,
+		RoleSex:    &roleSex,
+		Profession: &profession,
+		Hair:       &hair,
+		Haircolor:  &hairColor,
+		Clothcolor: &clothColor,
+		Sequence:   &sequence,
+	}
+	err = g.sendProtoCmd(cmd,
+		LogInUserProtoCmdId,
+		Cmd.LoginCmdParam_value["CREATE_CHAR_USER_CMD"],
+	)
+	return err
+}
+
+func (g *GameConnection) DeleteCharacter(charId uint64) {
+	cmd := &Cmd.DeleteCharUserCmd{
+		Id: &charId,
+	}
+	_ = g.sendProtoCmd(cmd,
+		LogInUserProtoCmdId,
+		Cmd.LoginCmdParam_value["DELETE_CHAR_USER_CMD"],
+	)
+}
+
+func (g *GameConnection) PickupMapItem(mapItem *Cmd.AddMapItem) {
+	for _, item := range mapItem.GetItems() {
+		if utils.Contains(item.GetOwners(), *g.Role.RoleId) {
+			cmd := Cmd.PickupItem{
+				Itemguid: item.Guid,
+			}
+			_ = g.sendProtoCmd(&cmd,
+				sceneUser2CmdId,
+				Cmd.User2Param_value["USER2PARAM_PICKUP_ITEM"],
+			)
+			g.SendToNotifier(gameTypes.NtfType_UserItemPickup, item)
+		}
+	}
+}
+
+func (g *GameConnection) QueryZoneStatus() *Cmd.QueryZoneStatusUserCmd {
+	cmd := Cmd.QueryZoneStatusUserCmd{}
+	g.AddNotifier(gameTypes.NtfType_User2QueryZoneStatus)
+	_ = g.sendProtoCmd(&cmd,
+		sceneUser2CmdId,
+		Cmd.User2Param_value["USER2PARAM_QUERY_ZONESTATUS"],
+	)
+	response, err := g.waitForResponse(gameTypes.NtfType_User2QueryZoneStatus)
+	if err != nil {
+		return nil
+	}
+	zoneStatus := response.(*Cmd.QueryZoneStatusUserCmd)
+	return zoneStatus
+}
+
+func (g *GameConnection) JumpZone(zoneId uint32, npcId uint64) {
+	if npcId == 0 {
+		// In EP 5.0 the NPC is in MapId_IzludeIsland x:4182 y:7086 z:10633
+		npcId = 2147484433
+	}
+	cmd := Cmd.JumpZoneUserCmd{
+		Npcid:  &npcId,
+		Zoneid: &zoneId,
+	}
+	_ = g.sendProtoCmd(&cmd,
+		sceneUser2CmdId,
+		Cmd.User2Param_value["USER2PARAM_JUMP_ZONE"],
+	)
+	g.ChangeMap(g.Role.GetMapId())
+	time.Sleep(8 * time.Second)
+}
+
+func (g *GameConnection) FollowUser(charId uint64) {
+	cmd := Cmd.FollowerUser{
+		Userid: &charId,
+	}
+	_ = g.sendProtoCmd(&cmd,
+		sceneUser2CmdId,
+		Cmd.User2Param_value["USER2PARAM_FOLLOWER"],
+	)
+	g.Role.FollowUserId = charId
+}
+
+func (g *GameConnection) DeFollowUser() {
+	cmd := Cmd.FollowerUser{
+		Userid: nil,
+	}
+	_ = g.sendProtoCmd(&cmd,
+		sceneUser2CmdId,
+		Cmd.User2Param_value["USER2PARAM_FOLLOWER"],
+	)
+	g.Role.FollowUserId = 0
+}
+
+func (g *GameConnection) Relive() {
+	t := uint32(1)
+	cmd := Cmd.ReliveUserCmd{
+		Type: &t,
+	}
+	_ = g.sendProtoCmd(&cmd,
+		sceneUser2CmdId,
+		Cmd.User2Param_value["USER2PARAM_RELIVE"],
 	)
 }

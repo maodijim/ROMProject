@@ -1,0 +1,1455 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+import "SceneItem.proto";
+import "SceneUser.proto";
+import "SceneUser2.proto";
+import "SceneQuest.proto";
+import "Dojo.proto";
+
+enum GuildParam
+{
+  GUILDPARAM_GUILDLIST = 1;
+  GUILDPARAM_CREATEGUILD = 2;
+  GUILDPARAM_ENTERGUILD = 3;
+  GUILDPARAM_MEMBERUPDATE = 4;
+  GUILDPARAM_APPLYUPDATE = 5;
+  GUILDPARAM_GUILDDATAUPDATE = 6;
+  GUILDPARAM_MEMBERDATAUPDATE = 7;
+  GUILDPARAM_APPLYGUILD = 8;
+  GUILDPARAM_PROCESSAPPLY = 9;
+  GUILDPARAM_INVITEMEMBER = 10;
+  GUILDPARAM_PROCESSINVITEMEMBER = 11;
+  GUILDPARAM_SETOPTION = 12;
+  GUILDPARAM_KICKMEMBER = 13;
+  GUILDPARAM_CHANGEJOB = 14;
+  GUILDPARAM_EXITGUILD = 15;
+  GUILDPARAM_EXCHANGECHAIR = 16;
+  GUILDPARAM_DISMISSGUILD = 17;
+  GUILDPARAM_LEVELUPGUILD = 18;
+  GUILDPARAM_DONATE = 19;
+  GUILDPARAM_ENTERGUILDTERRITORY = 20;
+  GUILDPARAM_PRAY = 21;
+  GUILDPARAM_GUILDINFONTF = 22;
+  GUILDPARAM_GUILDPRAYNTF = 23;
+  GUILDPARAM_LEVELUPEFFECT = 24;
+  GUILDPARAM_DONATELIST = 25;
+  GUILDPARAM_UPDATEDONATEITEM = 26;
+  GUILDPARAM_DONATEFRAMESTATUS = 27;
+  GUILDPARAM_QUERYPACK = 28;
+  GUILDPARAM_PACKUPDATE = 32;
+  GUILDPARAM_EXCHANGEZONE = 29;
+  GUILDPARAM_EXCHANGEZONE_NTF = 30;
+  GUILDPARAM_EXCHANGEZONE_ANSWER = 31;
+  GUILDPARAM_QUERY_EVENT_LIST = 33;
+  GUILDPARAM_NEW_EVENT = 34;
+  GUILDPARAM_APPLYCONFIG = 35;
+  GUILDPARAM_FRAME_STATUS = 37;
+  GUILDPARAM_MODIFY_AUTH = 38;
+  GUILDPARAM_JOB_UPDATE = 39;
+  GUILDPARAM_RENAME_QUERY = 40;
+  GUILDPARAM_QUERY_CITYINFO = 41;
+  GUILDPARAM_CITY_ACTION = 42;
+  GUILDPARAM_GUILD_ICON_SYNC = 43;
+  GUILDPARAM_GUILD_ICON_ADD = 44;
+  GUILDPARAM_GUILD_ICON_UPLOAD = 45;
+  GUILDPARAM_OPEN_FUNCTION = 47;
+  GUILDPARAM_BUILD = 48;
+  GUILDPARAM_SUBMIT_MATERIAL = 49;
+  GUILDPARAM_BUILDING_NTF = 50;
+  GUILDPARAM_BUILDING_SUBMIT_COUNT = 51;
+  GUILDPARAM_CHALLENGE_UPDATE = 52;
+  GUILDPARAM_WELFARE_NTF = 53;
+  GUILDPARAM_GET_WELFARE = 54;
+  GUILDPARAM_BUILDING_LVUP_EFF = 55;
+  GUILDPARAM_ARTIFACT_UPDATE_NTF = 56;
+  GUILDPARAM_ARTIFACT_PRODUCE = 57;
+  GUILDPARAM_ARTIFACT_OPT = 58;
+  GUILDPARAM_QUERY_GQUEST = 59;
+  GUILDPARAM_TREASURE_ACTION = 60;
+  GUILDPARAM_QUERY_BUILDING_RANK = 61;
+  GUILDPARAM_TREASURE_QUERYRESULT = 62;
+  GUILDPARAM_QUERY_CITYSHOW = 63;
+  GUILDPARAM_OEPN_GVG = 64;
+  GUILDPARAM_OPEN_REALTIME_VOICE = 65;
+  GUILDPARAM_ENTERPUNISHTIME_NTF = 66;
+}
+
+// guild global data
+enum EGuildGlobal
+{
+  EGUILDGLOBAL_LISTCOUNT_PERPAGE = 20;
+}
+
+// guild member data
+enum EGuildJob
+{
+  EGUILDJOB_MIN = 0;
+  EGUILDJOB_CHAIRMAN = 1;
+  EGUILDJOB_VICE_CHAIRMAN = 2;
+  EGUILDJOB_MEMBER1 = 3;
+  EGUILDJOB_MEMBER2 = 4;
+  EGUILDJOB_MEMBER3 = 5;
+  EGUILDJOB_APPLY = 6;
+  EGUILDJOB_INVITE = 7;
+  EGUILDJOB_MEMBER4 = 8;
+  EGUILDJOB_MEMBER5 = 9;
+  EGUILDJOB_MEMBER6 = 10;
+  EGUILDJOB_MEMBER7 = 11;
+  EGUILDJOB_MEMBER8 = 12;
+  EGUILDJOB_MEMBER9 = 13;
+  EGUILDJOB_MEMBER10 = 14;
+  EGUILDJOB_MAX = 15;
+}
+
+enum EPrayType
+{
+  EPRAYTYPE_GODDESS = 0;
+  EPRAYTYPE_GVG_ATK = 1;
+  EPRAYTYPE_GVG_DEF = 2;
+  EPRAYTYPE_GVG_ELE = 3;
+  EPRAYTYPE_MAX = 4;
+}
+message GuildPrayCFG
+{
+  optional uint32 prayid = 1 [ default = 0 ];
+  optional uint32 praylv = 2 [ default = 0 ];
+  optional EPrayType type = 3 [ default = EPRAYTYPE_GODDESS ];
+
+  repeated UserAttr attrs = 4;
+  repeated ItemInfo costs = 5;
+};
+
+// 公会开启功能
+enum EGuildFunction
+{
+  EGUILDFUNCTION_MIN = 0;
+  EGUILDFUNCTION_BUILDING = 1;
+  EGUILDFUNCTION_MAX = 2;
+}
+
+message GuildMemberPray
+{
+  optional uint32 pray = 1 [ default = 0 ];
+  optional uint32 lv = 2 [ default = 0 ];
+
+  optional GuildPrayCFG cur = 3;
+  optional GuildPrayCFG next = 4;
+}
+message BlobGuildPray
+{
+  repeated GuildMemberPray prays = 1;
+}
+message BlobDonate
+{
+  repeated DonateItem items = 1;
+  repeated uint32 steps = 2;
+
+  optional uint32 donatetime1 = 3 [ default = 0 ];
+  optional uint32 donatetime2 = 4 [ default = 0 ];
+  optional uint32 donatetime3 = 5 [ default = 0 ];
+  optional uint32 donatetime4 = 6 [ default = 0 ];
+}
+message UserGuildBuilding
+{
+  optional EGuildBuilding type = 1 [ default = EGUILDBUILDING_MIN ];
+  optional uint32 submitcount = 2 [ default = 0 ];
+  optional uint32 nextwelfaretime = 3 [ default = 0 ];
+  optional bool levelupeffect = 4 [ default = false ];
+  optional uint32 submitcounttotal = 5 [ default = 0 ]; // 当前建筑等级下的总贡献值
+  optional uint32 submittime = 6 [ default = 0 ]; // 最近一次提交材料时间
+}
+message BlobGuildBuilding
+{
+  repeated UserGuildBuilding buildings = 1;
+}
+message GuildMember
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 baselevel = 2 [ default = 0 ];
+  optional uint32 portrait = 3 [ default = 0 ];
+  optional uint32 frame = 4 [ default = 0 ];
+  optional uint32 weekcontribution = 5 [ default = 0 ];
+  optional uint32 contribution = 6 [ default = 0 ];
+  optional uint32 totalcontribution = 19 [ default = 0 ];
+  optional uint32 entertime = 7 [ default = 0 ];
+  optional uint32 offlinetime = 8 [ default = 0 ];
+  optional uint32 giftpoint = 9 [ default = 0 ];
+  optional uint32 hair = 16 [ default = 0 ];
+  optional uint32 haircolor = 17 [ default = 0 ];
+  optional uint32 body = 18 [ default = 0 ];
+  optional uint32 weekasset = 22 [ default = 0 ];
+  optional uint32 asset = 23 [ default = 0 ];
+  optional uint32 zoneid = 24 [ default = 0 ];
+  optional uint32 head = 25 [ default = 0 ];
+  optional uint32 face = 28 [ default = 0 ];
+  optional uint32 mouth = 29 [ default = 0 ];
+  optional uint32 eye = 30 [ default = 0 ];
+
+  optional EGender gender = 10 [ default = EGENDER_MIN ];
+  optional EProfession profession = 11 [ default = EPROFESSION_MIN ];
+  optional EGuildJob job = 12 [ default = EGUILDJOB_MIN ];
+
+  optional string name = 13;
+  optional bytes var = 14;
+  optional BlobGuildPray pray = 15;
+  optional BlobDonate donate = 21;
+
+  optional bool levelupeffect = 20 [ default = false ];
+  optional bool exchangezone = 26 [ default = false ];
+  optional uint32 accid = 27;
+  
+  //repeated GuildPhoto photos = 30;
+  optional BlobGuildBuilding building = 31;
+  optional uint64 challenge = 32 [ default = 0 ];
+  optional uint32 lastexittime = 33 [ default = 0 ];
+  optional uint64 redtip = 34 [ default = 0 ];
+  optional bool buildingeffect = 35 [ default = false ];
+  optional bool realtimevoice = 36 [ default = false ];
+  optional uint32 weekbcoin = 37 [ default = 0 ];
+  optional uint32 totalcoin = 38 [ default = 0 ];
+}
+
+message BlobGuildMember
+{
+  repeated GuildMember members = 1;
+}
+
+// guild apply data
+message GuildApply
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 zoneid = 12 [ default = 0 ];
+  optional uint32 baselevel = 2 [ default = 0 ];
+  optional uint32 portrait = 3 [ default = 0 ];
+  optional uint32 frame = 4 [ default = 0 ];
+  optional uint32 entertime = 5 [ default = 0 ];
+  optional uint32 hair = 9 [ default = 0 ];
+  optional uint32 haircolor = 10 [ default = 0 ];
+  optional uint32 body = 11 [ default = 0 ];
+  optional uint32 head = 14 [ default = 0 ];
+  optional uint32 face = 15 [ default = 0 ];
+  optional uint32 mouth = 16 [ default = 0 ];
+  optional uint32 eye = 17 [ default = 0 ];
+
+  optional EGender gender = 6 [ default = EGENDER_MIN ];
+  optional EProfession profession = 7 [ default = EPROFESSION_MIN ];
+
+  optional string name = 8;
+
+  optional uint64 accid = 13;
+}
+
+message BlobGuildApply
+{
+  repeated GuildApply applys = 1;
+}
+
+enum EAuth
+{
+  EAUTH_MIN = 0;
+  EAUTH_INVITE = 1;
+  EAUTH_AGREE = 2;
+  EAUTH_DELETE_APPLYLIST = 3;
+  EAUTH_EDIT_BOARD = 4;
+  EAUTH_EDIT_RECRUIT = 5;
+  EAUTH_CHANGE_PORTRAIT = 6;
+  EAUTH_LEVELUP_GUILD = 7;
+  EAUTH_LEVELUP_CON = 8;
+  EAUTH_LEVELUP_TECH = 9;
+  EAUTH_PUBLISH_QUEST = 10;
+  EAUTH_KICK_MEMBER = 11;
+  EAUTH_KICK_VICE = 12;
+  EAUTH_CHANGE_JOB = 13;
+  EAUTH_CHANGE_JOBNAME = 14;
+  EAUTH_LEADER_GIVE = 15;
+  EAUTH_DISMISS_GUILD = 16;
+  EAUTH_EXCHANGE_ZONE = 17;
+  EAUTH_OPEN_RAID = 18;
+  EAUTH_UPLOAD_PHOTO = 19;
+  EAUTH_GUILD_RENAME = 20;
+  EAUTH_GIVEUP_CITY = 21;
+  EAUTH_OPEN_BUILDING = 22;
+  EAUTH_BUILD = 23;
+  EAUTH_ARTIFACT_QUEST = 24;
+  EAUTH_ARTIFACT_PRODUCE = 25;
+  EAUTH_ARTIFACT_OPT = 26;
+  EAUTH_TREASURE_OPT = 27;
+  EAUTH_GUILD_SHOP = 28;
+  EAUTH_VOICE = 29;
+  EAUTH_MAX = 30;
+}
+
+// guild job
+message GuildJob
+{
+  optional EGuildJob job = 1 [ default = EGUILDJOB_MIN ];
+  optional string name = 2;
+  optional uint32 auth = 3 [ default = 0 ];
+  optional uint32 editauth = 4 [ default = 0 ];
+}
+
+// guild quest
+message GuildQuest
+{
+  optional uint32 questid = 1 [ default = 0 ];
+  optional uint32 time = 2 [ default = 0 ];
+}
+
+// guild building
+enum EGuildBuilding
+{
+  EGUILDBUILDING_MIN = 0;
+  EGUILDBUILDING_VENDING_MACHINE = 1; // 自动贩卖机
+  EGUILDBUILDING_BAR = 2;             // 吧台猫老板
+  EGUILDBUILDING_CAT_LITTER_BOX = 3;  // 福利猫砂盆
+  EGUILDBUILDING_MAGIC_SEWING = 4;    // 魔法缝纫机
+  EGUILDBUILDING_HIGH_REFINE = 5;     // 极限精炼铁砧
+  EGUILDBUILDING_ARTIFACT_HEAD = 6;   // 头饰工坊
+  EGUILDBUILDING_CAT_PILLOW = 7;      // 猫咪睡眠枕
+  EGUILDBUILDING_MAX = 8;
+}
+
+message GuildBuildMaterial
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 count = 2 [ default = 0 ];
+
+  // 前端用字段
+  optional uint32 itemid = 3 [ default = 0 ];
+  optional uint32 itemcount = 4 [ default = 0 ];
+  optional uint32 rewardid = 5 [ default = 0 ];
+}
+
+message GuildBuilding
+{
+  optional EGuildBuilding type = 1 [ default = EGUILDBUILDING_MIN ];
+  optional uint32 level = 2 [ default = 0 ];
+  repeated GuildBuildMaterial materials = 3; // 已消耗材料
+  optional bool isbuilding = 4 [ default = false ]; // 是否正在建造中
+  optional uint32 nextwelfaretime = 5 [ default = 0 ]; // 下一次福利发奖时间
+  optional uint32 nextbuildtime = 8 [ default = 0 ]; // 下一次建造/升级时间
+
+  // 前端用:
+  optional uint32 progress = 6 [ default = 0 ]; // 建造进度
+  repeated GuildBuildMaterial restmaterials = 7; // 剩余可提交材料
+}
+
+message GuildBuildingData
+{
+  repeated GuildBuilding buildings = 1;
+  optional uint32 version = 2 [ default = 0 ];
+}
+
+// guild challenge
+message GuildChallenge
+{
+  optional uint32 id = 1 [ default = 0 ]; // 任务id
+  optional uint32 progress = 2 [ default = 0 ]; // 任务进度
+  optional bool reward = 3 [ default = false ];
+  optional bool extrareward = 4 [ default = false ]; // 是否有额外奖励
+}
+
+message GuildChallengeData
+{
+  repeated GuildChallenge challenges = 1;
+}
+
+// guild welfare
+enum EGuildWelfare
+{
+  EGUILDWELFARE_MIN = 0;
+  EGUILDWELFARE_BUILDING = 1;
+  EGUILDWELFARE_CHALLENGE = 2;
+  EGUILDWELFARE_TREASURE = 3;
+  EGUILDWELFARE_MAX = 4;
+}
+
+message GuildWelfareItem
+{
+  optional EGuildWelfare type = 1 [ default = EGUILDWELFARE_MIN ];
+  optional uint64 id = 2 [ default = 0 ];
+  optional ESource source = 3 [ default = ESOURCE_MIN ];
+  optional uint32 rewardid = 4 [ default = 0 ];
+  optional uint32 createtime = 5 [ default = 0 ];
+  optional uint32 overduetime = 6 [ default = 0 ];
+  repeated uint64 charids = 7; // 已领奖的玩家id
+
+  optional string ownername = 8;
+  optional uint32 sourceid = 9 [ default = 0 ];
+  optional uint32 eventguid = 10 [ default = 0 ];
+  optional uint32 index = 11 [ default = 0 ];
+}
+
+message GuildWelfare
+{
+  repeated GuildWelfareItem items = 1;
+}
+
+message GuildArtifactItem
+{
+  optional string guid = 1;
+  optional uint32 itemid = 2 [ default = 0 ];
+  optional uint32 distributecount = 3 [ default = 0 ]; // 分配次数
+  optional uint32 retrievetime = 4 [ default = 0 ]; // 取回cd结束时间
+  optional uint64 ownerid = 5 [ default = 0 ]; // 当前持有者
+}
+
+message GuildArtifactData
+{
+  optional uint32 type = 1 [ default = 0 ];
+  optional uint32 producecount = 2 [ default = 0 ]; // 打造次数
+  optional uint32 maxlevel = 3 [ default = 0 ]; // 打造到的最大等级
+}
+
+message GuildArtifact
+{
+  repeated GuildArtifactItem items = 1;
+  repeated GuildArtifactData datas = 2;
+}
+
+// guild misc
+message GQuest
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  repeated QuestData datas = 2;
+}
+message BlobGQuest
+{
+  repeated GQuest quests = 1;
+  repeated uint32 accepts = 2;
+  repeated uint32 submit = 3;
+}
+
+message BlobGGvg
+{
+  optional uint32 partin_time = 1 [ default = 0 ];
+  repeated uint64 partin_users = 2;
+  optional uint32 sugvgtime = 3 [ default = 0 ];
+  optional uint32 sugvgcnt = 4 [ default = 0 ];
+  optional uint32 sugvgscore = 5 [ default = 0 ];
+  optional uint32 version = 6 [ default = 0 ];
+}
+
+message GuildTreasure
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 count = 2 [ default = 0 ];
+}
+message TreasureItem
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional string name = 3;
+  repeated ItemData datas = 2;
+}
+enum ETreasureState
+{
+  ETREASURESTATE_MIN = 0;
+  ETREASURESTATE_UNGETED = 1;
+  ETREASURESTATE_GETED = 2;
+  ETREASURESTATE_UNENABLE = 3;
+  ETREASURESTATE_MAX = 4;
+}
+message TreasureResult
+{
+  optional uint64 ownerid = 1 [ default = 0 ];
+  optional uint32 eventguid = 2 [ default = 0 ];
+  optional uint32 treasureid = 3 [ default = 0 ];
+  optional uint32 totalmember = 5 [ default = 0 ];
+  optional ETreasureState state = 6 [ default = ETREASURESTATE_MIN ];
+
+  repeated TreasureItem items = 4;
+}
+message BlobGuildTreasure
+{
+  repeated GuildTreasure treasures = 1;
+  repeated TreasureResult result = 2;
+}
+
+message BlobGuildMisc
+{
+  optional bytes var = 1;
+  repeated GuildJob job = 2;
+
+  optional uint32 donatetime1 = 3 [ default = 0 ];
+  optional uint32 donatetime2 = 4 [ default = 0 ];
+
+  repeated GuildQuest quest = 5;
+  optional uint32 nextquesttime = 6 [ default = 0 ];
+
+  repeated DojoMsgBlob dojomsg = 7;
+
+  optional uint32 donatetime3 = 8 [ default = 0 ];
+  optional uint32 donatetime4 = 9 [ default = 0 ];
+
+  optional uint32 renametime = 10 [ default = 0 ];
+
+  optional uint32 city_giveup_time = 11 [ default = 0 ];
+  optional uint32 auth_version = 12 [ default = 0 ];
+
+  optional GuildBuildingData building = 13;
+  optional uint64 openfunction = 14 [ default = 0 ];
+  optional GuildChallengeData challenge = 15;
+  optional GuildWelfare welfare = 16;
+  optional GuildArtifact artifact = 17;
+  optional BlobGQuest quests = 18;
+  optional BlobGuildTreasure treasures = 19;
+  optional BlobGGvg gvg = 20;
+}
+
+// package
+message BlobGuildPack
+{
+  optional uint32 version = 1 [ default = 0 ];
+  repeated ItemInfo item = 2;
+  repeated ItemData data = 3;
+}
+
+// event
+message BlobGuildEvent
+{
+  optional uint32 version = 1 [ default = 0 ];
+  repeated GuildEvent events = 2;
+}
+
+// photo
+message GuildPhoto
+{
+  optional uint64 accid_svr = 8 [ default = 0 ];
+
+  optional uint64 accid = 7 [ default = 0 ];
+  optional uint64 charid = 1 [ default = 0 ];
+
+  optional uint32 anglez = 2 [ default = 0 ];
+  optional uint32 time = 3 [ default = 0 ];
+  optional uint32 mapid = 4 [ default = 0 ];
+
+  optional uint32 sourceid = 5 [ default = 0 ];
+  optional ESource source = 6 [ default = ESOURCE_MIN ];
+}
+message PhotoFrame
+{
+  optional uint32 frameid = 1 [ default = 0 ];
+  repeated GuildPhoto photo = 2;
+}
+message BlobGuildPhoto
+{
+  repeated PhotoFrame frames = 1;
+}
+
+// guild data
+message GuildSummaryData
+{
+  optional uint64 guid = 1 [ default = 0 ];
+  optional uint32 level = 2 [ default = 0 ];
+  optional uint32 zoneid = 10 [ default = 0 ];
+  optional uint32 curmember = 3 [ default = 0 ];
+  optional uint32 maxmember = 4 [ default = 0 ];
+  optional uint32 cityid = 11 [ default = 0 ];
+
+  optional EGender chairmangender = 5 [ default = EGENDER_MIN ];
+
+  optional string chairmanname = 6;
+  optional string guildname = 7;
+  optional string recruitinfo = 8;
+  optional string portrait = 9;
+}
+
+message GuildData
+{
+  optional GuildSummaryData summary = 1;
+
+  optional uint32 questresettime = 4 [ default = 0 ];
+  optional uint32 asset = 5 [ default = 0 ];
+  optional uint32 dismisstime = 6 [ default = 0 ];
+  optional uint32 zonetime = 7 [ default = 0 ];
+  optional uint32 createtime = 8 [ default = 0 ];
+  optional uint32 nextzone = 9 [ default = 0 ];
+  optional uint32 donatetime1 = 10 [ default = 0 ];
+  optional uint32 donatetime2 = 11 [ default = 0 ];
+
+  optional string name = 12;
+  optional string boardinfo = 13;
+  optional string recruitinfo = 14;
+
+  repeated GuildMember members = 15;
+  repeated GuildApply applys = 16;
+  repeated GuildJob jobs = 17;
+  optional uint32 assettoday = 18 [ default = 0 ];
+  optional uint32 citygiveuptime = 19 [ default = 0 ];
+  optional uint32 openfunction = 20 [ default = 0 ];
+  repeated GuildChallenge challenges = 21;
+
+  optional uint32 gvg_treasure_count = 22 [ default = 0 ];
+  optional uint32 guild_treasure_count = 23 [ default = 0 ];
+  optional uint32 bcoin_treasure_count = 24 [ default = 0 ];
+  optional bool insupergvg = 25 [ default = false ];
+  optional uint32 supergvg_lv = 26 [ default = 0 ];
+}
+
+// client <-> session : query guild list
+message QueryGuildListGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_GUILDLIST ];
+
+  optional string keyword = 3;
+  optional uint32 page = 4 [ default = 0 ];
+  repeated GuildSummaryData list = 5;
+}
+
+// client -> session : create guild
+message CreateGuildGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_CREATEGUILD ];
+
+  optional string name = 3;
+}
+
+// session -> client : enter guild
+message EnterGuildGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_ENTERGUILD ];
+
+  optional GuildData data = 3;
+}
+
+// session -> client : member update
+message GuildMemberUpdateGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_MEMBERUPDATE ];
+
+  repeated GuildMember updates = 3;
+  repeated uint64 dels = 4;
+}
+
+// session -> client : apply update
+message GuildApplyUpdateGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_APPLYUPDATE ];
+
+  repeated GuildApply updates = 3;
+  repeated uint64 dels = 4;
+}
+
+// session -> client : guild data update
+enum EGuildData
+{
+  EGUILDDATA_MIN = 0;
+  EGUILDDATA_ID = 1;
+  EGUILDDATA_NAME = 2;
+  EGUILDDATA_LEVEL = 3;
+  EGUILDDATA_BOARDINFO = 6;
+  EGUILDDATA_RECRUITINFO = 7;
+  EGUILDDATA_PORTRAIT = 8;
+  EGUILDDATA_QUEST_RESETTIME = 9;
+  EGUILDDATA_ASSET = 10;
+  EGUILDDATA_DISMISSTIME = 11;
+  EGUILDDATA_MEMBER = 18;
+  EGUILDDATA_APPLY = 19;
+  EGUILDDATA_MISC = 20;
+  EGUILDDATA_PACK = 21;
+  EGUILDDATA_ZONEID = 22;
+  EGUILDDATA_ZONETIME = 23;
+  EGUILDDATA_NEXTZONE = 24;
+  EGUILDDATA_DONATETIME1 = 25;
+  EGUILDDATA_DONATETIME2 = 26;
+  EGUILDDATA_EVENT = 27;
+  EGUILDDATA_DONATETIME3 = 28;
+  EGUILDDATA_DONATETIME4 = 29;
+  EGUILDDATA_ASSET_DAY = 37;
+  EGUILDDATA_PHOTO = 38;
+  EGUILDDATA_CITYID = 43;
+  EGUILDDATA_CITY_GIVEUP_CD = 44;
+  EGUILDDATA_OPEN_FUNCTION = 45;
+  EGUILDDATA_TREASURE_GVG_COUNT = 46;
+  EGUILDDATA_TREASURE_GUILD_COUNT = 47;
+  EGUILDDATA_TREASURE_BCOIN_COUNT = 48;
+  EGUILDDATA_SUPERGVG = 49;
+  EGUILDDATA_SUPERGVG_LV = 50;
+  EGUILDDATA_MAX = 51;
+}
+message GuildDataUpdate
+{
+  optional EGuildData type = 1 [ default = EGUILDDATA_MIN ];
+  optional uint64 value = 2 [ default = 0 ];
+  optional string data = 3;
+}
+message GuildDataUpdateGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_GUILDDATAUPDATE ];
+
+  repeated GuildDataUpdate updates = 3;
+}
+
+// session -> client : member data update
+enum EGuildList
+{
+  EGUILDLIST_MEMBER = 1;
+  EGUILDLIST_APPLY = 2;
+}
+enum EGuildMemberData
+{
+  EGUILDMEMBERDATA_MIN = 0;
+  EGUILDMEMBERDATA_BASELEVEL = 1;
+  EGUILDMEMBERDATA_WEEKCONTRIBUTION = 2;
+  EGUILDMEMBERDATA_CONTRIBUTION = 3;
+  EGUILDMEMBERDATA_TOTALCONTRIBUTION = 14;
+  EGUILDMEMBERDATA_ENTERTIME = 4;
+  EGUILDMEMBERDATA_OFFLINETIME = 5;
+  EGUILDMEMBERDATA_PROFESSION = 6;
+  EGUILDMEMBERDATA_PORTRAIT = 7;
+  EGUILDMEMBERDATA_FRAME = 8;
+  EGUILDMEMBERDATA_HAIR = 9;
+  EGUILDMEMBERDATA_HAIRCOLOR = 10;
+  EGUILDMEMBERDATA_BODY = 11;
+  EGUILDMEMBERDATA_JOB = 12;
+  EGUILDMEMBERDATA_LEVELUPEFFECT = 15;
+  EGUILDMEMBERDATA_WEEKASSET = 16;
+  EGUILDMEMBERDATA_ASSET = 17;
+  EGUILDMEMBERDATA_ZONEID = 18;
+  EGUILDMEMBERDATA_NAME = 19;
+  EGUILDMEMBERDATA_ONLINETIME = 20;
+  EGUILDMEMBERDATA_HEAD = 21;
+  EGUILDMEMBERDATA_FACE = 22;
+  EGUILDMEMBERDATA_MOUTH = 23;
+  EGUILDMEMBERDATA_EYE = 24;
+  EGUILDMEMBERDATA_BUILDINGEFFECT = 25;
+  EGUILDMEMBERDATA_GENDER = 26;
+  EGUILDMEMBERDATA_REALTIMEVOICE = 27;
+  EGUILDMEMBERDATA_WEEKBCOIN = 28;
+  EGUILDMEMBERDATA_TOTALBCOIN = 29;
+  EGUILDMEMBERDATA_MAX = 30;
+}
+message GuildMemberDataUpdate
+{
+  optional EGuildMemberData type = 1 [ default = EGUILDMEMBERDATA_MIN ];
+  optional uint64 value = 2 [ default = 0 ];
+  optional string data = 3;
+}
+message GuildMemberDataUpdateGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_MEMBERDATAUPDATE ];
+
+  optional EGuildList type = 3 [ default = EGUILDLIST_MEMBER ];
+
+  optional uint64 charid = 4 [ default = 0 ];
+  repeated GuildMemberDataUpdate updates = 5;
+}
+
+// client -> session : apply guild
+message ApplyGuildGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_APPLYGUILD ];
+
+  optional uint64 guid = 3 [ default = 0 ];
+}
+
+// client -> session : process apply
+enum EGuildAction
+{
+  EGUILDACTION_MIN = 0;
+  EGUILDACTION_AGREE = 1;
+  EGUILDACTION_DISAGREE = 2;
+  EGUILDACTION_MAX = 3;
+}
+message ProcessApplyGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_PROCESSAPPLY ];
+
+  optional EGuildAction action = 3 [ default = EGUILDACTION_MIN ];
+  optional uint64 charid = 4 [ default = 0 ];
+}
+
+// client <-> session : invite member
+message InviteMemberGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_INVITEMEMBER ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 guildid = 4 [ default = 0 ];
+  optional string guildname = 5;
+  optional string invitename = 6;
+}
+
+// client -> session : process invite member
+message ProcessInviteGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_PROCESSINVITEMEMBER ];
+
+  optional EGuildAction action = 3 [ default = EGUILDACTION_MIN ];
+  optional uint64 guid = 4 [ default = 0 ];
+}
+
+// client -> session : set option
+message SetGuildOptionGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_SETOPTION ];
+
+  optional string board = 3;
+  optional string recruit = 4;
+  optional string portrait = 5;
+  repeated GuildJob jobs = 6;
+}
+
+// client -> session : kick member
+message KickMemberGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_KICKMEMBER ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+}
+
+// client -> session : change job
+message ChangeJobGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_CHANGEJOB ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional EGuildJob job = 4 [ default = EGUILDJOB_MIN ];
+}
+
+// client -> session : exit guild
+message ExitGuildGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_EXITGUILD ];
+}
+
+// client -> session : exchange chairman
+message ExchangeChairGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_EXCHANGECHAIR ];
+
+  optional uint64 newcharid = 3 [ default = 0 ];
+}
+
+// client -> session : dismiss guild
+message DismissGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_DISMISSGUILD ];
+
+  optional bool set = 3 [ default = false ];
+}
+
+// client -> session : levelup guild
+message LevelupGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_LEVELUPGUILD ];
+}
+
+// client -> session : donate
+message DonateGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_DONATE ];
+
+  optional uint32 configid = 3 [ default = 0 ];
+  optional uint32 time = 4 [ default = 0 ];
+}
+
+// client <-> session : donate list
+message DonateItem
+{
+  optional uint32 configid = 1 [ default = 0 ];
+  optional uint32 count = 2 [ default = 0 ];
+  optional uint32 time = 3 [ default = 0 ];
+
+  optional uint32 itemid = 4 [ default = 0 ];
+  optional uint32 itemcount = 5 [ default = 0 ];
+
+  optional uint32 contribute = 6 [ default = 0 ];
+  optional uint32 medal = 7 [ default = 0 ];
+}
+message DonateListGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_DONATELIST ];
+
+  repeated DonateItem items = 3;
+}
+
+// session -> client : update donate item
+message UpdateDonateItemGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_UPDATEDONATEITEM ];
+
+  optional DonateItem item = 3;
+  optional DonateItem del = 4;
+}
+
+// client -> session : donate frame status
+message DonateFrameGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_DONATEFRAMESTATUS ];
+
+  optional bool open = 3 [ default = false ];
+}
+
+// client -> session : enter city
+message EnterTerritoryGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_ENTERGUILDTERRITORY ];
+
+  optional uint64 handid = 3 [ default = 0 ];
+}
+
+// client -> session : pray
+message PrayGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_PRAY ];
+
+  optional uint64 npcid = 3 [ default = 0 ];
+  optional uint32 pray = 4 [ default = 0 ];
+}
+
+// scene -> client : guild info ntf
+message GuildInfoNtf
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_GUILDINFONTF ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 id = 4 [ default = 0 ];
+  optional string name = 5;
+  optional string icon = 6;
+  optional string job = 7;
+}
+
+// session -> client : pray ntf
+message GuildPrayNtfGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_GUILDPRAYNTF ];
+
+  repeated GuildMemberPray prays = 3;
+}
+
+// client -> session : levelup effect
+message LevelupEffectGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_LEVELUPEFFECT ];
+}
+
+// client <-> session : query pack
+message QueryPackGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_QUERYPACK ];
+
+  repeated ItemData items = 3;
+}
+
+// social -> client : pack update
+message PackUpdateGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_PACKUPDATE ];
+
+  repeated ItemData updates = 3;
+  repeated string dels = 4;
+}
+
+// client -> session -> social : exchange zone
+message ExchangeZoneGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_EXCHANGEZONE ];
+
+  optional uint32 zoneid = 3 [ default = 0 ];
+  optional bool set = 4 [ default = false ];
+}
+
+// social -> session -> client : exchange zone ntf
+message ExchangeZoneNtfGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_EXCHANGEZONE_NTF ];
+
+  optional uint32 nextzoneid = 3 [ default = 0 ];
+  optional uint32 curzoneid = 4 [ default = 0 ];
+}
+
+// client -> session -> social : exchange zone answer
+message ExchangeZoneAnswerGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_EXCHANGEZONE_ANSWER ];
+
+  optional bool agree = 3 [ default = false ];
+}
+
+// social -> client : query event list
+message GuildEvent
+{
+  optional uint32 guid = 1 [ default = 0 ];
+  optional uint32 eventid = 2 [ default = 0 ];
+  optional uint32 time = 3 [ default = 0 ];
+  repeated string param = 4;
+}
+message QueryEventListGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_QUERY_EVENT_LIST ];
+
+  repeated GuildEvent events = 3;
+}
+
+// social -> client : new event
+message NewEventGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_NEW_EVENT ];
+
+  optional bool del = 3 [ default = false ];
+  optional GuildEvent event = 4;
+}
+
+message GuildReward
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 num = 2 [ default = 0 ];
+}
+// client -> session
+message ApplyRewardConGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_APPLYCONFIG];
+
+  optional uint32 configid = 3 [ default = 0 ];
+  repeated GuildReward con = 4;
+  repeated GuildReward asset = 5;
+}
+
+// client -> guild : frame status
+message FrameStatusGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_FRAME_STATUS ];
+
+  optional bool open = 3 [ default = false ];
+}
+
+// client -> guild : modify auth
+enum EModify
+{
+  EMODIFY_MIN = 0;
+  EMODIFY_AUTH = 1;
+  EMODIFY_EDITAUTH = 2;
+  EMODIFY_MAX = 3;
+}
+message ModifyAuthGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_MODIFY_AUTH ];
+
+  optional bool add = 3 [ default = false ];
+  optional EModify modify = 4 [ default = EMODIFY_MIN] ;
+  optional EGuildJob job = 5 [ default = EGUILDJOB_MIN ];
+  optional EAuth auth = 6 [ default = EAUTH_MIN ];
+}
+
+// guild -> client : job update
+message JobUpdateGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_JOB_UPDATE ];
+
+  optional GuildJob job = 3;
+}
+
+//client -> guild
+message RenameQueryGuildCmd
+{
+  optional Command cmd = 1[default = SESSION_USER_GUILD_PROTOCMD];
+  optional GuildParam param = 2[default = GUILDPARAM_RENAME_QUERY];
+
+  optional string name = 3;
+  optional ERenameErrCode code = 4 [ default = ERENAME_SUCCESS ];
+}
+
+// scene -> client : query city info
+enum EGuildCityStatus
+{
+  EGUILDCITYSTATUS_MIN = 0;
+  EGUILDCITYSTATUS_NONE = 1;
+  EGUILDCITYSTATUS_OCCUPY = 2;
+  EGUILDCITYSTATUS_GIVEUP = 3;
+  EGUILDCITYSTATUS_FINISH = 4;
+  EGUILDCITYSTATUS_MAX = 5;
+}
+message GuildCityInfo
+{
+  optional uint64 id = 1 [ default = 0 ];
+  optional uint32 flag = 2 [ default = 0 ];
+  optional uint32 lv = 3 [ default = 0 ];
+  optional uint32 membercount = 4 [ default = 0 ];
+
+  optional string name = 5;
+  optional string portrait = 6;
+  optional uint64 oldguild = 7 [ default = 0 ];
+  optional uint32 times = 8 [ default = 0 ];
+  optional string leadername = 9;
+}
+message QueryGuildCityInfoGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_QUERY_CITYINFO ];
+
+  repeated GuildCityInfo infos = 3;
+}
+
+// client -> guild : giveup city
+enum ECityAction
+{
+  ECITYACTION_MIN = 0;
+  ECITYACTION_GIVEUP = 1;
+  ECITYACTION_CANCEL_GIVEUP = 2;
+  ECITYACTION_MAX = 3;
+}
+message CityActionGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_CITY_ACTION ];
+
+  optional ECityAction action = 3 [ default = ECITYACTION_MIN ];
+}
+
+enum EIconState
+{
+  EICON_INIT = 0;
+  EICON_PASS = 1;
+  EICON_FORBID = 2;
+}
+
+message IconInfo
+{
+  optional uint32 index = 1;
+  optional EIconState state = 2;
+  optional uint32 time = 3;
+  optional bool isread = 4 [ default = true ];
+  optional string type = 5;
+}
+
+// guild -> client 同步公会icon信息
+message GuildIconSyncGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_GUILD_ICON_SYNC ];
+
+  repeated IconInfo infos = 3;
+  repeated uint32 dels = 4;
+}
+
+// client <-> guild 添加\删除公会icon信息
+message GuildIconAddGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_GUILD_ICON_ADD ];
+
+  optional uint32 index = 3 [ default = 0 ];
+  optional EIconState state = 4 [ default = EICON_INIT ];
+  optional uint32 createtime = 5 [ default = 0 ];
+  optional bool isdelete = 6 [ default = false ];
+  optional string type = 7;
+}
+
+// client <-> guild upload guild icon
+message GuildIconUploadGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_GUILD_ICON_UPLOAD ];
+
+  optional uint32 index = 3 [ default = 0 ];
+  optional string policy = 4;
+  optional string signature = 5;
+  optional string type = 6;
+}
+
+// client -> guild : 开启公会功能
+message OpenFunctionGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_OPEN_FUNCTION ];
+
+  optional EGuildFunction func = 3 [ default = EGUILDFUNCTION_MIN];
+}
+
+// client -> guild : 建造
+message BuildGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_BUILD ];
+
+  optional EGuildBuilding building = 3 [ default = EGUILDBUILDING_MIN ];
+}
+
+// client -> guild : 提交材料
+message SubmitMaterialGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_SUBMIT_MATERIAL ];
+
+  optional EGuildBuilding building = 3 [ default = EGUILDBUILDING_MIN ];
+  optional uint32 materialid = 4 [ default = 0 ];
+  // repeated GuildBuildMaterial materials = 4; // 材料
+}
+
+// scene -> client : 建筑信息更新
+message BuildingNtfGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_BUILDING_NTF ];
+
+  repeated GuildBuilding buildings = 3;
+}
+
+// client <-> scene : 查询提交材料次数
+message BuildingSubmitCountGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_BUILDING_SUBMIT_COUNT ];
+
+  optional EGuildBuilding type = 3 [ default = EGUILDBUILDING_MIN ];
+  optional uint32 count = 4 [ default = 0 ];
+}
+
+// guild -> scene : 公会挑战任务更新
+message ChallengeUpdateNtfGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_CHALLENGE_UPDATE ];
+
+  repeated GuildChallenge updates = 3;
+  repeated GuildChallenge dels = 4;
+  optional uint32 refreshtime = 5;
+}
+
+// guild -> client : 公会奖励
+message WelfareNtfGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_WELFARE_NTF ];
+
+  optional bool welfare = 3 [ default = false ];
+}
+
+// client -> guild : 领取公会奖励
+message GetWelfareGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_GET_WELFARE ];
+}
+
+// client <-> session : 公会建筑升级特效
+message BuildingLvupEffect
+{
+  optional EGuildBuilding type = 1 [ default = EGUILDBUILDING_MIN ];
+  optional uint32 level = 2 [ default = 0 ];
+}
+message BuildingLvupEffGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_BUILDING_LVUP_EFF ];
+
+  repeated BuildingLvupEffect effects = 3;
+}
+
+// client -> guild : 神器数据更新
+message ArtifactUpdateNtfGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_ARTIFACT_UPDATE_NTF ];
+
+  repeated GuildArtifactItem itemupdates = 3;
+  repeated string itemdels = 4;
+  repeated GuildArtifactData dataupdates = 5;
+}
+
+// client -> guild : 打造/升级神器
+message ArtifactProduceGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_ARTIFACT_PRODUCE ];
+
+  optional uint32 id = 3 [ default = 0 ]; // 神器id
+}
+
+// client -> guild : 神器分配
+enum EArtifactOptType
+{
+  EARTIFACTOPTTYPE_MIN = 0;
+  EARTIFACTOPTTYPE_DISTRIBUTE = 1; // 分配
+  EARTIFACTOPTTYPE_RETRIEVE = 2; // 收回
+  EARTIFACTOPTTYPE_RETRIEVE_CANCEL = 3; // 消息收回
+  EARTIFACTOPTTYPE_GIVEBACK = 4; // 归还
+  EARTIFACTOPTTYPE_MAX = 5;
+}
+message ArtifactOptGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_ARTIFACT_OPT ];
+
+  optional EArtifactOptType opt = 3 [ default = EARTIFACTOPTTYPE_MIN ];
+  repeated string guid = 4;
+  optional uint64 charid = 5 [ default = 0 ];
+}
+
+// client <-> guild : 查询完成任务
+message QueryGQuestGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_QUERY_GQUEST ];
+
+  repeated uint32 submit_quests = 3;
+}
+
+// client <-> scene : 宝箱操作
+enum EGuildTreasureType
+{
+  EGUILDTREASURETYPE_MIN = 0;
+  EGUILDTREASURETYPE_GVG = 1;
+  EGUILDTREASURETYPE_GUILD_BCOIN = 2;
+  EGUILDTREASURETYPE_GUILD_ASSET = 3;
+  EGUILDTREASURETYPE_PREVIEW = 4;
+  EGUILDTREASURETYPE_MAX = 5;
+}
+enum ETreasureAction
+{
+  ETREASUREACTION_MIN = 0;
+  ETREASUREACTION_GVG_FRAME_ON = 1;
+  ETREASUREACTION_GUILD_FRAME_ON = 2;
+  ETREASUREACTION_FRAME_OFF = 3;
+  ETREASUREACTION_LEFT = 4;
+  ETREASUREACTION_RIGHT = 5;
+  ETREASUREACTION_OPEN_GVG = 6;
+  ETREASUREACTION_OPEN_GUILD = 7;
+  ETREASUREACTION_MAX = 8;
+}
+enum ETreasurePoint
+{
+  ETREASUREPOINT_MIN = 0;
+  ETREASUREPOINT_LEFT = 1;
+  ETREASUREPOINT_RIGHT = 2;
+  ETREASUREPOINT_NONE = 3;
+  ETREASUREPOINT_ALL = 4;
+}
+message TreasureActionGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_TREASURE_ACTION ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 guild_treasure_count = 4 [ default = 0 ];
+  optional uint32 bcoin_treasure_count = 5 [ default = 0 ];
+
+  optional ETreasureAction action = 6 [ default = ETREASUREACTION_MIN ];
+  optional ETreasurePoint point = 7 [ default = ETREASUREPOINT_MIN ];
+  optional GuildTreasure treasure = 8;
+}
+
+// client -> guild : 查询公会建筑提交材料排行榜
+message BuildingSubmitRankItem
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 submitcounttotal = 2 [ default = 0 ];
+  optional uint32 submittime = 3 [ default = 0 ];
+}
+message QueryBuildingRankGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_QUERY_BUILDING_RANK ];
+
+  optional EGuildBuilding type = 3 [ default = EGUILDBUILDING_MIN ];
+  repeated BuildingSubmitRankItem items = 4;
+}
+
+// client <-> guild : 宝箱领取信息查询
+message QueryTreasureResultGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_TREASURE_QUERYRESULT ];
+
+  optional uint32 eventguid = 3 [ default = 0 ];
+  optional TreasureResult result = 4;
+}
+
+enum EGCityState
+{
+  EGCITYSTATE_MIN         = 0;
+  EGCITYSTATE_CRIFIRE     = 1;
+  EGCITYSTATE_ATTFIRE     = 2;
+  EGCITYSTATE_DEFFIRE     = 3;
+  EGCITYSTATE_NORMALFIRE  = 4;
+  EGCITYSTATE_PERFECT     = 5;
+  EGCITYSTATE_NOOWNER     = 6;
+  EGCITYSTATE_OCCUPY      = 7;
+}
+
+message CityShowInfo
+{
+  optional uint32 cityid = 1 [ default = 0 ];
+  optional EGCityState state = 2 [ default = EGCITYSTATE_MIN ];
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional string name = 4;
+  optional string portrait = 5;
+  optional uint32 lv = 6 [ default = 0 ];
+  optional uint32 membercount = 7 [ default = 0 ];
+}
+
+// client->session->client
+message QueryGCityShowInfoGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_QUERY_CITYSHOW ];
+  repeated CityShowInfo infos = 3;
+}
+message GvgOpenFireGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_OEPN_GVG ];
+
+  optional bool fire = 3 [ default = false ];
+}
+
+// guild -> client : query punish time
+message EnterPunishTimeNtfGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_ENTERPUNISHTIME_NTF ];
+
+  optional uint32 exittime = 3 [ default = 0 ];
+}
+
+// client -> guild : 开启实时语音
+message OpenRealtimeVoiceGuildCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_GUILD_PROTOCMD ];
+  optional GuildParam param = 2 [ default = GUILDPARAM_OPEN_REALTIME_VOICE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional bool open = 4 [ default = false ]; // true:开启,false关闭
+}
+

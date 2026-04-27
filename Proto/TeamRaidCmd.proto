@@ -1,0 +1,53 @@
+package Cmd;
+
+import "xCmd.proto";
+import "FuBenCmd.proto";
+
+enum TeamRaidParam
+{
+  TEAMRAIDPARAM_INVITE = 1;
+  TEAMRAIDPARAM_REPLY = 2;
+  TEAMRAIDPARAM_ENTER = 3;
+  TEAMRAIDPARAM_ALTMANSHOW = 4;
+}
+
+message TeamRaidInviteCmd
+{
+  optional Command cmd = 1 [ default = TEAM_RAID_PROTOCMD ];
+  optional TeamRaidParam param = 2 [ default = TEAMRAIDPARAM_INVITE ];
+
+  optional bool iscancel = 3 [ default = false ] ;  //是否开启邀请
+  optional ERaidType raid_type = 4 [ default = ERAIDTYPE_MIN ] ; //副本类型，下同
+}
+
+message TeamRaidReplyCmd
+{
+  optional Command cmd = 1 [ default = TEAM_RAID_PROTOCMD ];
+  optional TeamRaidParam param = 2 [ default = TEAMRAIDPARAM_REPLY ];
+
+  optional bool reply = 3 [ default = false ];    //true 同意 false 拒绝
+  optional uint64 charid = 4 [ default = 0 ];
+  optional ERaidType raid_type = 5 [ default = ERAIDTYPE_MIN ] ;
+}
+
+message TeamRaidEnterCmd
+{
+  optional Command cmd = 1 [ default = TEAM_RAID_PROTOCMD ];
+  optional TeamRaidParam param = 2 [ default = TEAMRAIDPARAM_ENTER ];
+
+  optional ERaidType raid_type = 3 [ default = ERAIDTYPE_MIN ];
+  optional uint64 userid = 4 [ default = 0 ];
+  optional uint32 zoneid = 5 [ default = 0 ];
+  optional uint32 time = 6 [ default = 0 ];
+  optional string sign = 7;
+}
+
+message TeamRaidAltmanShowCmd
+{
+  optional Command cmd = 1 [ default = TEAM_RAID_PROTOCMD ];
+  optional TeamRaidParam param = 2 [ default = TEAMRAIDPARAM_ALTMANSHOW ];
+
+  optional uint32 lefttime = 3 [ default = 0 ];
+  optional uint32 killcount = 4 [ default = 0 ];
+  optional uint32 selfkill = 5 [ default = 0 ];
+}

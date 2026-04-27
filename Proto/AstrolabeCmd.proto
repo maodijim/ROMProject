@@ -1,0 +1,64 @@
+package Cmd;
+
+import "xCmd.proto";
+
+enum AstrolabeParam
+{
+  ASTROLABEPARAM_QUERY = 1;
+  ASTROLABEPARAM_ACTIVATE_STAR = 2;
+  ASTROLABEPARAM_QUERY_RESET = 3;
+  ASTROLABEPARAM_RESET = 4;
+}
+
+enum EAstrolabeType
+{
+  EASTROLABETYPE_MIN = 0;
+  EASTROLABETYPE_PROFESSION = 1;
+  EASTROLABETYPE_MAX = 2;
+}
+
+message AstrolabeCostData
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 count = 2 [ default = 0 ];
+}
+
+// client <-> scene: 查询星盘, 登录时推送
+message AstrolabeQueryCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ASTROLABE_PROTOCMD ];
+  optional AstrolabeParam param = 2 [ default = ASTROLABEPARAM_QUERY ];
+
+  repeated uint32 stars = 3; // 已激活星盘星位, 星盘id*10000+星位id
+}
+
+// client <-> scene: 激活星位
+message AstrolabeActivateStarCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ASTROLABE_PROTOCMD ];
+  optional AstrolabeParam param = 2 [ default = ASTROLABEPARAM_ACTIVATE_STAR ];
+
+  repeated uint32 stars = 3; // 星盘id*10000+星位id
+
+  optional bool success = 5; // 服务器返回, true表示成功
+}
+
+// client <-> scene: 查询重置返还道具
+message AstrolabeQueryResetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ASTROLABE_PROTOCMD ];
+  optional AstrolabeParam param = 2 [ default = ASTROLABEPARAM_QUERY_RESET ];
+
+  optional EAstrolabeType type = 3; // 星盘类型
+  repeated AstrolabeCostData items = 4; // 服务器返回, 返回道具列表
+}
+
+// client <-> scene: 重置星盘
+message AstrolabeResetCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_ASTROLABE_PROTOCMD ];
+  optional AstrolabeParam param = 2 [ default = ASTROLABEPARAM_RESET ];
+
+  repeated uint32 stars = 3; // 星盘id*10000+星位id
+  optional bool success = 4; // 服务器返回, true表示成功
+}

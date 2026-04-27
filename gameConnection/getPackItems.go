@@ -1,9 +1,11 @@
 package gameConnection
 
 import (
+	"sync"
+	"time"
+
 	Cmd "ROMProject/Cmds"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 const (
@@ -21,6 +23,12 @@ func (g *GameConnection) GetMainPackItems() (err error) {
 	return err
 }
 
+func (g *GameConnection) GetEquipPackItems() (err error) {
+	packType := Cmd.EPackType_EPACKTYPE_EQUIP
+	err = g.GetPackItem(&packType)
+	return err
+}
+
 func (g *GameConnection) GetTempMainPackItems() (err error) {
 	packTypes := []Cmd.EPackType{
 		Cmd.EPackType_EPACKTYPE_TEMP_MAIN,
@@ -35,13 +43,25 @@ func (g *GameConnection) GetTempMainPackItems() (err error) {
 func (g *GameConnection) GetAllPackItems() (err error) {
 	packTypes := []Cmd.EPackType{
 		Cmd.EPackType_EPACKTYPE_MAIN,
-		//Cmd.EPackType_EPACKTYPE_STORE,
+		Cmd.EPackType_EPACKTYPE_EQUIP,
+		// Cmd.EPackType_EPACKTYPE_STORE,
 		Cmd.EPackType_EPACKTYPE_PERSONAL_STORE,
+		Cmd.EPackType_EPACKTYPE_FOOD,
+		Cmd.EPackType_EPACKTYPE_PET,
+		Cmd.EPackType_EPACKTYPE_QUEST,
 	}
-	for _, pType := range packTypes {
-		err = g.GetPackItem(&pType)
-		time.Sleep(time.Second)
+	wg := sync.WaitGroup{}
+	for range packTypes {
+		wg.Add(1)
 	}
+	for i, pType := range packTypes {
+		go func(packType Cmd.EPackType, i int) {
+			time.Sleep(time.Duration(i) * 250 * time.Millisecond)
+			err = g.GetPackItem(&packType)
+			wg.Done()
+		}(pType, i)
+	}
+	wg.Wait()
 	return err
 }
 
@@ -49,7 +69,7 @@ func (g *GameConnection) GetPackItem(packType *Cmd.EPackType) (err error) {
 	cmd := &Cmd.PackageItem{
 		Type: packType,
 	}
-	g.sendProtoCmd(
+	_ = g.sendProtoCmd(
 		cmd,
 		Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"],
 		Cmd.ItemParam_value["ITEMPARAM_PACKAGEITEM"],

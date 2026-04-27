@@ -1,0 +1,218 @@
+package Cmd;
+import "xCmd.proto";
+import "WeddingCCmd.proto";
+import "SceneItem.proto";
+import "ProtoCommon.proto";
+
+enum WeddingSParam
+{
+  WEDDINGSPARAM_FORWARD_C2WEDDING = 1;         //client -> session ->weddingserver
+  WEDDINGSPARAM_FORWARD_S2WEDDING = 2;         //scene ->session -> weddingserver
+  WEDDINGSPARAM_FORWARD_WEDDING2S = 3;         //weddingserver ->session -> scene
+  WEDDINGSPARAM_FORWARD_WEDDING2C = 8;         //weddingserver -> session ->client
+
+  WEDDINGSPARAM_SYNC_WEDDINGINFO = 4;    
+  WEDDINGSPARAM_START_WEDDING = 5;    
+  WEDDINGSPARAM_STOP_WEDDING = 6;
+  WEDDINGSPARAM_RESERVE_WEDDING_RESULT = 7;   //订婚场景返回
+  WEDDINGSPARAM_BUY_SERVICE = 9;
+//  WEDDINGSPARAM_WEDDING_EVENT_MSG = 10;        //婚礼事件到场景，可能会离线 放到WeddingCCmd.proto 里面了
+  WEDDINGSPARAM_MARRY = 11;                   //结婚
+  WEDDINGSPARAM_CHECK_WEDDING_RESERVE = 12;   //查询婚礼状态
+  WEDDINGSPARAM_MISSYOU_INVITE = 13;          //好想你
+  WEDDINGSPARAM_UPDATE_MANUAL = 14;          //开始婚礼后, 若玩家购买道具,更新婚礼手册数据到场景
+  WEDDINGSPARAM_MARRY_SUCCESS = 15;          //wedding->scene, 结婚成功
+  WEDDINGSPARAM_USER_RENAME = 16;            // 玩家更名
+}
+
+//client <-> session <->weddingserver
+message ForwardC2WeddingSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_FORWARD_C2WEDDING];   
+  optional uint64 charid = 3;
+  optional uint32 zoneid = 4;
+  optional string name = 5;
+  optional bytes data = 6;
+  optional uint32 len = 7;
+}
+
+//scene->sessionserver->weddingserver
+message ForwardS2WeddingSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_FORWARD_S2WEDDING];   
+  optional uint64 charid = 3;
+  optional uint32 zoneid = 4;
+  optional string name = 5;
+  optional bytes data = 6;
+  optional uint32 len = 7; 
+}
+
+//weddingserver->sessionserver->sceneserver
+message ForwardWedding2SSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_FORWARD_WEDDING2S ];   
+  optional uint64 charid = 3;
+  optional bytes data = 4;
+  optional uint32 len = 5;
+}
+
+message ForwardWedding2CSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_FORWARD_WEDDING2C ];   
+  optional uint64 charid = 3;
+  optional bytes data = 4;
+  optional uint32 len = 5;
+}
+
+message WeddingManualInfo
+{
+  repeated uint32 serviceids = 1;
+  optional uint32 ringid = 2 [ default = 0 ];
+  optional uint32 photoindex1 = 3 [ default = 0 ];
+  optional uint32 photoindex2 = 4 [ default = 0 ];
+  optional uint32 phototime1 = 5 [ default = 0 ];
+  optional uint32 phototime2 = 6 [ default = 0 ];
+  repeated WeddingInvitee invitees = 7;
+  optional string name1 = 8;
+  optional string name2 = 9;
+  repeated ItemData itemrecords = 10;
+}
+
+message WeddingInfo
+{
+  optional uint64 id = 1;
+  optional EWeddingStatus status = 2;
+  optional uint64 charid1 = 3;
+  optional uint64 charid2 = 4;
+  optional uint32 zoneid = 5;
+  optional uint32 date = 6;
+  optional uint32 configid = 7;
+  optional uint32 starttime = 8;
+  optional uint32 endtime = 9;
+  optional WeddingManualInfo manual = 10;       //结婚手册
+}
+
+message SyncWeddingInfoSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_SYNC_WEDDINGINFO ];
+  optional uint64 charid = 3 [ default = 0 ];
+  optional WeddingInfo weddinginfo = 4;
+}
+
+message UpdateWeddingManualSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_UPDATE_MANUAL ];
+
+  required uint64 weddingid = 3;
+  optional WeddingManualInfo manual = 4;
+}
+
+//同步当前婚礼到场景
+message StartWeddingSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_START_WEDDING ];
+  optional WeddingInfo weddinginfo = 3;
+}
+
+message StopWeddingSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_STOP_WEDDING ];
+  optional uint64 id = 3;
+}
+
+message ReserveWeddingResultSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_RESERVE_WEDDING_RESULT ];
+  optional uint32 date = 3;
+  optional uint32 configid = 4;
+  optional uint64 charid1 = 5;
+  optional uint64 charid2 = 6;
+  optional bool success = 7;
+  optional uint32 ticket= 8;    //券itemid
+  optional uint32 money = 9;    //zeny 数量
+  optional uint32 zoneid = 10;
+}
+
+// 购买婚礼服务扣道具
+message BuyServiceWeddingSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_BUY_SERVICE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional ESource source = 4 [ default = ESOURCE_MIN ];
+  repeated ItemInfo items = 5;
+  optional uint32 serviceid = 6 [ default = 0 ];
+  optional uint64 weddingid = 7 [ default = 0 ];
+  optional bool success = 8 [ default = false ];
+}
+
+message MarrySCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_MARRY ];
+  optional uint64 charid1 = 3;
+  optional uint64 charid2 = 4;
+  optional uint64 weddingid = 5;
+  repeated ItemData items = 6;
+}
+
+message CheckWeddingReserverSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_CHECK_WEDDING_RESERVE ];
+
+  optional uint64 weddingid = 3 [ default = 0 ];
+  optional uint64 mailid = 4 [ default = 0 ];
+  optional uint64 charid = 5 [ default = 0 ];
+  optional bool result = 6 [ default = false ];
+}
+
+// miss invite
+message ParnterInfo
+{
+  optional uint32 mapid = 1 [ default = 0 ];
+  optional uint32 zoneid = 2 [ default = 0 ];
+
+  optional float x = 3 [ default = 0 ];
+  optional float y = 4 [ default = 0 ];
+  optional float z = 5 [ default = 0 ];
+}
+message MissyouInviteWedSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_MISSYOU_INVITE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional bool trans = 8 [ default = false ];
+
+  optional ParnterInfo info = 9;
+}
+
+//wedding->scene
+message MarrySuccessSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_MARRY_SUCCESS ];
+  optional uint64 weddingid = 3;
+}
+
+// scene -> wedding : user rename
+message UserRenameWedSCmd
+{
+  optional Command cmd = 1 [ default = WEDDINGS_PROTOCMD ];
+  optional WeddingSParam param = 2 [ default = WEDDINGSPARAM_USER_RENAME ];
+
+  optional uint64 weddingid = 3 [ default = 0 ];
+  optional uint64 charid = 4 [ default = 0 ];
+}
+

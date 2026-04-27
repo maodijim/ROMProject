@@ -1,11 +1,13 @@
 package esClient
 
 import (
-	Cmd "ROMProject/Cmds"
 	"fmt"
+	"time"
+
+	Cmd "ROMProject/Cmds"
+
 	"github.com/olivere/elastic/v7"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 type ExchangeTemplate struct {
@@ -27,10 +29,10 @@ type ExchangeTemplate struct {
 }
 
 func (e *ExchangeTemplate) GetIndexName() string {
-	return fmt.Sprintf("rom-exchange-%s", time.Now().Format("2006-01-02"))
+	return fmt.Sprintf("rom-exchange-private-%s", time.Now().Format("2006-01-02"))
 }
 
-func NewEsClient(urls []string) *elastic.Client {
+func NewEsClient(urls []string) (*elastic.Client, error) {
 	log.Infof("Establishing connection to elastic search: %v", urls)
 	client, err := elastic.NewClient(
 		elastic.SetURL(urls...),
@@ -39,8 +41,7 @@ func NewEsClient(urls []string) *elastic.Client {
 	)
 	if err != nil {
 		log.Errorf("failed to connect to elasticsearch: %s", err)
-		log.Infof("Exiting")
-		log.Exit(1)
+		return nil, err
 	}
-	return client
+	return client, nil
 }

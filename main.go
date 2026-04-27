@@ -1,25 +1,27 @@
 package main
 
 import (
-	Cmd "ROMProject/Cmds"
-	"ROMProject/config"
-	"ROMProject/esClient"
-	"ROMProject/gameConnection"
-	"ROMProject/utils"
 	"context"
 	"flag"
 	"fmt"
-	"github.com/olivere/elastic/v7"
-	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"os"
 	"strconv"
 	"sync"
 	"time"
+
+	Cmd "ROMProject/Cmds"
+	"ROMProject/config"
+	"ROMProject/esClient"
+	"ROMProject/gameConnection"
+	"ROMProject/utils"
+
+	"github.com/olivere/elastic/v7"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
-	dev_version = "v0.0.5"
+	dev_version = "v0.0.7"
 )
 
 type tradeItem struct {
@@ -43,7 +45,7 @@ func queryItems(ch chan uint32, details *[]tradeItem, wg *sync.WaitGroup, connec
 			time.Sleep(time.Second + time.Duration(rand.Int31n(500))*time.Millisecond)
 			initStart = false
 		}
-		log.Infof("Requesting information for pub item id: %d", itemId)
+		log.Infof("Requesting information for exchange item id: %d", itemId)
 		detail := connection.QueryItemPrice(itemId, 0)
 		if len(detail) > 0 {
 			// traverse all sub items under same itemId
@@ -72,20 +74,20 @@ func queryItems(ch chan uint32, details *[]tradeItem, wg *sync.WaitGroup, connec
 }
 
 func main() {
-	//hostname := "gw-m-ro.xd.com"
-	//ip, err := net.LookupIP(hostname)
-	//if err != nil {
+	// hostname := "gw-m-ro.xd.com"
+	// ip, err := net.LookupIP(hostname)
+	// if err != nil {
 	//	log.Errorf("%s", err)
-	//}
-	//log.Infof("ip for %s is :%s", hostname, ip)
+	// }
+	// log.Infof("ip for %s is :%s", hostname, ip)
 
 	confFile := flag.String("configPath", "", "Game Server Configuration Yaml Path")
 	itemFile := flag.String("itemPath", "", "Exchange Item Json Path")
 	buffFile := flag.String("buffPath", "", "Buff Json Path")
 	skillJson := flag.String("skillJson", "skills.yml", "json file of skills")
 	enableDebug := flag.Bool("debug", false, "Enable Debugging")
-	workerNum := flag.Int("worker", 5, "Number of work to pull Trade Info")
-	sleepInterval := flag.Int("sleepFor", 1800, "Interval between each pull circle")
+	workerNum := flag.Int("worker", 3, "Number of work to pull Trade Info")
+	sleepInterval := flag.Int("sleepFor", 1000, "Interval between each pull circle")
 	pullOnce := flag.Bool("once", false, "Pull Trade Information once")
 	flag.Parse()
 
@@ -134,6 +136,7 @@ func main() {
 
 			1045, // 时装
 			1052, // 限定特典
+			1020, // 坐騎
 		}
 
 		for {
@@ -163,7 +166,11 @@ func main() {
 				log.Info("End Query")
 				// Insert to elasticsearch
 				ctx := context.Background()
-				client := esClient.NewEsClient(conf.EsConfig.Urls)
+				client, err := esClient.NewEsClient(conf.EsConfig.Urls)
+				if err != nil {
+					log.Errorf("failed to create elasticsearch client: %s", err)
+					log.Exit(1)
+				}
 				bulk := client.Bulk()
 				now := time.Now()
 				for _, val := range detail {
@@ -171,9 +178,9 @@ func main() {
 					sellInfo := val.TradeSellInfo
 					salePrice := baseInfo.GetPrice()
 					if baseInfo.GetDownRate() != 0 {
-						salePrice = uint64(float64(salePrice) * float64(baseInfo.GetDownRate()) * 0.001)
+						salePrice = uint32(float64(salePrice) * float64(baseInfo.GetDownRate()) * 0.001)
 					} else if baseInfo.GetUpRate() != 0 {
-						salePrice = uint64(float64(salePrice) * (float64(baseInfo.GetUpRate())*0.001 + 1))
+						salePrice = uint32(float64(salePrice) * (float64(baseInfo.GetUpRate())*0.001 + 1))
 					}
 					serverIdWithLine, _ := strconv.ParseUint(
 						fmt.Sprintf("%d%d", gameConnect.Configs.ZoneId, gameConnect.Configs.ServerId),
@@ -184,7 +191,7 @@ func main() {
 						ServerId:     uint32(serverIdWithLine),
 						ItemId:       val.TradeBaseInfo.GetItemid(),
 						ItemName:     items.GetItemName(baseInfo.GetItemid()),
-						ItemPrice:    salePrice,
+						ItemPrice:    uint64(salePrice),
 						ItemCategory: items.GetItemCat(baseInfo.GetItemid()),
 						ItemRefineLv: baseInfo.GetRefineLv(),
 						Count:        baseInfo.GetCount(),
@@ -230,7 +237,7 @@ func main() {
 			}
 
 			if gameConnect.Role.GetInGame() {
-				sleepFor := utils.RandomSleepTime(*sleepInterval, 1000)
+				sleepFor := utils.RandomSleepTime(*sleepInterval, 100)
 				log.Infof("sleeping for %d seconds", sleepFor)
 				time.Sleep(time.Duration(sleepFor) * time.Second)
 			} else {

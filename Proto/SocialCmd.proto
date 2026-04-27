@@ -1,0 +1,756 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ChatCmd.proto";
+import "ProtoCommon.proto";
+import "GuildCmd.proto";
+import "SceneUser.proto";
+import "SceneUser2.proto";
+import "SceneItem.proto";
+import "SessionTeam.proto";
+import "InfiniteTower.proto";
+import "SessionSociality.proto";
+import "SceneTip.proto";
+import "Tutor.proto";
+
+enum SocialParam
+{
+  SOCIALPARAM_SESSION_FORWARD_SOCIAL_CMD = 1;
+  SOCIALPARAM_FORWARD_TO_USER = 2;
+  SOCIALPARAM_FORWARD_TO_USER_SCENE = 3;
+  SOCIALPARAM_FORWARD_TO_SCENE_USER = 4;
+  SOCIALPARAM_FORWARD_TO_SESSION_USER = 68;
+
+  SOCIALPARAM_ONLINESTATUS = 5;
+  SOCIALPARAM_ADD_OFFLINEMSG = 6;
+
+  SOCIALPARAM_USER_SYNC_INFO = 10;
+  SOCIALPARAM_USER_ADD_ITEM = 11;
+  SOCIALPARAM_USER_DEL_CHAR = 12;
+  SOCIALPARAM_USER_GUILD_INFO = 14;
+
+  SOCIALPARAM_CHAT_WORLDMSG = 21;
+  SOCIALPARAM_CHAT_MSG = 22;
+
+  SOCIALPARAM_CREATEGUILD = 31;
+  SOCIALPARAM_GUILDDONATE = 32;
+  SOCIALPARAM_GUILD_APPLY = 37;
+  SOCIALPARAM_GUILD_PROCESSINVITE = 38;
+  SOCIALPARAM_GUILD_EXCHANGEZONE = 42;
+  SOCIALPARAM_GUILD_LEVELUP= 44;
+
+  SOCIALPARAM_TEAM_CREATE = 51;
+  SOCIALPARAM_TEAM_INVITE = 52;
+  SOCIALPARAM_TEAM_PROCESSINVITE = 53;
+  SOCIALPARAM_TEAM_APPLY = 54;
+  SOCIALPARAM_TEAM_QUICKENTER = 55;
+
+  SOCIALPARAM_DOJO_CREATE = 56;
+  SOCIALPARAM_DOJO_STATE_NTF = 57;
+
+  SOCIALPARAM_TOWER_SYNC_LEADERINFO = 58;
+  SOCIALPARAM_TOWER_SCENE_CREATE = 59;
+  SOCIALPARAM_TOWER_SYNC_SCENEINFO = 60;
+  SOCIALPARAM_TOWER_SYNC_LAYER = 61;
+
+  SOCIALPARAM_GO_TEAM_RAID = 62;
+  SOCIALPARAM_DEL_TEAM_RAID = 63;
+  SOCIALPARAM_SEND_MAIL = 64;
+  SOCIALPARAM_CREATE_PVECARDRAID = 65;
+  SOCIALPARAM_PVECARD_SCENEINFO = 66;
+
+  SOCIALPARAM_FORWARD_TO_ALL_SESSION = 67;
+
+  SOCIALPARAM_GM_MOVE_GUILD_ZONE = 70;
+
+  SOCIALPARAM_TEAM_SEAL_FIHISH = 71;
+
+  SOCIALPARAM_SOCIAL_DATA_UPDATE = 80;
+  SOCIALPARAM_SOCIAL_ADDRELATION = 81;
+  SOCIALPARAM_SOCIAL_REMOVERELATION = 82;
+  //SOCIALPARAM_SOCIAL_REMOVEFOCUS = 83;
+  SOCIALPARAM_SOCIAL_REMOVESOCIAL = 84;
+  SOCIALPARAM_SOCIAL_SYNC_LIST = 85;
+  SOCIALPARAM_SOCIAL_LIST_UPDATE = 86;
+  SOCIALPARAM_SOCIAL_UPDATE_RELATIONTIME = 91;
+
+  SOCIALPARAM_TEAM_QUEST_UPDATE = 87;
+  SOCIALPARAM_GLOBAL_FORWARD_CMD = 88;   
+
+  SOCIALPARAM_AUTHORIZE_SYNC_INFO = 90;
+
+  SOCIALPARAM_SYNC_REDTIP = 92;
+  SOCIALPARAM_SEND_TUTOR_REWARD = 93;
+  SOCIALPARAM_SYNC_TUTOR_REWARD = 94;
+  SOCIALPARAM_GLOBAL_FORWARD_CMD2 = 95;   
+
+  SOCIALPARAM_CREATE_TEAMRAID = 96;
+  SOCIALPARAM_SYNC_TEAMRAID = 97;
+  SOCIALPARAM_MODIFY_DEPOSIT = 98;
+}
+
+// session -> social : forward cmd
+enum ECmdType
+{
+  ECMDTYPE_MIN = 0;
+  ECMDTYPE_SOCIALITY = 1;
+  ECMDTYPE_CHAT = 2;
+  ECMDTYPE_GUILD = 3;
+  ECMDTYPE_TEAM = 4;
+  ECMDTYPE_DOJO = 5;
+  ECMDTYPE_TOWER = 6;
+  ECMDTYPE_DOJO_GUILD = 7;
+  ECMDTYPE_PVECARD = 8;
+  ECMDTYPE_TEAMRAID = 9;
+  ECMDTYPE_MAX = 10;
+}
+message SocialUser
+{
+  optional uint64 accid = 1 [ default = 0 ];
+  optional uint64 charid = 2 [ default = 0 ];
+  optional uint32 zoneid = 3 [ default = 0 ];
+  optional uint32 mapid = 4 [ default = 0 ];
+  optional uint32 baselv = 5 [ default = 0 ];
+
+  optional EProfession profession = 6 [ default = EPROFESSION_MIN ];
+  optional string name = 7;
+}
+message SessionForwardSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_SESSION_FORWARD_SOCIAL_CMD ];
+
+  optional ECmdType type = 3 [ default = ECMDTYPE_MIN ];
+  optional SocialUser user = 4;
+
+  optional bytes data = 5;
+  optional uint32 len = 6 [ default = 0 ];
+}
+
+// social -> session -> user : forward cmd
+message ForwardToUserSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_FORWARD_TO_USER ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+
+  optional bytes data = 4;
+  optional uint32 len = 5;
+}
+
+// social -> session -> scene : forward cmd
+message ForwardToUserSceneSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_FORWARD_TO_USER_SCENE ];
+
+  optional uint64 charid = 3;
+
+  optional bytes data = 4;
+  optional uint32 len = 5;
+}
+
+// social -> session -> scene : forward cmd
+message ForwardToSceneUserSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_FORWARD_TO_SCENE_USER ];
+
+  optional uint64 charid = 3;
+
+  optional bytes data = 4;
+  optional uint32 len = 5;
+}
+
+// social -> session : forward cmd
+message ForwardToSessionUserSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_FORWARD_TO_SESSION_USER ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+
+  optional bytes data = 4;
+  optional uint32 len = 5 [ default = 0 ];
+}
+
+// social <- session : user online
+message OnlineStatusSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_ONLINESTATUS ];
+
+  optional SocialUser user = 3;
+  optional bool online = 4 [ default = false ];
+}
+
+// global -> session : add offline msg
+message AddOfflineMsgSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_ADD_OFFLINEMSG ];
+
+  optional OfflineMsg msg = 3;
+}
+
+// session -> social : user info sync
+message UserInfo
+{
+  optional SocialUser user = 1;
+
+  repeated UserData datas = 2;
+  repeated UserAttr attrs = 3;
+}
+message UserInfoSyncSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_USER_SYNC_INFO ];
+
+  optional UserInfo info = 4;
+}
+
+// social -> session -> scene : user add item
+message UserAddItemSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_USER_ADD_ITEM ];
+
+  optional SocialUser user = 3;
+  repeated ItemInfo items = 4;
+
+  optional uint32 doublereward = 5 [ default = 0 ];
+  optional uint32 operatereward = 6 [ default = 0 ];
+}
+
+// session -> social : del char
+message UserDelSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_USER_DEL_CHAR ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+}
+
+// session -> social : guild msg
+message UserGuildInfoSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_USER_GUILD_INFO ];
+
+  optional uint64 charid = 3;
+  optional string name = 4;
+  optional string portrait = 5;
+}
+
+// social -> session : world msg
+message ChatWorldMsgSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_CHAT_WORLDMSG ];
+
+  optional SysMsg msg = 3;
+}
+
+// scene -> session : chat
+message ChatUser
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 zoneid = 2 [ default = 0 ];
+}
+message ChatSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_CHAT_MSG ];
+
+  optional ChatRetCmd ret = 3;
+  repeated ChatUser targets = 4;
+
+  optional uint64 accid = 5 [ default = 0 ];
+  optional uint32 platformid = 6 [ default = 0 ];
+
+  optional bool to_global = 7 [ default = false ];
+}
+
+// social <-> session <-> scene : create guild
+message CreateGuildSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_CREATEGUILD ];
+
+  optional UserInfo user = 3;
+  optional uint32 msgid = 4 [ default = 0 ];
+  optional string name = 5;
+}
+
+// social <-> session <-> scene : guild donate
+message GuildDonateSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_GUILDDONATE ];
+
+  optional SocialUser user = 3;
+  optional DonateItem item = 4;
+  optional uint32 msgid = 5 [ default = 0 ];
+}
+
+// session -> social : apply guild
+message GuildApplySocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_GUILD_APPLY ];
+
+  optional UserInfo user = 3;
+  optional uint64 guildid = 4 [ default = 0 ];
+}
+
+// session -> social : process invite
+message GuildProcessInviteSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_GUILD_PROCESSINVITE ];
+
+  optional UserInfo user = 3;
+  optional EGuildAction action = 4 [ default = EGUILDACTION_MIN ];
+  optional uint64 guildid = 5 [ default = 0 ];
+}
+
+// social -> session -> scene : exchange guild zone
+message GuildExchangeZoneSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_GUILD_EXCHANGEZONE ];
+
+  optional SocialUser user = 3;
+  optional uint32 zoneid = 4 [ default = 0 ];
+}
+
+// session -> social : create team
+message TeamCreateSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_TEAM_CREATE ];
+
+  optional UserInfo user = 3;
+  optional CreateTeam team = 4;
+}
+
+// session -> social : invite team
+message TeamInviteSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_TEAM_INVITE ];
+
+  optional UserInfo invite = 3;
+  optional SocialUser beinvite = 4;
+}
+
+// session -> social : process invite team
+message TeamProcessInviteSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_TEAM_PROCESSINVITE ];
+
+  optional ETeamInviteType type = 3 [ default = ETEAMINVITETYPE_MIN ];
+  optional UserInfo user = 4;
+  optional uint64 leaderid = 5 [ default = 0 ];
+}
+
+// session -> social : apply team
+message TeamApplySocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_TEAM_APPLY ];
+
+  optional UserInfo apply = 3;
+  optional uint64 teamid = 4 [ default = 0 ];
+}
+
+// session -> social : quick enter team
+message TeamQuickEnterSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_TEAM_QUICKENTER ];
+
+  optional UserInfo user = 3;
+  optional uint32 type = 4 [ default = 0 ];
+  optional bool set = 5 [ default = false ];
+}
+
+enum EDOJOSTATE
+{
+  EDOJOSTATE_OPEN = 1;
+  EDOJOSTATE_CLOSE = 2;     
+}
+
+// session -> social : quick enter team
+message DojoStateNtfSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_DOJO_STATE_NTF ];
+
+  optional uint64 teamid = 3;
+  optional uint64 guildid = 4;
+  optional EDOJOSTATE state = 5;
+}
+
+// social -> session :    创建道场副本
+message DojoCreateSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_DOJO_CREATE ];
+
+  optional uint64 charid = 3;
+  optional uint32 dojoid = 4;
+  optional uint64 teamid = 5;
+  optional uint64 guildid = 6;
+}
+
+// scene -> session -> social : sync tower leader info
+message TowerLeaderInfoSyncSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_TOWER_SYNC_LEADERINFO ];
+
+  optional SocialUser user = 3;
+  optional UserTowerInfo info = 4;
+}
+
+// social -> session : create tower scene
+message TowerSceneCreateSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_TOWER_SCENE_CREATE ];
+
+  optional SocialUser user = 3;
+  optional uint64 teamid = 4 [ default = 0 ];
+  optional uint32 layer = 5 [ default = 0 ];
+}
+
+// session -> social : sync tower scene info
+message TowerSceneSyncSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_TOWER_SYNC_SCENEINFO ];
+
+  optional uint64 teamid = 3 [ default = 0 ];
+  optional EDOJOSTATE state = 4 [ default = EDOJOSTATE_CLOSE ];
+  optional uint32 raidid = 5 [ default = 0 ];
+}
+
+// session -> social : sync tower layer
+message TowerLayerSyncSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_TOWER_SYNC_LAYER ];
+
+  optional uint64 teamid = 3 [ default = 0 ];
+  optional uint32 layer = 4 [ default = 0 ];
+}
+
+// scene -> session -> team : finish 5 times seal, rollback team goal
+message LeaderSealFinishSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_TEAM_SEAL_FIHISH ];
+
+  optional uint64 teamid = 3 [ default = 0 ];
+}
+
+// session -> social : go team raid
+message GoTeamRaidSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_GO_TEAM_RAID ];
+
+  optional uint64 teamid = 3 [ default = 0 ];
+  optional uint64 charid = 4 [ default = 0 ];
+  optional uint32 myzoneid = 5 [ default = 0 ];
+  optional uint32 raidzoneid = 6 [ default = 0 ];
+  optional uint32 raidid = 7 [ default = 0 ];
+  optional uint32 gomaptype = 8 [ default = 0 ];
+}
+
+// session -> social : del team raid
+message DelTeamRaidSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_DEL_TEAM_RAID ];
+
+  optional uint64 teamid = 3 [ default = 0 ];
+  optional uint32 raidid = 4 [ default = 0 ];
+}
+
+// session -> social
+message SendMailSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_SEND_MAIL ];
+  optional uint32 zoneid = 3;
+  optional bytes data = 4;
+  optional uint32 len = 5 [ default = 0 ];
+}
+
+// session -> social -> all other session 
+message ForwardToAllSessionSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_FORWARD_TO_ALL_SESSION ];
+
+  optional uint32 except = 3;       //except zone id
+  optional bytes data = 4;
+  optional uint32 len = 5 [ default = 0 ];
+}
+
+// scene -> session -> social : scene guild levelup
+message GuildLevelUpSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_GUILD_LEVELUP];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 guildid = 4 [ default = 0 ];
+  optional uint32 addlevel = 5 [ default = 0 ];
+  optional string guildname = 6;
+}
+
+// session -> social
+message MoveGuildZoneSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_GM_MOVE_GUILD_ZONE ];
+
+  optional uint32 orizone = 3 [ default = 0 ];
+  optional uint32 newzone = 4 [ default = 0 ];
+}
+
+// social -> session -> global -> session -> social : social data update
+message SocialDataUpdateSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_SOCIAL_DATA_UPDATE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 targetid = 4 [ default = 0 ];
+  optional SocialDataUpdate update = 5;
+  optional bool to_global = 6 [ default = false ];
+}
+
+// social -> session -> global -> session -> social : add relation
+message AddRelationSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_SOCIAL_ADDRELATION ];
+
+  optional SocialUser user = 3;
+  optional uint64 destid = 4 [ default = 0 ];
+  optional ESocialRelation relation = 5 [ default = ESOCIALRELATION_MIN ];
+  optional bool to_global = 6 [ default = false ];
+  optional bool check = 7 [ default = false ];
+}
+
+// social -> session -> global -> session -> social : add relation
+message RemoveRelationSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_SOCIAL_REMOVERELATION ];
+
+  optional SocialUser user = 3;
+  optional uint64 destid = 4 [ default = 0 ];
+  optional ESocialRelation relation = 5 [ default = ESOCIALRELATION_MIN ];
+  optional bool to_global = 6 [ default = false ];
+}
+
+// social -> session -> global ->session -> social : remove focus
+//message RemoveFocusSocialCmd
+//{
+//  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+//  optional SocialParam param = 2 [ default = SOCIALPARAM_SOCIAL_REMOVEFOCUS ];
+
+//  optional SocialUser user = 3;
+//  optional uint64 destid = 4 [ default = 0 ];
+//  optional bool to_global = 5 [ default = false ];
+//}
+
+// social -> session -> global -> session -> social : remove relation
+message RemoveSocialitySocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_SOCIAL_REMOVESOCIAL ];
+
+  optional SocialUser user = 3;
+  optional uint64 destid = 4 [ default = 0 ];
+  optional bool to_global = 5 [ default = false ];
+}
+
+// social -> session -> scene : sync social list
+message SocialItem
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 relation = 2 [ default = 0 ];
+  optional string createtime = 3;
+}
+message SyncSocialListSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_SOCIAL_SYNC_LIST ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  repeated SocialItem items = 4;
+}
+
+// social -> session -> scene : social list update
+message SocialListUpdateSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_SOCIAL_LIST_UPDATE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  repeated SocialItem updates = 4;
+  repeated uint64 dels = 5;
+}
+
+// scene -> session -> social : update relation time
+message UpdateRelationTimeSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_SOCIAL_UPDATE_RELATIONTIME ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 targetid = 4 [ default = 0 ];
+  optional uint32 time = 5 [ default = 0 ];
+  optional ESocialRelation relation = 6 [ default = ESOCIALRELATION_CHAT ];
+}
+
+// scene -> session -> team : update team wanted quest
+message TeamerQuestUpdateSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_TEAM_QUEST_UPDATE ];
+
+  optional MemberWantedQuest quest = 3;
+}
+
+enum EDir 
+{
+  EDir_ToClient = 0;
+  EDir_ToScene = 1;     
+}
+
+// session -> global -> session : forward cmd
+message GlobalForwardCmdSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_GLOBAL_FORWARD_CMD ];
+
+  optional uint64 charid = 3;
+
+  optional bytes data = 4;
+  optional uint32 len = 5;
+  optional EDir dir = 6;
+}
+
+// scene -> session -> social :: sync authorize info to social and guild
+message AuthorizeInfoSyncSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_AUTHORIZE_SYNC_INFO];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional bool ignorepwd = 4 [ default = false ];
+}
+
+message SyncRedTipSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_SYNC_REDTIP ];
+
+  optional uint64 dwid = 3 [ default = 0 ];
+  optional uint64 charid = 4 [ default = 0 ];
+  optional ERedSys red = 5 [ default = EREDSYS_MIN ];
+  optional bool add = 6 [ default = false ];
+}
+
+// scene -> session : send tutor reward
+message SendTutorRewardSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_SEND_TUTOR_REWARD ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  repeated TutorReward rewards = 4;
+}
+
+// scene <-> session <-> global : 同步导师奖励
+message SyncTutorRewardSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_SYNC_TUTOR_REWARD ];
+
+  optional bool searchuser = 3 [ default = false ];
+  optional uint64 charid = 4 [ default = 0 ];
+  optional TutorReward reward = 5;
+  optional uint64 redpointtip = 6 [ default = 0 ];
+}
+
+
+// session -> global -> session : forward cmd
+message GlobalForwardCmdSocialCmd2
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_GLOBAL_FORWARD_CMD2 ];
+
+  optional uint64 charid = 3;
+
+  optional bytes data = 4;
+  optional uint32 len = 5;
+}
+
+message CardSceneCreateSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_CREATE_PVECARDRAID ];
+
+  optional uint64 userid = 3;
+  optional uint64 teamid = 4 [ default = 0 ];
+  optional uint32 configid = 5 [ default = 0 ];
+}
+
+message CardSceneSyncSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_PVECARD_SCENEINFO ];
+
+  optional uint64 teamid = 3 [ default = 0 ];
+  optional bool open = 4 [ default = false ];
+}
+
+// scene -> session : 修改充值相关数据
+message ModifyDepositSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_MODIFY_DEPOSIT ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional string command = 4;
+}
+// social -> session : create teamraid scene
+message TeamRaidSceneCreateSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_CREATE_TEAMRAID ];
+
+  optional SocialUser user = 3;
+  optional uint64 teamid = 4 [ default = 0 ];
+  optional uint32 raid_type = 5 [ default = 0 ] ;
+}
+
+message TeamRaidSceneSyncSocialCmd
+{
+  optional Command cmd = 1 [ default = SOCIAL_PROTOCMD ];
+  optional SocialParam param = 2 [ default = SOCIALPARAM_SYNC_TEAMRAID ];
+
+  optional uint64 teamid = 3 [ default = 0 ];
+  optional bool open = 4 [ default = false ];
+  optional uint32 raid_type = 5 [ default = 0 ] ;
+}

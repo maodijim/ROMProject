@@ -1,0 +1,136 @@
+package Cmd;
+
+import "xCmd.proto";
+import "SceneItem.proto";
+import "WeddingCCmd.proto";
+import "UserEvent.proto";
+
+enum MailParam
+{
+  MAILPARAM_QUERYALLMAIL = 1;
+  MAILPARAM_UPDATE = 2;
+  MAILPARAM_GETATTACH = 3;
+}
+
+enum EMailStatus
+{
+  EMAILSTATUS_MIN = 0;
+  EMAILSTATUS_NEW = 1;
+  EMAILSTATUS_ATTACH = 3;
+  EMAILSTATUS_READ = 4;
+  EMAILSTATUS_INVALID = 5;
+  EMAILSTATUS_MAX = 6;
+}
+enum EMailType
+{
+  EMAILTYPE_MIN = 0;
+  EMAILTYPE_NORMAL = 1;
+  EMAILTYPE_SYSTEM = 2;
+  EMAILTYPE_TRADE = 3;
+  EMAILTYPE_LOTTERY_GIVE = 4;
+  EMAILTYPE_WEDDINGMSG = 5;
+  EMAILTYPE_WEDDINGINVITATION = 6;
+  EMAILTYPE_USEREVENT = 7;
+  EMAILTYPE_NORMAL_NOTIME = 8;
+  EMAILTYPE_MAX = 9;
+}
+enum EMailAttachType
+{
+  EMAILATTACHTYPE_MIN = 0;
+  EMAILATTACHTYPE_REWARD = 1;
+  EMAILATTACHTYPE_ITEM = 2;
+  EMAILATTACHTYPE_TRADE_BUY = 3;
+  EMAILATTACHTYPE_TRADE_RETURN = 4;
+  EMAILATTACHTYPE_TRADE_SELL = 5;    //购买返还钱币
+  EAMILATTACHTYPE_MSG_PARAMS = 6;
+  EAMILATTACHTYPE_MAX = 7;
+}
+
+message MailMsgParam
+{
+  optional uint32 mailid = 1;
+  repeated string params = 2;
+}
+
+message MailAttach
+{
+  optional EMailAttachType type = 1 [ default = EMAILATTACHTYPE_MIN ];
+
+  optional uint32 id = 2 [ default = 0 ];
+  repeated ItemInfo items = 3;
+  repeated ItemData itemdatas = 4;//有属性的物品
+  optional MailMsgParam msgdatas = 5;
+}
+message BlobAttach
+{
+  repeated MailAttach attachs = 1;
+}
+message MailData
+{
+  optional uint64 id = 1 [ default = 0 ];
+  optional uint64 sysid = 2 [ default = 0 ];
+
+  optional uint64 senderid = 3 [ default = 0 ];
+  optional uint64 receiveid = 4 [ default = 0 ];
+  optional uint64 receiveaccid = 13 [ default = 0 ];
+
+  optional uint32 time = 12 [ default = 0 ];
+  optional uint32 mailid = 5 [ default = 0 ];
+
+  optional EMailType type = 6 [ default = EMAILTYPE_MIN ];
+  optional EMailStatus status = 7 [ default = EMAILSTATUS_MIN ];
+
+  optional string title = 8;
+  optional string sender = 9;
+  optional string msg = 10;
+
+  optional BlobAttach attach = 11;
+
+  optional string groupid = 16;
+
+  optional uint32 starttime = 17;
+  optional uint32 endtime = 18;
+  optional WeddingEventMsgCCmd weddingmsg = 19;
+  optional UserEventMailCmd eventmsg = 20;
+}
+
+message MailMsg
+{
+  optional uint32 language = 1 [ default = 0 ];
+  optional string title = 2;
+  optional string msg = 3;
+}
+
+message MailTemplateData
+{
+  repeated MailMsg msgs = 1;
+}
+
+// session -> client : query all mail
+message QueryAllMail
+{
+  optional Command cmd = 1 [ default = SESSION_USER_MAIL_PROTOCMD ];
+  optional MailParam param = 2 [ default = MAILPARAM_QUERYALLMAIL ];
+
+  repeated MailData datas = 3;
+}
+
+// session -> client : update
+message MailUpdate
+{
+  optional Command cmd = 1 [ default = SESSION_USER_MAIL_PROTOCMD ];
+  optional MailParam param = 2 [ default = MAILPARAM_UPDATE ];
+
+  repeated MailData updates = 3;
+  repeated uint64 dels = 4;
+}
+
+// client -> session : get attach
+message GetMailAttach
+{
+  optional Command cmd = 1 [ default = SESSION_USER_MAIL_PROTOCMD ];
+  optional MailParam param = 2 [ default = MAILPARAM_GETATTACH ];
+
+  optional uint64 id = 3 [ default = 0 ];
+}
+

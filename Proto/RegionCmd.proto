@@ -1,0 +1,17 @@
+package Cmd;
+
+import "xCmd.proto";
+
+enum RegionParam
+{
+  REGIST_REGION_CMD = 1;
+}
+
+message RegistRegionCmd
+{
+  optional Command cmd = 1 [ default = REGION_PROTOCMD ];
+  optional RegionParam param = 2 [ default = REGIST_REGION_CMD ];
+
+  optional uint32 zoneid = 3 [ default = 0 ];
+}
+

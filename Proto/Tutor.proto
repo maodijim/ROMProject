@@ -1,0 +1,85 @@
+package Cmd;
+
+import "xCmd.proto";
+
+enum TutorParam
+{
+  TUTORPARAM_TASK_UPDATE_NTF = 1;
+  TUTORPARAM_TASK_QUERY = 2;
+  TUTORPARAM_TASK_TEACHER_REWARD = 3;
+  TUTORPARAM_GROW_REWARD_UPDATE = 4;
+  TUTORPARAM_GET_GROW_REWARD = 5;
+}
+
+message TutorTaskItem
+{
+  optional uint32 id = 1 [ default = 0 ]; // 任务id
+  optional uint32 progress = 2 [ default = 0 ]; // 任务进度
+  optional bool reward = 3 [ default = false ]; // 是否领奖
+}
+
+message TutorRewardItem
+{
+  optional uint32 taskid = 1;
+  optional uint32 time = 2;
+}
+
+message TutorReward
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional string name = 2; // 学生名称
+  repeated uint32 reward = 3; // 奖励id
+  repeated TutorRewardItem item = 4;
+}
+
+message OfflineTutorReward
+{
+  repeated TutorReward teacherrewards = 1;
+}
+
+// 冒险任务进度更新推送
+message TutorTaskUpdateNtf
+{
+  optional Command cmd = 1 [ default = SCENE_USER_TUTOR_PROTOCMD ];
+  optional TutorParam param = 2 [ default = TUTORPARAM_TASK_UPDATE_NTF ];
+
+  repeated TutorTaskItem items = 3;
+}
+
+// 查询学生任务进度
+message TutorTaskQueryCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_TUTOR_PROTOCMD ];
+  optional TutorParam param = 2 [ default = TUTORPARAM_TASK_QUERY ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  repeated TutorTaskItem items = 4;
+  repeated uint32 finishtaskids = 5;
+  optional bool refresh = 6 [ default = false ];
+}
+
+// 领取冒险任务导师奖励
+message TutorTaskTeacherRewardCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_TUTOR_PROTOCMD ];
+  optional TutorParam param = 2 [ default = TUTORPARAM_TASK_TEACHER_REWARD ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 taskid = 4 [ default = 0 ];
+}
+
+// 成长奖励领取状态更新推送
+message TutorGrowRewardUpdateNtf
+{
+  optional Command cmd = 1 [ default = SCENE_USER_TUTOR_PROTOCMD ];
+  optional TutorParam param = 2 [ default = TUTORPARAM_GROW_REWARD_UPDATE ];
+
+  repeated uint64 growrewards = 3;
+}
+
+// 领取成长奖励
+message TutorGetGrowRewardCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_TUTOR_PROTOCMD ];
+  optional TutorParam param = 2 [ default = TUTORPARAM_GET_GROW_REWARD ];
+}

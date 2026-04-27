@@ -1,9 +1,11 @@
 package gameConnection
 
 import (
-	Cmd "ROMProject/Cmds"
-	log "github.com/sirupsen/logrus"
 	"time"
+
+	Cmd "ROMProject/Cmds"
+
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -132,14 +134,14 @@ func (g *GameConnection) takeTradeLog(tradeLog *Cmd.LogItemInfo) {
 			tradeLog.GetLogtype() == Cmd.EOperType_EOperType_PublicitySellSuccess {
 			log.Infof("卖出 %d个%s 赚取 %d zeny",
 				tradeLog.GetCount(),
-				g.Items[tradeLog.GetItemid()],
+				g.Items[tradeLog.GetItemid()].NameZh,
 				tradeLog.GetGetmoney(),
 			)
 		} else {
 			log.Infof("取回从%s购买的物品 %d个%s 花费 %d zeny",
 				tradeLog.GetNameInfo().GetName(),
 				tradeLog.GetCount(),
-				g.Items[tradeLog.GetItemid()],
+				g.Items[tradeLog.GetItemid()].NameZh,
 				tradeLog.GetCostmoney(),
 			)
 		}
@@ -151,12 +153,36 @@ func (g *GameConnection) takeTradeLog(tradeLog *Cmd.LogItemInfo) {
 func (g *GameConnection) takeFailedMoney(tradeLog *Cmd.LogItemInfo) {
 	if tradeLog.GetLogtype() == Cmd.EOperType_EOperType_PublicityBuyFail &&
 		tradeLog.GetStatus() == Cmd.ETakeStatus_ETakeStatus_CanTakeGive {
-		log.Infof("取回抢购失败 %d个%s %d zeny", tradeLog.GetFailcount(), g.Items[tradeLog.GetItemid()], tradeLog.GetRetmoney())
+		log.Infof("取回抢购失败 %d个%s %d zeny", tradeLog.GetFailcount(), g.Items[tradeLog.GetItemid()].NameZh, tradeLog.GetRetmoney())
 		g.TakeLogTrade(tradeLog.GetId(), tradeLog.GetLogtype())
-		newSilver := g.Role.GetSilver() + tradeLog.GetRetmoney()
+		newSilver := g.Role.GetSilver() + uint64(tradeLog.GetRetmoney())
 		g.Role.Silver = &newSilver
 		time.Sleep(500 * time.Millisecond)
 	}
+}
+
+// FindTakeTradeLog searches through the trade history logs for a specific item name or item id and takes it if found.
+// It returns an error if the log is not found or if there is an issue with the query.
+func (g *GameConnection) FindTakeTradeLog(itemName string, itemId uint32) (sucess bool, err error) {
+	logHistory, err := g.QueryTradeHistoryLog(0)
+	if err != nil {
+		log.Errorf("查询交易记录失败: %s", err)
+		return false, err
+	}
+
+	for _, tradeLog := range logHistory.GetLogList() {
+		if tradeLog.GetItemid() == itemId || g.Items[tradeLog.GetItemid()].NameZh == itemName {
+			if tradeLog.GetStatus() != Cmd.ETakeStatus_ETakeStatus_CanTakeGive {
+				log.Warnf("找到交易记录但无法领取: %s (ID: %d)", itemName, itemId)
+				return false, nil
+			}
+			log.Infof("找到交易记录: %d个%s", tradeLog.GetCount(), g.Items[tradeLog.GetItemid()].NameZh)
+			g.takeTradeLog(tradeLog)
+			return true, nil
+		}
+	}
+	log.Warnf("未找到交易记录: %s (ID: %d)", itemName, itemId)
+	return false, nil
 }
 
 func (g *GameConnection) HandleTradeHistory(tradeHistory *Cmd.MyTradeLogRecordTradeCmd) {
@@ -177,10 +203,10 @@ func (g *GameConnection) HandleTradeHistory(tradeHistory *Cmd.MyTradeLogRecordTr
 			tradeLog.GetStatus() == Cmd.ETakeStatus_ETakeStatus_CanTakeGive {
 			g.takeTradeLog(tradeLog)
 		}
-		//if (tradeLog.GetLogtype() == Cmd.EOperType_EOperType_PublicitySellSuccess ||
+		// if (tradeLog.GetLogtype() == Cmd.EOperType_EOperType_PublicitySellSuccess ||
 		//	tradeLog.GetLogtype() == Cmd.EOperType_EOperType_NormalSell && itemName == "哈比的羽毛") {
 		//	hasNewRecord = true
 		//	excel.AddRecord(tradeLog, itemName)
-		//}
+		// }
 	}
 }

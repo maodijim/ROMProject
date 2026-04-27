@@ -1,0 +1,73 @@
+package Cmd;
+
+import "xCmd.proto";
+
+enum AuthorizeParam
+{
+  SET_AUTHORIZE_USER_CMD = 1;
+  RESET_AUTHORIZE_USER_CMD = 2;
+  SYNC_AUTHORIZE_TO_SESSION = 3;
+  NOTIFY_AUTHORIZE_USER_CMD = 4;
+  SYNC_REAL_AUTHORIZE_TO_SESSION = 5; //实名认证
+}
+
+enum EUnlockType
+{
+  EUNLOCKTYPE_MIN = 0;
+  EUNLOCKTYPE_REFINE = 1;
+  EUNLOCKTYPE_TRADE = 2;
+  EUNLOCKTYPE_EQUIP_UPGRADE = 3;
+  EUNLOCKTYPE_EQUIP_HOLE = 4;
+  EUNLOCKTYPE_ENCHANT = 5;
+  EUNLOCKTYPE_NPC_BUY = 6;
+  EUNLOCKTYPE_GUILD = 7;
+  EUNLOCKTYPE_FRIEND = 8;
+  EUNLOCKTYPE_SELL = 9;
+  EUNLOCKTYPE_USEITEM = 10;
+  EUNLOCKTYPE_TRADE_GIFT = 11;
+  EUNLOCKTYPE_DECOMPOSE = 12;
+  EUNLOCKTYPE_AUCTION_SELL = 13;
+  EUNLOCKTYPE_AUCTION_BUY = 14;
+  EUNLOCKTYPE_ITEM_CODE = 15;   //黑猫包获得礼包码
+  EUNLOCKTYPE_MAX = 16;
+};
+
+message SetAuthorizeUserCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_AUTHORIZE_PROTOCMD];
+  optional AuthorizeParam param = 2 [ default = SET_AUTHORIZE_USER_CMD];
+
+  required string password = 3;
+  optional string oldpwd = 4;
+}
+
+message ResetAuthorizeUserCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_AUTHORIZE_PROTOCMD];
+  optional AuthorizeParam param = 2 [ default = RESET_AUTHORIZE_USER_CMD];
+
+  required bool reset = 3;    //true 重置密码 false 取消重置
+}
+
+message SyncAuthorizeToSession
+{
+  optional Command cmd = 1 [ default = SESSION_USER_AUTHORIZE_PROTOCMD];
+  optional AuthorizeParam param = 2 [ default = SYNC_AUTHORIZE_TO_SESSION];
+
+  optional bool ignorepwd = 3 [default = false];
+  optional string password = 4;
+  optional uint32 resettime = 5 [ default = 0];
+}
+
+message NotifyAuthorizeUserCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_AUTHORIZE_PROTOCMD];
+  optional AuthorizeParam param = 2 [ default = NOTIFY_AUTHORIZE_USER_CMD];
+}
+
+message SyncRealAuthorizeToSession
+{
+  optional Command cmd = 1 [ default = SESSION_USER_AUTHORIZE_PROTOCMD];
+  optional AuthorizeParam param = 2 [ default = SYNC_REAL_AUTHORIZE_TO_SESSION];
+  optional bool authorized = 3 [default = false];
+}

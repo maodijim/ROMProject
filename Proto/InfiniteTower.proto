@@ -1,0 +1,127 @@
+package Cmd;
+
+import "xCmd.proto";
+
+enum TowerParam
+{
+  ETOWERPARAM_TEAMTOWERINFO = 1;
+  ETOWERPARAM_TEAMTOWERSUMMARY = 2;
+  ETOWERPARAM_INVITE = 3;
+  ETOWERPARAM_REPLY = 4;
+  ETOWERPARAM_ENTERTOWER = 5;
+  ETOWERPARAM_USERTOWERINFO = 7;
+  ETOWERPARAM_LAYER_SYNC = 8;
+  ETOWERPARAM_TOWERINFO = 10;
+}
+
+message UserTowerLayer
+{
+  optional uint32 layer = 1 [ default = 0 ];
+  optional uint32 utime = 2 [ default = 0 ];
+  optional bool rewarded = 3 [ default = false ];
+}
+message UserTowerInfo
+{
+  optional uint32 oldmaxlayer = 1 [ default = 0 ];
+  optional uint32 curmaxlayer = 2 [ default = 0 ];
+
+  repeated UserTowerLayer layers = 3;
+  optional uint32 maxlayer = 4 [ default = 0 ];
+  optional uint32 record_layer = 5 [ default = 0 ];
+
+  repeated UserTowerLayer everpasslayers = 6;
+}
+
+message TeamTowerSummary
+{
+  optional uint64 teamid = 1 [ default = 0 ];
+  optional uint32 layer = 2 [ default = 0 ];
+
+  optional UserTowerInfo leadertower = 4;
+  repeated uint64 members = 3;
+}
+
+// client -> session : request Team's tower info
+message TeamTowerInfoCmd
+{
+  optional Command cmd = 1 [ default = INFINITE_TOWER_PROTOCMD ];
+  optional TowerParam param = 2 [ default = ETOWERPARAM_TEAMTOWERINFO ];
+  optional uint64 teamid = 3 [ default = 0 ];
+}
+
+// session -> social -> client : Team's tower info
+message TeamTowerSummaryCmd
+{
+  optional Command cmd = 1 [ default = INFINITE_TOWER_PROTOCMD ];
+  optional TowerParam param = 2 [ default = ETOWERPARAM_TEAMTOWERSUMMARY ];
+
+  optional TeamTowerSummary teamtower = 3;
+  optional uint32 maxlayer = 4 [ default = 0 ];
+  optional uint32 refreshtime = 5 [ default = 0 ];
+}
+
+// client <-> session <-> social : leader invite member enter tower
+message TeamTowerInviteCmd
+{
+  optional Command cmd = 1 [ default = INFINITE_TOWER_PROTOCMD ];
+  optional TowerParam param = 2 [ default = ETOWERPARAM_INVITE ];
+
+  optional bool iscancel = 3 [ default = false ] ;
+}
+
+// client <-> session <-> social : member replay leader's invite
+enum ETowerReply
+{
+  ETOWERREPLY_AGREE = 1;
+  ETOWERREPLY_DISAGREE = 2;
+}
+message TeamTowerReplyCmd
+{
+  optional Command cmd = 1 [ default = INFINITE_TOWER_PROTOCMD ];
+  optional TowerParam param = 2 [ default = ETOWERPARAM_REPLY ];
+
+  optional ETowerReply eReply = 3 [ default = ETOWERREPLY_DISAGREE ];
+  optional uint64 userid = 4 [ default = 0 ];
+}
+
+// client -> session -> social -> scene : start challenge infinite tower
+message EnterTower
+{
+  optional Command cmd = 1 [ default = INFINITE_TOWER_PROTOCMD ];
+  optional TowerParam param = 2 [ default = ETOWERPARAM_ENTERTOWER ];
+
+  optional uint32 layer = 3 [ default = 0 ];
+  optional uint64 userid = 4 [ default = 0 ];
+  optional uint32 zoneid = 5 [ default = 0 ];
+  optional uint32 time = 6 [ default = 0 ];
+  optional string sign = 7;
+}
+
+// server -> client
+message UserTowerInfoCmd
+{
+  optional Command cmd = 1 [ default = INFINITE_TOWER_PROTOCMD ];
+  optional TowerParam param = 2 [ default = ETOWERPARAM_USERTOWERINFO ];
+
+  optional UserTowerInfo usertower = 3;
+}
+
+// server -> client
+message TowerLayerSyncTowerCmd
+{
+  optional Command cmd = 1 [ default = INFINITE_TOWER_PROTOCMD ];
+  optional TowerParam param = 2 [ default = ETOWERPARAM_LAYER_SYNC ];
+
+  optional uint32 layer = 3 [ default = 0 ];
+}
+
+// client <--> server
+message TowerInfoCmd
+{
+  optional Command cmd = 1 [ default = INFINITE_TOWER_PROTOCMD ];
+  optional TowerParam param = 2 [ default = ETOWERPARAM_TOWERINFO ];
+
+  optional uint32 maxlayer = 3 [ default = 0 ];
+  optional uint32 refreshtime = 4 [ default = 0 ];
+}
+

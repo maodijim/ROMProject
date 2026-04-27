@@ -1,0 +1,292 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+import "SceneUser.proto";
+
+enum SkillParam
+{
+  SKILLPARAM_SKILLITEM = 1;
+  SKILLPARAM_SKILLUPDATE = 2;
+  SKILLPARAM_LEVELUPSKILL = 3;
+  SKILLPARAM_EQUIPSKILL = 4;
+  SKILLPARAM_RESETSKILL = 5;
+  SKILLPARAM_SKILLVALIDPOS = 6;
+  SKILLPARAM_CHANGE_SKILL = 7;
+  SKILLPARAM_SPEC_SKILL_INFO = 8;
+  SKILLPARAM_SELECT_RUNE = 9;
+  SKILLPARAM_MARK_SKILLNPC = 10;
+  SKILLPARAM_TRGGER_SKILLNPC = 11;
+  SKILLPARAM_SKILLOPTIONS = 12;
+  SKILLPARAM_DYNAMIC_SKILL_INFO = 13;
+  SKILLPARAM_DYNAMIC_SKILL_UPDATE = 14;
+  SKILLPARAM_SYNC_DEST_POS = 15;
+}
+
+message SkillConsume
+{
+  optional uint32 curvalue = 1 [ default = 0 ];
+  optional uint32 maxvalue = 2 [ default = 0 ];
+  optional uint32 nexttime = 3 [ default = 0 ];
+}
+
+// skill data
+enum ESkillShortcut
+{
+  ESKILLSHORTCUT_MIN = 0;
+  ESKILLSHORTCUT_NORMAL = 1;
+  ESKILLSHORTCUT_AUTO = 2;
+  ESKILLSHORTCUT_EXTEND = 3;
+  ESKILLSHORTCUT_BEINGAUTO = 4;
+  ESKILLSHORTCUT_EXTEND_2 = 5;
+  ESKILLSHORTCUT_EXTEND_3 = 6;
+  ESKILLSHORTCUT_MAX = 7;
+}
+message SkillShortcut
+{
+  optional ESkillShortcut type = 1 [ default = ESKILLSHORTCUT_MIN ];
+  optional uint32 pos = 2 [ default = 0 ];
+}
+message SkillItem
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 pos = 2 [ default = 0 ];            // 废除,不删除(序列化需要)
+  optional uint32 cd = 3 [ default = 0 ];
+
+  optional bool active = 4 [ default = false ];
+  optional bool learn = 5 [ default = false ];
+  optional ESource source = 6 [ default = ESOURCE_MIN ];
+  optional EProfession profession = 7 [ default = EPROFESSION_MIN ];
+  optional SkillConsume consume = 8;
+
+  optional uint32 sourceid = 9 [ default = 0 ];
+  optional bool shadow = 10 [ default = false ];
+
+  optional uint32 autopos = 11 [ default = 0 ];       // 废除,不删除(序列化需要)
+  optional uint32 extendpos = 12 [ default = 0 ];     // 废除,不删除(序列化需要)
+
+  optional uint32 runespecid = 13 [ default = 0 ];
+  optional uint32 replaceid = 14 [ default = 0 ];
+  optional bool selectswitch = 15 [ default = true ];
+  optional uint32 extralv = 16 [ default = 0 ];
+
+  optional uint64 ownerid = 17 [ default = 0 ];
+  optional bool notreset = 18 [ default = false ];
+  repeated SkillShortcut shortcuts = 19;
+}
+
+message SkillData
+{
+  optional uint32 usedpoint = 1 [ default = 0 ];
+
+  optional EProfession profession = 2 [ default = EPROFESSION_MIN ];
+  repeated SkillItem items = 3;
+  optional uint32 primarypoint = 4 [ default = 0 ];
+}
+
+message SkillPos
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 pos = 2 [ default = 0 ];
+  optional uint32 sourceid = 3 [ default = 0 ];
+}
+
+// client <-> scene : request skill data
+message ReqSkillData
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_SKILLITEM ];
+
+  repeated SkillData data = 3;
+}
+
+// scene -> client : skill data update
+message SkillUpdate
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_SKILLUPDATE ];
+
+  repeated SkillData update = 3;
+  repeated SkillData del = 4;
+}
+
+// client <-> scene : levelup skill
+enum ELevelupType
+{
+  ELEVELUPTYPE_MIN = 0;
+  ELEVELUPTYPE_MT = 1;
+  ELEVELUPTYPE_AT = 2;
+  ELEVELUPTYPE_MAX = 3;
+}
+message LevelupSkill
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_LEVELUPSKILL ];
+
+  optional ELevelupType type = 3 [ default = ELEVELUPTYPE_MIN ];
+  repeated uint32 skillids = 4;
+}
+
+// client -> scene : equip skill
+message EquipSkill
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_EQUIPSKILL ];
+
+  optional uint32 skillid = 3 [ default = 0 ];
+  optional uint32 pos = 4 [ default = 0 ];
+  optional uint32 sourceid = 5 [ default = 0 ];
+  optional ESkillShortcut efrom = 6 [ default = ESKILLSHORTCUT_MIN ];
+  optional ESkillShortcut eto = 7 [ default = ESKILLSHORTCUT_MIN ];
+  optional uint32 beingid = 8 [ default = 0 ]; // 生命体id
+}
+
+// client -> scene : reset skill
+message ResetSkill
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_RESETSKILL ];
+}
+
+// client <-> scene : skill valid pos
+message SkillValidShortcut
+{
+  optional ESkillShortcut type = 1 [ default = ESKILLSHORTCUT_MIN ];
+  repeated uint32 pos = 2;
+}
+message SkillValidPos
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_SKILLVALIDPOS ];
+
+  repeated SkillValidShortcut shortcuts = 3;
+}
+
+// client -> scene : change skill
+message ChangeSkillCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_CHANGE_SKILL ];
+
+  optional uint32 skillid = 3;
+  optional string type = 4;
+  optional uint32 isadd = 5;
+  optional uint32 key = 6;
+}
+
+message SkillCost
+{
+  required uint32 itemid = 1;
+  optional int32 changenum = 2 [ default = 0 ];
+  optional int32 changeper = 3 [ default = 0 ];
+}
+
+message SpecSkillInfo
+{
+  required uint32 id = 1;
+  repeated UserAttr attrs = 2;
+  repeated SkillCost cost = 3;
+  optional int32 changerange = 4 [ default = 0 ]; //改变技能范围
+  optional int32 changenum = 5 [ default = 0 ]; // 改变技能目标数量
+  optional int32 changeready = 6 [ default = 0 ]; // 吟唱时间改变, ms
+  optional bool neednoitem = 7 [ default = false ];// 使用不需要消耗道具
+}
+
+message UpSkillInfoSkillCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_SPEC_SKILL_INFO ];
+
+  repeated SpecSkillInfo specinfo = 3;
+  optional SpecSkillInfo allskillInfo = 4;
+}
+
+// client -> scene : select rune id
+message SelectRuneSkillCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_SELECT_RUNE ];
+
+  required uint32 skillid = 3;
+  optional uint32 runespecid = 4 [ default = 0 ];
+  optional bool selectswitch = 5 [ default = true ];
+  optional uint32 beingid = 6 [ default = 0 ]; // 生命体id
+}
+
+// scene -> client : skillnpc related skill
+message MarkSkillNpcSkillCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_MARK_SKILLNPC ];
+
+  required uint64 npcguid = 3;
+  required uint32 skillid = 4;
+}
+
+enum ETrigSkillType
+{
+  ETRIGTSKILL_MIN = 0;
+  ETRIGTSKILL_BTRANS = 1;
+}
+
+// client -> scene : skillnpc be triggered
+message TriggerSkillNpcSkillCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_TRGGER_SKILLNPC ];
+
+  required uint64 npcguid = 3;
+  optional ETrigSkillType etype = 4 [ default = ETRIGTSKILL_MIN ];
+}
+
+enum ESkillOption
+{
+  ESKILLOPTION_AUTOQUEUE = 1;
+  ESKILLOPTION_SUMMONBEING = 2;
+  ESKILLOPTION_AUTO_ARCHERY = 3;
+  ESKILLOPTION_FISTS_MAGIC = 4;
+  ESKILLOPTION_SUMMON_ELEMENT = 5;
+}
+
+message SkillOption
+{
+  required ESkillOption opt = 1;
+  optional uint32 value = 2 [ default = 0 ];
+}
+
+message SkillOptionSkillCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_SKILLOPTIONS ];
+
+  optional SkillOption set_opt = 3;
+  repeated SkillOption all_opts = 4;
+}
+
+message DynamicSkillCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_DYNAMIC_SKILL_INFO ];
+
+  repeated SkillItem skills = 3;
+}
+
+message UpdateDynamicSkillCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_DYNAMIC_SKILL_UPDATE ];
+
+  repeated SkillItem update = 3;
+  repeated SkillItem del = 4;
+}
+
+// client->scene
+message SyncDestPosSkillCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_SKILL_PROTOCMD ];
+  optional SkillParam param = 2 [ default = SKILLPARAM_SYNC_DEST_POS ];
+
+  optional uint32 skillid = 3 [ default = 0 ];
+  optional ScenePos pos = 4;
+}
+

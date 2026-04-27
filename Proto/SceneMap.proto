@@ -1,0 +1,329 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+import "SceneUser.proto";
+import "SceneUser2.proto";
+import "SceneChatRoom.proto";
+import "SceneFood.proto";
+
+enum MapParam
+{
+  MAPPARAM_ADDMAPITEM = 1;
+  MAPPARAM_PICKUPITEM = 2;
+  MAPPARAM_ADDMAPUSER = 3;
+  MAPPARAM_ADDMAPNPC = 4;
+  MAPPARAM_ADDMAPTRAP = 5;
+  MAPPARAM_ADDMAPACT = 6;
+  MAPPARAM_EXIT_POINT_STATE = 7;
+  MAPPARAM_MAP_CMD_END = 8;
+  MAPPARAM_NPC_SEARCH_RANGE = 9;
+  MAPPARAM_USER_HANDS = 10;
+  MAPPARAM_USER_SPEFFECT = 11;
+  MAPPARAM_USER_HAND_NPC = 12;
+  MAPPARAM_GINGERBREAD_NPC = 13;    //姜饼人添加删除
+  MAPPARAM_GO_CITYGATE = 14;
+}
+
+// scene -> client : add item
+message MapItem
+{
+  optional uint64 guid = 1 [ default = 0 ];
+
+  optional uint32 id = 2 [ default = 0 ];
+  optional uint32 time = 3 [ default = 0 ];
+
+  optional uint64 sourceid = 4 [ default = 0 ];
+
+  optional ScenePos pos = 5;
+
+  repeated uint64 owners = 6;
+
+  optional uint32 refinelv = 7 [ default = 0 ];
+}
+
+message AddMapItem
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_ADDMAPITEM ];
+
+  repeated MapItem items = 3;
+}
+
+// client <-> scene : pick up item
+message PickupItem
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_PICKUPITEM ];
+
+  optional uint64 playerguid = 3 [ default = 0 ];
+  optional uint64 itemguid = 4 [ default = 0 ];
+  optional bool success = 5 [ default = false ];
+}
+
+message CarrierInfo
+{
+  optional uint32 id = 1;
+  optional uint64 masterid = 2;
+  optional uint32 index = 3;
+  optional uint32 progress = 4;
+  optional uint32 line = 5;
+  optional uint32 assemble = 6;
+}
+
+message LineData
+{
+  optional uint64 masterId = 1;
+  optional uint64 slaveId = 2;
+}
+
+message HandNpcData
+{
+  optional uint32 body = 1;
+  optional uint32 head = 2;
+  optional uint32 hair = 3;
+  optional uint32 haircolor = 4;
+  optional uint64 guid = 5;
+
+  optional uint32 speffect = 6;
+  optional string name = 7;
+  optional uint32 eye = 8;
+}
+
+//姜饼人
+enum EGiveType
+{
+  EGiveType_Trade = 1;
+  EGiveType_Lottery = 2;
+}
+
+message GingerBreadNpcData
+{
+  optional uint32 npcid = 1;      //npc配置表id
+  optional uint64 guid = 2;       //唯一id
+  optional uint64 giveid = 3;     //赠送id
+  optional uint32 expiretime = 4; //过期时间点
+  optional EGiveType type = 5;    //赠送类型
+}
+
+// scene -> client : add user
+message MapUser
+{
+  optional uint64 guid = 1 [ default = 0 ];
+  optional string name = 2;
+  optional EGender gender = 3 [ default = EGENDER_MIN ];
+
+  optional ScenePos pos = 4;
+  optional ScenePos dest = 5;
+
+  repeated UserAttr attrs = 6;
+  repeated UserData datas = 7;
+  repeated BufferData buffs = 8;
+
+  optional uint32 skillid = 9;
+
+  optional uint64 teamid = 10;
+  optional string teamname = 11;
+  optional CarrierInfo carrier = 12;
+  optional ChatRoomSummary chatroom = 13;
+  optional uint64 handsmaster = 14;
+  repeated SpEffectData speffectdata = 15;
+  optional uint64 guildid = 16 [ default = 0 ];
+  optional string guildname = 17;
+  optional string guildicon = 18;
+  optional string guildjob = 19;
+
+  optional HandNpcData handnpc = 20;
+  optional uint32 motionactionid = 21;
+  optional uint32 seatid = 22;
+
+  repeated GingerBreadNpcData givenpcdatas = 23;
+  optional uint32 achievetitle = 24;
+  optional CookStateMsg cookstate = 25;
+
+  optional BoothInfo info = 26;
+}
+
+message AddMapUser
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_ADDMAPUSER ];
+
+  repeated MapUser users = 3;
+}
+
+// scene -> client : add npc
+message MapNpc
+{
+  optional uint64 id = 1 [ default = 0 ];
+  optional string name = 2;
+  optional uint32 npcID = 3 [ default = 0 ];
+
+  repeated uint32 character = 5;
+
+  optional ScenePos pos = 6;
+  optional ScenePos dest = 7;
+  optional uint32 dir = 8;
+
+  repeated UserData datas = 9;
+  repeated UserAttr attrs = 10;
+
+  optional uint64 owner = 11 [ default = 0 ];
+  optional uint32 behaviour = 12 [ default = 0 ];
+  optional uint32 uniqueid = 13 [ default = 0 ];
+
+  optional string waitaction = 14;
+  optional uint32 teamid = 15 [ default = 0 ];
+  optional uint32 searchrange = 16 [ default = 0 ];
+
+  repeated BufferData buffs = 17;
+
+  optional uint32 motionactionid = 18 [ default = 0 ];
+  optional string effect = 19;
+  optional uint32 effectpos = 20 [default = 0 ];
+  optional uint32 effectindex = 21 [ default = 0 ];
+  repeated SpEffectData speffectdata = 22;
+  optional bool isbirth = 23 [ default = false ];
+  optional uint32 eat_progress = 24;
+  optional uint32 fadein = 25 [ default = 0 ];
+  optional uint64 guildid = 26 [ default = 0 ];
+  optional uint32 search = 27 [ default = 0 ];
+  optional uint32 bosstype = 28 [ default = 0 ];    // 值对应于Boss.xlsx表中的Type
+}
+
+message AddMapNpc
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_ADDMAPNPC ];
+
+  repeated MapNpc npcs = 3;
+}
+
+// scene -> client : add trap
+message MapTrap
+{
+  optional uint64 id = 1;
+  optional uint32 skillID = 2;
+  optional ScenePos pos = 3;
+  optional uint32 dir = 4;
+  optional uint64 masterid = 5;
+}
+
+message AddMapTrap
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_ADDMAPTRAP ];
+
+  repeated MapTrap traps = 3;
+}
+
+// server -> client : add act
+enum EActType
+{
+  EACTTYPE_MIN = 0;
+  EACTTYPE_PURIFY = 1;
+  EACTTYPE_SEAL = 2;
+  EACTTYPE_MUSIC = 3;
+  EACTTYPE_EFFECT = 4;
+  EACTTYPE_SCENEEVENT = 5;
+  EACTTYPE_MAX = 6;
+}
+
+message MapAct
+{
+  optional uint64 id = 1 [ default = 0 ];
+  optional uint32 range = 2 [ default = 0 ];
+  optional uint64 masterid = 3 [ default = 0 ];
+  optional EActType type = 4 [ default = EACTTYPE_MIN ];
+  optional uint32 actvalue = 5 [ default = 0 ];
+  optional ScenePos pos = 6;
+}
+
+message AddMapAct
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_ADDMAPACT ];
+
+  repeated MapAct acts = 3;
+}
+
+// scene -> client
+message ExitPointState
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_EXIT_POINT_STATE ];
+
+  optional uint32 exitid = 3;
+  optional uint32 visible = 4;
+}
+
+// scene -> client
+message MapCmdEnd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_MAP_CMD_END ];
+}
+
+// scene -> client
+message NpcSearchRangeCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_NPC_SEARCH_RANGE ];
+
+  optional uint64 id = 3 [ default = 0 ];
+  optional uint32 range = 4 [ default = 0 ];
+}
+
+// scene -> client
+message UserHandsCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_USER_HANDS ];
+
+  optional uint64 player1 = 3 [ default = 0 ];
+  optional uint64 player2 = 4 [ default = 0 ];
+
+  optional uint32 isadd = 5 [ default = 1 ];
+}
+
+// scene -> client
+message SpEffectCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_USER_SPEFFECT ];
+  optional uint64 senderid = 3;
+  optional SpEffectData data = 4;
+  optional bool isadd = 5 [ default = true ];
+}
+
+// scene -> client
+message UserHandNpcCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_USER_HAND_NPC ];
+
+  optional HandNpcData data = 3;
+  optional bool ishand = 4 [ default = true ];
+  optional uint64 userid = 5 [ default = 0 ];
+}
+
+// scene -> client
+message GingerBreadNpcCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_GINGERBREAD_NPC ];
+
+  optional GingerBreadNpcData data = 3;
+  optional bool isadd = 4 [ default = true ];
+  optional uint64 userid = 5 [ default = 0 ];
+  optional ScenePos bornpos = 6; 
+}
+
+// client -> scene : go city gate
+message GoCityGateMapCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_MAP_PROTOCMD ];
+  optional MapParam param = 2 [ default = MAPPARAM_GO_CITYGATE ];
+
+  optional uint32 flag = 3 [ default = 0 ];
+}

@@ -1,0 +1,130 @@
+package gameConnection
+
+import (
+	"errors"
+	"fmt"
+	"time"
+
+	Cmd "ROMProject/Cmds"
+	notifier "ROMProject/gameConnection/types"
+
+	log "github.com/sirupsen/logrus"
+)
+
+var (
+	sceneUserIntertCmdId = Cmd.Command_value["SCENE_USER_INTER_PROTOCMD"]
+)
+
+func (g *GameConnection) VisitNpcByName(name string) (npc Cmd.MapNpc, err error) {
+	npcs := g.GetMapNpcs()
+	for _, npc := range npcs {
+		if npc.GetName() == name {
+			g.VisitNpc(npc.GetId())
+			return npc, nil
+		}
+	}
+	return npc, errors.New(fmt.Sprintf("npc %s not found", name))
+}
+
+func (g *GameConnection) VisitNpc(npcId uint64) {
+	cmdMap := Cmd.MapObjectData{
+		Guid: &npcId,
+	}
+	_ = g.sendProtoCmd(
+		&cmdMap,
+		Cmd.Command_value["SCENE_USER_PROTOCMD"],
+		Cmd.CmdParam_value["MAP_OBJECT_DATA"],
+	)
+	time.Sleep(500 * time.Millisecond)
+	cmd := Cmd.VisitNpcUserCmd{
+		Npctempid: &npcId,
+	}
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneUserQuestId,
+		Cmd.QuestParam_value["QUESTPARAM_VISIT_NPC"],
+	)
+}
+
+func (g *GameConnection) VisitObjectByName(objectName string) (npc Cmd.MapNpc, err error) {
+	objects := g.GetMapNpcs()
+	for _, object := range objects {
+		if object.GetName() == objectName {
+			g.VisitObject(object.GetId())
+			return object, nil
+		}
+	}
+	return npc, errors.New(fmt.Sprintf("object %s not found", objectName))
+}
+
+func (g *GameConnection) VisitObject(objectId uint64) {
+	cmdMap := Cmd.MapObjectData{
+		Mapobjectid: &objectId,
+	}
+	cmd := Cmd.VisitNpcUserCmd{
+		Npctempid: &objectId,
+	}
+	_ = g.sendProtoCmdIndex(
+		&cmdMap,
+		Cmd.Command_value["SCENE_USER_PROTOCMD"],
+		Cmd.CmdParam_value["MAP_OBJECT_DATA"],
+		1,
+	)
+	_ = g.sendProtoCmdIndex(
+		&cmd,
+		sceneUserQuestId,
+		Cmd.QuestParam_value["QUESTPARAM_VISIT_NPC"],
+		2,
+	)
+}
+
+func (g *GameConnection) WaitForInterQuestion(interId uint32) (inter *Cmd.NewInter, err error) {
+	var iq *Cmd.NewInter
+	for {
+		select {
+		case <-time.After(3 * time.Second):
+			if iq != nil {
+				g.SendToNotifier(notifier.NtfType_InterviewQuestion, iq)
+			}
+			return nil, errors.New(fmt.Sprintf("wait for inter question %d timeout", interId))
+		case note := <-g.Notifier(notifier.NtfType_InterviewQuestion):
+			iq = note.(*Cmd.NewInter)
+			if iq.GetInter().GetInterid() == interId {
+				return iq, nil
+			} else {
+				log.Warnf("inter id not match: got %v want %d", iq.GetInter().GetInterid(), interId)
+			}
+		}
+	}
+}
+
+func (g *GameConnection) Answer(npcId uint64, interId, Answer uint32) {
+	iq, err := g.WaitForInterQuestion(interId)
+	if err != nil {
+		log.Errorf("failed to wait for inter question: %v", err)
+		return
+	}
+	log.Infof("Answering inter question: %v", iq)
+	guid := iq.GetInter().GetGuid()
+	cmd := Cmd.Answer{
+		Npcid:   &npcId,
+		Interid: &interId,
+		Answer:  &Answer,
+		Guid:    &guid,
+	}
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneUserIntertCmdId,
+		Cmd.InterParam_value["INTERPARAM_ANSWERINTER"],
+	)
+}
+
+func (g *GameConnection) GetMapNpcs() map[uint64]Cmd.MapNpc {
+	g.Mutex.RLock()
+	defer g.Mutex.RUnlock()
+	mapNpc := make(map[uint64]Cmd.MapNpc)
+	for _, npc := range g.MapNpcs {
+		mapNpc[npc.GetId()] = *npc
+	}
+	return mapNpc
+}

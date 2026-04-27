@@ -1,0 +1,263 @@
+package Cmd;
+
+import "ErrorUserCmd.proto";
+import "ProtoCommon.proto";
+import "xCmd.proto";
+
+enum LoginCmdParam
+{
+    ACCPASS_REG_USER_CMD = 1;
+    GATE_IP_USER_CMD = 2;
+    REG_GATE_USER_CMD = 3;
+    REG_RESULT_USER_CMD = 4;
+    CREATE_CHAR_USER_CMD = 5;
+    SNAPSHOT_USER_CMD = 6;
+    SELECT_ROLE_USER_CMD = 7;
+    LOGIN_RESULT_USER_CMD = 8;
+    DELETE_CHAR_USER_CMD = 9;
+    HEART_BEAT_USER_CMD = 10;
+    SERVERTIME_USER_CMD = 11;
+    GM_DELETE_CHAR_USER_CMD = 12;
+    CLIENT_INFO_USER_CMD = 13;
+    REQ_LOGIN_USER_CMD = 14;
+    REQ_LOGIN_PARAM_USER_CMD = 15;
+    KICK_PARAM_USER_CMD = 16;
+    CANCEL_DELETE_CHAR_USER_CMD = 17;
+    CLIENT_FRAME_USER_CMD = 18;
+    SAFE_DEVICE_USER_CMD = 19;
+    CONFIRM_AUTHORIZE_USER_CMD = 20;
+    SYNC_AUTHORIZE_GATE_CMD = 21;
+    REAL_AUTHORIZE_USER_CMD = 22;
+    REAL_AUTHORIZE_SEERVER_CMD = 23;
+}
+
+// 登陆过程数据
+// Server -> client 登陆结果
+message RegResultUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = REG_RESULT_USER_CMD];
+    required uint32 id = 3 [default = 0];
+    required RegErrRet ret = 4;
+}
+
+//创建角色
+message CreateCharUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = CREATE_CHAR_USER_CMD];
+    optional string name = 4;
+    optional uint32 role_sex = 5;
+    optional uint32 profession = 6;
+    optional uint32 hair = 7;
+    optional uint32 haircolor = 8;
+    optional uint32 clothcolor = 9;
+    optional uint64 accid = 10;
+    optional uint32 sequence = 11;
+    optional string version = 12;
+}
+
+//快照数据
+message SnapShotUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = SNAPSHOT_USER_CMD];
+    repeated SnapShotDataPB data = 3;
+    optional uint64 lastselect = 4;
+    optional bool deletechar = 5;
+    optional uint32 deletecdtime = 6; // 删角功能解锁时间
+    optional uint64 maincharid = 7; // 主角色id
+}
+
+message ExtraData
+{
+    optional string phone = 1;  //绑定的手机号码
+    optional bool safedevice = 2;  //安全设备
+}
+
+// client to Session
+message SelectRoleUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = SELECT_ROLE_USER_CMD];
+    required uint64 id = 3;
+    optional uint32 zoneID = 4;
+    optional uint64 accid = 5;
+    optional string deviceid = 6;
+    optional string name = 7;
+    optional string version = 8;
+    optional ExtraData extraData = 9;
+    optional bool ignorepwd = 10;    //true 需要密码 false 不需要
+    optional string password = 11;
+    optional uint32 resettime = 12;
+    optional uint32 language = 13;
+    optional bool realauthorized = 14;
+    optional uint32 maxbaselv = 15;
+}
+
+// gate to client,login succeed
+message LoginResultUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = LOGIN_RESULT_USER_CMD];
+    required uint32 ret = 3 [default = 0];
+}
+
+//删除角色
+message DeleteCharUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = DELETE_CHAR_USER_CMD];
+    optional uint64 id = 3;
+    optional uint64 accid = 4;
+    optional string version = 5;
+}
+
+message HeartBeatUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = HEART_BEAT_USER_CMD];
+
+    optional uint64 time = 3 [default = 0];
+}
+
+// client <-> scene : server time
+message ServerTimeUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = SERVERTIME_USER_CMD];
+
+    optional uint64 time = 3 [default = 0];
+}
+
+// scene -> gate : gm delete char
+message GMDeleteCharUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = GM_DELETE_CHAR_USER_CMD];
+
+    optional uint64 accid = 3 [default = 0];
+    optional uint32 zoneid = 4 [default = 0];
+}
+
+// client -> gate : ip, tcp delay
+message ClientInfoUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = CLIENT_INFO_USER_CMD];
+
+    optional string ip = 3;
+    optional uint32 delay = 4 [default = 0];
+}
+
+message ReqLoginUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = REQ_LOGIN_USER_CMD];
+
+    optional uint64 accid = 3 [default = 0];
+    optional uint32 zoneid = 4 [default = 0];
+    optional string sha1 = 5;
+    optional string version = 6;
+    optional uint32 timestamp = 7 [default = 0];
+    optional string domain = 8;
+    optional string device = 9;
+    optional string ip = 10;
+    optional string phone = 11;
+    optional string safe_device = 12;
+    optional uint32 language = 13;
+    optional uint32 site = 14;
+    optional string authorize = 15;
+}
+
+// 内网使用
+message ReqLoginParamUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = REQ_LOGIN_PARAM_USER_CMD];
+
+    optional uint64 accid = 3 [default = 0];
+    optional string sha1 = 4;
+    optional uint32 timestamp = 5 [default = 0];
+    optional string phone = 6;
+    optional uint32 version = 7 [default = 0];
+    optional string pwd = 8;
+}
+
+// 踢出玩家
+message KickParamUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = KICK_PARAM_USER_CMD];
+
+    optional uint64 charid = 3 [default = 0];
+    optional uint64 accid = 4 [default = 0];
+}
+
+// 取消删除角色
+message CancelDeleteCharUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = CANCEL_DELETE_CHAR_USER_CMD];
+    optional uint64 id = 3;
+    optional uint64 accid = 4;
+}
+
+// 客户端帧
+message ClientFrameUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = CLIENT_FRAME_USER_CMD];
+    optional uint32 frame = 3;
+}
+
+// 是不是安全设备
+message SafeDeviceUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = SAFE_DEVICE_USER_CMD];
+    optional bool safe = 3;
+}
+
+//安全密码验证
+message ConfirmAuthorizeUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = CONFIRM_AUTHORIZE_USER_CMD];
+
+    optional string password = 3;
+    optional bool success = 4;    // false 输密码  true 跳过密码
+    optional uint32 resettime = 5;
+    optional bool hasset = 6;   // false 未设置 true 设置
+}
+
+
+message SyncAuthorizeGateCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = SYNC_AUTHORIZE_GATE_CMD];
+
+    optional bool ignorepwd = 3;    //true 需要密码 false 不需要
+    optional string password = 4;
+    optional string version = 5;
+    optional uint64 accid = 6;
+    optional uint32 resettime = 7;
+}
+
+//client <->proxy
+//实名认证
+message RealAuthorizeUserCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = REAL_AUTHORIZE_USER_CMD];
+    optional string authoriz_state = 3;
+    //res
+    optional bool authorized = 4;       //是否实名验证
+}
+
+message RealAuthorizeServerCmd
+{
+    optional Command cmd = 1 [default = LOGIN_USER_PROTOCMD];
+    optional LoginCmdParam param = 2 [default = REAL_AUTHORIZE_SEERVER_CMD];
+    optional bool authorized = 3;       //是否实名验证过
+}

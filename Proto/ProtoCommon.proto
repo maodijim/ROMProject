@@ -1,0 +1,920 @@
+package Cmd;
+
+enum EPublishVersion
+{
+  EPUBLISHVERSION = 20160216;
+}
+
+enum EUserDataType
+{
+  EUSERDATATYPE_MIN           = 0;
+  EUSERDATATYPE_MAPID         = 1;
+  EUSERDATATYPE_SEX           = 2;
+  EUSERDATATYPE_PROFESSION    = 3;
+  EUSERDATATYPE_DESTPROFESSION= 4;
+  EUSERDATATYPE_JOBLEVEL      = 5;
+  EUSERDATATYPE_ROLELEVEL     = 6;
+  EUSERDATATYPE_JOBEXP        = 7;
+  EUSERDATATYPE_ROLEEXP       = 8;
+  EUSERDATATYPE_CHARGE        = 9;
+  EUSERDATATYPE_DIAMOND       = 10;
+  EUSERDATATYPE_SILVER        = 11;
+  EUSERDATATYPE_GOLD          = 12;
+  EUSERDATATYPE_PURIFY        = 13;
+  EUSERDATATYPE_GARDEN        = 14;   // 乐园币货币废弃
+  EUSERDATATYPE_ONLINETIME    = 15;
+  EUSERDATATYPE_OFFLINETIME   = 16;
+  EUSERDATATYPE_ADDICT        = 17;
+  EUSERDATATYPE_HAIR          = 18;
+  EUSERDATATYPE_HAIRCOLOR     = 19;
+  EUSERDATATYPE_CLOTHCOLOR    = 20;
+  EUSERDATATYPE_LEFTHAND      = 21;
+  EUSERDATATYPE_RIGHTHAND     = 22;
+  EUSERDATATYPE_BODY          = 23;
+  EUSERDATATYPE_BODYSCALE     = 24;
+  EUSERDATATYPE_HEAD          = 25;
+  EUSERDATATYPE_BACK          = 26;
+  EUSERDATATYPE_FACE          = 27;
+  EUSERDATATYPE_TAIL          = 28;
+  EUSERDATATYPE_MOUNT         = 29;
+  EUSERDATATYPE_MOUTH         = 83;
+
+  EUSERDATATYPE_STRPOINT      = 30;
+  EUSERDATATYPE_INTPOINT      = 31;
+  EUSERDATATYPE_AGIPOINT      = 32;
+  EUSERDATATYPE_DEXPOINT      = 33;
+  EUSERDATATYPE_VITPOINT      = 34;
+  EUSERDATATYPE_LUKPOINT      = 35;
+  EUSERDATATYPE_TOTALPOINT    = 36;
+  EUSERDATATYPE_USEDPOINT     = 37;
+
+  EUSERDATATYPE_NORMAL_SKILL  = 38;
+  EUSERDATATYPE_COLLECT_SKILL = 39;
+  EUSERDATATYPE_TRANS_SKILL   = 40;
+  EUSERDATATYPE_SKILL_POINT   = 41;
+  EUSERDATATYPE_STATUS        = 42;
+  EUSERDATATYPE_EQUIPMASTER   = 43;
+  EUSERDATATYPE_REFINEMASTER  = 44;
+
+  EUSERDATATYPE_PORTRAIT      = 45;
+  EUSERDATATYPE_FRAME         = 46;
+
+  EUSERDATATYPE_BATTLEPOINT   = 47;
+  EUSERDATATYPE_RAIDID        = 48;
+
+  EUSERDATATYPE_PET_PARTNER   = 49;
+  EUSERDATATYPE_PET_SELF      = 50;
+
+  EUSERDATATYPE_CREATETIME    = 51;
+
+  EUSERDATATYPE_SAVEMAP       = 52;
+  EUSERDATATYPE_FOLLOWID      = 53;
+  EUSERDATATYPE_HANDID        = 54;
+
+  EUSERDATATYPE_CARRIER       = 55;
+  EUSERDATATYPE_FRIENDSHIP    = 56;   // 友情之证货币废弃
+
+  EUSERDATATYPE_MUSIC_CURID   = 57;
+  EUSERDATATYPE_MUSIC_START   = 58;
+  EUSERDATATYPE_MUSIC_DEMAND  = 59;
+
+  EUSERDATATYPE_DIR           = 60;
+
+  EUSERDATATYPE_GAGTIME       = 61;
+  EUSERDATATYPE_NOLOGINTIME   = 62;
+  EUSERDATATYPE_EYE           = 63;
+
+  EUSERDATATYPE_NAME          = 64;
+  EUSERDATATYPE_GIFTPOINT     = 65;
+
+  EUSERDATATYPE_MANUAL_LV     = 66;
+  EUSERDATATYPE_MANUAL_EXP    = 67;
+  EUSERDATATYPE_CUR_TITLE     = 68;
+
+  EUSERDATATYPE_KILLERNAME    = 69;
+  EUSERDATATYPE_DROPBASEEXP   = 70;
+
+  EUSERDATATYPE_SHADERCOLOR   = 71;
+  EUSERDATATYPE_BATTLETIME    = 72;
+  EUSERDATATYPE_ADDICTTIPSTIME= 73;
+
+  EUSERDATATYPE_QUERYTYPE     = 74;
+
+  EUSERDATATYPE_REBATTLETIME  = 75;
+  EUSERDATATYPE_USEDBATTLETIME= 76;
+
+  EUSERDATATYPE_BLINK         = 77;
+  EUSERDATATYPE_ZONEID        = 78;
+
+  EUSERDATATYPE_TREESTATUS    = 79;
+
+  EUSERDATATYPE_DEST_ZONEID   = 80;
+  EUSERDATATYPE_ORIGINAL_ZONEID  = 81;
+
+  EUSERDATATYPE_ALPHA         = 84;
+  EUSERDATATYPE_QUOTA         = 85;
+  EUSERDATATYPE_ZENY_DEBT     = 86;
+  EUSERDATATYPE_PVP_COLOR     = 87;
+  EUSERDATATYPE_GUILDRAIDINDEX = 88;
+  EUSERDATATYPE_CONTRIBUTE    = 89;
+  EUSERDATATYPE_PVPCOIN       = 90;
+
+  EUSERDATATYPE_DATA          = 100;
+
+  EUSERDATATYPE_NORMALSKILL_OPTION  = 101;
+  EUSERDATATYPE_HASCHARGE     = 102;
+  EUSERDATATYPE_FASHIONHIDE   = 103;
+  EUSERDATATYPE_MONTHCARD     = 104;
+  EUSERDATATYPE_COOKER_EXP    = 105;    //厨师经验
+  EUSERDATATYPE_COOKER_LV     = 106;    //厨师等级
+  EUSERDATATYPE_TASTER_EXP    = 107;    //美食家经验
+  EUSERDATATYPE_TASTER_LV     = 108;    //美食家等级
+  EUSERDATATYPE_SATIETY       = 109;    //饱腹度
+  EUSERDATATYPE_OPTION        = 110;    //选项  
+  EUSERDATATYPE_LOTTERY       = 111;
+  EUSERDATATYPE_TUTOR_PROFIC  = 112; // 导师冒险熟练度
+  EUSERDATATYPE_TUTOR_ENABLE  = 113;
+  EUSERDATATYPE_GUILDHONOR    = 114; // 荣耀, 公会战产出
+  EUSERDATATYPE_PEAK_EFFECT   = 115;  //巅峰等级特效
+  EUSERDATATYPE_JOY           = 117;    //欢乐值
+  EUSERDATATYPE_MUSIC_LOOP    = 118; // 音乐循环播放
+  EUSERDATATYPE_CUR_MAXJOB    = 119;
+  EUSERDATATYPE_MARITAL       = 120;
+  EUSERDATATYPE_QUERYWEDDINGTYPE = 121; //
+  EUSERDATATYPE_DIVORCE_ROLLERCOASTER = 122; //是否做过离婚过山车
+  EUSERDATATYPE_TWINS_ACTIONID= 123;
+  EUSERDATATYPE_FAVORABILITY  = 124;
+  EUSERDATATYPE_EQUIPED_WEAPON = 125; //装备的武器id
+  EUSERDATATYPE_SERVANTID     = 126;
+  EUSERDATATYPE_BOOTH_SCORE   = 127;  //摆摊积分
+  EUSERDATATYPE_QUOTA_LOCK    = 128;  //冻结额度
+  EUSERDATATYPE_DRESSUP       = 129;
+
+  EUSERDATATYPE_TUTORBATTLETIME = 130; // 导师从学生上获得的战斗时间
+  EUSERDATATYPE_USEDTUTORBATTLETIME = 131; // 导师的战斗时间使用了多少
+
+  EUSERDATATYPE_ENSEMBLESKILL = 133;  //合奏技能
+  EUSERDATATYPE_DEADCOIN      = 134;
+  EUSERDATATYPE_DEADLV        = 135;
+  EUSERDATATYPE_DEADEXP       = 136;
+  EUSERDATATYPE_MAX           = 137;
+}
+
+enum EMARITAL
+{
+  EMARITAL_SINGLE = 0;    //单身
+  EMARITAL_RESERVED = 1;  //订婚
+  EMARITAL_MARRIED = 2;   //结婚
+  EMARITAL_DIVORCE_PUNISH = 3;   //离婚惩罚
+}
+
+enum EAttrType
+{
+  EATTRTYPE_MIN               = 0;
+
+  EATTRTYPE_STR               = 100;
+  EATTRTYPE_INT               = 101;
+  EATTRTYPE_AGI               = 102;
+  EATTRTYPE_DEX               = 103;
+  EATTRTYPE_VIT               = 104;
+  EATTRTYPE_LUK               = 105;
+
+  EATTRTYPE_ATK               = 200;
+  EATTRTYPE_ATKPER            = 201;
+  EATTRTYPE_DEF               = 202;
+  EATTRTYPE_DEFPER            = 203;
+  EATTRTYPE_MATK              = 204;
+  EATTRTYPE_MATKPER           = 205;
+  EATTRTYPE_MDEF              = 206;
+  EATTRTYPE_MDEFPER           = 207;
+  EATTRTYPE_MAXHP             = 208;
+  EATTRTYPE_MAXHPPER          = 209;
+  EATTRTYPE_MAXSP             = 210;
+  EATTRTYPE_MAXSPPER          = 211;
+  EATTRTYPE_HP                = 212;
+  EATTRTYPE_SP                = 213;
+  EATTRTYPE_HIT               = 214;
+  EATTRTYPE_FLEE              = 215;
+  EATTRTYPE_CRI               = 216;
+  EATTRTYPE_CRIRES            = 217;
+  EATTRTYPE_CRIDAMPER         = 218;
+  EATTRTYPE_CRIDEFPER         = 219;
+  EATTRTYPE_ATKSPD            = 220;
+  EATTRTYPE_MOVESPD           = 221;
+  EATTRTYPE_CASTSPD           = 222;
+  EATTRTYPE_RESTORESPD        = 223;
+  EATTRTYPE_SPRESTORESPD      = 224;
+  EATTRTYPE_ITEMRESTORESPD    = 225;
+  EATTRTYPE_ITEMSPRESTORESPD  = 226;
+  EATTRTYPE_RESTORESPDPER     = 227;
+  EATTRTYPE_SPRESTORESPDPER   = 228;
+  EATTRTYPE_CRIPER            = 229;
+
+  EATTRTYPE_REFINE            = 300;
+  EATTRTYPE_MREFINE           = 301;
+
+  EATTRTYPE_MOVESPDPER        = 302;
+  EATTRTYPE_EQUIPASPD         = 303;
+  EATTRTYPE_SKILLASPD         = 304;
+  EATTRTYPE_HITPER            = 305;
+  EATTRTYPE_FLEEPER           = 306;
+  EATTRTYPE_STRPER            = 307;
+  EATTRTYPE_INTPER            = 308;
+  EATTRTYPE_AGIPER            = 309;
+  EATTRTYPE_DEXPER            = 310;
+  EATTRTYPE_VITPER            = 311;
+  EATTRTYPE_LUKPER            = 312;
+
+  EATTRTYPE_SHOWATK           = 400;
+  EATTRTYPE_SHOWDEF           = 401;
+  EATTRTYPE_SHOWMATK          = 402;
+  EATTRTYPE_SHOWMDEF          = 403;
+  EATTRTYPE_SHOWMAXHP         = 404;
+  EATTRTYPE_SHOWMAXSP         = 405;
+  EATTRTYPE_SHOWHIT           = 406;
+  EATTRTYPE_SHOWFLEE          = 407;
+  EATTRTYPE_SHOWCRI           = 408;
+  EATTRTYPE_SHOWCRIRES        = 409;
+  EATTRTYPE_SHOWATKSPD        = 410;
+  EATTRTYPE_SHOWMOVESPD       = 411;
+  EATTRTYPE_SHOWCASTSPD       = 412;
+  EATTRTYPE_SHOWRESTORESPD    = 413;
+  EATTRTYPE_DAMREDUC          = 414;
+  EATTRTYPE_MDAMREDUC         = 415;
+  EATTRTYPE_IGNOREDEF         = 416;
+  EATTRTYPE_IGNOREMDEF        = 417;
+  EATTRTYPE_DAMREBOUND        = 418;
+  EATTRTYPE_MDAMREBOUND       = 419;
+  EATTRTYPE_DAMINCREASE       = 420;
+  EATTRTYPE_MDAMINCREASE      = 421;
+  EATTRTYPE_VAMPIRIC          = 422;
+  EATTRTYPE_BEVAMPIRIC        = 423;
+  EATTRTYPE_HARMIMMUNE        = 424;
+  EATTRTYPE_REALDAMAGE        = 425;
+  EATTRTYPE_RANGEDAM          = 426;
+  EATTRTYPE_SHOTDAMREDUC      = 427;
+  EATTRTYPE_LONGDAMREDUC      = 428;
+  EATTRTYPE_LONGMDAMREDUC     = 429;
+  EATTRTYPE_IGNOREEQUIPDEF    = 430;
+  EATTRTYPE_SHAPEATKPER       = 431;
+  EATTRTYPE_DAMSPIKE          = 432;
+  EATTRTYPE_MDAMSPIKE         = 433;
+  EATTRTYPE_REFINEDAMREDUC    = 434;
+  EATTRTYPE_REFINEMDAMREDUC   = 435;
+  EATTRTYPE_ENERGYDAMREDUC    = 436;
+  EATTRTYPE_STEELDAMREDUC     = 437;
+  EATTRTYPE_STEELMDAMREDUC    = 438;
+  EATTRTYPE_PROTECTDAMREDUC   = 439;
+  EATTRTYPE_PROTECTMDAMREDUC  = 440;
+  EATTRTYPE_DRAGONDAMREDUC    = 443;
+  EATTRTYPE_DRAGONMDAMREDUC   = 444;
+  EATTRTYPE_NORMALREALDAM     = 445;
+  EATTRTYPE_NORMALMREALDAM    = 446;
+  EATTRTYPE_SKILLREALDAM      = 447;
+  EATTRTYPE_SKILLMREALDAM     = 448;
+
+  EATTRTYPE_HIDEDAMREDUC      = 441;
+  EATTRTYPE_HIDEMDAMREDUC     = 442;
+
+  EATTRTYPE_NORMALATK         = 449;
+  EATTRTYPE_NORMALATKDAM      = 450;
+  EATTRTYPE_NORMALATKRES      = 451;
+  EATTRTYPE_SKILLDAM          = 452;
+  EATTRTYPE_SKILLRES          = 453;
+  EATTRTYPE_WINDMDAMREDUC     = 454;
+  EATTRTYPE_DEADDAMREDUC      = 455;
+  EATTRTYPE_DEADMDAMREDUC     = 456;
+
+  EATTRTYPE_CTCHANGE          = 509;
+  EATTRTYPE_CTCHANGEPER       = 510;
+  EATTRTYPE_CDCHANGE          = 511;
+  EATTRTYPE_CDCHANGEPER       = 512;
+
+  EATTRTYPE_SPCOST            = 515;
+  EATTRTYPE_SPCOSTPER         = 516;
+  EATTRTYPE_ATKDISTANCE       = 517;
+  EATTRTYPE_ATKDISTANCEPER    = 518;
+  EATTRTYPE_CTFIXED           = 519;
+  EATTRTYPE_CTFIXEDPER        = 520;
+  EATTRTYPE_SELLDISCOUNT      = 521;
+  EATTRTYPE_BUYDISCOUNT       = 522;
+  EATTRTYPE_HPCOST            = 523;
+  EATTRTYPE_HPCOSTPER         = 524;
+
+  EATTRTYPE_DELAYCDCHANGE     = 534;
+  EATTRTYPE_DELAYCDCHANGEPER  = 535;
+  EATTRTYPE_DCHANGE           = 536;
+  EATTRTYPE_DCHANGEPER        = 537;
+
+  EATTRTYPE_NOSKILL           = 600;
+  EATTRTYPE_NOACT             = 601;
+  EATTRTYPE_NOMOVE            = 602;
+  EATTRTYPE_NOSTIFF           = 603;
+  EATTRTYPE_NOATTACK          = 604;
+  EATTRTYPE_FEARRUN           = 605;
+  EATTRTYPE_HIDE              = 606;
+  EATTRTYPE_TAUNT             = 607;
+  EATTRTYPE_FREEZE            = 608;
+  EATTRTYPE_NOEFFECTMOVE      = 609;
+  EATTRTYPE_STATEEFFECT       = 610;
+  EATTRTYPE_ATTREFFECT        = 611;
+  EATTRTYPE_NOATTACKED        = 612;
+  EATTRTYPE_ATTRFUNCTION      = 613;
+  EATTRTYPE_ATTREFFECT2       = 614;
+  EATTRTYPE_FUNCLIMIT         = 615;
+  EATTRTYPE_NOMAGICSKILL      = 616;
+  EATTRTYPE_MOVECHANT         = 617;
+  EATTRTYPE_SOLO              = 618;
+  EATTRTYPE_ENSEMBLE          = 619;
+
+  EATTRTYPE_ATKATTR           = 700;
+  EATTRTYPE_DEFATTR           = 701;
+  EATTRTYPE_WINDDAMPER        = 702;
+  EATTRTYPE_EARTHDAMPER       = 703;
+  EATTRTYPE_WATERDAMPER       = 704;
+  EATTRTYPE_FIREDAMPER        = 705;
+  EATTRTYPE_NEUTRALDAMPER     = 706;
+  EATTRTYPE_HOLYDAMPER        = 707;
+  EATTRTYPE_SHADOWDAMPER      = 708;
+  EATTRTYPE_GHOSTDAMPER       = 709;
+  EATTRTYPE_UNDEADDAMPER      = 710;
+  EATTRTYPE_POSIONDAMPER      = 711;
+  EATTRTYPE_BEWINDDAMPER      = 712;
+  EATTRTYPE_BEEARTHDAMPER     = 713;
+  EATTRTYPE_BEWATERDAMPER     = 714;
+  EATTRTYPE_BEFIREDAMPER      = 715;
+  EATTRTYPE_BENEUTRALDAMPER   = 716;
+  EATTRTYPE_BEHOLYDAMPER      = 717;
+  EATTRTYPE_BESHADOWDAMPER    = 718;
+  EATTRTYPE_BEGHOSTDAMPER     = 719;
+  EATTRTYPE_BEUNDEADDAMPER    = 720;
+  EATTRTYPE_BEPOSIONDAMPER    = 721;
+  EATTRTYPE_WINDATK           = 722;
+  EATTRTYPE_EARTHATK          = 723;
+  EATTRTYPE_FIREATK           = 724;
+  EATTRTYPE_WATERATK          = 725;
+  EATTRTYPE_NEUTRALATK        = 726;
+  EATTRTYPE_HOLYATK           = 727;
+  EATTRTYPE_DARKATK           = 728;
+  EATTRTYPE_WINDDEF           = 729;
+  EATTRTYPE_EARTHDEF          = 730;
+  EATTRTYPE_FIREDEF           = 731;
+  EATTRTYPE_WATERDEF          = 732;
+  EATTRTYPE_NEUTRALDEF        = 733;
+  EATTRTYPE_HOLYDEF           = 734;
+  EATTRTYPE_DARKDEF           = 735;
+  EATTRTYPE_GHOSTATK          = 736;
+  EATTRTYPE_UNDEADATK         = 737;
+  EATTRTYPE_POISONINGATK      = 738;
+
+  EATTRTYPE_BRUTEDAMPER       = 800;
+  EATTRTYPE_DEMIHUMANDAMPER   = 801;
+  EATTRTYPE_DEMONDAMPER       = 802;
+  EATTRTYPE_PLANTDAMPER       = 803;
+  EATTRTYPE_DEADLESSDAMPER    = 804;
+  EATTRTYPE_FORMLESSDAMPER    = 805;
+  EATTRTYPE_FISHDAMPER        = 806;
+  EATTRTYPE_ANGLEDAMPER       = 807;
+  EATTRTYPE_INSECTDAMPER      = 808;
+  EATTRTYPE_DRAGONDAMPER      = 809;
+  EATTRTYPE_BRUTERESPER       = 810;
+  EATTRTYPE_DEMIHUMANRESPER   = 811;
+  EATTRTYPE_DEMONRESPER       = 812;
+  EATTRTYPE_PLANTRESPER       = 813;
+  EATTRTYPE_DEADLESSRESPER    = 814;
+  EATTRTYPE_FORMLESSRESPER    = 815;
+  EATTRTYPE_FISHRESPER        = 816;
+  EATTRTYPE_ANGLERESPER       = 817;
+  EATTRTYPE_INSECTRESPER      = 818;
+  EATTRTYPE_DRAGONRESPER      = 819;
+
+  EATTRTYPE_SMALLDAMPER       = 900;
+  EATTRTYPE_SMALLRESPER       = 901;
+  EATTRTYPE_MIDDAMPER         = 902;
+  EATTRTYPE_MIDRESPER         = 903;
+  EATTRTYPE_BIGDAMPER         = 904;
+  EATTRTYPE_BIGRESPER         = 905;
+  EATTRTYPE_BOSSDAMPER        = 906;
+  EATTRTYPE_BOSSRESPER        = 907;
+  EATTRTYPE_MONSTERDAMPER     = 908;
+  EATTRTYPE_MONSTERRESPER     = 909;
+  EATTRTYPE_NPCDAMPER         = 910;
+  EATTRTYPE_NPCRESPER         = 911;
+
+  EATTRTYPE_SILENCEATK        = 1000;
+  EATTRTYPE_SILENCEDEF        = 1001;
+  EATTRTYPE_FREEZEATK         = 1002;
+  EATTRTYPE_FREEZEDEF         = 1003;
+  EATTRTYPE_STONEATK          = 1004;
+  EATTRTYPE_STONEDEF          = 1005;
+  EATTRTYPE_STUNATK           = 1006;
+  EATTRTYPE_STUNDEF           = 1007;
+  EATTRTYPE_BLINDATK          = 1008;
+  EATTRTYPE_BLINDDEF          = 1009;
+  EATTRTYPE_POSIONATK         = 1010;
+  EATTRTYPE_POSIONDEF         = 1011;
+  EATTRTYPE_SLOWATK           = 1012;
+  EATTRTYPE_SLOWDEF           = 1013;
+  EATTRTYPE_CHAOSATK          = 1014;
+  EATTRTYPE_CHAOSDEF          = 1015;
+  EATTRTYPE_CURSEATK          = 1016;
+  EATTRTYPE_CURSEDEF          = 1017;
+
+  EATTRTYPE_TRANSFORMID       = 1024;
+  EATTRTYPE_SLEEPATK          = 1025;
+  EATTRTYPE_SLEEPDEF          = 1026;
+
+  EATTRTYPE_BEHEALENCPER      = 1110;
+  EATTRTYPE_HEALENCPER        = 1111;
+
+  EATTRTYPE_DEADSOON          = 1208;
+  EATTRTYPE_SAVE_HP           = 1209;   //储备的hp
+  EATTRTYPE_SAVE_SP           = 1210;   //储备的sp
+  EATTRTYPE_SLIM_HEIGHT       = 1211;   //修身高度
+  EATTRTYPE_SLIM_WEIGHT       = 1212;   //修身体重
+  EATTRTYPE_BASEEXPPER        = 1213;
+  EATTRTYPE_JOBEXPPER         = 1214;
+  EATTRTYPE_MAX               = 1215;
+}
+
+enum EGender
+{
+  EGENDER_MIN                 = 0;
+  EGENDER_MALE                = 1;
+  EGENDER_FEMALE              = 2;
+  EGENDER_MAX                 = 3;
+}
+
+enum EProfession
+{
+  EPROFESSION_MIN             = 0;
+
+  EPROFESSION_NOVICE          = 1;
+
+  EPROFESSION_WARRIOR         = 11;
+  EPROFESSION_KNIGHT          = 12;
+  EPROFESSION_LORDKNIGHT      = 13;
+  EPROFESSION_RUNEKNIGHT      = 14;
+
+  EPROFESSION_CRUSADER        = 72;
+  EPROFESSION_PALADIN         = 73;
+  EPROFESSION_ROYALGUARD      = 74;
+
+  EPROFESSION_MAGICIAN        = 21;
+  EPROFESSION_WIZARD          = 22;
+  EPROFESSION_HIGHWIZARD      = 23;
+  EPROFESSION_WARLOCK         = 24;
+
+  EPROFESSION_SAGE            = 82;
+  EPROFESSION_PROFESSOR       = 83;
+  EPROFESSION_SORCERER        = 84;
+
+  EPROFESSION_THIEF           = 31;
+  EPROFESSION_ASSASSIN        = 32;
+  EPROFESSION_ASSASSINCROSS   = 33;
+  EPROFESSION_GUILLOTINECROSS = 34;
+
+  EPROFESSION_ROGUE           = 92;
+  EPROFESSION_STALKER         = 93;
+  EPROFESSION_SHADOWCHASER    = 94;
+
+  EPROFESSION_ARCHER          = 41;
+  EPROFESSION_HUNTER          = 42;
+  EPROFESSION_SNIPER          = 43;
+  EPROFESSION_RANGER          = 44;
+
+  EPROFESSION_BARD            = 102;
+  EPROFESSION_CLOWN           = 103;
+  EPROFESSION_MINSTREL        = 104;
+
+  EPROFESSION_DANCER          = 112;
+  EPROFESSION_GYPSY           = 113;
+  EPROFESSION_WANDERER        = 114;
+
+  EPROFESSION_ACOLYTE         = 51;
+  EPROFESSION_PRIEST          = 52;
+  EPROFESSION_HIGHPRIEST      = 53;
+  EPROFESSION_ARCHBISHOP      = 54;
+
+  EPROFESSION_MONK            = 122;
+  EPROFESSION_CHAMPION        = 123;
+  EPROFESSION_SHURA           = 124;
+
+  EPROFESSION_MERCHANT        = 61;
+  EPROFESSION_BLACKSMITH      = 62;
+  EPROFESSION_WHITESMITH      = 63;
+  EPROFESSION_MECHANIC        = 64;
+
+  EPROFESSION_ALCHEMIST       = 132;
+  EPROFESSION_CREATOR         = 133;
+  EPROFESSION_GENETIC         = 134;
+
+  EPROFESSION_PET             = 999;
+
+  EPROFESSION_MAX             = 1000;
+}
+
+enum EQualityType
+{
+  EQUALITYTYPE_MIN            = 0;
+  EQUALITYTYPE_WHITE          = 1;
+  EQUALITYTYPE_GREEN          = 2;
+  EQUALITYTYPE_BLUE           = 3;
+  EQUALITYTYPE_PURPLE         = 4;
+  EQUALITYTYPE_ORANGE         = 5;
+  EQUALITYTYPE_GOLD           = 6;
+  EQUALITYTYPE_DARKGOLD       = 7;
+  EQUALITYTYPE_MAX            = 8;
+}
+
+enum EMoneyType
+{
+  EMONEYTYPE_MIN              = 0;
+  EMONEYTYPE_DIAMOND          = 132;
+  EMONEYTYPE_SILVER           = 131;
+  EMONEYTYPE_GOLD             = 130;
+  EMONEYTYPE_GARDEN           = 140;  // 废弃,保证配置不变,不删除此type
+  EMONEYTYPE_MANUALSKILL      = 143;
+  EMONEYTYPE_CONTRIBUTE       = 145;
+  EMONEYTYPE_GUILDASSET       = 146;
+  EMONEYTYPE_FRIENDSHIP       = 147;  // 废弃,保证配置不变,不删除此type
+  EMONEYTYPE_PVPCOIN          = 141;
+  EMONEYTYPE_LOTTERY          = 154;  //扭蛋币
+  EMONEYTYPE_GUILDHONOR       = 156;
+  EMONEYTYPE_DEADCOIN         = 169;
+  EMONEYTYPE_MAX              = 170;
+}
+
+enum ECreatureStatus
+{
+  ECREATURESTATUS_MIN         = 0;
+  ECREATURESTATUS_LIVE        = 1;
+  ECREATURESTATUS_SIT         = 2;
+  ECREATURESTATUS_DEAD        = 3;
+  ECREATURESTATUS_PHOTO       = 4;
+  ECREATURESTATUS_FAKEDEAD    = 5;
+  ECREATURESTATUS_REMOVE      = 6;
+  ECREATURESTATUS_SELF_PHOTO  = 7;
+  ECREATURESTATUS_IDLE        = 8;
+  ECREATURESTATUS_CLEAR       = 9;
+  ECREATURESTATUS_RELIVE      = 10;
+  ECREATURESTATUS_LEAVE       = 11;   // 立刻删除
+  ECREATURESTATUS_EVO         = 12;
+  ECREATURESTATUS_SUICIDE     = 13;
+  ECREATURESTATUS_INRELIVE    = 14;
+  ECREATURESTATUS_MAX         = 15;
+}
+
+enum ESource
+{
+  ESOURCE_MIN                 = 0;
+  ESOURCE_NORMAL              = 1;
+  ESOURCE_PACKAGE             = 2;    //背包间转移
+  ESOURCE_QUEST               = 3;
+  ESOURCE_EQUIP               = 4;
+  ESOURCE_CARD                = 5;
+  ESOURCE_ACTSKILL            = 6;
+  ESOURCE_COMPOSE             = 9;
+  ESOURCE_REWARD              = 10;
+  ESOURCE_MONSTERKILL         = 11;
+  ESOURCE_GM                  = 12;
+  ESOURCE_FUBEN               = 13;
+  ESOURCE_CHARGE              = 14;
+  ESOURCE_LABORATORY          = 15;
+  ESOURCE_MAPTRANS            = 16;
+  ESOURCE_HAIR                = 17;
+  ESOURCE_STRENGTH            = 18;
+  ESOURCE_SHOP                = 19;
+  ESOURCE_SELL                = 21;   //商店出售
+  ESOURCE_PICKUP              = 22;
+  ESOURCE_OFFLINE             = 23;
+  ESOURCE_LVUP                = 24;
+  ESOURCE_TRADE               = 25;
+  ESOURCE_TRANSFER            = 26;
+  ESOURCE_SEAL                = 27;
+  ESOURCE_GUILDPRAY           = 28;
+  ESOURCE_ENCHANT             = 29;   //附魔
+  ESOURCE_GUILDCREATE         = 30;
+  ESOURCE_GUILDLEVELUP        = 31;
+  ESOURCE_RELIVE              = 32;
+  ESOURCE_REPAIR              = 33;   //装备修复
+  ESOURCE_STORE               = 34;
+  ESOURCE_MUSICBOX            = 35;   //点唱机
+  ESOURCE_TOWER               = 36;
+  ESOURCE_DOJOFIRST           = 37;   //道场首次通关
+  ESOURCE_DOJOHELP            = 38;   //道场协助通关
+  ESOURCE_MANUAL              = 39;
+  ESOURCE_ROB                 = 41;   //掠夺证
+  ESOURCE_WANTEDQUEST         = 42;
+  ESOURCE_DONATE              = 43;
+  ESOURCE_MONSTERAI           = 44;
+  ESOURCE_TREASURE            = 45;
+  ESOURCE_FERRISWHEEL         = 46;
+  ESOURCE_CRAZYGHOST          = 47;   //幽灵入侵
+  ESOURCE_JUMPZONE            = 48;
+  ESOURCE_OPERATE             = 49;   //
+  ESOURCE_DOG                 = 50;
+  ESOURCE_GIFT                = 51;   //礼包码
+  ESOURCE_QA                  = 52;   //问答活动
+  ESOURCE_DECOMPOSE           = 53;
+  ESOURCE_HELP                = 54;
+  ESOURCE_OPENSTORE           = 55;   //开仓库
+  ESOURCE_PUTSTORE            = 56;   //存仓库
+  ESOURCE_OFFSTORE            = 57;   //出仓库
+  ESOURCE_EXCHANGE            = 58;   //装备置换
+  ESOURCE_UNSTRENGTH          = 59;   //强化返回
+  ESOURCE_DAILYQUEST          = 60;   //抗击魔潮
+  ESOURCE_USEITEM             = 61;   //主动使用useitem
+  ESOURCE_RESTORE             = 62;
+  ESOURCE_TEMPPACK            = 63;   //临时背包
+  ESOURCE_TRADE_PUBLICITY     = 64;           //交易所公示期
+  ESOURCE_TRADE_PUBLICITY_FAILRET     = 65;   //交易所公示期购买失败返还
+  ESOURCE_KAPULA              = 66; //卡普拉传送
+  ESOURCE_MONEYCAT            = 67;  //招财猫 
+  ESOURCE_VALENTINE           = 68;  //情人节问答
+  ESOURCE_PERSON_PUTSTORE     = 69;  //存个人仓库
+  ESOURCE_PERSON_OFFSTORE     = 70;  //出个人仓库
+  ESOURCE_PUBLIC_PUTSTORE     = 71;  //存公共仓库
+  ESOURCE_PUBLIC_OFFSTORE     = 72;  //出公共仓库
+  ESOURCE_PUT_TEMPPACK        = 73;  //进入临时背包
+  ESOURCE_OFF_TEMPPACK        = 74;  //从临时背包取出
+  ESOURCE_CAT                 = 75;   //佣兵猫
+  ESOURCE_GIVE                = 76;  //赠送
+  ESOURCE_UPGRADE             = 77;   //装备升级
+  ESOURCE_PUT_BARROW          = 78;   //存入手推车
+  ESOURCE_OFF_BARROW          = 79;   //从手推车取出
+  ESOURCE_OPEN_GUILD_GATE     = 80;  // 开启公会副本大门
+  ESOURCE_UNLOCK_GUILD_GATE   = 81;  // 解锁公会副本大门
+  ESOURCE_GUILDRAID           = 82;  // 公会副本
+  ESOURCE_MONTHCARD           = 83;  // 使用月卡获得
+  ESOURCE_ASTROLABE_ACTIVATE  = 84;  //星盘星位激活
+  ESOURCE_ASTROLABE_RESET     = 85;  //重置星盘
+  ESOURCE_EXCHANGECARD        = 86;
+  ESOURCE_COOK_FOOD           = 87;
+  ESOURCE_EAT_FOOD            = 88;
+  ESOURCE_PHOTO_SCENERY       = 89;
+  ESOURCE_PHOTO_SELF          = 90;
+  ESOURCE_LOTTERY             = 91;
+  ESOURCE_LOTTERY_RECOVERY    = 92;
+  ESOURCE_PET                 = 93;
+  ESOURCE_PET_ADVENTURE       = 94;
+  ESOURCE_MAIL                = 95;
+  ESOURCE_BUFF                = 96;
+  ESOURCE_PVP                 = 97;
+  ESOURCE_AUCTION_SIGNUP      = 98;     //拍卖报名上架
+  ESOURCE_AUCTION_OFFERPRICE  = 99;     //拍卖出价购买
+  ESOURCE_AUCTION             = 100;     //拍卖行，没有区分成功失败
+  ESOURCE_GANEN_FUDAI         = 102;  //感恩福袋
+  ESOURCE_TUTOR_TASK          = 103; // 导师冒险任务奖励
+  ESOURCE_TUTOR_GROW          = 104; // 导师成长奖励
+  ESOURCE_TUTOR_GRADUATION    = 105; // 导师毕业奖励
+  ESOURCE_USER_RENAME         = 106;
+  ESOURCE_GUILD_RENAME        = 107;
+  ESOURCE_MAT_COMPOSE         = 108;  //炼金合成
+  ESOURCE_HIGH_REFINE         = 109;  //极限精炼
+
+  ESOURCE_LOTTERY_HEAD        = 111;  // 当月头饰扭蛋
+  ESOURCE_LOTTERY_EQUIP       = 112;  // 当月装备扭蛋
+  ESOURCE_LOTTERY_CARD        = 113;  // 当月卡片扭蛋
+  ESOURCE_LOTTERY_HEAD_OLD    = 114;  // 往月头饰扭蛋
+  ESOURCE_PVP_POLLY           = 115;  // 往月头饰扭蛋
+  ESOURCE_ACTIVITY_EVENT      = 116; // 活动模板奖励
+  ESOURCE_GUILD_SUBMIT_MATERIAL = 117; // 公会建筑提交材料
+  ESOURCE_GUILD_BUILDING_WELFARE = 118; // 公会建筑福利
+  ESOURCE_GUILD_CHALLENGE     = 119; // 公会挑战奖励
+  ESOURCE_LOTTERY_CATLITTERBOX = 121; // 公会猫砂盆扭蛋
+  ESOURCE_PHOTO_GUILD         = 122;
+  ESOURCE_LOTTERY_MAGIC       = 123;  // 魔力扭蛋机
+  ESOURCE_RECALL              = 124;
+  ESOURCE_ARTIFACT_PRODUCE    = 125;  // 神器打造
+  ESOURCE_ARTIFACT_DISTRIBUTE = 126;  // 神器分配
+  ESOURCE_LOTTERY_GIVE        = 127;  // 扭蛋赠送
+  ESOURCE_RESERVE_WEDDING     = 128;  // 婚礼预定
+  ESOURCE_WEDDING_BUY_PACKAGE = 129;  // 购买婚礼套餐
+  ESOURCE_WEDDING_BUY_RING    = 130;  // 购买婚礼戒指
+  ESOURCE_WEDDINGDRESS_GIVE   = 131;  // 婚纱赠送
+  ESOURCE_WEDDING_PHOTO       = 132;
+  ESOURCE_GUILD_TREASURE      = 133;
+  ESOURCE_GVG                 = 134;  // gvg
+  ESOURCE_WEDDING             = 135;  // 婚礼相关
+  ESOURCE_CARD_DECOMPOSE      = 136;  // 卡片分解
+  ESOURCE_PET_WORK            = 137;  // 宠物打工
+  ESOURCE_SERVANT             = 138;  // 仆人
+  ESOURCE_KFC_ACTIVITY        = 139;  // kfc活动
+  ESOURCE_PROFESSION_BUY      = 140;  // 职业购买
+  ESOURCE_USER_RECORD         = 141;  // 购买存档位
+  ESOURCE_PROFESSION_CHANGE   = 142;  // 职业切换
+  ESOURCE_FASHION_GEDNER      = 143;  // 时装性转
+  ESOURCE_QUICKSTORE          = 144;  // 快速存储
+  ESOURCE_ENCHANT_TRANS       = 145;
+  ESOURCE_PUZZLE              = 146;
+  ESOURCE_EXCHANGE_SHOP       = 147;  //兑换商店，追赶系统
+  ESOURCE_DRESSUP_STAGE       = 148;  //换装舞台
+  ESOURCE_DEAD                = 149;  // 亡者气息
+  ESOURCE_QUICKSTORE_RETURN   = 150;  // 快速存储返回
+  ESOURCE_EQUIP_COMPOSE       = 151;  // 装备合成
+  ESOURCE_CHAT                = 152;  //聊天奖励
+  ESOURCE_GUILD_LEVEL_UP      = 153;  // 公会升级
+  ESOURCE_GUILD_CHANGE_ZONE   = 154;  // 公会切线
+  ESOURCE_GUILD_OPEN_BUILDING = 155;  // 公会开启建筑功能
+  ESOURCE_GUILD_SHOP          = 156;  // 公会商店
+  ESOURCE_GUILD_MAINTENANCE   = 157;  // 公会维护
+  ESOURCE_MAX                 = 158;
+}
+
+enum EDoubleSource
+{
+  EDOUBLESOURCE_MIN = 0;
+  EDOUBLESOURCE_GUILD_TASK = 1;
+  EDOUBLESOURCE_GUILD_DONATE = 2;
+  EDOUBLESOURCE_GUILD_QUEST = 3;
+  EDOUBLESOURCE_MAX = 4;
+}
+
+message ScenePos
+{
+  optional int32 x = 1;
+  optional int32 y = 2;
+  optional int32 z = 3;
+}
+
+message SnapShotDataPB
+{
+  optional uint64 id = 1;
+  optional uint32 baselv = 2 [ default = 0 ];
+  optional uint32 hair = 3 [ default = 0 ];
+  optional uint32 haircolor = 4 [ default = 0 ];
+
+  optional uint32 lefthand = 5 [ default = 0 ];
+  optional uint32 righthand = 6 [ default = 0 ];
+  optional uint32 body = 7 [ default = 0 ];
+  optional uint32 head = 8 [ default = 0 ];
+  optional uint32 back = 9 [ default = 0 ];
+  optional uint32 face = 10 [ default = 0 ];
+  optional uint32 tail = 11 [ default = 0 ];
+  optional uint32 mount = 12 [ default = 0 ];
+  optional uint32 eye = 19 [ default = 0 ];
+  optional uint32 partnerid = 20 [ default = 0 ];
+  optional uint32 portrait = 21 [ default = 0 ];
+  optional uint32 mouth = 22 [ default = 0 ];
+  optional uint32 clothcolor = 23 [ default = 0 ];
+
+  optional EGender gender = 13 [ default = EGENDER_MIN ];
+  optional EProfession profession = 14 [ default = EPROFESSION_MIN ];
+
+  optional string name = 15;
+  optional uint32 sequence = 16 [ default = 0 ];
+  optional uint32 isopen = 17 [ default = 0 ];
+  optional uint32 deletetime = 18 [ default = 0 ];
+}
+
+message Pos
+{
+  optional float x = 1 [ default = 0.0 ];
+  optional float y = 2 [ default = 0.0 ];
+  optional float z = 3 [ default = 0.0 ];
+}
+
+enum ESummonType
+{
+  ESUMMONTYPE_MIN = 0;
+  ESUMMONTYPE_BRANCH = 1;
+  ESUMMONTYPE_MAX = 2;
+}
+
+
+message NpcDefineData
+{
+  optional int32 id = 1 [ default = 0 ];
+  optional string name = 2;
+  optional Pos pos = 3;     // 出生坐标
+  optional int32 range = 4 [ default = 0 ];      // 出生范围
+  optional int32 dir = 5 [ default = 0 ];
+  optional int32 reborn = 6 [ default = 0 ];      // 复活间隔
+  optional int32 territory = 7 [ default = 0 ];      // 活动范围
+  optional float scalemin = 8 [ default = 0.0 ];
+  optional float scalemax = 9 [ default = 0.0 ];
+  optional int32 life = 10 [ default = 0 ];      // 命。有n条命可以复活(n-1)次。0表示无限复活
+  optional int32 behaviours = 11 [ default = 0 ];      // 行为特性
+  //optional int32 superai = 12 [ default = 0 ];     // 高级ai
+  optional int32 search = 13 [ default = 0 ];     // 搜索范围
+  optional int32 uniqueid = 14 [ default = 0 ];   // 地图唯一id
+  optional int32 gearorgstate = 15 [ default = 0 ];  // 装置初始状态
+  optional int32 purify = 16 [ default = 0 ];   // 副本boss净化值, !=0 表示需要净化
+  optional int32 attsafelv = 17 [ default = 0 ];   // !=0 表示不会主动攻击比自身低m_dwAttSafeLv等级的敌人
+  optional int32 disptime = 18 [ default = 0 ];   // !=0 表示出生到消失的时间间隔
+  optional int32 gearprivate = 19 [ default = 0 ];   // 是否是私有装置
+  optional int32 level = 20 [ default = 0 ];   // 等级 没设置读base的值
+  optional string waitaction = 21;
+  optional ESummonType stype = 22 [ default = ESUMMONTYPE_MIN ];
+  repeated int32 superai = 23;
+  optional int32 pursue = 24 [ default = 0 ]; // 追击距离, 超出距离无敌返回
+  optional int32 pursuetime = 25 [ default = 0 ]; // 配合追击距离, 超出追击距离后, 判断无人攻击时间
+  optional int32 weaponpetid = 26 [ default = 0 ];
+  optional int32 deadlv = 27 [ default = 0 ];
+  repeated int32 deadrewardids = 28;
+}
+
+message UpyunApi
+{
+  optional string bucket = 1;
+  optional string content_md5 = 2;
+  optional string content_lenth_range = 3;
+  optional uint32 expiration = 4;
+  optional uint32 file_blocks = 5;
+  optional string file_hash = 6;
+  optional uint32 file_size = 7;
+  optional string path = 8;
+}
+
+////TRADE
+message FrostItemInfo
+{
+  optional uint32 item_id = 1;
+  optional uint64 frosted_time = 2; 
+}
+
+enum ETRADE_RET_CODE
+{
+  ETRADE_RET_CODE_SUCCESS = 0;
+  ETRADE_RET_CODE_FAIL = 1;
+  ETRADE_RET_CODE_INVALID_PRICE = 100;              //价格不合法
+  ETRADE_RET_CODE_INVALID_COUNT = 101;              //个数不合法
+  ETRADE_RET_CODE_NOT_ONLINE = 102;                 //session 找不到玩家
+  ETRADE_RET_CODE_CANNOT_SELL = 103;    
+  ETRADE_RET_CODE_DB_ERROR = 104;    
+  ETRADE_RET_CODE_SYS_ERROR = 105;   
+  ETRADE_RET_CODE_CANNOT_FIND_USER_IN_SCENE = 106;  //scene 找不到玩家
+  ETRADE_RET_CODE_CANNOT_MONEY_IS_NOT_ENOUGH = 107; //
+  ETRADE_RET_CODE_CANNOT_ITEM_IS_FROSTED = 108;     //
+  ETRADE_RET_CODE_CANNOT_PENDING_IS_FULL = 109;     //
+  ETRADE_RET_CODE_CANNOT_CANNOT_SELL = 110;         //
+  ETRADE_RET_CODE_PENDING_IS_SELLED = 111;          //订单已经出售掉了
+  ETRADE_RET_CODE_PENDING_IS_LOCKED = 112;          //订单被锁定
+  ETRADE_RET_CODE_INVALID_PARAMS = 113;             //参数不合法
+  ETRADE_RET_CODE_CFG_ERR = 114;                    //策划表错误   
+  ETRADE_RET_CODE_CANNOT_QUOTA_IS_NOT_ENOUGH = 115; //额度不足
+}
+
+enum EAccountStatus
+{
+  EACCOUNTSTATUS_MIN = 0;
+  EACCOUNTSTATUS_GAP = 1;
+  EACCOUNTSTATUS_LOCK = 2;
+  EACCOUNTSTATUS_MAX = 4;
+}
+
+//特殊特效
+message SpEffectData
+{
+  optional string guid = 1;
+  optional uint32 id = 2;
+  repeated uint64 entity = 3;
+  optional uint32 expiretime = 4;
+}
+
+//bgm type
+enum EBgmType
+{
+  EBGM_TYPE_QUEST = 0;        //任务bgm 默认
+  EBGM_TYPE_ACTIVITY = 1;     //活动bgm
+  EBGM_TYPE_MUSICBOX = 2;     //音乐bgm   
+  EBGM_TYPE_REPLACE = 3;      //替换场景bgm 通用
+}
+
+//充值卡片类型
+enum EDepositCardType 
+{
+  ETITLE_TYPE_MONEY   = 1;      //充钱
+  ETITLE_TYPE_MONTH   = 2;      //月卡
+  ETITLE_TYPE_LOTTERY = 3;      //扭蛋币
+  ETITLE_TYPE_FUDAI   = 4;      //福袋  
+  ETITLE_TYPE_VERSIONCARD   = 5;      //版本卡  
+}
+
+message Param
+{
+  optional string key = 1;
+  optional string value = 2;
+
+  repeated Param items = 3;
+}
+message ConfigParam
+{
+  repeated Param params = 1;
+}
+
+// 头像显示数据结构
+message UserPortraitData
+{
+  optional uint32 portrait = 1 [ default = 0 ];
+  optional uint32 body = 2 [ default = 0 ];
+  optional uint32 hair = 3 [ default = 0 ];
+  optional uint32 haircolor = 4 [ default = 0 ];
+  optional uint32 gender = 5 [ default = 0 ];
+  optional uint32 head = 6 [ default = 0 ];
+  optional uint32 face = 7 [ default = 0 ];
+  optional uint32 mouth = 8 [ default = 0 ];
+  optional uint32 eye = 9 [ default = 0 ];
+}
+

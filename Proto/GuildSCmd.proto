@@ -1,0 +1,703 @@
+package Cmd;
+
+import "xCmd.proto";
+import "GuildCmd.proto";
+import "SocialCmd.proto";
+import "SessionMail.proto";
+import "SceneItem.proto";
+import "SceneUser2.proto";
+
+enum GuildSParam
+{
+  GUILDSPARAM_USER_GUILDINFO_SYNC = 1;
+  GUILDSPARAM_CHAT_SYNC = 2;
+  GUILDSPARAM_LOAD_LUA = 3;
+  GUILDSPARAM_GUILD_SYNC_USERINFO = 4;
+  GUILDSPARAM_SYNC_INFO = 5;
+  GUILDSPARAM_UPDATE_GUILDDATA = 6;
+  GUILDSPARAM_UPDATE_CITYDATA = 7;
+  GUILDSPARAM_UPDATE_MEMBER = 8;
+  GUILDSPARAM_UPDATE_MEMBERDATA = 9;
+  GUILDSPARAM_UPDATE_QUEST = 10;
+  GUILDSPARAM_ENTER_TERRITORY = 11;
+  GUILDSPARAM_REFRESH_TERRITORY = 12;
+  GUILDSPARAM_QUERY_PHOTOLIST = 14;
+  GUILDSPARAM_QUERY_USERPHOTOLIST = 15;
+  GUILDSPARAM_QUERY_SHOWPHOTOLIST = 16;
+  GUILDSPARAM_FRAME_UPDATE = 17;
+  GUILDSPARAM_PHOTO_UPDATE = 18;
+  GUILDSPARAM_JOB_UPDATE = 19;
+  GUILDSPARAM_GUILD_MUSIC_DELETE = 20;
+  GUILDSPARAM_RENAME_NTF = 21;
+  GUILDSPARAM_GUILD_CITY_ACTION = 22;
+  GUILDSPARAM_SEND_MAIL = 23;
+  GUILDSPARAM_GVG_REWARD = 24;
+  GUILDSPARAM_GUILDPRAY = 25;
+  GUILDSPARAM_GUILD_ICON_STATE = 26;
+  GUILDSPARAM_SUBMIT_MATERIAL = 27;
+  GUILDSPARAM_BUILDING_UPDATE = 28;
+  GUILDSPARAM_QUERY_GUILD_INFO = 29;
+  GUILDSPARAM_SEND_WELFARE = 30;
+  GUILDSPARAM_CHALLENGE_PROGRESS = 31;
+  GUILDSPARAM_GM_COMMAND = 32;
+  GUILDSPARAM_GM_RESPOND = 33;
+  GUILDSPARAM_BUILDINGEFFECT = 34;
+  GUILDSPARAM_ARTIFACT_UPDATE = 35;
+  GUILDSPARAM_QUEST_ARTIFACT = 36;
+  GUILDSPARAM_TREASURE_QUERY = 37;
+  GUILDSPARAM_GVG_USER_PARTIN = 38;
+  GUILDSPARAM_TREASURE_RESULTNTF = 39;
+  GUILDSPARAM_OPEN_GVG = 40;
+  GUILDSPARAM_UPDATE_CITYSTATE = 41;
+  GUILDSPARAM_JOINSUPERGVG_REQ = 42;
+  GUILDSPARAM_SUPERGVG_END = 43;
+  GUILDSPARAM_SHOP_BUY_ITEM = 44;
+  GUILDSPARAM_GVG_RESULT = 45;
+  GUILDSPARAM_UPDATE_CITY = 46;
+  GUILDSPARAM_GUILD_MAIL = 48;
+  GUILDSPARAM_GUILD_MSG = 49;
+}
+
+// guild -> team, guild -> social : user guild info sync
+message UserGuildInfoSyncGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_USER_GUILDINFO_SYNC ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 guildid = 4 [ default = 0 ];
+  optional string guildname = 5;
+  optional string guildportrait = 6;
+}
+
+// session -> guild : chat sync
+message ChatSyncGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_CHAT_SYNC ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional bytes data = 4;
+  optional uint32 len = 5 [ default = 0 ];
+}
+
+// session -> guild : load lua
+message LoadLuaGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_LOAD_LUA ];
+
+  optional string table = 3;
+  optional string lua = 4;
+  optional string log = 5;
+}
+
+// guild -> session -> scene : guild pray ntf
+message GuildUserInfo
+{
+  optional uint32 giftpoint = 1 [ default = 0 ];
+  optional uint32 contribute = 2 [ default = 0 ];
+  repeated GuildMemberPray prays = 3;
+}
+enum GuildOptConType
+{
+  GUILDOPTCONTYPE_LOGIN = 0;
+  GUILDOPTCONTYPE_ADD = 1;
+  GUILDOPTCONTYPE_SUB = 2;
+}
+message GuildUserInfoSyncGuildCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_GUILD_SYNC_USERINFO ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional GuildUserInfo info = 4;
+
+  optional bool levelup = 5 [ default = false ];
+  optional GuildOptConType optcontype = 6 [ default = GUILDOPTCONTYPE_LOGIN ];
+}
+
+// guild -> session -> scene : guild info sync
+message GuildSMember
+{
+  optional uint64 charid = 1 [ default = 0 ];
+  optional uint32 onlinetime = 2 [ default = 0 ];
+  optional uint32 entertime = 3 [ default = 0 ];
+  optional EGuildJob job = 4 [ default = EGUILDJOB_MIN ];
+  optional string name = 5;
+  optional uint64 accid = 6 [ default = 0 ];
+  optional uint32 offlinetime = 7 [ default = 0 ];
+  optional uint32 auth = 8 [ default = 0 ];
+  optional bool buildingeffect = 9 [ default = false ];
+}
+message GuildArtifactQuest
+{
+  repeated uint32 submitids = 1;
+  repeated ItemData datas = 2;
+}
+
+message GuildGvgData
+{
+  optional bool insupergvg = 1 [ default = false ];
+  // TODO 胜率等..
+}
+
+message GuildInfo
+{
+  optional uint64 id = 1 [ default = 0 ];
+  optional uint32 zoneid = 2 [ default = 0 ];
+  optional uint32 lv = 3 [ default = 0 ];
+  optional uint32 scene = 4 [ default = 0 ];
+  optional uint32 auth = 12 [ default = 0 ];
+
+  optional bool create = 5 [ default = false ];
+
+  optional string name = 6;
+  optional string portrait = 7;
+  optional string jobname = 8;
+
+  repeated GuildSMember members = 10;
+  repeated GuildQuest quests = 11;
+  optional GuildBuildingData building = 13;
+  optional uint64 openfunction = 14 [ default = 0 ];
+  repeated GuildChallenge challenges = 15;
+  repeated GuildArtifactItem artifactitems = 16;
+  optional GuildArtifactQuest artifacequest = 17;
+  optional GuildGvgData gvg = 18;
+}
+message GuildInfoSyncGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_SYNC_INFO ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional GuildInfo info = 4;
+}
+
+// guild -> session -> scene : guild data update
+message GuildDataUpdateGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_UPDATE_GUILDDATA ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  repeated GuildDataUpdate updates = 4;
+}
+
+// guild -> session -> scene : city data update
+message CityDataUpdateGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_UPDATE_CITYDATA ];
+
+  optional uint64 cityid = 3 [ default = 0 ];
+  optional uint32 membercount = 4 [ default = 0 ];
+  repeated GuildDataUpdate updates = 5;
+  optional string leadername = 6;
+}
+
+// guild -> session -> scene : member update
+message GuildMemberUpdateGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_UPDATE_MEMBER ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  repeated GuildSMember updates = 4;
+  repeated uint64 dels = 5;
+}
+
+// guild -> session -> scene : member data update
+message GuildMemberDataUpdateGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_UPDATE_MEMBERDATA ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint64 destid = 4 [ default = 0 ];
+  repeated GuildMemberDataUpdate updates = 5;
+}
+
+// guild -> session -> scene : quest update
+message GuildQuestUpdateGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_UPDATE_QUEST ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  repeated GuildQuest updates = 4;
+  repeated uint32 dels = 5;
+}
+
+// guild -> scene : enter territory
+message EnterGuildTerritoryGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_ENTER_TERRITORY ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional GuildInfo info = 4;
+}
+
+// guild -> session -> scene : refresh territory
+message RefreshGuildTerritoryGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_REFRESH_TERRITORY ];
+
+  optional uint64 sceneid = 3 [ default = 0 ];
+  optional GuildInfo info = 4;
+}
+
+// scene <-> session <-> guild : query photo list
+message QueryPhotoListGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_QUERY_PHOTOLIST ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional uint32 sceneid = 4 [ default = 0 ];
+  optional bool result = 5 [ default = false ];
+  repeated PhotoFrame frames = 6;
+}
+
+// scene <-> session <-> guild : query user photo list
+message QueryUserPhotoListGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_QUERY_USERPHOTOLIST ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional bool result = 4 [ default = false ];
+  optional SocialUser user = 5;
+  repeated PhotoFrame frames = 6;
+}
+
+// guild -> session -> scene : query show photo list
+enum EPhotoAction
+{
+  EPHOTOACTION_MIN = 0;
+  EPHOTOACTION_LOAD_FROM_RECORD = 1;
+  EPHOTOACTION_UPDATE_FROM_RECORD = 2;
+  EPHOTOACTION_LOAD_FROM_SCENE = 3;
+  EPHOTOACTION_UPDATE_FROM_SCENE = 4;
+  EPHOTOACTION_MAX = 5;
+}
+message PhotoLoad
+{
+  optional uint32 frameid = 1 [ default = 0 ];
+  optional uint32 count = 2 [ default = 0 ];
+}
+message QueryShowPhotoGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_QUERY_SHOWPHOTOLIST ];
+
+  optional EPhotoAction action = 3 [ default = EPHOTOACTION_MIN ];
+  optional uint64 guildid = 4 [ default = 0 ];
+
+  repeated PhotoLoad loads = 5;
+  repeated string exists = 6;
+  repeated uint64 members = 7;
+  repeated PhotoFrame results = 8;
+}
+
+// scene -> session -> guild : frame update
+message FrameUpdateGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_FRAME_UPDATE ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional uint32 frameid = 4 [ default = 0 ];
+  optional GuildPhoto update = 5;
+  optional GuildPhoto del = 6;
+}
+
+// scene <-> session <-> guild : photo update
+message PhotoUpdateGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_PHOTO_UPDATE ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional uint32 sceneid = 4 [ default = 0 ];
+  optional GuildPhoto update = 5;
+  optional GuildPhoto del = 6;
+
+  optional bool to_guild = 7 [ default = false ];
+}
+
+// guild -> scene : job update
+message JobUpdateGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_JOB_UPDATE ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional uint64 charid = 4 [ default = 0 ];
+  optional GuildJob job = 5;
+}
+
+// guild -> session -> record : delete guild music
+message GuildMusicDeleteGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_GUILD_MUSIC_DELETE ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+}
+
+//guild <-> session <-> scene
+message RenameNTFGuildCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_RENAME_NTF ];
+
+  optional SocialUser user = 3;
+  optional string newname = 4;
+  optional bool result = 5 [ default = true ]; 
+}
+
+// scene <-> session <-> guild
+enum EGuildCityAction
+{
+  EGUILDCITYACTION_MIN = 0;
+  EGUILDCITYACTION_TO_GUILD_SAVE = 1;
+  EGUILDCITYACTION_TO_GUILD_RESET = 2;
+  EGUILDCITYACTION_TO_RECORD_SAVE = 3;
+  EGUILDCITYACTION_TO_GUILD_UPDATE = 4;
+  EGUILDCITYACTION_TO_SCENE_UPDATE = 5;
+  EGUILDCITYACTION_GUILD_QUERY = 6;
+  EGUILDCITYACTION_MAX = 7;
+}
+enum EGuildCityResult
+{
+  EGUILDCITYRESULT_MIN = 0;
+  EGUILDCITYRESULT_LOAD = 1;
+  EGUILDCITYRESULT_OCCUPY = 2;
+  EGUILDCITYRESULT_NOOWNER = 3;
+  EGUILDCITYRESULT_GIVEUP = 4;
+  EGUILDCITYRESULT_OTHER = 5;
+  EGUILDCITYRESULT_MAX = 6;
+}
+message GuildCityActionGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_GUILD_CITY_ACTION ];
+
+  optional EGuildCityAction action = 3 [ default = EGUILDCITYACTION_MIN ];
+  optional EGuildCityStatus status = 4 [ default = EGUILDCITYSTATUS_MIN ];
+  optional EGuildCityResult result = 5 [ default = EGUILDCITYRESULT_MIN ];
+
+  optional uint32 zoneid = 6 [ default = 0 ];
+  optional string scenename = 7;
+
+  repeated GuildCityInfo infos = 8;
+}
+
+message SendMailGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_SEND_MAIL ];
+
+  optional MailData data = 3;
+}
+
+message GVGRewardGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_GVG_REWARD];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+}
+
+// social <-> session <-> scene : guild pray
+message GuildPrayGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_GUILDPRAY ];
+
+  optional SocialUser user = 3;
+  optional uint64 npcid = 4 [ default = 0 ];
+  optional uint32 prayid = 5 [ default = 0 ];
+  optional uint32 praylv = 6 [ default = 0 ];
+
+  // ret value
+  optional uint32 needcon = 7 [ default = 0 ];
+  optional uint32 needmon = 8 [ default = 0 ];
+  optional uint32 prayitem = 9 [ default = 0 ];
+  optional uint32 msgid = 10 [ default = 0 ];
+}
+
+// session -> guild
+message GuildIconStateGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_GUILD_ICON_STATE];
+
+  repeated uint64 ids = 3;
+  optional EIconState state = 4 [ default = EICON_INIT ];
+}
+
+message BuildingMaterial
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 count = 2 [ default = 0 ];
+}
+message SubmitMaterialGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_SUBMIT_MATERIAL ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional EGuildBuilding building = 4 [ default = EGUILDBUILDING_MIN ];
+  repeated BuildingMaterial materials = 5; // 材料
+  optional uint32 submitcount = 6 [ default = 0 ]; // 已提交次数
+  optional uint32 counter = 7 [ default = 0 ]; // 计数器
+  optional bool success = 8 [ default = false ];
+  optional uint32 curlevel = 9 [ default = 0 ]; // 当前建筑等级
+  optional uint32 submitinc = 10 [ default = 0 ]; // 提交材料效果提升增益
+}
+
+// guild -> session -> scene : 更新建筑信息
+message BuildingUpdateGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_BUILDING_UPDATE ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional uint64 sceneid = 4 [ default = 0 ];
+  repeated GuildBuilding updates = 5;
+  optional uint64 charid = 6 [ default = 0 ];
+}
+
+// scene -> session -> guild : 查询guildinfo
+message QueryGuildInfoGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_QUERY_GUILD_INFO ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional uint64 sceneid = 4 [ default = 0 ];
+  optional GuildInfo info = 5;
+  optional bool result = 6 [ default = false ];
+}
+
+// guild -> session -> scene : 发放福利
+message SendWelfareGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_SEND_WELFARE ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  repeated GuildWelfareItem items = 4;
+}
+
+// scene -> session -> guild : 公会挑战进度更新
+message GuildChallengeItem
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 progress = 2 [ default = 0 ];
+}
+message ChallengeProgressGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_CHALLENGE_PROGRESS ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional uint64 charid = 4 [ default = 0 ];
+  repeated GuildChallengeItem items = 5;
+}
+
+// scene -> session -> guild : 公会gm
+message GuildGM
+{
+  optional uint32 zoneid = 1 [ default = 0 ];
+  optional uint32 sessionid = 2 [ default = 0 ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional uint64 charid = 4 [ default = 0 ];
+
+  optional string name = 5;
+}
+message GMCommandGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_GM_COMMAND ];
+
+  optional GuildGM info = 3;
+  optional string command = 4;
+}
+
+// guild -> sessoin : 响应
+message GMCommandRespondGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_GM_RESPOND ];
+
+  optional GuildGM info = 3;
+}
+
+// scene -> seesion -> guild : 公会建筑开启特效
+message BuildingEffectGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_BUILDINGEFFECT ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+}
+
+// guild <-> session <-> scene : 包裹神器道具更新
+message ArtifactUpdateGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_ARTIFACT_UPDATE ];
+
+  optional uint64 charid = 4 [ default = 0 ];
+  optional uint64 guildid = 5 [ default = 0 ];
+  optional uint64 sceneid = 6 [ default = 0 ];
+  repeated GuildArtifactItem itemupdates = 7;
+  repeated string itemdels = 8;
+}
+
+// guild -> session -> scene : 任务相关
+message GuildArtifactQuestGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_QUEST_ARTIFACT ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional GuildArtifactQuest quest = 4;
+}
+
+// guild <-> session <-> scene : query treasure
+message QueryTreasureGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_TREASURE_QUERY ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional uint32 sceneid = 4 [ default = 0 ];
+  optional bool result = 5 [ default = false ];
+  repeated GuildTreasure treasures = 6;
+  optional uint32 bcoin_count = 7 [ default = 0 ];
+  optional uint32 asset_count = 8 [ default = 0 ];
+}
+
+message GvgUserPartInGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_GVG_USER_PARTIN ];
+
+  required uint64 guildid = 3;
+  required uint64 charid = 4;
+}
+
+// scene -> guild : treasure result ntf
+message TreasureResultNtfGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_TREASURE_RESULTNTF ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional TreasureResult result = 4;
+}
+
+// scene->session
+message UpdateCityStateGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_UPDATE_CITYSTATE ];
+  repeated CityShowInfo infos = 3;
+}
+
+// scene -> session
+message GvgOpenToServerGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_OPEN_GVG ];
+
+  optional bool fire = 3 [ default = false ];
+}
+
+message ShopBuyItemGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_SHOP_BUY_ITEM ];
+
+  optional uint64 charid = 3 [ default = 0 ];
+  optional uint32 id = 4 [ default = 0 ];
+  optional uint32 count = 5 [ default = 0 ];
+}
+
+// scene->session->guild
+message JoinSuperGvgGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_JOINSUPERGVG_REQ ];
+
+  required uint64 guildid = 3;
+  optional uint32 supergvgtime = 4 [ default = 0 ];
+}
+
+// scene->session->guild
+message EndSuperGvgGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_SUPERGVG_END ];
+
+  required uint64 guildid = 3;
+  required uint32 rank = 4;
+}
+
+// session -> guild : update city
+message UpdateCityGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_UPDATE_CITY ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional uint32 cityid = 4 [ default = 0 ];
+  optional bool add = 5 [ default = false ];
+}
+
+message GvgResultInfo
+{
+  required uint32 cityid = 1;
+  optional uint64 guildid = 2;
+  optional string guildname = 3;
+  optional string leadername = 4;
+  optional bool perfect = 5 [ default = false ];
+  optional uint32 times = 6 [ default = 0 ];
+}
+
+message GvgResultGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_GVG_RESULT ];
+
+  repeated GvgResultInfo infos = 3;
+}
+
+
+message GuildBrocastMailGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_GUILD_MAIL ];
+
+  required uint64 guildid = 3;
+  optional uint32 mailid = 4 [ default = 0 ];
+  repeated ItemInfo items = 5;
+}
+
+message GuildBrocastMsgGuildSCmd
+{
+  optional Command cmd = 1 [ default = GUILD_PROTOCMD ];
+  optional GuildSParam param = 2 [ default = GUILDSPARAM_GUILD_MSG ];
+
+  required uint64 guildid = 3;
+  required uint32 msgid = 4;
+  repeated MsgParam params = 5;
+}
+

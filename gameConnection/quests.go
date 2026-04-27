@@ -1,15 +1,20 @@
 package gameConnection
 
 import (
-	Cmd "ROMProject/Cmds"
-	log "github.com/sirupsen/logrus"
 	"time"
+
+	Cmd "ROMProject/Cmds"
+	gameConnection "ROMProject/gameConnection/types"
+
+	log "github.com/sirupsen/logrus"
 )
 
 var (
 	QuestProtoCmdId     = Cmd.Command_value["SCENE_USER_QUEST_PROTOCMD"]
 	WantedQuestMaxCount = uint32(3)
 	WantedQuestType     = "wanted"
+	sceneUserQuestId    = Cmd.Command_value["SCENE_USER_QUEST_PROTOCMD"]
+	sceneSealQuestId    = Cmd.Command_value["SCENE_USER_SEAL_PROTOCMD"]
 )
 
 func (g *GameConnection) GetWantedQuestCompleteCount() (count uint32) {
@@ -25,7 +30,7 @@ func (g *GameConnection) GetWantedQuestList(questType Cmd.EQuestList) (wantedQue
 		log.Errorf("failed to get quest list: %v", err)
 		return wantedQuests
 	}
-	for _, quest := range g.Role.QuestList.GetList() {
+	for _, quest := range g.Role.GetQuestList(questType).GetList() {
 		for _, step := range quest.GetSteps() {
 			if step.GetConfig() != nil && step.GetConfig().GetType() == WantedQuestType {
 				wantedQuests = append(wantedQuests, quest)
@@ -43,7 +48,7 @@ func (g *GameConnection) GetQuestList(questType Cmd.EQuestList, id uint32) (ques
 	if id != 0 {
 		cmd.Id = &id
 	}
-	g.addNotifier("QUESTPARAM_QUESTLIST")
+	g.AddNotifier("QUESTPARAM_QUESTLIST")
 	g.sendProtoCmd(cmd,
 		QuestProtoCmdId,
 		Cmd.QuestParam_value["QUESTPARAM_QUESTLIST"],
@@ -51,7 +56,7 @@ func (g *GameConnection) GetQuestList(questType Cmd.EQuestList, id uint32) (ques
 	res, err := g.waitForResponse("QUESTPARAM_QUESTLIST")
 	if res != nil {
 		ql := res.(*Cmd.QuestList)
-		g.Role.QuestList = ql
+		g.Role.QuestList[questType] = ql
 		questList = ql
 	}
 	return questList, err
@@ -99,4 +104,94 @@ func (g *GameConnection) AutoSubmitWantedQuest() {
 			}
 		}
 	}()
+}
+
+func (g *GameConnection) RunQuestStep(questId, startId, Subgroup, step uint32) {
+	cmd := Cmd.RunQuestStep{
+		Questid:  &questId,
+		Subgroup: &Subgroup,
+	}
+	if startId != 0 {
+		cmd.Starid = &startId
+	}
+	if step != 0 {
+		cmd.Step = &step
+	}
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneUserQuestId,
+		Cmd.QuestParam_value["QUESTPARAM_RUNQUESTSTEP"],
+	)
+}
+
+func (g *GameConnection) QuestRaidCmd(questId uint32) {
+	cmd := Cmd.QuestRaidCmd{
+		Questid: &questId,
+	}
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneUserQuestId,
+		Cmd.QuestParam_value["QUESTPARAM_QUESTRAIDCMD"],
+	)
+}
+
+func (g *GameConnection) QuerySealQuest() (resCmd *Cmd.SealQueryList, err error) {
+	g.AddNotifier(gameConnection.NtfType_SealParamQueryList)
+	cmd := Cmd.SealQueryList{}
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneSealQuestId,
+		Cmd.SealParam_value["SEALPARAM_QUERYLIST"],
+	)
+	res, err := g.waitForResponse(gameConnection.NtfType_SealParamQueryList)
+	if err != nil {
+		return resCmd, err
+	}
+	return res.(*Cmd.SealQueryList), nil
+}
+
+func (g *GameConnection) AcceptSealQuest(questType gameConnection.SealQuestType) (resCmd *Cmd.SealAcceptCmd, err error) {
+	questId := uint32(questType)
+	cmd := Cmd.SealAcceptCmd{
+		Seal: &questId,
+	}
+	g.AddNotifier(gameConnection.NtfType_SealParamAcceptSeal)
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneSealQuestId,
+		Cmd.SealParam_value["SEALPARAM_ACCEPTSEAL"],
+	)
+	res, err := g.waitForResponse(gameConnection.NtfType_SealParamAcceptSeal)
+	if err != nil {
+		return resCmd, err
+	}
+	return res.(*Cmd.SealAcceptCmd), nil
+}
+
+func (g *GameConnection) DropSealQuest(questType gameConnection.SealQuestType) {
+	questId := uint32(questType)
+	a := true
+	cmd := Cmd.SealAcceptCmd{
+		Seal:    &questId,
+		Abandon: &a,
+	}
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneSealQuestId,
+		Cmd.SealParam_value["SEALPARAM_ACCEPTSEAL"],
+	)
+}
+
+func (g *GameConnection) BeginSealQuest(sealNpcId uint64) {
+	t := Cmd.EFinishType_EFINISHTYPE_QUICK
+	cmd := Cmd.BeginSeal{
+		Sealid: &sealNpcId,
+		Etype:  &t,
+	}
+	_ = g.sendProtoCmd(
+		&cmd,
+		sceneSealQuestId,
+		Cmd.SealParam_value["SEALPARAM_BEGINSEAL"],
+	)
+
 }

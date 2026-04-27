@@ -1,15 +1,17 @@
 package utils
 
 import (
-	Cmd "ROMProject/Cmds"
-	"github.com/golang/protobuf/proto"
-	log "github.com/sirupsen/logrus"
 	"strings"
+
+	Cmd "ROMProject/Cmds"
+
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
 )
 
 func TranslateMsg(output [][]byte) {
-	for _, o := range output {
-		log.Printf("%s", strings.Repeat("-", 50))
+	for i, o := range output {
+		log.Printf("%s #%d", strings.Repeat("-", 50), i)
 		if len(o) < 2 {
 			log.Printf("result is empty")
 			continue
@@ -58,6 +60,15 @@ func TranslateMsg(output [][]byte) {
 			case Cmd.LoginCmdParam_value["CONFIRM_AUTHORIZE_USER_CMD"]:
 				param = &Cmd.ConfirmAuthorizeUserCmd{}
 
+			case Cmd.LoginCmdParam_value["REQ_LOGIN_PARAM_USER_CMD"]:
+				param = &Cmd.ReqLoginParamUserCmd{}
+
+			case Cmd.LoginCmdParam_value["CREATE_CHAR_USER_CMD"]:
+				param = &Cmd.CreateCharUserCmd{}
+
+			case Cmd.LoginCmdParam_value["DELETE_CHAR_USER_CMD"]:
+				param = &Cmd.DeleteCharUserCmd{}
+
 			default:
 				log.Infof("没有parsing")
 				continue
@@ -70,6 +81,8 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["RECORD_USER_TRADE_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.RecordUserTradeParam_value["QUERY_ITEM_COUNT_TRADE_PARAM"]:
+				param = &Cmd.QueryItemCountTradeCmd{}
 
 			case Cmd.RecordUserTradeParam_value["TAKE_LOG_TRADE_PARAM"]:
 				param = &Cmd.TakeLogCmd{}
@@ -117,8 +130,53 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER2_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.User2Param_value["USER2PARAM_QUERYSHOPGOTITEM"]:
+				param = &Cmd.QueryShopGotItem{}
+
+			case Cmd.User2Param_value["USER2PARAM_UPDATESHOPGOTITEM"]:
+				param = &Cmd.UpdateShopGotItem{}
+
+			case Cmd.User2Param_value["USER2PARAM_RELIVE"]:
+				param = &Cmd.ReliveUserCmd{}
+
+			case Cmd.User2Param_value["USER2PARAM_EFFECT"]:
+				param = &Cmd.EffectUserCmd{}
+
+			case Cmd.User2Param_value["USER2PARAM_SERVANT_GROWTH"]:
+				param = &Cmd.GrowthServantUserCmd{}
+
+			case Cmd.User2Param_value["USER2PARAM_DEATH_TRANSFER_LIST"]:
+				param = &Cmd.DeathTransferListCmd{}
+
+			case Cmd.User2Param_value["USER2PARAM_QUERY_ZONESTATUS"]:
+				param = &Cmd.QueryZoneStatusUserCmd{}
+
+			case Cmd.User2Param_value["USER2PARAM_JUMP_ZONE"]:
+				param = &Cmd.JumpZoneUserCmd{}
+
+			case Cmd.User2Param_value["USER2PARAM_PROFESSION_QUERY"]:
+				param = &Cmd.ProfessionQueryUserCmd{}
+
+			case Cmd.User2Param_value["USER2PARAM_ADDATTRPOINT"]:
+				param = &Cmd.AddAttrPoint{}
+
+			case Cmd.User2Param_value["USER2PARAM_SCENERY"]:
+				param = &Cmd.SceneryUserCmd{}
+
+			case Cmd.User2Param_value["USER2PARAM_CAMERAFOCUS"]:
+				param = &Cmd.CameraFocus{}
+
+			case Cmd.User2Param_value["USER2PARAM_STATECHANGE"]:
+				param = &Cmd.StateChange{}
+
+			case Cmd.User2Param_value["USER2PARAM_NEWMENU"]:
+				param = &Cmd.NewMenu{}
+
+			case Cmd.User2Param_value["USER2PARAM_PUTSHORTCUT"]:
+				param = &Cmd.PutShortcut{}
+
 			case Cmd.User2Param_value["USER2PARAM_SIGNIN"]:
-				param = &Cmd.SignInUserCmd{}
+				// param = &Cmd.SignInUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_SERVANT_RECEIVE"]:
 				param = &Cmd.ReceiveServantUserCmd{}
@@ -139,13 +197,13 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.GoMapFollowUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_GAMEHEALTH_UPDATE"]:
-				param = &Cmd.UpdateGameHealthLevelUserCmd{}
+				// param = &Cmd.UpdateGameHealthLevelUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_PRESETCHATMSG"]:
 				param = &Cmd.PresetMsgCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_PRESTIGE_NTF"]:
-				param = &Cmd.PrestigeNtfUserCmd{}
+				// param = &Cmd.PrestigeNtfUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_GOTO_GEAR"]:
 				param = &Cmd.GoToGearUserCmd{}
@@ -163,7 +221,7 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.CheatTagStatUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_READYTOMAP"]:
-				param = &Cmd.ReadyToMapUserCmd{}
+				// param = &Cmd.ReadyToMapUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_CDTIME"]:
 				param = &Cmd.CDTimeUserCmd{}
@@ -211,10 +269,10 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.SysMsg{}
 
 			case Cmd.User2Param_value["USER2PARAM_SERVER_INFO_NTF"]:
-				param = &Cmd.ServerInfoNtf{}
+				// param = &Cmd.ServerInfoNtf{}
 
 			case Cmd.User2Param_value["USER2PARAM_SIGNIN_NTF"]:
-				param = &Cmd.SignInNtfUserCmd{}
+				// param = &Cmd.SignInNtfUserCmd{}
 
 			case Cmd.User2Param_value["USER2PARAM_ACTION"]:
 				param = &Cmd.UserActionNtf{}
@@ -250,6 +308,36 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER_ITEM_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.ItemParam_value["ITEMPARAM_EXCHANGECARD"]:
+				param = &Cmd.ExchangeCardItemCmd{}
+
+			case Cmd.ItemParam_value["ITEMPARAM_PRODUCE"]:
+				param = &Cmd.Produce{}
+
+			case Cmd.ItemParam_value["ITEMPARAM_LOTTERY_RECOVERY"]:
+				param = &Cmd.LotteryRecoveryCmd{}
+
+			case Cmd.ItemParam_value["ITEMPARAM_QUERY_LOTTERYINFO"]:
+				param = &Cmd.QueryLotteryInfo{}
+
+			case Cmd.ItemParam_value["ITEMPARAM_LOTTERY"]:
+				param = &Cmd.LotteryCmd{}
+
+			case Cmd.ItemParam_value["ITEMPARAM_PROCESSENCHANT"]:
+				param = &Cmd.ProcessEnchantItemCmd{}
+
+			case Cmd.ItemParam_value["ITEMPARAM_ENCHANT"]:
+				param = &Cmd.EnchantEquip{}
+
+			case Cmd.ItemParam_value["ITEMPARAM_USECOUNT"]:
+				param = &Cmd.UseCountItemCmd{}
+
+			case Cmd.ItemParam_value["ITEMPARAM_HINTNTF"]:
+				param = &Cmd.HintNtf{}
+
+			case Cmd.ItemParam_value["ITEMPARAM_ITEMSHOW"]:
+				param = &Cmd.ItemShow{}
+
 			case Cmd.ItemParam_value["ITEMPARAM_EQUIP"]:
 				param = &Cmd.Equip{}
 
@@ -283,8 +371,9 @@ func TranslateMsg(output [][]byte) {
 			case Cmd.ItemParam_value["ITEMPARAM_PACKSLOTNTF"]:
 				param = &Cmd.PackSlotNtfItemCmd{}
 
-			case Cmd.ItemParam_value["ITEMPARAM_QUERY_ITEMDEBT"]:
-				param = &Cmd.QueryDebtItemCmd{}
+			// Not available in EP 5.0
+			// case Cmd.ItemParam_value["ITEMPARAM_QUERY_ITEMDEBT"]:
+			// 	param = &Cmd.QueryDebtItemCmd{}
 
 			case Cmd.ItemParam_value["ITEMPARAM_BROWSEPACK"]:
 				param = &Cmd.BrowsePackage{}
@@ -294,6 +383,9 @@ func TranslateMsg(output [][]byte) {
 
 			case Cmd.ItemParam_value["ITEMPARAM_PACKAGEUPDATE"]:
 				param = &Cmd.PackageUpdate{}
+
+			case Cmd.ItemParam_value["ITEMPARAM_EQUIPCARD"]:
+				param = &Cmd.EquipCard{}
 
 			default:
 				log.Infof("没有parsing")
@@ -305,6 +397,9 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER_MANUAL_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.ManualParam_value["MANUALPARAM_POINTSYNC"]:
+				param = &Cmd.PointSync{}
+
 			case Cmd.ManualParam_value["MANUALPARAM_UPDATE"]:
 				param = &Cmd.ManualUpdate{}
 
@@ -318,7 +413,7 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.QueryVersion{}
 
 			case Cmd.ManualParam_value["MANUALPARAM_NPCZONE"]:
-				param = &Cmd.NpcZoneDataManualCmd{}
+				// param = &Cmd.NpcZoneDataManualCmd{}
 
 			case Cmd.ManualParam_value["MANUALPARAM_QUERYDATA"]:
 				param = &Cmd.QueryManualData{}
@@ -389,6 +484,8 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER_SKILL_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.SkillParam_value["SKILLPARAM_LEVELUPSKILL"]:
+				param = &Cmd.LevelupSkill{}
 
 			case Cmd.SkillParam_value["SKILLPARAM_SKILLVALIDPOS"]:
 				param = &Cmd.SkillValidPos{}
@@ -465,11 +562,17 @@ func TranslateMsg(output [][]byte) {
 			default:
 				log.Infof("没有parsing")
 				continue
+			case Cmd.EventParam_value["USER_EVENT_ALL_TITLE"]:
+				param = &Cmd.AllTitle{}
+
+			case Cmd.EventParam_value["USER_EVENT_BUFF_DAMAGE"]:
+				param = &Cmd.BuffDamageUserEvent{}
+
 			case Cmd.EventParam_value["USER_EVENT_QUERY_CHARGE_CNT"]:
 				param = &Cmd.QueryChargeCnt{}
 
-			case Cmd.EventParam_value["USER_EVENT_AUTOBATTLE"]:
-				param = &Cmd.SwitchAutoBattleUserEvent{}
+			// case Cmd.EventParam_value["USER_EVENT_AUTOBATTLE"]:
+			// 	param = &Cmd.SwitchAutoBattleUserEvent{}
 
 			case Cmd.EventParam_value["USER_EVENT_NTF_VERSION_CARD"]:
 				param = &Cmd.NtfVersionCardInfo{}
@@ -494,6 +597,9 @@ func TranslateMsg(output [][]byte) {
 				log.Infof("没有parsing")
 				continue
 
+			case Cmd.ShopParam_value["SHOPPARAM_QUICKBUY_SHOP_CONFIG"]:
+				param = &Cmd.QueryQuickBuyConfigCmd{}
+
 			case Cmd.ShopParam_value["SHOPPARAM_BUYITEM"]:
 				param = &Cmd.BuyShopItem{}
 
@@ -508,7 +614,10 @@ func TranslateMsg(output [][]byte) {
 		} else if cmdId == Cmd.Command_value["CHAT_PROTOCMD"] {
 			switch cmdParamId {
 			case Cmd.ChatParam_value["CHATPARAM_SYSTEM_BARRAGE"]:
-				param = &Cmd.SystemBarrageChatCmd{}
+				// param = &Cmd.SystemBarrageChatCmd{}
+
+			case Cmd.ChatParam_value["CHATPARAM_CHAT"]:
+				param = &Cmd.ChatCmd{}
 
 			case Cmd.ChatParam_value["CHATPARAM_CHAT_RET"]:
 				param = &Cmd.ChatRetCmd{}
@@ -595,6 +704,15 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SCENE_USER_QUEST_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.QuestParam_value["QUESTPARAM_QUERYOTHERDATA"]:
+				param = &Cmd.QueryOtherData{}
+
+			case Cmd.QuestParam_value["QUESTPARAM_QUESTRAIDCMD"]:
+				param = &Cmd.QuestRaidCmd{}
+
+			case Cmd.QuestParam_value["QUESTPARAM_RUNQUESTSTEP"]:
+				param = &Cmd.RunQuestStep{}
+
 			case Cmd.QuestParam_value["QUESTPARAM_QUESTACTION"]:
 				param = &Cmd.QuestAction{}
 
@@ -624,16 +742,16 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.MonsterCountUserCmd{}
 
 			case Cmd.FuBenParam_value["BEGIN_FIRE_FUBENCMD"]:
-				param = &Cmd.BeginFireFubenCmd{}
+				// param = &Cmd.BeginFireFubenCmd{}
 
 			case Cmd.FuBenParam_value["START_STAGE_USER_CMD"]:
 				param = &Cmd.StartStageUserCmd{}
 
 			case Cmd.FuBenParam_value["EXIT_RAID_CMD"]:
-				param = &Cmd.ExitMapFubenCmd{}
+				// param = &Cmd.ExitMapFubenCmd{}
 
 			case Cmd.FuBenParam_value["TEAMEXP_RAID_REPORT"]:
-				param = &Cmd.TeamExpReportFubenCmd{}
+				// param = &Cmd.TeamExpReportFubenCmd{}
 
 			case Cmd.FuBenParam_value["FUBEN_STEP_SYNC"]:
 				param = &Cmd.FubenStepSyncCmd{}
@@ -642,7 +760,7 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.TrackFuBenUserCmd{}
 
 			case Cmd.FuBenParam_value["TEAMEXP_QUERY_INFO"]:
-				param = &Cmd.TeamExpQueryInfoFubenCmd{}
+				// param = &Cmd.TeamExpQueryInfoFubenCmd{}
 
 			case Cmd.FuBenParam_value["FUBEN_CLEAR_SYNC"]:
 				param = &Cmd.FuBenClearInfoCmd{}
@@ -710,6 +828,12 @@ func TranslateMsg(output [][]byte) {
 
 		} else if cmdId == Cmd.Command_value["SESSION_USER_SOCIALITY_PROTOCMD"] {
 			switch cmdParamId {
+			case Cmd.SocialityParam_value["SOCIALITYPARAM_ADDRELATION"]:
+				param = &Cmd.AddRelation{}
+
+			case Cmd.SocialityParam_value["SOCIALITYPARAM_FRAMESTATUS"]:
+				param = &Cmd.FrameStatusSocialCmd{}
+
 			case Cmd.SocialityParam_value["SOCIALITYPARAM_FINDUSER"]:
 				param = &Cmd.FindUser{}
 
@@ -731,7 +855,7 @@ func TranslateMsg(output [][]byte) {
 				param = &Cmd.EggRestorePetCmd{}
 
 			case Cmd.PetParam_value["PETPARAM_CAT_SKILLOPTION"]:
-				param = &Cmd.CatSkillOptionPetCmd{}
+				// param = &Cmd.CatSkillOptionPetCmd{}
 
 			case Cmd.PetParam_value["PETPARAM_WORK_GETREWARD"]:
 				param = &Cmd.GetPetWorkRewardPetCmd{}
@@ -798,11 +922,115 @@ func TranslateMsg(output [][]byte) {
 			case Cmd.MailParam_value["MAILPARAM_UPDATE"]:
 				param = &Cmd.MailUpdate{}
 
-			case Cmd.MapParam_value["MAILPARAM_READ"]:
-				param = &Cmd.MailRead{}
+			// Not available in EP 5.0
+			// 	param = &Cmd.MailRead{}
+			// case Cmd.MapParam_value["MAILPARAM_READ"]:
 
 			case Cmd.MailParam_value["MAILPARAM_GETATTACH"]:
-				param = &Cmd.MailAttach{}
+				param = &Cmd.GetMailAttach{}
+
+			case Cmd.MailParam_value["MAILPARAM_QUERYALLMAIL"]:
+				param = &Cmd.QueryAllMail{}
+
+			default:
+				log.Infof("没有parsing")
+				continue
+			}
+			err = ParseCmd(o, param)
+			PrintTranslateMsgResult(cmdParamName, err, param)
+		} else if cmdId == Cmd.Command_value["SCENE_BOSS_PROTOCMD"] {
+			switch cmdParamId {
+			case Cmd.BossParam_value["BOSS_LIST_USER_CMD"]:
+				param = &Cmd.BossListUserCmd{}
+
+			case Cmd.BossParam_value["BOSS_WORLD_NTF"]:
+				param = &Cmd.WorldBossNtf{}
+
+			default:
+				log.Infof("没有parsing")
+				continue
+			}
+			err = ParseCmd(o, param)
+			PrintTranslateMsgResult(cmdParamName, err, param)
+		} else if cmdId == Cmd.Command_value["SCENE_USER_INTER_PROTOCMD"] {
+			switch cmdParamId {
+			case Cmd.InterParam_value["INTERPARAM_ANSWERINTER"]:
+				param = &Cmd.Answer{}
+
+			case Cmd.InterParam_value["INTERPARAM_NEWINTERLOCUTION"]:
+				param = &Cmd.NewInter{}
+
+			default:
+				log.Infof("没有parsing")
+				continue
+			}
+			err = ParseCmd(o, param)
+			PrintTranslateMsgResult(cmdParamName, err, param)
+		} else if cmdId == Cmd.Command_value["SCENE_USER_ASTROLABE_PROTOCMD"] {
+			switch cmdParamId {
+			case Cmd.AstrolabeParam_value["ASTROLABEPARAM_QUERY"]:
+				param = &Cmd.AstrolabeQueryCmd{}
+
+			default:
+				log.Infof("没有parsing")
+				continue
+			}
+			err = ParseCmd(o, param)
+			PrintTranslateMsgResult(cmdParamName, err, param)
+		} else if cmdId == Cmd.Command_value["SESSION_USER_GUILD_PROTOCMD"] {
+			switch cmdParamId {
+			case Cmd.GuildParam_value["GUILDPARAM_DONATE"]:
+				param = &Cmd.DonateGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_APPLYCONFIG"]:
+				param = &Cmd.ApplyGuildGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_DONATEFRAMESTATUS"]:
+				param = &Cmd.FrameStatusGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_UPDATEDONATEITEM"]:
+				param = &Cmd.UpdateDonateItemGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_UPDATEDONATEITEM"]:
+				param = &Cmd.UpdateDonateItemGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_DONATELIST"]:
+				param = &Cmd.DonateListGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_GUILDDATAUPDATE"]:
+				param = &Cmd.GuildDataUpdateGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_PACKUPDATE"]:
+				param = &Cmd.PackUpdateGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_FRAME_STATUS"]:
+				param = &Cmd.FrameStatusGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_ENTERGUILDTERRITORY"]:
+				param = &Cmd.EnterTerritoryGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_QUERYPACK"]:
+				param = &Cmd.QueryPackGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_APPLYGUILD"]:
+				param = &Cmd.ApplyGuildGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_GUILDLIST"]:
+				param = &Cmd.QueryGuildListGuildCmd{}
+			case Cmd.GuildParam_value["GUILDPARAM_MEMBERDATAUPDATE"]:
+				param = &Cmd.GuildMemberDataUpdate{}
+			case Cmd.GuildParam_value["GUILDPARAM_ENTERGUILD"]:
+				param = &Cmd.EnterGuildGuildCmd{}
+
+			default:
+				log.Infof("没有parsing")
+				continue
+			}
+			err = ParseCmd(o, param)
+			PrintTranslateMsgResult(cmdParamName, err, param)
+		} else if cmdId == Cmd.Command_value["SCENE_USER_SEAL_PROTOCMD"] {
+			switch cmdParamId {
+			case Cmd.SealParam_value["SEALPARAM_SEALTIMER"]:
+				param = &Cmd.SealTimer{}
+
+			case Cmd.SealParam_value["SEALPARAM_BEGINSEAL"]:
+				param = &Cmd.BeginSeal{}
+
+			case Cmd.SealParam_value["SEALPARAM_UPDATESEAL"]:
+				param = &Cmd.UpdateSeal{}
+
+			case Cmd.SealParam_value["SEALPARAM_QUERYLIST"]:
+				param = &Cmd.SealQueryList{}
+			case Cmd.SealParam_value["SEALPARAM_ACCEPTSEAL"]:
+				param = &Cmd.SealAcceptCmd{}
 
 			default:
 				log.Infof("没有parsing")

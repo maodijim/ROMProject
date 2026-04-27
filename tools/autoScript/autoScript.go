@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
+	"flag"
+	"time"
+
 	"ROMProject/config"
 	"ROMProject/gameConnection"
 	"ROMProject/utils"
-	"flag"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 const (
@@ -14,7 +16,7 @@ const (
 )
 
 func init() {
-	//log.SetReportCaller(true)
+	// log.SetReportCaller(true)
 	log.SetFormatter(&log.TextFormatter{
 		ForceColors:   true,
 		FullTimestamp: true,
@@ -47,9 +49,9 @@ func main() {
 	gameConnect.GameServerLogin()
 	quit := make(chan bool)
 	gameConnect.CheckForFubenInviteInBackground(quit)
-	disable := make(chan *bool)
-	gameConnect.EnableAutoAttack([]string{"all"}, disable)
-	//gameConnect.InviteTeamExpFuben()
+	disable, _ := context.WithCancel(context.Background())
+	gameConnect.EnableAutoAttack(disable, "all")
+	// gameConnect.InviteTeamExpFuben()
 	gameConnect.AutoSubmitWantedQuest()
 	go func() {
 		time.Sleep(10 * time.Second)
@@ -64,14 +66,14 @@ func main() {
 	for {
 		if gameConnect.Role.GetInGame() {
 
-			//log.Infof("附近的NPCS")
-			//for _, npc := range gameConnect.MapNpcs {
+			// log.Infof("附近的NPCS")
+			// for _, npc := range gameConnect.MapNpcs {
 			//	log.Infof("NPC: %s, 血量: %d",
 			//		npc.GetName(),
 			//		utils.GetNpcAttrValByType(npc.GetAttrs(), Cmd.EAttrType_EATTRTYPE_HP),
 			//	)
-			//}
-			//log.Infof("有%d只NPC", len(gameConnect.MapNpcs))
+			// }
+			// log.Infof("有%d只NPC", len(gameConnect.MapNpcs))
 
 			time.Sleep(10 * time.Second)
 

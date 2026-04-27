@@ -1,0 +1,734 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+import "ChatCmd.proto";
+
+enum FuBenParam
+{
+  TRACK_FUBEN_USER_CMD = 1;
+  FAIL_FUBEN_USER_CMD = 2;
+  LEAVE_FUBEN_USER_CMD = 3;
+  SUCCESS_FUBEN_USER_CMD = 4;
+  WORLD_STAGE_USER_CMD = 5;
+  SUB_STAGE_USER_CMD = 6;
+  START_STAGE_USER_CMD = 7;
+  GET_REWARD_STAGE_USER_CMD = 8;
+  STAGE_STEP_STAR_USER_CMD = 9;
+  JOIN_FUBEN_USER_CMD = 10;
+  MONSTER_COUNT_USER_CMD = 11;
+  FUBEN_STEP_SYNC = 12;
+  FUBEN_GOAL_SYNC = 13;
+  FUBEN_CLEAR_SYNC = 15;
+  GUILD_RAID_USER_INFO = 16;
+  GUILD_RAID_GATE_OPT = 17;
+  GUILD_FIRE_INFO = 18;
+  GUILD_FIRE_STOP = 19;
+  GUILD_FIRE_DANGER = 20;
+  GUILD_FIRE_METALHP = 21;
+  GUILD_FIRE_CALM = 22;
+  GUILD_FIRE_CHANGE_GUILD = 23;
+  GUILD_FIRE_RESTART = 24;
+  GUILD_FIRE_STATUS = 25;
+  GVG_DATA_SYNC_CMD = 26;
+  GVG_DATA_UPDATE_CMD = 27;
+  GUILD_FIRE_CHANGE_GUILD_NAME = 28;
+  MVPBATTLE_SYNC_MVPINFO = 29;
+  MVPBATTLE_BOSS_DIE = 30;
+  FUBEN_USERNUM_COUNT = 31;
+  SUPERGVG_INFO_SYNC = 32;
+  SUPERGVG_TOWERINFO_UPDATE = 33;
+  SUPERGVG_METALINFO_UPDATE = 34;
+  SUPERGVG_QUERY_TOWERINFO = 35;
+  SUPERGVG_REWARD_INFO = 36;
+  SUPERGVG_QUERY_USER_DATA = 37;
+  MVPBATTLE_END_REPORT = 38;
+  SUPERGVG_METAL_DIE = 39;
+  INVITE_SUMMON_DEADBOSS = 40;
+  REPLY_SUMMON_DEADBOSS = 41;
+  QUERY_RAID_TEAMPWS_USERINFO = 42;
+  TEAMPWS_END_REPORT = 43;
+  TEAMPWS_SYNC_INFO = 44;
+  TEAMPWS_SELECT_MAGIC = 45;
+  TEAMPWS_UPDATE_MAGIC = 46;
+  TEAMPWS_UPDATE_INFO = 47;
+}
+
+message TrackData
+{
+  optional uint32 star = 1;
+  optional uint32 id = 2;
+}
+
+enum ERaidType
+{
+  ERAIDTYPE_MIN = 0;
+  ERAIDTYPE_FERRISWHEEL = 1;
+  ERAIDTYPE_NORMAL = 2;
+  ERAIDTYPE_EXCHANGE = 3;
+  ERAIDTYPE_TOWER = 4;
+  ERAIDTYPE_LABORATORY = 5;
+  ERAIDTYPE_EXCHANGEGALLERY = 6;
+  ERAIDTYPE_SEAL = 7;
+  ERAIDTYPE_RAIDTEMP2 = 8;
+  ERAIDTYPE_DOJO = 9;
+  ERAIDTYPE_GUILD = 10;
+  ERAIDTYPE_RAIDTEMP4 = 11;
+  ERAIDTYPE_ITEMIMAGE = 12;
+  ERAIDTYPE_GUILDRAID = 13;
+  ERAIDTYPE_GUILDFIRE = 14;
+  ERAIDTYPE_PVP_LLH =   21;
+  ERAIDTYPE_PVP_SMZL =  22;
+  ERAIDTYPE_PVP_HLJS =  23;
+  ERAIDTYPE_DATELAND = 24;
+  ERAIDTYPE_PVP_POLLY = 25;
+  ERAIDTYPE_WEDDING = 26;
+  ERAIDTYPE_DIVORCE_ROLLER_COASTER = 27;
+  ERAIDTYPE_PVECARD = 28;
+  ERAIDTYPE_MVPBATTLE = 29;
+  ERAIDTYPE_SUPERGVG = 30;
+  ERAIDTYPE_ALTMAN = 31;
+  ERAIDTYPE_TEAMPWS = 32;
+  ERAIDTYPE_MAX = 33;
+}
+
+message RaidPConfig
+{
+  optional uint32 RaidID = 1 [ default = 0 ];
+  optional uint32 starID = 2 [ default = 0 ];
+  optional uint32 Auto = 3 [ default = 0 ];
+  optional uint32 WhetherTrace = 4 [ default = 0 ];
+
+  optional string DescInfo = 5;
+  optional string Content = 6;
+  optional string TraceInfo = 7;
+
+  optional ConfigParam params = 8;
+}
+
+// server => client
+message TrackFuBenUserCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = TRACK_FUBEN_USER_CMD ];
+
+  repeated TrackData data = 3;
+  optional uint32 dmapid = 4;
+  optional uint32 endtime = 5;
+}
+
+// server => client
+message FailFuBenUserCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = FAIL_FUBEN_USER_CMD ];
+}
+
+// server => client
+message LeaveFuBenUserCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = LEAVE_FUBEN_USER_CMD ];
+  optional uint32 mapid = 3;
+}
+
+// server => client
+message SuccessFuBenUserCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = SUCCESS_FUBEN_USER_CMD ];
+
+  optional ERaidType type = 3 [ default = ERAIDTYPE_MIN ];
+
+  optional uint32 param1 = 4 [ default = 0 ];
+  optional uint32 param2 = 5 [ default = 0 ];
+  optional uint32 param3 = 6 [ default = 0 ];
+  optional uint32 param4 = 7 [ default = 0 ];
+}
+
+message WorldStageItem
+{
+  optional uint32 id = 1;
+  // 普通关卡星数
+  optional uint32 star = 2;
+  // 普通关卡领奖信息
+  repeated uint32 getList = 3;
+}
+
+message StageStepItem
+{
+  optional uint32 stageid = 1;
+  optional uint32 stepid = 2;
+  optional uint32 type = 3;
+}
+
+// server <=> client
+message WorldStageUserCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = WORLD_STAGE_USER_CMD ];
+
+  repeated WorldStageItem list = 3;
+  repeated StageStepItem curinfo = 4;
+}
+
+message StageNormalStepItem
+{
+  optional uint32 stepid = 1;
+  optional uint32 star = 2;
+}
+
+message StageHardStepItem
+{
+  optional uint32 stepid = 1;
+  optional uint32 finish = 2;
+  optional uint32 challengeTime = 3;
+}
+
+// server <=> client
+message StageStepUserCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = SUB_STAGE_USER_CMD ];
+
+  optional uint32 stageid = 3;
+  repeated StageNormalStepItem normalist = 4;
+  repeated StageHardStepItem hardlist = 5;
+}
+
+// client => server
+message StartStageUserCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = START_STAGE_USER_CMD ];
+
+  optional uint32 stageid = 3;
+  optional uint32 stepid = 4;
+  optional uint32 type = 5;
+}
+
+// client =>server
+message GetRewardStageUserCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GET_REWARD_STAGE_USER_CMD ];
+
+  optional uint32 stageid = 3;
+  optional uint32 starid = 4;
+}
+
+// client <= server
+message StageStepStarUserCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = STAGE_STEP_STAR_USER_CMD ];
+
+  optional uint32 stageid = 3;
+  optional uint32 stepid = 4;
+  optional uint32 star = 5;
+  optional uint32 type = 6;
+}
+
+// client <= server
+message MonsterCountUserCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = MONSTER_COUNT_USER_CMD ];
+
+  optional uint32 num = 3;
+}
+
+message FubenStepSyncCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = FUBEN_STEP_SYNC ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  optional bool del = 4 [ default = false ];
+
+  optional RaidPConfig config = 5;
+}
+
+message FuBenProgressSyncCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = FUBEN_GOAL_SYNC ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  optional uint32 progress = 4 [ default = 0 ];
+}
+
+// notify client to clear fuen panel info
+message FuBenClearInfoCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = FUBEN_CLEAR_SYNC ];
+}
+
+// 公会随机副本
+enum EGuildGateState
+{
+  EGUILDGATESTATE_MIN = 0;
+  EGUILDGATESTATE_LOCK = 1;      // 未解锁
+  EGUILDGATESTATE_CLOSE = 2;     // 解锁未开启
+  EGUILDGATESTATE_OPEN = 3;      // 已开启
+}
+
+message GuildGateData
+{
+  required uint64 gatenpcid = 1;
+  optional uint32 killedbossnum = 2 [ default = 0 ];
+  optional uint32 groupindex = 3 [ default = 0 ];
+  optional uint32 closetime = 4 [ default = 0 ];
+  optional uint32 level = 5 [ default = 0 ];
+  optional bool isspecial = 6 [ default = false ];
+  optional EGuildGateState state = 7 [ default = EGUILDGATESTATE_LOCK ];
+}
+
+// scene -> client
+message UserGuildRaidFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GUILD_RAID_USER_INFO ];
+
+  repeated GuildGateData gatedata = 3;
+}
+
+enum EGuildGateOpt
+{
+  EGUILDGATEOPT_UNLOCK = 1;     // 解锁
+  EGUILDGATEOPT_OPEN = 2;       // 开启
+  EGUILDGATEOPT_ENTER = 3;      // 进入副本
+}
+
+// client => scene
+message GuildGateOptCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GUILD_RAID_GATE_OPT ];
+
+  optional uint64 gatenpcid = 3;       // 大门npcid
+  optional EGuildGateOpt opt = 4;      // 操作
+  optional uint32 uplocklevel = 5 [ default = 0 ];     // 解锁等级
+}
+
+// scene->client
+message GuildFireInfoFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GUILD_FIRE_INFO ];
+
+  optional bool fire = 3 [ default = false ];
+  optional uint64 def_guildid = 4 [ default = 0 ];
+  optional uint32 endfire_time = 5 [ default = 0 ];
+  optional bool danger = 6 [ default = false ];
+  optional uint32 danger_time = 7 [ default = 0 ];
+  optional uint32 metal_hpper = 8 [ default = 0 ];
+  optional bool calmdown = 9 [ default = false ];
+  optional uint32 calm_time = 10 [ default = 0 ];
+  optional string def_guildname = 11;
+  optional bool def_perfect = 12 [ default = false ];
+}
+
+enum EGuildFireResult
+{
+  EGUILDFIRERESULT_DEF = 1;
+  EGUILDFIRERESULT_DEFSPEC = 2;
+  EGUILDFIRERESULT_ATTACK = 3;
+}
+
+message GuildFireStopFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GUILD_FIRE_STOP ];
+
+  required EGuildFireResult result = 3;
+}
+
+message GuildFireDangerFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GUILD_FIRE_DANGER ];
+
+  optional bool danger = 3 [ default = false ];
+  optional uint32 danger_time = 4 [ default = 0 ];
+}
+
+message GuildFireMetalHpFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GUILD_FIRE_METALHP ];
+
+  optional uint32 hpper = 3 [ default = 0 ];
+}
+
+message GuildFireCalmFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GUILD_FIRE_CALM ];
+
+  optional bool calm = 3 [ default = false ];
+}
+
+// scene -> client , 切换防守方
+message GuildFireNewDefFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GUILD_FIRE_CHANGE_GUILD ];
+
+  optional uint64 guildid = 3 [ default = 0 ];
+  optional string guildname = 4;
+}
+
+message GuildFireRestartFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GUILD_FIRE_RESTART ];
+}
+
+message GuildFireStatusFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GUILD_FIRE_STATUS ];
+
+  optional bool open = 3 [ default = false ];
+  optional uint32 starttime = 4 [ default = 0 ];
+
+  required uint32 cityid = 5;
+  optional bool cityopen = 6 [ default = false ];
+}
+
+enum EGvgDataType
+{
+  EGVGDATA_MIN = 0;
+  EGVGDATA_PARTINTIME = 1;
+  EGVGDATA_KILLMON = 2;
+  EGVGDATA_RELIVE = 3;
+  EGVGDATA_EXPEL = 4;
+  EGVGDATA_DAMMETAL = 5;
+  EGVGDATA_KILLMETAL = 6;
+  EGVGDATA_KILLUSER = 7;
+  EGVGDATA_HONOR = 8;
+}
+
+message GvgData
+{
+  optional EGvgDataType type = 1 [ default = EGVGDATA_MIN ];
+  optional uint32 value = 2 [ default = 0 ];
+}
+
+//scene -> client : enterscene, sync
+message GvgDataSyncCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GVG_DATA_SYNC_CMD ];
+
+  repeated GvgData datas = 3;
+}
+
+//scene -> client : update change
+message GvgDataUpdateCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GVG_DATA_UPDATE_CMD ];
+
+  optional GvgData data = 3;
+}
+
+message GvgDefNameChangeFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = GUILD_FIRE_CHANGE_GUILD_NAME ];
+
+  required string newname = 3;
+}
+
+message SyncMvpInfoFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = MVPBATTLE_SYNC_MVPINFO ];
+
+  optional uint32 usernum = 3 [ default = 0 ];
+  repeated uint32 liveboss = 4;
+  repeated uint32 dieboss = 5;
+}
+
+message BossDieFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = MVPBATTLE_BOSS_DIE ];
+
+  required uint32 npcid = 3;
+}
+
+message UpdateUserNumFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = FUBEN_USERNUM_COUNT ];
+  optional uint32 usernum = 3 [ default = 0 ];
+}
+
+enum EGvgTowerState
+{
+  EGVGTOWERSTATE_INITFREE = 1;
+  EGVGTOWERSTATE_OCCUPY = 2;
+  EGVGTOWERSTATE_FREE = 3;
+}
+
+enum EGvgTowerType
+{
+  EGVGTOWERTYPE_MIN  = 0;
+  EGVGTOWERTYPE_CORE  = 1;
+  EGVGTOWERTYPE_WEST  = 2;
+  EGVGTOWERTYPE_EAST  = 3;
+}
+
+message GvgTowerValue
+{
+  optional uint64 guildid = 1;
+  optional uint32 value = 2;
+}
+
+// 三个塔
+message GvgTowerData
+{
+  optional EGvgTowerType etype = 1;
+  optional EGvgTowerState estate = 2;
+  optional uint64 owner_guild = 3;
+  repeated GvgTowerValue info = 4;
+}
+
+// 水晶排名信息
+message GvgCrystalInfo
+{
+  optional uint32 rank = 1;
+  optional uint64 guildid = 2;
+  optional uint32 crystalnum = 3 [ default = 0 ];
+  optional uint32 chipnum = 4 [ default = 0 ];
+}
+
+// 每个公会的信息
+message GvgGuildInfo
+{
+  optional uint32 index = 1;
+  optional uint64 guildid = 2;
+  optional string guildname = 3;
+  optional string icon = 4;
+  optional bool metal_live = 5 [ default = false ];
+  optional GvgCrystalInfo crystal = 6;
+}
+
+// enterscene, scene->client
+message SuperGvgSyncFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = SUPERGVG_INFO_SYNC ];
+  repeated GvgTowerData towers = 3;
+  repeated GvgGuildInfo guildinfo = 4;
+  optional uint32 firebegintime = 5 [ default = 0 ];
+}
+
+// 更新塔的占据变化
+message GvgTowerUpdateFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = SUPERGVG_TOWERINFO_UPDATE ];
+  repeated GvgTowerData towers = 3;
+}
+
+// 华丽金属死亡
+message GvgMetalDieFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = SUPERGVG_METAL_DIE ];
+  optional uint32 index = 3 [ default = 0 ];
+}
+
+// 更新水晶排名信息
+message GvgCrystalUpdateFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = SUPERGVG_METALINFO_UPDATE ];
+  repeated GvgCrystalInfo crystals = 3;
+}
+
+// client->scene, 请求or关闭请求 塔的信息
+message QueryGvgTowerInfoFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = SUPERGVG_QUERY_TOWERINFO ];
+  required EGvgTowerType etype = 3;
+  optional bool open = 4 [ default = false ];
+}
+
+message RewardItemData
+{
+  optional uint32 itemid = 1;
+  optional uint32 count = 2;
+}
+
+message SuperGvgRewardData
+{
+  optional uint64 guildid = 1;
+  optional uint32 rank = 2;
+  repeated RewardItemData items = 3;
+}
+
+// scene->client, 公会战决战结算
+message SuperGvgRewardInfoFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = SUPERGVG_REWARD_INFO ];
+  repeated SuperGvgRewardData rewardinfo = 3;
+}
+
+message SuperGvgUserData
+{
+  required string username = 1;
+  required uint32 profession = 2;
+  optional uint32 killusernum = 3 [ default = 0 ];      // 击杀玩家数
+  optional uint32 dienum = 4 [ default = 0 ];           // 死亡数
+  optional uint32 chipnum = 5 [ default = 0 ];          // 获取碎片数
+  optional uint32 towertime = 6 [ default = 0 ];        // 占塔时间
+  optional uint32 healhp = 7 [ default = 0 ];           // 治疗量
+  optional uint32 relivenum = 8 [ default = 0 ];        // 复活其他玩家数
+  optional uint32 metaldamage = 9 [ default = 0 ];      // 对华丽金属伤害量
+}
+
+message SuperGvgGuildUserData
+{
+  required uint64 guildid = 1;
+  repeated SuperGvgUserData userdatas = 2;
+}
+
+// client -> scene -> client, 请求决战个人数据
+message SuperGvgQueryUserDataFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = SUPERGVG_QUERY_USER_DATA ];
+  repeated SuperGvgGuildUserData guilduserdata = 3;
+}
+
+message MvpBattleTeamData
+{
+  required uint64 teamid = 1;
+  optional string teamname = 2;
+  repeated uint32 killmvps = 3;
+  repeated uint32 killminis = 4;
+  optional uint32 killusernum = 5 [ default = 0 ];
+  repeated uint32 deadboss = 6;
+}
+
+message MvpBattleReportFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = MVPBATTLE_END_REPORT ];
+  repeated MvpBattleTeamData datas = 3;
+}
+
+
+enum ETeamPwsColor
+{
+  ETEAMPWS_RED = 1;
+  ETEAMPWS_BLUE = 2;
+}
+
+message TeamPwsRaidUserInfo
+{
+  optional uint64 charid = 1;
+  optional string name = 2;
+  optional uint32 killnum = 3;
+  optional uint32 heal = 4;
+  optional uint32 killscore = 5;
+  optional uint32 ballscore = 6;
+  optional uint32 buffscore = 7;
+  optional uint32 dienum = 8;
+}
+
+message TeamPwsRaidTeamInfo
+{
+  optional uint64 teamid = 1;
+  optional ETeamPwsColor color = 2;
+  repeated TeamPwsRaidUserInfo userinfos = 3;
+}
+
+message QueryTeamPwsUserInfoFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = QUERY_RAID_TEAMPWS_USERINFO ];
+
+  repeated TeamPwsRaidTeamInfo teaminfo = 3;
+}
+
+// 结算
+message TeamPwsReportFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = TEAMPWS_END_REPORT ];
+
+  repeated TeamPwsRaidTeamInfo teaminfo = 3;
+  optional QueryUserInfo mvpuserinfo = 4;
+  required ETeamPwsColor winteam = 5;
+}
+
+enum EMagicBallType
+{
+  EMAGICBALL_MIN = 0; // 没有持球
+  EMAGICBALL_WIND = 1;
+  EMAGICBALL_EARTH = 2;
+  EMAGICBALL_WATER = 3;
+  EMAGICBALL_FIRE = 4;
+}
+
+message TeamPwsInfoSyncData
+{
+  optional uint64 teamid = 1;
+  optional string teamname = 2;
+  optional ETeamPwsColor color = 3;
+  optional uint32 score = 4 [ default = 0 ];
+  optional uint32 effectcd = 5 [ default = 0 ];
+  optional uint32 magicid = 6 [ default = 0 ];
+  repeated EMagicBallType balls = 7;
+}
+
+// 追踪栏
+message TeamPwsInfoSyncFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = TEAMPWS_SYNC_INFO ];
+
+  repeated TeamPwsInfoSyncData teaminfo = 3;
+  optional uint32 endtime = 4;
+}
+
+message UpdateTeamPwsInfoFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = TEAMPWS_UPDATE_INFO ];
+
+  repeated TeamPwsInfoSyncData teaminfo = 3;
+}
+
+// 选择对方魔法 client->scene
+message SelectTeamPwsMagicFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = TEAMPWS_SELECT_MAGIC ];
+
+  required uint32 magicid = 3;
+}
+
+message InviteSummonBossFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = INVITE_SUMMON_DEADBOSS ];
+}
+
+message ReplySummonBossFubenCmd
+{
+  optional Command cmd = 1 [ default = FUBEN_PROTOCMD ];
+  optional FuBenParam param = 2 [ default = REPLY_SUMMON_DEADBOSS ];
+  optional bool isfull = 3 [ default = false ]; // 队员已没有剩余次数
+  optional bool agree = 4 [ default = false ];
+  optional uint64 charid = 5;
+}

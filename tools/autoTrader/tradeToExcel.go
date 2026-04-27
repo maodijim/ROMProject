@@ -1,12 +1,14 @@
 package main
 
 import (
+	"os"
+	"strconv"
+	"sync"
+	"time"
+
 	Cmd "ROMProject/Cmds"
 	"github.com/360EntSecGroup-Skylar/excelize/v2"
 	log "github.com/sirupsen/logrus"
-	"os"
-	"strconv"
-	"time"
 )
 
 const (
@@ -30,9 +32,12 @@ type TradeExcel struct {
 	SheetName string
 	ExcelPath string
 	file      *excelize.File
+	Lock      *sync.RWMutex
 }
 
 func (t *TradeExcel) CreateExcel() {
+	t.Lock.Lock()
+	defer t.Lock.Unlock()
 	f := excelize.NewFile()
 	for n, c := range cellTitle {
 		_ = f.SetCellValue(t.SheetName, c, n)
@@ -43,12 +48,16 @@ func (t *TradeExcel) CreateExcel() {
 
 func (t *TradeExcel) WriteExcel() {
 	log.Infof("saving %s", t.ExcelPath)
+	t.Lock.Lock()
+	defer t.Lock.Unlock()
 	if err := t.file.SaveAs(t.ExcelPath); err != nil {
 		log.Errorf("failed to save excel file %s: %s", t.ExcelPath, err)
 	}
 }
 
 func (t *TradeExcel) ReadExcel() {
+	t.Lock.RLock()
+	defer t.Lock.RUnlock()
 	f, err := excelize.OpenFile(t.ExcelPath)
 	if err != nil {
 		log.Errorf("Failed to open %s", t.ExcelPath)
@@ -59,6 +68,8 @@ func (t *TradeExcel) ReadExcel() {
 }
 
 func (t *TradeExcel) AddRecord(info *Cmd.LogItemInfo, itemName string) {
+	t.Lock.Lock()
+	defer t.Lock.Unlock()
 	if t.file == nil {
 		log.Warn("excel file is nil")
 	}
@@ -72,7 +83,7 @@ func (t *TradeExcel) AddRecord(info *Cmd.LogItemInfo, itemName string) {
 	_ = t.file.SetCellValue(t.SheetName, "A"+maxRow, todayDate)
 	_ = t.file.SetCellValue(t.SheetName, "B"+maxRow, itemName)
 	_ = t.file.SetCellValue(t.SheetName, "C"+maxRow, *info.Count)
-	_ = t.file.SetCellValue(t.SheetName, "D"+maxRow, *info.Price*uint64(*info.Count))
+	_ = t.file.SetCellValue(t.SheetName, "D"+maxRow, *info.Price**info.Count)
 	_ = t.file.SetCellValue(t.SheetName, "E"+maxRow, *info.Price)
 	if info.GetLogtype() == Cmd.EOperType_EOperType_NormalSell ||
 		info.GetLogtype() == Cmd.EOperType_EOperType_PublicitySellSuccess {
@@ -94,6 +105,7 @@ func NewTradeExcel(excelPath, sheetName string) *TradeExcel {
 	tradeExcel := &TradeExcel{
 		SheetName: sheetName,
 		ExcelPath: excelPath,
+		Lock:      &sync.RWMutex{},
 	}
 	if _, err := os.Stat(excelPath); os.IsNotExist(err) {
 		tradeExcel.CreateExcel()

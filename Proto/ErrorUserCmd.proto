@@ -1,0 +1,83 @@
+package Cmd;
+import "xCmd.proto";
+
+enum ErrCmdParam
+{
+  REG_ERR_USER_CMD = 1;
+  REG_KICK_USER_CMD = 2;
+  MAINTAIN_USER_CMD = 3;          // 服务器维护提示
+}
+
+enum RegErrRet
+{
+  REG_ERR_SUCC = 0;                   // 登陆成功
+  REG_ERR_SERVER_STOP = 1;            // 服务器维护
+  REG_ERR_SERVER_STOP_LOGIN = 2;      // 服务器流程中服务器维护
+  REG_ERR_DUPLICATE_LOGIN = 3;        // 账号强行登陆
+  REG_ERR_RELOGIN_OVERTIME = 4;       // 重连超时
+  REG_ERR_NEW_VERSION = 5;            // 有新版本更新
+  REG_ERR_PROFESSION_NOOPEN = 6;      // 无法创建-职业未开放
+  REG_ERR_NAME_INVALID = 7;           // 无法创建-含非法字符
+  REG_ERR_NAME_EMPTY = 8;             // 无法创建-名字为空
+  REG_ERR_NAME_OVERMAXLEN = 9;        // 无法创建-名字太长
+  REG_ERR_NAME_DUPLICATE = 10;        // 无法创建-重名
+  REG_ERR_SEQUENCE = 16;              // 无法创建-该格子无法创建
+  REG_ERR_DELETE_ERROR = 17;          // 无法删除
+  REG_ERR_DELETE_ERROR_LOCKED = 18;          // 无法删除-被封号
+  REG_ERR_PASSWD_INVALID = 20;        // 服务器密码验证错误
+
+  REG_ERR_OVERTIME = 21;
+  REG_ERR_ACC_FORBID = 22;            // 账号封停
+  REG_ERR_SERVER_UNOPENED = 51;       // 服务器未开放
+
+  REG_ERR_RELOGIN_SCENE = 100;        // 场景重复登录
+  REG_ERR_SESSION_CREATE_FAILD = 101; // 会话创建角色失败
+  REG_ERR_NOTIFY_SCENE = 102;         // 未找到对应场景
+  REG_ERR_SCENE_CREATE_FAILD = 103;   // 场景创建角色失败
+  REG_ERR_FIND_GATE = 104;            // 找不到登录网关
+  REG_ERR_REQ_DATA_FROM_RECORD = 105; // 从record请求数据错误
+  REG_ERR_SET_USER_DATA_SCENE = 106;  // 设置玩家数据失败
+  REG_ERR_FORBID_REG = 107;           // 被封号
+  REG_ERR_ENTER_SCENE = 108;          // 进入场景失败
+  REG_ERR_GET_USER_DATA = 109;        // 读档失败
+
+  //REG_ERR_FAIL      = 1;  // 未定义错误
+  //REG_ERR_SHA1_ERROR = 2;
+  //REG_ERR_LOGIN_OVERTIME = 3;
+  //REG_ERR_WRONG_ZONE = 4;
+  //REG_ERR_WRONG_NAME = 5;
+  //REG_ERR_RELOGIN = 6; 
+  //REG_ERR_RELOGIN_DIFF_GATE = 7;    //不同网关重复登录
+}
+
+message RegErrUserCmd
+{
+  optional Command cmd = 1 [ default = ERROR_USER_PROTOCMD ];
+  optional ErrCmdParam param = 2 [ default = REG_ERR_USER_CMD ];
+
+  required RegErrRet ret = 3 [ default = REG_ERR_SUCC ];
+  optional uint64 accid = 4 [ default = 0 ];
+  optional uint32 zoneID = 5 [ default = 0 ];
+  optional uint64 charid = 6 [ default = 0 ];
+  repeated uint32 args = 7;
+}
+
+// scene -> gate
+message KickUserErrorCmd
+{
+  optional Command cmd = 1 [ default = ERROR_USER_PROTOCMD ];
+  optional ErrCmdParam param = 2 [ default = REG_KICK_USER_CMD ];
+
+  optional uint64 accid = 3 [ default = 0 ];
+}
+
+//
+message MaintainUserCmd
+{
+  optional Command cmd = 1 [ default = ERROR_USER_PROTOCMD ];
+  optional ErrCmdParam param = 2 [ default = MAINTAIN_USER_CMD ];
+
+  optional string content = 3;      //内容文字
+  optional string tip = 4;          //提示文字
+  optional string picture = 5;      //图片地址
+}

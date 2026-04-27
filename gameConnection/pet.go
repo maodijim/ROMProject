@@ -1,9 +1,10 @@
 package gameConnection
 
 import (
+	"time"
+
 	Cmd "ROMProject/Cmds"
 	log "github.com/sirupsen/logrus"
-	"time"
 )
 
 const (
@@ -17,7 +18,7 @@ var (
 // QueryBattlePet 获取出战宠物
 func (g *GameConnection) QueryBattlePet() (battlePet *Cmd.QueryBattlePetCmd) {
 	cmd := &Cmd.QueryBattlePetCmd{}
-	g.addNotifier("PETPARAM_ADVENTURE_QUERYBATTLEPET")
+	g.AddNotifier("PETPARAM_ADVENTURE_QUERYBATTLEPET")
 	g.sendProtoCmd(cmd, PetProtoCmdId, Cmd.PetParam_value["PETPARAM_ADVENTURE_QUERYBATTLEPET"])
 	res, err := g.waitForResponse("PETPARAM_ADVENTURE_QUERYBATTLEPET")
 	if err != nil {
@@ -33,7 +34,7 @@ func (g *GameConnection) QueryBattlePet() (battlePet *Cmd.QueryBattlePetCmd) {
 // QueryPetWorkData 获取宠物打工数据
 func (g *GameConnection) QueryPetWorkData() (workData *Cmd.QueryPetWorkDataPetCmd, err error) {
 	cmd := &Cmd.QueryPetWorkDataPetCmd{}
-	g.addNotifier("PETPARAM_WORK_QUERYWORKDATA")
+	g.AddNotifier("PETPARAM_WORK_QUERYWORKDATA")
 	g.sendProtoCmd(cmd,
 		PetProtoCmdId,
 		Cmd.PetParam_value["PETPARAM_WORK_QUERYWORKDATA"],

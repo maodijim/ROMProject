@@ -1,0 +1,571 @@
+package Cmd;
+import "xCmd.proto";
+import "ProtoCommon.proto";
+import "SceneItem.proto";
+
+enum RecordUserTradeParam
+{   
+  BRIEF_PENDING_LIST_RECORDTRADE = 1;     //请求简单的挂单列表 
+  DETAIL_PENDING_LIST_RECORDTRADE = 3;  
+  ITEM_SELL_INFO_RECORDTRADE = 4;     
+  MY_PENDING_LIST_RECORDTRADE = 7;        //我的出售列表    
+  MY_TRADE_LOG_LIST_RECORDTRADE = 9;
+  REQ_SERVER_PRICE_RECORDTRADE = 14;      //请求服务器价格      
+  BUY_ITEM_RECORDTRADE = 15;              //buy
+  SELL_ITEM_RECORDTRADE = 20;             //sell
+  CANCEL_PENDING_RECORDTRADE = 22;        //cancel 撤单包括已经过期的取回
+  RESELL_PENDING_RECORDTRADE = 23;        //重新挂单出售
+  PANEL_RECORDTRADE = 24;                 
+  LIST_NTF_RECORDTRADE = 25;        
+  HOT_ITEMID_RECORDTRADE = 26;            //热门在售道具id列表
+
+  TAKE_LOG_TRADE_PARAM = 27;              //领取物品
+  ADD_NEWLOG_TRADE_PARAM = 28;            //新增一条新的领取  
+  FETCH_NAMEINFO_TRADE_PARAM = 29;        //获取买卖详细信息     
+  NTF_CAN_TAKE_COUNT_TRADE_PARAM = 30;    //可以领取的总个数
+
+  GIVE_TRADE_PARAM = 31;                  //赠送
+  
+  REQ_GIVE_ITEM_INFO_TRADE_PARAM = 32;    //请求赠送信息
+  ACCEPT_TRADE_PARAM = 33;                //签收礼物
+  REFUSE_TRADE_PARAM = 34;                //拒绝 
+  CHECK_PACKAGE_SIZE_TRADE_CMD = 35;
+  
+  QUICK_TAKE_LOG_TRADE_PARAM = 36;                //一键领取 
+  QUERY_ITEM_COUNT_TRADE_PARAM = 37;              //快速购买请求物品个数  
+  
+  QUERY_LOTTERY_GIVE_TRADE_PARAM = 38;            //请求扭蛋赠送
+
+  QUERY_SERVANT_FINANCE_RANK = 39;
+  QUERY_SERVANT_FINANCE_DETAIL= 40;
+
+  BOOTH_PLAYER_PENDING_LIST = 41;         //请求摊位订单列表
+  UPDATE_ORDER_TRADE_PARAM = 42;          //更新订单信息
+}
+
+enum RankType
+{
+  RANKTYPE_ITEM_ID_INC = 1;
+  RANKTYPE_ITEM_ID_DES = 2;
+
+  RANKTYPE_REFINE_LV_INC = 3;     //精炼等级升序
+  RANKTYPE_REFINE_LV_DES = 4;    
+
+  RANKTYPE_ITEM_PRICE_INC = 5;
+  RANKTYPE_ITEM_PRICE_DES = 6;
+  
+  RANKTYPE_PENDING_TIME_INC = 7;
+  RANKTYPE_PENDING_TIME_DES = 8;    
+}
+
+message SearchCond    //查询条件
+{
+  optional uint32 item_id = 1;
+  optional uint32 page_index = 7;   //0
+  optional uint32 page_count = 8;
+  optional RankType rank_type = 9 [default = RANKTYPE_ITEM_ID_INC] ;  
+  optional ETradeType trade_type = 10 [ default = ETRADETYPE_TRADE ];
+}
+
+//client <-> record
+message BriefPendingListRecordTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = BRIEF_PENDING_LIST_RECORDTRADE ];
+  optional uint64 charid = 3;
+  optional uint32 category = 4;
+  optional uint32 job = 5;
+  optional uint32 fashion = 6;
+  
+  repeated uint32 pub_lists = 7;        //公示期 itemid 列表
+  repeated uint32 lists = 8;            //itemid 列表
+}
+
+// gate ->record  某个物品的详细挂单列表
+message DetailPendingListRecordTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = DETAIL_PENDING_LIST_RECORDTRADE ];  
+  optional SearchCond search_cond = 3;
+  optional uint64 charid = 4;
+  repeated TradeItemBaseInfo lists = 5;   
+  optional uint32 total_page_count = 6;   //列表总页数
+}
+
+// gate ->record  某个在售的物品的情况
+message BriefBuyInfo
+{
+  optional string name = 1;   //购买者名字
+  optional uint32 time = 2;   //购买时间
+}
+
+message ItemSellInfoRecordTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = ITEM_SELL_INFO_RECORDTRADE ];  
+  optional uint64 charid = 3;
+  optional uint32 itemid = 4;
+  optional uint32 refine_lv = 5;
+  optional uint32 publicity_id = 6;
+
+  optional StateType statetype = 7;
+  optional uint32 count = 8 [ default = 0 ];          //交易所数量
+  optional uint32 buyer_count = 9 [ default = 0 ];    //购买人数  
+  repeated BriefBuyInfo buy_info = 10;                //最近被购买的情况
+
+  optional uint64 order_id = 11;
+  optional ETradeType type = 12 [ default = ETRADETYPE_TRADE ];
+  optional uint64 quota = 13;    // 订单额度单价
+}
+
+// client <-> session :  我的出售列表
+message MyPendingListRecordTradeCmd   
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = MY_PENDING_LIST_RECORDTRADE ];  
+  optional SearchCond search_cond = 3;
+  optional uint64 charid = 4;
+  repeated TradeItemBaseInfo lists = 6;   
+}
+
+// client <-> session :  我的交易记录列表
+
+enum EOperType
+{
+  EOperType_PayPending = 0;               //待付款
+  EOperType_NormalSell = 1;               //普通出售
+  EOperType_NoramlBuy = 2;                //普通购买
+  EOperType_Publicity = 3;                //公示期
+  EOperType_PublicitySellSuccess = 4;     //公示期出售成功
+  EOperType_PublicitySellFail = 5;        //公示期出售失败
+  EOperType_PublicityBuySuccess = 6;      //公示期购买成功
+  EOperType_PublicityBuyFail = 7;         //公示期购买失败
+  EOperType_PublicityBuying = 8;          //公示期正在购买 
+  EOperType_AutoOffTheShelf= 9;            //自动下架  
+
+  EOperType_PayFail= 10;                  //付款失败
+  EOperType_PayTimeout= 11;               //付款超时
+};
+
+enum ETakeStatus
+{
+  ETakeStatus_CanTakeGive = 0;                //可领取可赠送         -- 可领取可赠送
+  ETakeStatus_Took = 1;                       //已领取               -- 已领取
+  ETakeStatus_Taking = 2;                     //正在领取             -- 已领取
+  ETakeStatus_Giving = 3;                     //正在赠送             -- 赠送中
+  ETakeStatus_Give_Accepting = 4;             //赠送正在领取中       -- 赠送中
+  ETakeStatus_Give_Accepted_1 = 5;            //赠送已经领取额度未扣 -- 已赠送
+  ETakeStatus_Give_Accepted_2 = 6;            //赠送已经领取额度已扣 -- 已赠送 
+}
+
+message NameInfo
+{
+  optional string name = 1;         //姓名
+  optional uint32 zoneid = 2;       //线id
+  optional uint32 count = 3;        //个数
+}
+
+message NameInfoList
+{
+  repeated NameInfo name_infos = 1;
+}
+
+message LogItemInfo
+{
+  optional uint64 id = 1;           //唯一id
+  optional ETakeStatus status = 2;  //领取装备
+  optional EOperType logtype = 3;   //日志类型
+  optional uint32 itemid = 4;
+  optional uint32 refine_lv = 5;    //精炼等级   
+  optional bool damage = 6;         //是否损坏 
+  optional uint32 tradetime = 7;    //交易时间
+  optional uint32 count = 8;        //成功的个数   
+  optional uint32 price = 20;       //单价
+
+  optional uint32 tax = 9;          //出售扣费
+  optional uint32 getmoney = 10;    //出售获得的总钱 
+
+  optional uint32 costmoney = 11;    //购买花费
+
+  optional uint32 failcount = 12;   //公示期购买失败的个数
+  optional uint32 retmoney = 13;    //公示期抢购退款  
+  optional uint32 totalcount = 14;  //公示期总抢购个数
+  optional uint32 endtime = 15;     //公示期结束时间 
+  optional NameInfo name_info = 16;   //一个名字
+  optional bool is_many_people = 17;  //是否有多人
+ 
+  optional NameInfoList name_list = 18;   //所有的名字列表 服务端本地存储
+  optional ItemData itemdata = 19;        //服务端本地存储
+  //20 price use
+
+//赠送相关
+  optional uint64 receiverid = 21;      //赠送接收者id
+  optional string receivername = 22;    //赠送接受者姓名
+  optional uint32 receiverzoneid = 23;  //赠送接收者线
+  optional uint64 quota = 24;           //赠送花费额度
+  optional uint32 background = 25;      //赠送背景色
+  optional uint32 expiretime = 26;      //赠送超时时间
+
+  optional uint32 ret_cost = 27;        //自动下架返回上架费
+  optional bool cangive = 28;           //是否可以赠送  tradetime 没过期并且 cangive=true 才显示赠送按钮
+
+  optional ETradeType trade_type = 29 [ default = ETRADETYPE_TRADE ];
+  optional bool is_public = 30;
+  optional uint64 quota_cost = 31 [ default = 0 ];
+}
+
+message MyTradeLogRecordTradeCmd   
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = MY_TRADE_LOG_LIST_RECORDTRADE ];  
+  optional uint64 charid = 3;
+  optional uint32 index = 4;
+  optional uint32 total_page_count = 5;
+ 
+ //res
+  repeated LogItemInfo log_list = 6;
+  optional ETradeType trade_type = 7 [ default = ETRADETYPE_TRADE ];
+}
+
+//client<->session<->scene
+message TakeLogCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = TAKE_LOG_TRADE_PARAM ];  
+  optional LogItemInfo log = 3;
+  
+  //res
+  optional bool success = 4;
+}
+
+//client<->session
+message AddNewLog
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = ADD_NEWLOG_TRADE_PARAM ];  
+  optional uint64 charid = 3;
+  optional LogItemInfo log = 4;
+  optional uint32 total_page_count= 5;
+}
+
+//client<->session
+message FetchNameInfoCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = FETCH_NAMEINFO_TRADE_PARAM ];  
+  optional uint64 id = 3;
+  optional EOperType type = 4;
+  optional uint32 index = 5;              //页索引 第一页是 0
+  optional uint32 total_page_count = 6;   //总页数
+  optional NameInfoList name_list = 7;  
+}
+
+
+enum StateType
+{
+  St_OverlapNormal = 1;         //堆叠物品普通
+  St_NonoverlapNormal= 2;       //非堆叠物品普通
+  St_WillPublicity = 3;         //物品将要公示期
+  St_InPublicity= 4;            //物品正在公示期
+}
+
+//client <->record      //请求某件物品的服务器价格
+message ReqServerPriceRecordTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = REQ_SERVER_PRICE_RECORDTRADE ];  
+  optional uint64 charid = 3;
+  optional ItemData itemData = 4;
+  //res
+  optional uint32 price = 5;
+
+  optional bool issell = 6 [ default = false];          //是否上架
+  optional StateType statetype = 7;
+  optional uint32 count = 8 [ default = 0 ];            //交易所数量
+  optional uint32 buyer_count = 9 [ default = 0 ];      //购买人数
+  optional uint32 end_time = 10 [default = 0];          //公示期结束时间
+  optional ETradeType trade_type = 11 [ default = ETRADETYPE_TRADE ]; // 交易类型
+}
+
+/////////////////// BUY 
+//client <->record
+message BuyItemRecordTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = BUY_ITEM_RECORDTRADE ];  
+  optional TradeItemBaseInfo item_info = 3;
+  optional uint64 charid = 4;
+  optional ETRADE_RET_CODE ret = 5;
+  optional ETradeType type = 6 [ default = ETRADETYPE_TRADE ];
+}
+
+
+//////////////////////////////
+//sell          
+// client<->record
+message SellItemRecordTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = SELL_ITEM_RECORDTRADE ];     
+  optional TradeItemBaseInfo item_info = 3;
+  optional uint64 charid = 4;
+  optional ETRADE_RET_CODE ret = 5;
+  optional ETradeType type = 6 [ default = ETRADETYPE_TRADE ];
+}
+
+///////////////////sell end
+
+//client <-> record
+message CancelItemRecordTrade
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = CANCEL_PENDING_RECORDTRADE ];   
+  optional TradeItemBaseInfo item_info = 3; 
+  optional uint64 charid = 4;
+  optional ETRADE_RET_CODE ret = 5;
+  optional uint64 order_id = 6;  
+  optional ETradeType type = 7 [ default = ETRADETYPE_TRADE ];
+  optional uint64 quota = 8;
+}
+
+//client <-> record
+message ResellPendingRecordTrade
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = RESELL_PENDING_RECORDTRADE ];   
+  optional TradeItemBaseInfo item_info = 3; 
+  optional uint64 charid = 4;
+  optional ETRADE_RET_CODE ret = 5;
+  optional uint64 order_id = 6;    
+  optional ETradeType type = 7 [ default = ETRADETYPE_TRADE ];
+  optional uint64 quota = 8;
+}
+
+enum EPanelOperType
+{
+  EPANEL_OPEN  = 1;    
+  EPANEL_CLOSE = 2;
+}
+
+enum EListNtfType
+{
+  ELIST_NTF_MY_PENDING  = 1;    
+  ELIST_NTF_MY_LOG = 2;
+}
+
+//client <-> record
+message PanelRecordTrade
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = PANEL_RECORDTRADE ];   
+  optional uint64 charid = 3;
+  optional EPanelOperType  oper = 4;
+  optional ETradeType trade_type = 5 [ default = ETRADETYPE_TRADE ];
+}
+
+//client <- record
+message ListNtfRecordTrade
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = LIST_NTF_RECORDTRADE ];   
+  optional uint64 charid = 3;
+  optional EListNtfType type = 4;
+  optional ETradeType trade_type = 5 [ default = ETRADETYPE_TRADE ];
+}
+//client <- record
+message HotItemidRecordTrade
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = HOT_ITEMID_RECORDTRADE ];   
+  optional uint64 charid = 3;
+  optional uint32 job = 4;
+  repeated uint32 pub_lists = 5;    //公示期 itemid 列表
+  repeated uint32 lists = 6;        //itemid 列表
+}
+
+//session -> client
+message NtfCanTakeCountTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = NTF_CAN_TAKE_COUNT_TRADE_PARAM ];   
+  optional uint32 count = 3;
+  optional ETradeType trade_type = 4 [ default = ETRADETYPE_TRADE ];
+}
+
+//赠送给好友
+message GiveTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = GIVE_TRADE_PARAM ];  
+  optional uint64 id = 3;           //唯一id
+  optional EOperType logtype = 4;   //日志类型
+  
+  optional uint64 friendid = 5;     //好友的id
+
+  optional string content = 6;      //留言内容
+  optional bool anonymous = 7;      //是否匿名
+  optional uint32 background = 8;   //背景色
+
+  //res
+  optional bool success = 9;
+}
+
+message AcceptTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = ACCEPT_TRADE_PARAM ];  
+  optional uint64 id = 3;           //唯一id
+  
+  //res
+  optional bool success = 4;
+}
+
+message RefuseTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = REFUSE_TRADE_PARAM ];  
+  optional uint64 id = 3;           //唯一id
+  
+  //res
+  optional bool success = 4;  
+}
+
+message GiveItemInfo
+{
+  optional uint64 id = 1;           //唯一id
+  optional ETakeStatus status = 2;  //领取状态
+  optional uint32 itemid = 3;
+  optional uint32 count = 4;
+  optional ItemData itemdata = 5;
+  optional uint64 senderid = 6;
+  optional string sendername = 7;
+  optional bool anonymous = 8;
+  optional uint32 expiretime = 9;
+  optional string content = 10;  
+  optional uint64 quota = 11; 
+  optional string receivername = 12;
+  optional uint32 background = 13;
+}
+
+
+//client->session->client
+message ReqGiveItemInfoCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = REQ_GIVE_ITEM_INFO_TRADE_PARAM ];  
+  optional uint64 id = 3;
+//res
+  optional GiveItemInfo iteminfo = 4;
+}
+
+message CheckPackageSizeTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = CHECK_PACKAGE_SIZE_TRADE_CMD ];  
+  repeated ItemInfo items = 3;
+  //res
+  optional bool ret = 4;
+}
+
+message QucikTakeLogTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = QUICK_TAKE_LOG_TRADE_PARAM ];  
+
+  optional ETradeType trade_type = 3 [ default = ETRADETYPE_TRADE ];
+}
+
+message ItemCount 
+{
+  optional uint32 itemid = 1;
+  optional uint32 count = 2;
+}
+
+message QueryItemCountTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = QUERY_ITEM_COUNT_TRADE_PARAM ];  
+  optional uint64 charid = 3;
+  repeated ItemCount items = 4;
+  //返回
+  repeated TradeItemBaseInfo res_items = 5;  
+}
+
+message LotteryGiveInfo
+{
+  optional uint32 year = 1;
+  optional uint32 month = 2;
+  optional uint32 count = 3;      //购买个数
+  optional string content = 4;    //祝福内容
+  optional uint32 configid = 5;   //祝福内容的configid
+  optional uint64 receiverid = 6; //接收者角色id
+}
+
+// client -> session 购买扭蛋盒并赠送
+message LotteryGiveCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = QUERY_LOTTERY_GIVE_TRADE_PARAM ];
+
+  optional LotteryGiveInfo iteminfo = 3;
+}
+
+enum EFinanceDateType
+{
+  EFINANCE_DATE_THREE = 1;
+  EFINANCE_DATE_SEVEN = 2;
+}
+
+enum EFinanceRankType
+{
+  EFINANCE_RANK_DEALCOUNT = 1;
+  EFINANCE_RANK_UPRATIO = 2;
+  EFINANCE_RANK_DOWNRATIO = 3;
+}
+
+message TodayFinanceItem
+{
+  optional uint32 item_id = 1;
+  optional uint32 ratio = 2;
+  optional uint32 time = 3;
+}
+
+message TodayFinanceRank
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = QUERY_SERVANT_FINANCE_RANK ];
+
+  optional EFinanceRankType rank_type = 3 [ default = EFINANCE_RANK_DEALCOUNT ];
+  optional EFinanceDateType date_type = 4 [ default = EFINANCE_DATE_THREE ];
+  repeated TodayFinanceItem lists = 5;
+}
+
+message TodayFinanceDetail
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = QUERY_SERVANT_FINANCE_DETAIL ];
+
+  optional uint32 item_id = 3;
+  optional EFinanceRankType rank_type = 4 [ default = EFINANCE_RANK_DEALCOUNT ];
+  optional EFinanceDateType date_type = 5 [ default = EFINANCE_DATE_THREE ];
+  repeated TodayFinanceItem lists = 6;
+}
+
+message BoothPlayerPendingListCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = BOOTH_PLAYER_PENDING_LIST ];
+  optional uint64 charid = 3;
+  repeated TradeItemBaseInfo lists = 4;
+}
+
+message UpdateOrderTradeCmd
+{
+  optional Command cmd = 1 [ default = RECORD_USER_TRADE_PROTOCMD ];
+  optional RecordUserTradeParam param = 2 [ default = UPDATE_ORDER_TRADE_PARAM ];
+
+  optional uint64 charid = 3;
+  optional TradeItemBaseInfo info = 4;
+  optional ETradeType type = 5 [ default = ETRADETYPE_TRADE ];
+}
+

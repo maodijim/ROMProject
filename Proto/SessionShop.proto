@@ -1,0 +1,242 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+
+enum ShopParam
+{
+  SHOPPARAM_BUYITEM = 1;
+  SHOPPARAM_QUERY_SHOP_CONFIG = 2;
+  SHOPPARAM_QUICKBUY_SHOP_CONFIG = 3;
+  SHOPPARAM_QUERY_SHOP_SOLD_COUNT = 4;   //全服限售商品出售数量
+  SHOPPARAM_UPDATE_DATA = 5; //商店数据更新
+  SHOPPARAM_UPDATE_SHOP_CONFIG_CMD = 6; //更新商店商品信息 s->c
+  SHOPPARAM_UPDATE_EXCHANGESHOP_DATA = 7;  //更新兑换商店信息
+  SHOPPARAM_EXCHANGEITEM_CMD = 8;   //兑换商品
+  SHOPPARAM_RESET_EXCHANGESHOP_DATA = 9;
+}
+
+enum EShopLimitType
+{
+  ESHOPLIMITTYPE_MIN = 0;
+  ESHOPLIMITTYPE_USER = 1;
+  ESHOPLIMITTYPE_ONE_ONLY = 2;
+  ESHOPLIMITTYPE_ACC_USER = 4;            //账号共享次数 每天
+  ESHOPLIMITTYPE_ACC_USER_ALWAYS = 8;     //账号永久共享次数
+  ESHOPLIMITTYPE_USER_WEEK = 16;          //角色周限购
+  ESHOPLIMITTYPE_USER_MONTH = 32;         //角色月限购
+  ESHOPLIMITTYPE_ACC_WEEK = 64;           //账号周限购
+  ESHOPLIMITTYPE_ACC_MONTH = 128;         //账号月限购
+  ESHOPLIMITTYPE_MAX = 256;
+}
+
+enum EShopLockType
+{
+  ESHOPLOCKTYPE_MIN = 0;
+  ESHOPLOCKTYPE_QUEST = 1;
+  ESHOPLOCKTYPE_GUILDBUILDING = 2;
+  ESHOPLOCKTYPE_MAX = 3;
+}
+
+enum EShopSource
+{
+  ESHOPSOURCE_USER = 0;
+  ESHOPSOURCE_GUILD = 1;
+}
+
+enum EPresentType
+{
+  EPRESENTTYPE_NORMAL = 0; // 普通商品
+  EPRESENTTYPE_LOCK = 1; // 需要判断是否已解锁
+}
+
+message Presentation
+{
+  optional EPresentType presenttype = 1 [ default = EPRESENTTYPE_NORMAL ];
+  optional uint32 msgid = 2 [ default = 0 ]; // 购买已拥有商品时的提示
+  repeated uint32 menuid = 3; // 道具解锁的menu ID
+}
+
+message ShopItem
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 lv = 2 [ default = 0 ];
+  optional uint32 moneyid = 3 [ default = 0 ];
+  optional uint32 moneycount = 4 [ default = 0 ];
+  optional uint32 moneyid2 = 5;
+  optional uint32 moneycount2 = 6;
+  optional uint32 starttime = 7 [ default = 0 ];
+  optional uint32 endtime = 8 [ default = 0 ];
+  optional uint32 discount = 9 [ default = 0 ];
+  optional uint32 maxcount = 10 [ default = 0 ];
+  optional uint32 shopid = 11 [ default = 0 ];
+  optional uint32 screen = 12 [ default = 0 ];
+  optional uint32 itemid = 13;
+  optional uint32 skillid = 14;
+  optional uint32 haircolorid= 16;
+  optional uint32 num = 17;
+  optional uint32 menuid = 18 [ default = 0 ];
+  optional uint32 shoptype = 19 [ default = 0 ];
+
+  repeated EProfession profession = 20;
+  optional EShopLimitType limittype = 21 [ default = ESHOPLIMITTYPE_MIN ];
+
+  optional string des = 22;
+  optional string levdes = 23;
+  optional uint32 business = 24;
+  optional uint32 precost = 25;
+
+  optional uint32 display = 26 [ default = 0 ];
+  optional uint32 shoporder = 27;
+  optional uint32 ifmsg = 28;
+  optional uint32 adddate = 29;
+  optional uint32 removedate = 30;
+  optional EShopSource source = 37 [ default = ESHOPSOURCE_USER ];
+
+  // 客户端用动态数据, 表示当前商品是否解锁和原因
+  optional EShopLockType locktype = 31 [ default = ESHOPLOCKTYPE_MIN ];
+  optional string lockarg = 32;
+  optional uint32 discountmax = 33; // 折扣活动商品最大打折次数
+  optional uint32 actdiscount = 34; // 折扣活动商品折扣
+  optional uint32 producenum = 35;  //全服产出数量
+
+  //lzq 随购买次数价格递增功能
+  optional uint32 nextgoodsid = 36; //达到限购次数后，要触发的下一个商品ID。
+  optional uint32 clothcolorid = 38 [ default = 0 ];
+  repeated uint32 clothcolorids = 39;
+  
+  //lzq 是否是兑换商店的商品
+  optional uint32 itemtype = 40 [ default = 0];
+
+  // 界面对已拥有道具的显示方式参数
+  optional Presentation presentation = 41;
+}
+
+// client -> session : buy shop item
+message BuyShopItem
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SHOP_PROTOCMD ];
+  optional ShopParam param = 2 [ default = SHOPPARAM_BUYITEM ];
+
+  optional uint32 id = 3 [ default = 0 ];
+  optional uint32 count = 4 [ default = 0 ];
+  optional uint32 price = 5 [ default = 0 ]; // 对应moneyid
+  optional uint32 price2 = 6 [ default = 0 ]; // 对应moneyid2
+  optional bool success = 7;
+}
+
+// client -> scene : 查询商店商品配置
+message QueryShopConfigCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SHOP_PROTOCMD ];
+  optional ShopParam param = 2 [ default = SHOPPARAM_QUERY_SHOP_CONFIG ];
+
+  optional uint32 type = 3;
+  optional uint32 shopid = 4;
+
+  // 返回:
+  repeated ShopItem goods = 5;
+  optional uint32 screen = 6;
+}
+
+// client -> scene : 快速购买查询商品配置
+message QueryQuickBuyConfigCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SHOP_PROTOCMD ];
+  optional ShopParam param = 2 [ default = SHOPPARAM_QUICKBUY_SHOP_CONFIG ];
+  repeated uint32 itemids = 3;
+  // 返回:
+  repeated ShopItem goods = 4;
+}
+
+message ShopSoldItem
+{
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 count = 2 [ default = 0 ];
+  optional uint32 shopid = 3;
+  optional uint32 type = 4;
+}
+
+// scene ->client : 全服限售商品出售数量
+message QueryShopSoldCountCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SHOP_PROTOCMD ];
+  optional ShopParam param = 2 [ default = SHOPPARAM_QUERY_SHOP_SOLD_COUNT ]; 
+  repeated ShopSoldItem items=3;
+}
+
+message ShopDataUpdateCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SHOP_PROTOCMD ];
+  optional ShopParam param = 2 [ default = SHOPPARAM_UPDATE_DATA ];
+
+  optional uint32 type = 3;
+  optional uint32 shopid = 4 [ default = 0 ];
+}
+
+message UpdateShopConfigCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SHOP_PROTOCMD ];
+  optional ShopParam param = 2 [ default = SHOPPARAM_UPDATE_SHOP_CONFIG_CMD];
+
+  optional uint32 type = 3; //商店类型
+  optional uint32 shopid = 4; //shop id
+  repeated uint32 del_goods_id = 5; //要屏蔽掉的goods id
+  repeated ShopItem add_goods = 6; //要添加的goods info
+}
+
+enum EExchangeStatusType
+{
+  EEXCHANGESTATUSTYPE_OK = 1;    //可兑换
+  EEXCHANGESTATUSTYPE_EMPTY = 2; //售空
+  EEXCHANGESTATUSTYPE_DELAY = 3; //延迟出现
+  EEXCHANGESTATUSTYPE_UNLOOK = 4; //消失
+}
+
+message ExchangeShopItem
+{
+  optional uint32 id = 1;     //商品ID
+  optional EExchangeStatusType status = 2[default = EEXCHANGESTATUSTYPE_OK];
+  optional uint32 progress = 3;   //进度
+  optional uint32 exchange_count = 4;  //已经兑换的数量
+  optional uint32 left_time = 5;   //剩余时间
+  optional uint32 delay_time = 6;  //延迟开始时间
+}
+
+//上线同步商品信息、商品信息更改时同步 s->c
+message UpdateExchangeShopData
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SHOP_PROTOCMD ];
+  optional ShopParam param = 2 [ default = SHOPPARAM_UPDATE_EXCHANGESHOP_DATA];
+
+  repeated ExchangeShopItem items = 3; //添加或者更改的商品
+  repeated uint32 del_items = 4;  //需要删除的商品
+  optional bool menu_open = 5;  //功能开启
+  optional bool reset = 6 [ default = false ];
+}
+
+message ExchangeItemInfo
+{
+  optional uint32 id = 1;
+  optional uint32 num = 2;
+}
+
+//兑换商品 c<->s
+message ExchangeShopItemCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SHOP_PROTOCMD ];
+  optional ShopParam param = 2 [ default = SHOPPARAM_EXCHANGEITEM_CMD];
+
+  optional uint32 id = 3;      //兑换的商品ID
+  repeated ExchangeItemInfo items = 4; //选中的消耗物品
+}
+
+// scene -> client : 重置兑换商店列表
+message ResetExchangeShopDataShopCmd
+{
+  optional Command cmd = 1 [ default = SESSION_USER_SHOP_PROTOCMD ];
+  optional ShopParam param = 2 [ default = SHOPPARAM_RESET_EXCHANGESHOP_DATA ];
+
+  repeated ExchangeShopItem items = 3;
+}
+

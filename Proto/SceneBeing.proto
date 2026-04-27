@@ -1,0 +1,156 @@
+package Cmd;
+
+import "xCmd.proto";
+import "SceneSkill.proto";
+
+enum BeingParam
+{
+  BEINGPARAM_SKILL_QUERY = 1;
+  BEINGPARAM_SKILL_UPDATE = 2;
+  BEINGPARAM_SKILL_LEVELUP = 3;
+  BEINGPARAM_BEING_INFO_QUERY = 4;
+  BEINGPARAM_BEING_INFO_UPDATE = 5;
+  BEINGPARAM_BEING_OFF = 6;
+  BEINGPARAM_BEING_SWITCH_STATE = 7;
+  BEINGPARAM_BEING_CHANGE_BODY = 8;
+}
+
+message UserBeingData
+{
+  optional uint32 version = 13 [ default = 0 ];
+
+  optional uint32 id = 1 [ default = 0 ];
+  optional uint32 lv = 2 [ default = 0 ];
+  optional uint32 hp = 3 [ default = 0 ];
+  optional bool live = 4 [ default = false ];
+  optional uint64 exp = 5 [ default = 0 ];
+  optional uint32 usedskillpoint = 6 [ default = 0 ];
+  optional bool battle = 7 [ default = false ];
+  optional bytes buff = 8;
+  repeated SkillItem skills = 9;
+  repeated uint32 buffids = 10;
+  optional uint32 body = 11 [ default = 0 ];
+  repeated uint32 bodylist = 12;
+}
+
+message BeingSkillData
+{
+  optional uint32 id = 1 [ default = 0 ]; // monster id
+  optional uint32 leftpoint = 2 [ default = 0 ];
+  optional uint32 usedpoint = 3 [ default = 0 ];
+  repeated SkillItem items = 4;
+  repeated SpecSkillInfo specinfo = 5;
+}
+
+// 查询所有技能信息
+message BeingSkillQuery
+{
+  optional Command cmd = 1 [ default = SCENE_USER_BEING_PROTOCMD ];
+  optional BeingParam param = 2 [ default = BEINGPARAM_SKILL_QUERY ];
+
+  repeated BeingSkillData data = 3;
+}
+
+// 同步技能信息
+message BeingSkillUpdate
+{
+  optional Command cmd = 1 [ default = SCENE_USER_BEING_PROTOCMD ];
+  optional BeingParam param = 2 [ default = BEINGPARAM_SKILL_UPDATE ];
+
+  repeated BeingSkillData update = 3;
+  repeated BeingSkillData del = 4;
+}
+
+// 技能升级
+message BeingSkillLevelUp
+{
+  optional Command cmd = 1 [ default = SCENE_USER_BEING_PROTOCMD ];
+  optional BeingParam param = 2 [ default = BEINGPARAM_SKILL_LEVELUP ];
+
+  optional uint32 beingid = 3 [ default = 0 ];
+  repeated uint32 skillids = 4;
+}
+
+enum EBeingDataType
+{
+  EBEINGDATA_MIN = 0;
+  EBEINGDATA_LV = 1;
+  EBEINGDATA_EXP = 2;
+  EBEINGDATA_BATTLE = 3;
+  EBEINGDATA_GUID = 4;
+  EBEINGDATA_LIVE = 5;
+  EBEINGDATA_SUMMON = 6;
+  EBEINGDATA_BODY = 7;
+  EBEINGDATA_BODYLIST = 8;
+  EBEINGDATA_MAX = 9;
+}
+
+message BeingMemberData
+{
+  optional EBeingDataType etype = 1 [ default = EBEINGDATA_MIN ];
+  optional uint64 value = 2 [ default = 0 ];
+  repeated uint32 values = 3;
+  optional string data = 4;
+}
+
+message BeingInfo
+{
+  optional uint64 guid = 1 [ default = 0 ];
+  optional uint32 beingid = 2 [ default = 0 ];
+  optional uint64 exp = 3 [ default = 0 ];
+  optional uint32 lv = 4 [ default = 0 ];
+  optional bool battle = 5 [ default = false ];
+  optional bool summon = 6 [ default = false ];
+  optional bool live = 7 [ default = false ];
+  optional uint32 body = 8 [ default = 0 ];
+  repeated uint32 bodylist = 9;
+}
+
+// 同步生命体信息
+message BeingInfoQuery
+{
+  optional Command cmd = 1 [ default = SCENE_USER_BEING_PROTOCMD ];
+  optional BeingParam param = 2 [ default = BEINGPARAM_BEING_INFO_QUERY ];
+
+  repeated BeingInfo beinginfo = 3;
+}
+
+// 生命体信息更新
+message BeingInfoUpdate
+{
+  optional Command cmd = 1 [ default = SCENE_USER_BEING_PROTOCMD ];
+  optional BeingParam param = 2 [ default = BEINGPARAM_BEING_INFO_UPDATE ];
+
+  required uint32 beingid = 3;
+  repeated BeingMemberData datas = 4;
+}
+
+// 战斗/待命状态切换
+message BeingSwitchState
+{
+  optional Command cmd = 1 [ default = SCENE_USER_BEING_PROTOCMD ];
+  optional BeingParam param = 2 [ default = BEINGPARAM_BEING_SWITCH_STATE ];
+
+  required uint32 beingid = 3;
+  required bool battle = 4; // true:战斗, false:待命
+}
+
+// 收回生命体
+message BeingOffCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_BEING_PROTOCMD ];
+  optional BeingParam param = 2 [ default = BEINGPARAM_BEING_OFF ];
+
+  required uint32 beingid = 3;
+}
+
+// client -> scene : change being body
+message ChangeBodyBeingCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_BEING_PROTOCMD ];
+  optional BeingParam param = 2 [ default = BEINGPARAM_BEING_CHANGE_BODY ];
+
+  required uint32 beingid = 3;
+  required uint32 body = 4;
+}
+

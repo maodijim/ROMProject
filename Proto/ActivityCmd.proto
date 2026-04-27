@@ -1,0 +1,119 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+
+enum ActivityParam
+{
+  ACTIVITYPARAM_ACT_START = 1;
+  ACTIVITYPARAM_BCAT_UFOPOS = 2;
+  ACTIVITYPARAM_PROGRESS_NTF = 3;     //活动进度同步
+  ACTIVITYPARAM_ACT_STOP = 4;         
+  ACTIVITYPARAM_GLOBAL_ACT_START = 5;
+
+}
+
+enum GlobalActivityType
+{
+  GACTIVITY_MIN = 0;
+  GACTIVITY_AUGURY = 14;
+  GACTIVITY_GUILD_QUEST = 15;
+  GACTIVITY_GUILD_DONATE = 16;
+  GACTIVITY_GUILD_FUBEN = 17;
+  GACTIVITY_NOVICE_WELFARE = 18;
+  GACTIVITY_NORMAL_REFINE = 20;   //普通精炼
+  GACTIVITY_SAFE_REFINE = 21;     //安全精炼
+  GACTIVITY_SAFE_REFINE_DISCOUNT = 22;     //安全精炼
+  GACTIVITY_RECALL = 23;     // 周年庆-好友回归
+  GACTIVITY_SPRING_LOTTERY = 24;  //春节活动扭蛋奖励
+  GACTIVITY_WEDDING_SERVICE = 26; // 婚礼服务打折
+  GACTIVITY_FOOD_RECIPE = 27;  //品尝活动料理,概率获得配方
+
+  GACTIVITY_CHARGE_EXTRA_REWARD = 30;     //充值翻倍奖励
+  GACTIVITY_CHARGE_DISCOUNT = 31;         //充值打折
+  GACTIVITY_CHARGE_EXTRA_COUNT = 32;         //额外购买次数
+  GACTIVITY_ALTMAN = 101;              //奥特曼副本
+  GACTIVITY_MAX = 102;
+}
+
+// session -> client : bcat activity start
+message StartActCmd
+{
+  optional Command cmd = 1 [ default = ACTIVITY_PROTOCMD ];
+  optional ActivityParam param = 2 [ default = ACTIVITYPARAM_ACT_START ];
+
+  optional uint32 id = 3 ;
+  optional uint32 mapid = 4 [ default = 0 ];
+  optional uint32 starttime = 5 [ default = 0 ];
+  optional uint32 endtime = 6 [ default = 0 ];
+  optional uint32 path = 7;       //寻路
+  repeated uint32 unshowmap = 8;    //这些地图不显示追踪框
+}
+
+// session -> client : bcat activity stop
+message StopActCmd
+{
+  optional Command cmd = 1 [ default = ACTIVITY_PROTOCMD ];
+  optional ActivityParam param = 2 [ default = ACTIVITYPARAM_ACT_STOP ];
+
+  optional uint32 id = 3 ;
+}
+
+
+// scene -> client : bcat pos
+message BCatUFOPosActCmd
+{
+  optional Command cmd = 1 [ default = ACTIVITY_PROTOCMD ];
+  optional ActivityParam param = 2 [ default = ACTIVITYPARAM_BCAT_UFOPOS ];
+
+  optional ScenePos pos = 3;
+}
+
+// scene -> client : bcat pos
+enum EActProgress
+{
+  EACTPROGRESS_NONE = 0;    
+  EACTPROGRESS_1 = 1;    
+  EACTPROGRESS_2 = 2;    
+  EACTPROGRESS_3 = 3;    
+  EACTPROGRESS_4 = 4;    
+  EACTPROGRESS_5 = 5;    
+  EACTPROGRESS_6 = 6;    
+  EACTPROGRESS_7 = 7;    
+
+  EACTPROGRESS_FAIL = 100;    
+  EACTPROGRESS_SUCCESS = 101;    
+}
+
+message ActProgressNtfCmd
+{
+  optional Command cmd = 1 [ default = ACTIVITY_PROTOCMD ];
+  optional ActivityParam param = 2 [ default = ACTIVITYPARAM_PROGRESS_NTF ];
+  optional uint32 id = 3 ;
+  optional EActProgress progress = 4;
+  optional uint32 endtime = 5;
+  optional uint32 starttime = 6;
+}
+
+// session -> client : bcat global activity start
+message StartGlobalActCmd
+{
+  optional Command cmd = 1 [ default = ACTIVITY_PROTOCMD ];
+  optional ActivityParam param = 2 [ default = ACTIVITYPARAM_GLOBAL_ACT_START ];
+
+  optional uint32 id = 3;
+  optional GlobalActivityType type = 4 ;
+  repeated uint32 params = 5 ;
+  optional uint32 starttime = 6;
+  optional uint32 endtime = 7;
+  optional bool open = 8;     //true:活动开启，false 活动关闭
+  optional uint32 count = 9;  //限制次数，0表示无限制
+}
+
+message ActivityProgress
+{
+  optional uint32 actid = 1;
+  optional uint32 progress = 2;
+  repeated uint32 starttime = 3;
+  repeated uint32 endtime = 4;
+}

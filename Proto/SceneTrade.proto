@@ -1,0 +1,347 @@
+package Cmd;
+
+import "xCmd.proto";
+import "ProtoCommon.proto";
+import "SceneItem.proto";
+import "RecordTrade.proto";
+import "SceneMap.proto";
+
+enum SceneTradeParam
+{
+  FROST_ITEM_LIST_SCENE_TRADE_PARAM = 1;   //请求冻结的物品信息
+
+}
+////////////////////////////////
+
+message FrostItemListSceneTradeCmd
+{
+  optional Command cmd = 1 [ default = SCENE_USER_TRADE_PROTOCMD ];
+  optional SceneTradeParam param = 2 [ default = FROST_ITEM_LIST_SCENE_TRADE_PARAM ];    
+  repeated FrostItemInfo lists = 3;    
+}
+
+//record ->session -> scene
+
+enum RecordServerTradeParam
+{
+  SESSION_TO_ME_RECORDTRADE = 1;  
+  REDUCE_MONEY_RECORDTRADE = 3;
+  ADD_ITEM_RECORDTRADE = 4;
+  ADD_MONEY_RECORDTRADE = 5;    
+  REDUCE_ITEM_RECORDTRADE = 6; 
+  SESSION_FORWARD_USERCMD_TRADE = 7;  
+  SESSION_FORWARD_SCENECMD_TRADE = 8;
+  FORWARD_USERCMD_TO_RECORD = 9;
+  WORLD_MSG = 10;       //world msg ntf     
+  UPDATE_TRADELOG_RECORDTRADE = 11;
+
+  //赠送
+  GIVE_CHECK_MONEY_RECORDTRADE = 12;      //赠送扣钱，检查额度  session->scene
+  SYNC_GIVE_ITEM_RECORDTRADE = 13;        //数据同步 session ->scene
+  ADD_GIVE_RECORDTRADE = 14;              //接收人收到赠送  
+  DEL_GIVE_RECORDTRADE = 15;          
+  RECEIVE_GIVE_RECORDTRADE = 16;          //session ->global ->session
+  ADD_GIVE_ITEM_RECORDTRADE = 17;         //增加接受的物品 session<->scene
+  NTF_GIVE_STATUS_RECORDTRADE = 18;       //发送赠送状态  session ->global ->session    
+  REDUCE_QUOTA_RECORDTRADE = 19;          //扣除额度  session<->scene
+
+  EXTRA_PERMISSION_RECORDTRADE = 20;      //交易所额外功能  scene->session
+  SECURITY_CMD_RECORDTRADE = 21;          //安全指令 session -> tradeserver
+  TRADE_PRICE_QUERY_RECORDTRADE = 22;     //获取交易所价格
+  BOOTH_OPEN_RECORDTRADE = 23;            //通知交易所摊位打开／关闭
+
+  UNLOCK_QUOTA_RECORDTRADE = 24;          //解锁额度  session<->scene
+}
+
+enum EAddItemType
+{
+  EADDITEMTYP_BUY = 1;  
+  EADDITEMTYP_RETURN = 2;
+}
+ 
+// record <-> scene         //买，扣钱
+message ReduceMoneyRecordTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = REDUCE_MONEY_RECORDTRADE ];  
+  optional uint32 money_type  = 3;
+  optional uint32 total_money = 4;  
+  optional ETRADE_RET_CODE ret = 5;
+  optional uint64 charid = 6;
+  optional TradeItemBaseInfo item_info = 7;
+  optional uint64 quota = 8 [ default = 0 ];
+  optional ETradeType type = 9 [ default = ETRADETYPE_TRADE ];
+  optional uint64 record_id = 10  [ default = 0 ];
+  optional uint64 lock_quota = 11 [ default = 0 ];
+}
+
+// record -> scene          //买到物品增加道具 邮件
+message AddItemRecordTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = ADD_ITEM_RECORDTRADE ];  
+  optional TradeItemBaseInfo item_info = 3;
+  optional uint64 charid = 4;
+  optional EAddItemType addtype = 5;  
+  optional uint64 total_quota = 6; // 增加总额度
+}
+// record <-> scene       卖家 加钱， 邮件
+message AddMoneyRecordTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = ADD_MONEY_RECORDTRADE ];  
+  optional uint32 money_type = 3;
+  optional uint32 total_money = 4;   
+  optional uint64 charid = 5;
+  optional uint32 itemid = 6;
+  optional uint32 count = 7;
+  optional uint32 price = 8;  
+  optional EOperType type = 9;
+  optional uint32 money2 = 10;
+}
+
+//record <-> scene      卖家 扣装备 扣上架费
+message ReduceItemRecordTrade
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = REDUCE_ITEM_RECORDTRADE ];   
+  optional TradeItemBaseInfo item_info = 3; 
+  optional uint64 charid = 4;
+  optional ETRADE_RET_CODE ret = 5;
+  optional uint32 boothfee = 6;
+  optional bool is_resell = 7;     //是否是重新上架
+  optional uint64 orderid = 8;
+  optional ETradeType type = 9 [ default = ETRADETYPE_TRADE ];
+  optional uint64 quota_unlock = 10; // 解锁额度
+  optional uint64 quota_lock = 11;  // 锁定额度
+  optional uint64 quota = 12; // 额度单价(回给trade)
+}
+
+//client<->sessionserver<->tradeserver
+message SessionToMeRecordTrade
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = SESSION_TO_ME_RECORDTRADE ];   
+  optional uint64 charid = 3;
+  optional bytes data = 4;
+  optional uint32 len = 5;
+}
+
+//client<->sessionserver<->tradeserver
+message SessionForwardUsercmdTrade
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = SESSION_FORWARD_USERCMD_TRADE ];   
+  optional uint64 charid = 3;
+  optional uint32 zoneid = 4;
+  optional bytes data = 5;
+  optional uint32 len = 6;
+}
+
+//scene->sessionserver->tradeserver
+message SessionForwardScenecmdTrade
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = SESSION_FORWARD_SCENECMD_TRADE ];   
+  optional uint64 charid = 3;
+  optional uint32 zoneid = 4;
+  optional string name = 5;
+  optional bytes data = 6;
+  optional uint32 len = 7;
+}
+
+//client<->sessionserver<->recordserver
+message ForwardUserCmdToRecordCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = FORWARD_USERCMD_TO_RECORD ];   
+  optional uint64 charid = 3;
+  optional bytes data = 4;
+  optional uint32 len = 5;
+}
+
+message WorldMsgCmd 
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = WORLD_MSG ];   
+  optional bytes data = 3;
+  optional uint32 len = 4;
+}
+
+message UpdateTradeLogCmd 
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = UPDATE_TRADELOG_RECORDTRADE ];   
+  optional uint64 charid = 3;
+  optional EOperType type = 4;
+  optional uint64 id = 5;           //数据库id
+  optional ETradeType trade_type = 6 [ default = ETRADETYPE_TRADE ];
+}
+
+message GiveCheckMoneySceneTradeCmd 
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = GIVE_CHECK_MONEY_RECORDTRADE ];   
+  optional uint64 charid = 3;
+  optional EOperType type = 4;
+  optional uint64 id = 5;           //数据库id
+  optional uint64 friendid = 6;     //好友的id
+  optional string content = 7;      //留言内容
+  optional bool anonymous = 8;      //是否匿名
+
+  optional uint64 quota = 9;        //所需额度
+  optional uint64 fee = 10;          //zeny 费用
+  optional uint32 background = 11;  
+  
+  optional bool ret = 12;
+  optional ItemData itemdata = 13;  //交易所服计算额度用的
+  optional bool fromtrade = 14;     //是否是来自交易所返回
+}
+
+//session -> scene
+message SyncGiveItemSceneTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = SYNC_GIVE_ITEM_RECORDTRADE ];  
+  optional uint64 charid = 3;
+  repeated GiveItemInfo iteminfo = 4;
+  optional EGiveType type = 5;
+}
+
+message AddGiveSceneTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = ADD_GIVE_RECORDTRADE ];   
+  optional uint64 charid = 3;
+  
+  optional GiveItemInfo iteminfo = 4;
+}
+
+message DelGiveSceneTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = DEL_GIVE_RECORDTRADE ];   
+  optional uint64 charid = 3;
+  
+  optional uint64 id = 4;
+}
+
+message AddGiveItemSceneTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = ADD_GIVE_ITEM_RECORDTRADE ];   
+  optional uint64 charid = 3;  
+  optional uint64 id = 4;
+
+  optional uint32 itemid = 5;
+  optional uint32 count = 6;
+  optional ItemData itemData = 7;
+  optional uint32 background = 8;
+  optional bool ret = 9;
+}
+
+// session->other session
+message ReceiveGiveSceneTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = RECEIVE_GIVE_RECORDTRADE ];   
+  optional uint64 charid = 3;
+
+  optional uint64 id = 4;
+}
+
+// session->global->other session
+enum EGiveStatus
+{
+  EGiveStatus_Accept = 1;
+  EGiveStatus_Refuse = 2;  
+}
+
+message NtfGiveStatusSceneTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = NTF_GIVE_STATUS_RECORDTRADE ];   
+  optional uint64 charid = 3;
+  optional uint64 id = 4;
+  optional EGiveStatus status = 5;
+  optional string name = 6;
+}
+
+message ReduceQuotaSceneTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = REDUCE_QUOTA_RECORDTRADE ];   
+  optional uint64 charid = 3;
+  optional uint64 id = 4;
+  optional uint64 quota = 5;
+  optional string receivername  = 6;
+}
+
+message UnlockQuotaSceneTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = UNLOCK_QUOTA_RECORDTRADE ];   
+  optional uint64 charid = 3;
+  optional uint64 id = 4;
+  optional uint64 quota = 5;
+  optional string receivername  = 6;
+}
+
+enum EPermission
+{
+  EPERMISSION_MAX_PENDING_LIMIT = 1;      //交易上架挂单最大限制
+  EPERMISSION_RETURN_PERCENT = 2;         //没有卖出的物品，下架时返回的费用 千分比  
+  EPERMISSION_QUOTA = 3;         //玩家当前额度    
+  EPERMISSION_MAX_BOOTH_LIMIT = 4;      //摊位上架挂单最大限制
+}
+
+message ExtraPermissionSceneTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = EXTRA_PERMISSION_RECORDTRADE ];   
+  optional uint64 charid = 3;
+
+  optional EPermission permission = 4;
+  optional uint64 value = 5;
+}
+
+enum ESecurityType
+{
+  ESECURITYTYPE_ALL = 0;
+  ESECURITYTYPE_SELL = 1;
+  ESECURITYTYPE_BUY = 2;  
+}
+
+message SecurityCmdSceneTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = SECURITY_CMD_RECORDTRADE ];   
+  optional bool valid = 3;
+  optional ESecurityType type = 4;
+  optional uint64 charid = 5;     //0 所有玩家
+  optional uint32 itemid = 6;
+  optional int32 refinelv = 7;    //-1所有的
+  optional uint64 key = 8;        //删除时的key
+}
+
+//auction <-> session <-> trade
+message TradePriceQueryTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = TRADE_PRICE_QUERY_RECORDTRADE];
+
+  optional uint64 batchid = 3;
+  optional uint64 signup_id = 4;
+  optional uint64 price = 5;
+  optional ItemData itemdata = 6;
+}
+//scene -> trade
+message BoothOpenTradeCmd
+{
+  optional Command cmd = 1 [ default = TRADE_PROTOCMD ];
+  optional RecordServerTradeParam param = 2 [ default = BOOTH_OPEN_RECORDTRADE ];
+
+  optional uint64 charid = 3;
+  optional uint32 open = 4 [ default = 1 ];
+}
+

@@ -1,7 +1,6 @@
 package utils
 
 import (
-	Cmd "ROMProject/Cmds"
 	"bytes"
 	"compress/zlib"
 	"crypto/des"
@@ -9,14 +8,19 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"github.com/golang/protobuf/proto"
-	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"math"
 	"math/rand"
 	"reflect"
+	"strconv"
+	"strings"
 	"time"
+
+	Cmd "ROMProject/Cmds"
+
+	log "github.com/sirupsen/logrus"
+	"google.golang.org/protobuf/proto"
 )
 
 func Decompress(data []byte) ([]byte, error) {
@@ -32,7 +36,7 @@ func Decompress(data []byte) ([]byte, error) {
 
 func Compress(data []byte) ([]byte, error) {
 	var b bytes.Buffer
-	//w := zlib.NewWriter(&b)
+	// w := zlib.NewWriter(&b)
 	w, err := zlib.NewWriterLevel(&b, zlib.NoCompression)
 	_, err = w.Write(data)
 	w.Close()
@@ -116,7 +120,7 @@ func parseCmdNonce(body []byte) (hasNonce bool, hasData bool, nonceSize int) {
 		return false, false, 0
 	}
 	startPoint := nonceSize + 4
-	if (nonceSize == 44 || nonceSize == 50) && body[3] == 0 {
+	if (nonceSize == 44 || startPoint == 50 || nonceSize == 50) && body[3] == 0 {
 		hasNonce = true
 	} else {
 		hasData = true
@@ -167,7 +171,7 @@ func ParseCmd(data []byte, param proto.Message) (err error) {
 }
 
 func ConstructBody(cmdId, cmdParamId int32, flag, body, nonce, cipherKey []byte) []byte {
-	//newBodyLength := len(body) + 2
+	// newBodyLength := len(body) + 2
 	var newBody []byte
 	if nonce != nil {
 		newBody = make([]byte, 4)
@@ -211,6 +215,9 @@ func GetTimeNow(inMili bool) int64 {
 
 func RandomSleepTime(max, min int) int {
 	rand.Seed(time.Now().UnixNano())
+	if max < min {
+		max = min
+	}
 	return rand.Intn(max-min+1) + min
 }
 
@@ -229,7 +236,7 @@ func ParseBody(body, cipherKey []byte) [][]byte {
 	var cmdList [][]byte
 	for bodyLength > offset {
 		if len(body[offset:]) > headerLength {
-			//log.Printf("starting at position %d with header %x", offset, body[offset:offset+headerLength])
+			// log.Printf("starting at position %d with header %x", offset, body[offset:offset+headerLength])
 			contentLength := int(binary.LittleEndian.Uint16(body[offset:][1:]))
 			start := offset + headerLength
 			end := start
@@ -261,7 +268,7 @@ func ParseBody(body, cipherKey []byte) [][]byte {
 			offset = end
 			cmdList = append(cmdList, newBody)
 			if len(newBody) > 2 && isClientCMD(int(newBody[0]), int(newBody[1])) {
-				//log.Printf("Client CMD found contiune parsing...")
+				// log.Printf("Client CMD found contiune parsing...")
 				cmdList = append(cmdList, doSubParse(newBody)...)
 			}
 		}
@@ -294,7 +301,8 @@ func doSubParse(body []byte) [][]byte {
 func printNonceStr(body []byte, startPoint int) {
 	noStr := &Cmd.Nonce{}
 	err1 := proto.Unmarshal(body[4:startPoint], noStr)
-	log.Printf("Nonce Str: %v; err: %v", noStr, err1)
+	ts := time.Unix(int64(noStr.GetTimestamp()), 0)
+	log.Printf("date: %s, Nonce Str: %v; err: %v", ts, noStr, err1)
 }
 
 func getNonce(includeTime bool, currentIndex *uint32) []byte {
@@ -365,6 +373,7 @@ func StrSliceContain(strList []string, e string) bool {
 	}
 	return false
 }
+
 func Uint64SliceContains(s []*uint64, e uint64) bool {
 	for _, a := range s {
 		if *a == e {
@@ -372,4 +381,289 @@ func Uint64SliceContains(s []*uint64, e uint64) bool {
 		}
 	}
 	return false
+}
+
+func Contains[T comparable](s []T, e T) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
+func MapContains[T comparable](s map[T]bool, e T) bool {
+	_, ok := s[e]
+	return ok
+}
+
+func RandomString(length int) string {
+	rand.Seed(time.Now().UnixNano())
+	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	b := make([]rune, length)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
+}
+
+func RandomZhCharacterName(length int) string {
+	var name string
+	lastChar := []string{"子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"}
+	fourthChar := []string{"甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"}
+	thirdChar := []string{"名", "轩", "汉", "姝", "逸", "宫", "布", "菲", "星", "托", "玖", "葵"}
+	secChar := []string{"问", "叶", "时", "季", "乐", "月", "荦", "醉", "梦", "生", "彼", "斐"}
+	firstChar := []string{"明", "猎", "登", "高", "长", "伪", "罗", "净", "空", "竹", "黎", "佩"}
+	rand.Seed(time.Now().UnixNano())
+	name += firstChar[rand.Intn(len(firstChar))]
+	rand.Seed(time.Now().UnixNano())
+	name += secChar[rand.Intn(len(secChar))]
+	rand.Seed(time.Now().UnixNano())
+	name += thirdChar[rand.Intn(len(thirdChar))]
+	rand.Seed(time.Now().UnixNano())
+	name += fourthChar[rand.Intn(len(fourthChar))]
+	rand.Seed(time.Now().UnixNano())
+	name += lastChar[rand.Intn(len(lastChar))]
+	return name
+}
+
+func GetAttrPointReq(currentPoint int32) int32 {
+	return int32(math.Floor(float64(currentPoint)/9) + 2)
+}
+
+func GetMapKeys[K comparable, V any](m map[K]V) []K {
+	keys := make([]K, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
+
+func RevertMap[K comparable, V comparable](m map[K]V) map[V]K {
+	newMap := make(map[V]K)
+	for k, v := range m {
+		newMap[v] = k
+	}
+	return newMap
+}
+
+func PosEqual(pos1, pos2 Cmd.ScenePos) bool {
+	return pos1.GetX() == pos2.GetX() && pos1.GetY() == pos2.GetY() && pos1.GetZ() == pos2.GetZ()
+}
+
+func GetFieldNameByTag(inputStruct interface{}, tagKey, tagValue string) (fieldName string, found bool) {
+	val := reflect.ValueOf(inputStruct).Elem()
+	typ := val.Type()
+
+	for i := 0; i < val.NumField(); i++ {
+		field := typ.Field(i)
+		if field.Tag.Get(tagKey) == tagValue {
+			return field.Name, true
+		}
+	}
+	return "", false
+}
+
+// helpers
+func GetFloat64(v interface{}) (float64, bool) {
+	switch t := v.(type) {
+	case float64:
+		return t, true
+	case float32:
+		return float64(t), true
+	case int:
+		return float64(t), true
+	case int64:
+		return float64(t), true
+	case string:
+		s := strings.TrimSpace(t)
+		if s == "" {
+			return 0, false
+		}
+		if n, err := strconv.ParseFloat(s, 64); err == nil {
+			return n, true
+		}
+	}
+	return 0, false
+}
+
+func GetUint64(v interface{}) (uint64, bool) {
+	switch t := v.(type) {
+	case float64:
+		return uint64(t), true
+	case float32:
+		return uint64(t), true
+	case int:
+		return uint64(t), true
+	case int64:
+		return uint64(t), true
+	case string:
+		s := strings.TrimSpace(t)
+		if s == "" {
+			return 0, false
+		}
+		if n, err := strconv.ParseUint(s, 10, 64); err == nil {
+			return n, true
+		}
+	}
+	return 0, false
+}
+
+func GetInt(v interface{}) (int, bool) {
+	switch t := v.(type) {
+	case float64:
+		return int(t), true
+	case float32:
+		return int(t), true
+	case int:
+		return t, true
+	case int64:
+		return int(t), true
+	case string:
+		s := strings.TrimSpace(t)
+		if s == "" {
+			return 0, false
+		}
+		if n, err := strconv.Atoi(s); err == nil {
+			return n, true
+		}
+	}
+	return 0, false
+}
+
+func GetString(v interface{}) (string, bool) {
+	switch t := v.(type) {
+	case string:
+		return t, true
+	case []byte:
+		return string(t), true
+	default:
+		return "", false
+	}
+}
+
+func GetStringSlice(v interface{}) ([]string, bool) {
+	switch t := v.(type) {
+	case []interface{}:
+		out := make([]string, 0, len(t))
+		for _, it := range t {
+			if s, ok := it.(string); ok {
+				out = append(out, s)
+			}
+		}
+		return out, true
+	case []string:
+		return t, true
+	case string:
+		s := strings.TrimSpace(t)
+		if s == "" {
+			return []string{}, true
+		}
+		parts := strings.Split(s, ",")
+		for i := range parts {
+			parts[i] = strings.TrimSpace(parts[i])
+		}
+		return parts, true
+	default:
+		return nil, false
+	}
+}
+
+func ParseConfigFromInterface(config map[string]any, target any) {
+	val := reflect.ValueOf(target).Elem()
+
+	for k, v := range config {
+		var fieldName string
+		var found bool
+
+		// resolve field name by yaml then json tag
+		if fieldName, found = GetFieldNameByTag(target, "yaml", k); !found {
+			if fieldName, found = GetFieldNameByTag(target, "json", k); !found {
+				continue
+			}
+		}
+
+		field := val.FieldByName(fieldName)
+		if !field.IsValid() || !field.CanSet() {
+			continue
+		}
+		log.Tracef("parsing field %s with value %v; kind: %s", fieldName, v, field.Kind())
+		switch field.Kind() {
+		case reflect.Int, reflect.Int32, reflect.Int64, reflect.Int8, reflect.Int16:
+			if n, ok := GetInt(v); ok {
+				field.SetInt(int64(n))
+			}
+		case reflect.Uint, reflect.Uint32, reflect.Uint64, reflect.Uint8, reflect.Uint16:
+			if n, ok := GetUint64(v); ok {
+				field.SetUint(n)
+			}
+		case reflect.Float32, reflect.Float64:
+			if f, ok := GetFloat64(v); ok {
+				field.SetFloat(f)
+			}
+		case reflect.String:
+			if s, ok := GetString(v); ok {
+				field.SetString(s)
+			}
+		case reflect.Slice:
+			// handle []string
+			if field.Type().Elem().Kind() == reflect.String {
+				if s, ok := GetStringSlice(v); ok {
+					field.Set(reflect.ValueOf(s))
+				}
+			} else if field.Type().Elem().Kind() == reflect.Interface {
+				if s, ok := v.([]any); ok {
+					field.Set(reflect.ValueOf(s))
+				} else if s, ok := v.([]interface{}); ok {
+					field.Set(reflect.ValueOf(s))
+				} else if key, ok := v.(map[string]interface{}); ok {
+					ParseConfigFromInterface(key, field.Addr().Interface())
+				} else {
+					log.Warnf("unsupported slice type for field %s", fieldName)
+				}
+			} else if field.Type().Elem().Kind() == reflect.Struct {
+				if s, ok := v.([]interface{}); ok {
+					sliceTarget := reflect.MakeSlice(field.Type(), len(s), len(s))
+					for i := 0; i < len(s); i++ {
+						ParseConfigFromInterface(s[i].(map[string]any), sliceTarget.Index(i).Addr().Interface())
+					}
+				} else {
+					log.Warnf("unsupported slice struct type for field %s", fieldName)
+				}
+			}
+		case reflect.Bool:
+			if b, ok := v.(bool); ok {
+				field.SetBool(b)
+			}
+		case reflect.Map:
+			if key, ok := v.(map[string]interface{}); ok {
+				ParseConfigFromInterface(key, field.Addr().Interface())
+			}
+		case reflect.Struct:
+			if key, ok := v.(map[string]interface{}); ok {
+				ParseConfigFromInterface(key, field.Addr().Interface())
+			}
+		case reflect.Interface:
+			if key, ok := v.(map[string]interface{}); ok {
+				ParseConfigFromInterface(key, field.Addr().Interface())
+			}
+		default:
+			// unsupported kinds are ignored
+		}
+	}
+}
+
+func ParseSliceConfigFromInterface(config []any, target []any) {
+	for i := 0; i < len(config) && i < len(target); i++ {
+		ParseConfigFromInterface(config[i].(map[string]any), target[i])
+	}
+}
+
+func AllValuesTrue(m map[any]bool) bool {
+	for _, v := range m {
+		if !v {
+			return false
+		}
+	}
+	return true
 }

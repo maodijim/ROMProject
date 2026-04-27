@@ -1,0 +1,18 @@
+package Cmd;
+
+import "xCmd.proto";
+
+enum GZoneParam
+{
+  GZONEPARAM_UPDATEA_ACTIVE_ONLINE = 1;
+}
+
+message UpdateActiveOnlineGZoneCmd
+{
+  optional Command cmd = 1 [ default = GZONE_PROTOCMD ];
+  optional GZoneParam param = 2 [ default = GZONEPARAM_UPDATEA_ACTIVE_ONLINE ];
+
+  optional uint32 zoneid = 3 [ default = 0 ];
+  optional uint32 active = 4 [ default = 0 ];
+  optional uint32 online = 5 [ default = 0 ];
+}

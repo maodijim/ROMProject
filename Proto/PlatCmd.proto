@@ -1,0 +1,43 @@
+package Cmd;
+
+enum PCommand
+{
+  BOOLEAN = 0;
+  TEXT_CHECK = 1;
+  TEXT_CHECK_RESULT = 2;
+}
+
+message Boolean
+{
+  optional PCommand cmd = 1 [ default = BOOLEAN];
+  optional uint32 param = 2 [ default = 0 ];
+
+  optional uint32 code = 3 [ default = 0 ];
+  optional string message = 4;
+}
+
+message TextCheck
+{
+  optional PCommand cmd = 1 [ default = TEXT_CHECK];
+  optional uint32 param = 2 [ default = 0 ];
+
+  optional string project = 3;
+  optional string app = 4;
+  optional string uid = 5;
+  optional string name = 6;
+  optional uint32 group = 7;
+  optional string content = 8;
+  optional string replacement = 9 [ default = '*' ];
+  optional uint32 createTime = 10;
+  optional string ext = 11;
+}
+
+message TextCheckResult
+{
+  optional PCommand cmd = 1 [ default = TEXT_CHECK_RESULT];
+  optional uint32 param = 2 [ default = 0 ];
+
+  optional uint32 type = 3 [ default = 1];
+  optional string content = 4;
+}
+
